@@ -917,6 +917,155 @@
     function uploadProfileImg(input) { if (input.files && input.files[0]) { var reader = new FileReader(); reader.onload = function (e) { try { userProfile.img = e.target.result; localStorage.setItem('tm_user_profile', JSON.stringify(userProfile)); document.getElementById('displayProfileImg').src = userProfile.img; addNotification('success', 'Fotoğraf', 'Profil fotoğrafı yüklendi.'); } catch (error) { addNotification('danger', 'Hata', 'Fotoğraf boyutu çok büyük!'); } }; reader.readAsDataURL(input.files[0]); } }
 
     initApp();
+        /* --- HIZLANDIRILMIŞ PERFORMANS MOTORU (V2.1) --- */
+
+    // 1. UYGULAMA AÇILIŞINI HIZLANDIRAN INIT
+    function initApp(){
+        document.getElementById('currSelect').value = appSettings.currency;
+        document.getElementById('langSelect').value = appSettings.lang;
+        document.getElementById('themeSelect').value = appSettings.theme || 'ocean';
+        document.getElementById('polyKey').value = polyApiKey;
+        
+        applyTheme(appSettings.theme);
+        applyLang();
+        updateBadge();
+        loadProfile();
+        checkPolyInit();
+
+        // DEĞİŞİKLİK BURADA: Önce veriyi göster, sonra güncellemeyi başlat
+        // Kullanıcı anında ekranı görür, bekleme yapmaz.
+        renderPortfolioHTML(JSON.parse(localStorage.getItem('myPF_final')) || []);
+        
+        fetchUsdRate().then(()=>{ 
+            // Arka planda taze veri çekmeye başla
+            loadPF(true); 
+            setMarketTab('altin', document.querySelector('.m-tab-pro')); 
+            updateWatchlist(); 
+            // Haberleri en son, kullanıcıyı yormadan yükle
+            setTimeout(() => {
+                if(document.getElementById('newsFeed').innerHTML === "") fetchNewsCustom();
+            }, 2000);
+        });
+        
+        renderHistory();
+        setEntryCurrency('TRY'); 
+        if(notifications.length === 0) addNotification('info', 'Sistem', 'TradeMaster Hızlı Modda Hazır.');
+    }
+
+    // 2. PARALEL VERİ ÇEKEN VE ANINDA GÖSTEREN LOADPF
+    async function loadPF(refreshData = false){
+        let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
+        
+        // Eğer güncelleme isteniyorsa (refreshData = true), İnternetten veri çek
+        if(refreshData && as.length > 0) {
+            // "Yükleniyor" hissi vermek için total bakiyeyi hafif flu yapalım
+            document.getElementById('totalWallet').style.opacity = "0.5";
+            
+            // BURASI KRİTİK: Hepsini AYNI ANDA (Paralel) çekiyoruz
+            // Eskiden: Tek tek bekliyordu. Şimdi: Hepsi aynı anda soruluyor.
+            const promises = as.map(async (a) => {
+                let live = await getPrice(a.name);
+                if(live.price > 0) a.curr = live.price;
+                return a;
+            });
+
+            // Tüm veriler gelene kadar bekle (ama bu sırada eski veri ekranda görünüyor)
+            await Promise.all(promises);
+            
+            // Yeni verileri kaydet ve opaklığı düzelt
+            localStorage.setItem('myPF_final', JSON.stringify(as));
+            document.getElementById('totalWallet').style.opacity = "1";
+        }
+
+        // HTML'i Ekrana Bas (Bu fonksiyonu ayırdık ki hızlı çalışsın)
+        renderPortfolioHTML(as);
+    }
+
+    // 3. HTML OLUŞTURUCU (Rendering Engine)
+    function renderPortfolioHTML(as) {
+        let l = document.getElementById('portfolioList'); 
+        if(!l) return;
+        
+        let totalVal = 0; 
+        let chartData = { bist: 0, crypto: 0, other: 0, cash: cashBalance }; 
+        let uCurr = appSettings.currency; 
+        let sym = uCurr==='TRY'?'₺':'$'; 
+        let totalUnrealizedPnL = 0;
+
+        let displayAssets = as.map((a, i) => { 
+            let rp = (a.curr && a.curr > 0) ? a.curr : a.buy; 
+            let dVal = 0; let dCost = 0; 
+            if(uCurr === 'TRY') { 
+                if(a.origin === 'USD') { dVal = rp * a.amt * usdTryRate; dCost = a.buy * a.amt * usdTryRate; } 
+                else { dVal = rp * a.amt; dCost = a.buy * a.amt; } 
+            } else { 
+                if(a.origin === 'TRY') { dVal = (rp * a.amt) / usdTryRate; dCost = (a.buy * a.amt) / usdTryRate; } 
+                else { dVal = rp * a.amt; dCost = a.buy * a.amt; } 
+            } 
+            let pnl = dVal - dCost; 
+            totalUnrealizedPnL += pnl; 
+            return { ...a, originalIndex: i, dVal, dCost, pnl, rp }; 
+        });
+        
+        // Sıralama (Opsiyonel)
+        if(typeof sortState !== 'undefined' && sortState === 1) displayAssets.sort((a,b) => b.dVal - a.dVal);
+
+        let htmlBuilder = ""; // Tek seferde basmak için string birleştirme (Daha hızlı)
+
+        displayAssets.forEach((a) => { 
+            totalVal += a.dVal; 
+            if(a.name.includes("USDT") || !a.name.includes('.')) chartData.crypto += a.dVal; else chartData.bist += a.dVal; 
+            
+            let cls = a.pnl >= 0 ? 'pnl-up' : 'pnl-down'; 
+            let priceUnit = a.origin === 'USD' ? `<b>$${a.rp.toFixed(2)}</b>` : `<b>₺${a.rp.toFixed(2)}</b>`; 
+            let logoHtml = getAssetLogoHtml(a.name); 
+            let cardColorClass = 'asset-card'; if(a.pnl > 0) cardColorClass += ' profit-bg'; if(a.pnl < 0) cardColorClass += ' loss-bg'; 
+            let chartId = `mini_chart_${a.originalIndex}`; 
+            
+            htmlBuilder += `<div class="${cardColorClass}"><div class="asset-header collapsible-header" onclick="toggleAssetDetails(${a.originalIndex})"><div class="asset-left">${logoHtml}<div><span class="asset-name">${a.name}</span><div class="asset-meta">${a.amt} Adet</div></div></div><div style="display:flex; align-items:center; gap:10px;"><div class="asset-pnl ${cls}">${sym}${a.pnl.toFixed(0)}</div><i id="asset-chevron-${a.originalIndex}" class="fas fa-chevron-down rotate-icon" style="font-size:12px; color:var(--text-sub);"></i></div></div><div id="asset-content-${a.originalIndex}" class="collapsible-content collapsed"><div class="asset-body-content"><div class="asset-details-grid"><div class="detail-item"><span class="detail-label">Ortalama</span><span class="detail-val">${a.buy.toFixed(2)} ${a.origin==='USD'?'$':'₺'}</span></div><div class="detail-item" style="text-align:right;"><span class="detail-label">Güncel</span><span class="detail-val accent">${priceUnit}</span></div><div class="detail-item"><span class="detail-label">Maliyet</span><span class="detail-val">${sym}${a.dCost.toFixed(0)}</span></div><div class="detail-item" style="text-align:right;"><span class="detail-label">Toplam Değer</span><span class="detail-val">${sym}${a.dVal.toFixed(0)}</span></div></div>${a.note ? `<div class="asset-note"><i class="fas fa-sticky-note"></i> ${a.note}</div>` : ''}<div class="asset-footer"><button class="tool-btn" onclick="toggleAssetChart('${a.name}', '${chartId}', this)"><i class="fas fa-chart-area"></i></button><button class="tool-btn ${a.alarm?'active-alarm':''}" onclick="openAlarmModal(${a.originalIndex})"><i class="fas fa-bell"></i></button><button class="tool-btn active-sim" onclick="openSimulator(${a.originalIndex})"><i class="fas fa-magic"></i></button><button class="tool-btn" onclick="editNote(${a.originalIndex})"><i class="fas fa-edit"></i></button><button class="tool-btn" onclick="openSell(${a.originalIndex})"><i class="fas fa-coins"></i></button><button class="tool-btn" onclick="delAsset(${a.originalIndex})"><i class="fas fa-trash"></i></button></div><div id="${chartId}" class="asset-mini-chart"></div></div></div></div>`; 
+        });
+
+        // DOM'a tek seferde basma (Performans artışı)
+        l.innerHTML = htmlBuilder;
+
+        // Özet Verileri Güncelle
+        let grandTotal = totalVal + cashBalance; 
+        document.getElementById('totalWallet').innerText = sym + grandTotal.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0}); 
+        document.getElementById('cashBalance').innerText = sym + cashBalance.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0}); 
+        document.getElementById('realizedPnLVal').innerText = sym + realizedPnL.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        
+        const hero = document.querySelector('.balance-hero'); 
+        if(hero) {
+            if(totalUnrealizedPnL >= 0) { hero.classList.remove('loss'); hero.classList.add('profit'); } 
+            else { hero.classList.remove('profit'); hero.classList.add('loss'); }
+        }
+
+        // Analiz Kartları
+        if(document.getElementById('anTotalPnL')) { 
+            let pnlEl = document.getElementById('anTotalPnL'); 
+            pnlEl.innerText = sym + totalUnrealizedPnL.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0}); 
+            pnlEl.parentNode.className = 'an-card ' + (totalUnrealizedPnL >= 0 ? 'up' : 'down');
+            document.getElementById('anCash').innerText = sym + cashBalance.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0}); 
+            
+            if(targetAmount > 0){ 
+                let p = Math.min((grandTotal/targetAmount)*100, 100); 
+                let bar = document.getElementById('goalBar'); 
+                if(bar) {
+                    bar.style.width = p + "%"; bar.className = 'goal-fill'; 
+                    if(p < 30) bar.classList.add('low'); else if(p < 70) bar.classList.add('mid'); else bar.classList.add('high'); 
+                }
+                document.getElementById('goalCurrent').innerText = sym + grandTotal.toLocaleString(); 
+            } 
+        }
+
+        // Privacy Modu
+        if(isPrivacyMode) document.getElementById('totalWallet').classList.add('privacy-blur'); else document.getElementById('totalWallet').classList.remove('privacy-blur');
+        
+        // Pasta Grafik (Sadece ilk yüklemede değil, her değişimde güncelle)
+        if(document.getElementById('allocationChart') && (chartData.bist > 0 || chartData.crypto > 0 || chartData.cash > 0)) { renderAllocationChart(chartData); }
+        
+        checkAllAlarms();
+    }
 </script>
 </body>
 </html>
