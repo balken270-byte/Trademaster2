@@ -505,13 +505,53 @@
 
 <div id="alarmModal" class="modal-overlay">
     <div class="modal">
-        <h3>Fiyat Alarmı</h3>
+        <h3 id="alarmAssetTitle" style="text-align:center; margin-bottom:15px; color:var(--accent);">Fiyat Alarmı</h3>
         <input type="hidden" id="alarmIdx">
-        <div style="margin-bottom:10px; color:var(--text-sub);">Hangi fiyata gelince bildirim gelsin?</div>
-        <input type="number" id="alarmPrice" class="modern-input" placeholder="Hedef Fiyat">
-        <button class="btn-main" onclick="saveAlarm()">Kaydet</button>
-        <button class="btn-main btn-sec" style="margin-top:10px;" onclick="closeModal('alarmModal')">İptal</button>
+        
+        <div class="sim-tab-group" style="margin-bottom:15px;">
+            <div class="sim-tab active" onclick="switchAlarmTab('price', this)"><i class="fas fa-tag"></i> Fiyat Hedefi</div>
+            <div class="sim-tab" onclick="switchAlarmTab('percent', this)"><i class="fas fa-percent"></i> Yüzde (%)</div>
+        </div>
+
+        <div id="alarm-pane-price" class="alarm-pane active" style="display:block;">
+            <div style="font-size:11px; color:var(--text-sub); margin-bottom:5px;">Yükseliş Hedefi (Üst Sınır)</div>
+            <div class="trade-input-group" style="margin-bottom:10px;">
+                <i class="fas fa-arrow-up input-icon" style="color:var(--success);"></i>
+                <input type="number" id="alarmUpper" class="trade-input" placeholder="Örn: 150.00">
+            </div>
+
+            <div style="font-size:11px; color:var(--text-sub); margin-bottom:5px;">Düşüş Sınırı (Stop-Loss)</div>
+            <div class="trade-input-group">
+                <i class="fas fa-arrow-down input-icon" style="color:var(--danger);"></i>
+                <input type="number" id="alarmLower" class="trade-input" placeholder="Örn: 130.00">
+            </div>
+        </div>
+
+        <div id="alarm-pane-percent" class="alarm-pane" style="display:none;">
+            <div style="background:rgba(59,130,246,0.1); padding:10px; border-radius:8px; font-size:11px; color:var(--accent); margin-bottom:10px;">
+                <i class="fas fa-info-circle"></i> Maliyetinize göre hesaplanır.
+            </div>
+            
+            <div style="font-size:11px; color:var(--text-sub); margin-bottom:5px;">% Kaç Kâr Edince Uyar?</div>
+            <div class="trade-input-group" style="margin-bottom:10px;">
+                <i class="fas fa-plus input-icon" style="color:var(--success);"></i>
+                <input type="number" id="alarmPctUp" class="trade-input" placeholder="Örn: 10 (Yüzde 10 artarsa)">
+            </div>
+
+            <div style="font-size:11px; color:var(--text-sub); margin-bottom:5px;">% Kaç Düşüşte Uyar?</div>
+            <div class="trade-input-group">
+                <i class="fas fa-minus input-icon" style="color:var(--danger);"></i>
+                <input type="number" id="alarmPctDown" class="trade-input" placeholder="Örn: 5 (Yüzde 5 düşerse)">
+            </div>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button class="btn-main btn-danger" style="flex:1;" onclick="clearAssetAlarms()">Sıfırla</button>
+            <button class="btn-main" style="flex:2;" onclick="saveAlarm()">KAYDET</button>
+        </div>
+        <button class="btn-main btn-sec" style="margin-top:10px;" onclick="closeModal('alarmModal')">Vazgeç</button>
     </div>
+    
 </div>
 
 <div id="simModal" class="modal-overlay">
@@ -884,6 +924,145 @@
 
     // UYGULAMAYI BAŞLAT
     initApp();
+        /* --- GELİŞMİŞ ALARM SİSTEMİ (UPDATE) --- */
+
+    // Alarm penceresini açar ve kayıtlı verileri doldurur
+    function openAlarmModal(i){ 
+        let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
+        let asset = as[i];
+        if(!asset) return;
+
+        document.getElementById('alarmIdx').value = i; 
+        document.getElementById('alarmAssetTitle').innerText = `${asset.name} Alarmları`;
+        
+        // Varsa eski değerleri yerine koy
+        document.getElementById('alarmUpper').value = asset.alarmUpper || "";
+        document.getElementById('alarmLower').value = asset.alarmLower || "";
+        document.getElementById('alarmPctUp').value = asset.alarmPctUp || "";
+        document.getElementById('alarmPctDown').value = asset.alarmPctDown || "";
+
+        // Sekmeyi sıfırla
+        switchAlarmTab('price', document.querySelector('.sim-tab-group .sim-tab'));
+        document.getElementById('alarmModal').style.display='flex'; 
+    } 
+
+    // Sekme geçişleri
+    function switchAlarmTab(mode, btn) {
+        document.querySelectorAll('.alarm-pane').forEach(el => el.style.display = 'none');
+        document.getElementById('alarm-pane-' + mode).style.display = 'block';
+        
+        // Aktif buton görseli
+        const group = btn.parentElement;
+        group.querySelectorAll('.sim-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    // Alarmları kaydeder
+    function saveAlarm(){ 
+        let i = document.getElementById('alarmIdx').value; 
+        let as = JSON.parse(localStorage.getItem('myPF_final')); 
+        
+        let up = parseFloat(document.getElementById('alarmUpper').value);
+        let low = parseFloat(document.getElementById('alarmLower').value);
+        let pUp = parseFloat(document.getElementById('alarmPctUp').value);
+        let pDown = parseFloat(document.getElementById('alarmPctDown').value);
+
+        // Değerleri kaydet (NaN ise null yap)
+        as[i].alarmUpper = up || null;
+        as[i].alarmLower = low || null;
+        as[i].alarmPctUp = pUp || null;
+        as[i].alarmPctDown = pDown || null;
+        
+        // Eski tekli alarm sistemini temizle (çakışmasın)
+        delete as[i].alarm; 
+
+        localStorage.setItem('myPF_final', JSON.stringify(as)); 
+        document.getElementById('alarmModal').style.display='none'; 
+        addNotification('success', 'Alarm Kuruldu', `${as[i].name} için bekçiler aktif.`); 
+        loadPF(true); 
+    } 
+
+    // O anki alarmları siler
+    function clearAssetAlarms() {
+        let i = document.getElementById('alarmIdx').value; 
+        let as = JSON.parse(localStorage.getItem('myPF_final'));
+        as[i].alarmUpper = null;
+        as[i].alarmLower = null;
+        as[i].alarmPctUp = null;
+        as[i].alarmPctDown = null;
+        localStorage.setItem('myPF_final', JSON.stringify(as));
+        
+        document.getElementById('alarmUpper').value = "";
+        document.getElementById('alarmLower').value = "";
+        document.getElementById('alarmPctUp').value = "";
+        document.getElementById('alarmPctDown').value = "";
+        
+        addNotification('info', 'Temizlendi', 'Alarmlar kaldırıldı.');
+    }
+
+    // CANLI KONTROL MEKANİZMASI (Motor bunu her 8 saniyede bir çağırır)
+    async function checkAllAlarms(){ 
+        let as = JSON.parse(localStorage.getItem('myPF_final')) || []; 
+        let updated=false; 
+        
+        for(let asset of as){ 
+            // Alarm kurulu değilse atla
+            if(!asset.alarmUpper && !asset.alarmLower && !asset.alarmPctUp && !asset.alarmPctDown) continue;
+
+            let currentPrice = asset.curr || 0; 
+            
+            // Fiyat henüz gelmediyse çekmeyi dene
+            if(currentPrice === 0) { 
+                let p = await getPrice(asset.name); 
+                currentPrice = p.price; 
+            } 
+            
+            if(currentPrice > 0){ 
+                // 1. ÜST FİYAT KONTROLÜ
+                if(asset.alarmUpper && currentPrice >= asset.alarmUpper){
+                    addNotification('success', 'HEDEF GELDİ! 🚀', `${asset.name} yükseldi: ${currentPrice}`);
+                    asset.alarmUpper = null; // Tekrar çalmasın diye sil
+                    updated = true;
+                }
+
+                // 2. ALT FİYAT KONTROLÜ
+                if(asset.alarmLower && currentPrice <= asset.alarmLower){
+                    addNotification('danger', 'DÜŞÜŞ UYARISI 🔻', `${asset.name} düştü: ${currentPrice}`);
+                    asset.alarmLower = null;
+                    updated = true;
+                }
+
+                // 3. YÜZDE HESAPLAMALARI
+                // Maliyete göre değişim yüzdesi
+                let cost = asset.buy; 
+                if(cost > 0) {
+                    let percentChange = ((currentPrice - cost) / cost) * 100;
+
+                    // % Kâr Kontrolü
+                    if(asset.alarmPctUp && percentChange >= asset.alarmPctUp) {
+                        addNotification('success', `TEBRİKLER (%${percentChange.toFixed(1)}) 🚀`, `${asset.name} hedef kârına ulaştı.`);
+                        asset.alarmPctUp = null;
+                        updated = true;
+                    }
+
+                    // % Zarar Kontrolü (Düşüş negatif olduğu için mutlak değere veya matematiksel kontrole dikkat)
+                    // Örn: %5 zarar demek, değişimin -5 veya daha küçük olması demektir.
+                    if(asset.alarmPctDown && percentChange <= -(asset.alarmPctDown)) {
+                        addNotification('warn', `DİKKAT (%${percentChange.toFixed(1)}) ⚠️`, `${asset.name} zarar limitine indi.`);
+                        asset.alarmPctDown = null;
+                        updated = true;
+                    }
+                }
+            } 
+        } 
+        
+        if(updated) { 
+            localStorage.setItem('myPF_final', JSON.stringify(as)); 
+            let l = document.getElementById('portfolioList'); 
+            if(l && l.innerHTML !== "") loadPF(); 
+        } 
+    }
+
 </script>
 </body>
 </html>
