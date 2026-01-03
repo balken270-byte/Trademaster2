@@ -730,6 +730,21 @@
         <button class="btn-main btn-sec" style="margin-top:10px;" onclick="closeModal('cashModal')">İptal</button>
     </div>
 </div>
+<div id="noCashModal" class="modal-overlay">
+    <div class="modal" style="text-align:center; max-width:300px;">
+        <div style="width:60px; height:60px; background:rgba(239, 68, 68, 0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 15px auto;">
+            <i class="fas fa-wallet" style="font-size:30px; color:var(--danger);"></i>
+        </div>
+        <h3 style="margin:0 0 10px 0; font-size:18px;">Yetersiz Bakiye!</h3>
+        <p style="font-size:13px; color:var(--text-sub); margin-bottom:20px; line-height:1.5;">
+            Bu işlemi gerçekleştirmek için kasanızda yeterli nakit bulunmuyor.
+        </p>
+        <div style="display:flex; gap:10px;">
+            <button class="btn-main btn-sec" onclick="closeModal('noCashModal')">Vazgeç</button>
+            <button class="btn-main" onclick="closeModal('noCashModal'); openCashModal()">Nakit Ekle</button>
+        </div>
+    </div>
+</div>
 
 <script>
     /* --- AYARLAR VE GLOBAL DEĞİŞKENLER --- */
@@ -870,22 +885,28 @@
     /* --- PORTFÖY VE FİYAT FONKSİYONLARI --- */
     async function getPrice(s) {
         s = s.toUpperCase().trim(); if(!s) return { price: 0, origin: 'TRY', change: 0 };
+        // Kripto veya özel durumlar
         if(s.includes('USDT') || s.includes('BUSD') || (!s.includes('=') && !s.includes('.IS') && !s.includes('USD') && !s.includes('EUR') && s.length <= 8)) {
              let res = await tryBinance(s); if(res) return res; 
         }
+        // Polygon (Varsa)
         if(polyApiKey) { let res = await tryPolygon(s); if(res) return res; }
+        // Fallback: Yahoo Finance
         let res = await tryYahoo(s); if(res) return res;
         return { price: 0, origin: 'TRY', change: 0 };
     }
+
     async function tryBinance(symbol) {
         let s = symbol.replace('BINANCE:', '').trim();
         if(!s.includes('USDT') && !s.includes('TRY') && !s.includes('BUSD') && !s.includes('USDC')) s += 'USDT';
         try { let r = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${s}`); if(r.ok) { let d = await r.json(); let origin = s.includes('TRY') ? 'TRY' : 'USD'; return { price: parseFloat(d.lastPrice), origin: origin, change: parseFloat(d.priceChangePercent), source: 'BINANCE' }; } } catch(e){} return null;
     }
+
     async function tryPolygon(symbol) {
         if(!polyApiKey) return null; if(symbol.includes('.IS') || symbol.includes('=') || symbol.includes('TRY')) return null; 
         try { let r = await fetch(`https://api.polygon.io/v2/aggs/ticker/${symbol}/prevClose?adjusted=true&apiKey=${polyApiKey}`); if(r.ok) { let d = await r.json(); if(d.results && d.results[0]) { let res = d.results[0]; return { price: res.c, origin: 'USD', change: ((res.c - res.o) / res.o) * 100, source: 'POLYGON' }; } } } catch(e) {} return null;
     }
+
     async function tryYahoo(symbol) {
         try { let r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d`)}`); 
             let d = await r.json(); let c = JSON.parse(d.contents); 
@@ -1050,6 +1071,7 @@
         let total = assetVal + cashBalance; let lastEntry = history[history.length - 1];
         if (!lastEntry || lastEntry.date !== today) { history.push({ date: today, val: total }); if(history.length > 30) history.shift(); localStorage.setItem('tm_networth_history', JSON.stringify(history)); } else { lastEntry.val = total; localStorage.setItem('tm_networth_history', JSON.stringify(history)); }
     }
+    
     function renderAnalyticsPage() {
         let as = JSON.parse(localStorage.getItem('myPF_final')) || []; let sym = appSettings.currency === 'TRY' ? '₺' : '$'; let totalAssetVal = 0; let totalCost = 0;
         as.forEach(a => { let p = a.curr || a.buy; let val = 0; let cost = 0; if(appSettings.currency === 'TRY') { val = (a.origin === 'USD') ? (p * a.amt * usdTryRate) : (p * a.amt); cost = (a.origin === 'USD') ? (a.buy * a.amt * usdTryRate) : (a.buy * a.amt); } else { val = (a.origin === 'TRY') ? ((p * a.amt) / usdTryRate) : (p * a.amt); cost = (a.origin === 'TRY') ? ((a.buy * a.amt) / usdTryRate) : (a.buy * a.amt); } totalAssetVal += val; totalCost += cost; });
@@ -1066,16 +1088,47 @@
         sortedAssets.forEach((a, i) => { let currentP = a.curr || a.buy; let rawPnL = (currentP - a.buy) * a.amt; let pnlColor = rawPnL >= 0 ? 'var(--success)' : 'var(--danger)'; topListHTML += `<div class="top-performer-row"><div class="tp-name"><div class="rank-badge ${i===0 ? 'rank-1' : ''}">${i+1}</div>${a.name.replace('.IS','')}</div><div class="tp-val" style="color:${pnlColor}">${rawPnL >= 0 ? '+' : ''}${rawPnL.toFixed(0)}</div></div>`; });
         document.getElementById('topPerformersList').innerHTML = topListHTML; renderNewAllocationChart(as);
     }
+    
     let wrChartInstance = null; function renderWinRateChart(rate) { const ctx = document.getElementById('winRateChart').getContext('2d'); if(wrChartInstance) wrChartInstance.destroy(); let color = rate >= 50 ? '#10b981' : '#ef4444'; wrChartInstance = new Chart(ctx, { type: 'doughnut', data: { labels: ['Win', 'Loss'], datasets: [{ data: [rate, 100 - rate], backgroundColor: [color, 'rgba(255,255,255,0.05)'], borderWidth: 0, cutout: '85%', borderRadius: 20 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } } } }); }
     let growthChartReal = null; function renderRealGrowthChart() { const ctx = document.getElementById('realGrowthChart').getContext('2d'); if(growthChartReal) growthChartReal.destroy(); let history = JSON.parse(localStorage.getItem('tm_networth_history')) || []; if(history.length === 0) history.push({ date: new Date().toLocaleDateString('tr-TR'), val: 0 }); let labels = history.map(h => h.date.substring(0, 5)); let data = history.map(h => h.val); let gradient = ctx.createLinearGradient(0, 0, 0, 400); gradient.addColorStop(0, 'rgba(59, 130, 246, 0.5)'); gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)'); growthChartReal = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [{ label: 'Net Varlık', data: data, borderColor: '#3b82f6', backgroundColor: gradient, borderWidth: 2, pointBackgroundColor: '#1e1e1e', pointBorderColor: '#3b82f6', pointRadius: 4, fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#64748b', font: {size: 10} } }, y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: {size: 10} } } } } }); }
     let allocChartNew = null; function renderNewAllocationChart(as) { const ctx = document.getElementById('newAllocationChart').getContext('2d'); if(allocChartNew) allocChartNew.destroy(); let crypto = 0, bist = 0, forex = 0, cash = cashBalance; as.forEach(a => { let val = (a.curr || a.buy) * a.amt; if(appSettings.currency === 'TRY' && a.origin === 'USD') val *= usdTryRate; let tag = getAssetTag(a.name).t; if(tag === 'KRİPTO') crypto += val; else if(tag === 'BORSA') bist += val; else forex += val; }); allocChartNew = new Chart(ctx, { type: 'doughnut', data: { labels: ['Kripto', 'Borsa', 'Döviz', 'Nakit'], datasets: [{ data: [crypto, bist, forex, cash], backgroundColor: ['#f59e0b', '#3b82f6', '#8b5cf6', '#10b981'], borderWidth: 0, hoverOffset: 10 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: 'white', boxWidth: 10, font: {size: 10} } } } } }); }
     function updateGrowthChart(days) { document.querySelectorAll('.chart-filter-btn').forEach(b => b.classList.remove('active')); event.target.classList.add('active'); renderRealGrowthChart(); }
-    /* --- DİĞER YARDIMCI FONKSİYONLARI --- */
+    /* --- DİĞER YARDIMCI FONKSİYONLAR --- */
     function setupKeyboardFix() { const inputs = document.querySelectorAll('input'); const nav = document.querySelector('.nav-container'); inputs.forEach(input => { input.addEventListener('focus', () => { nav.classList.add('nav-hidden'); }); input.addEventListener('blur', () => { setTimeout(() => { nav.classList.remove('nav-hidden'); }, 100); }); }); }
     let debounceTimer; function debouncedPreview(val) { clearTimeout(debounceTimer); const infoDiv = document.getElementById('liveInfo'); if(val.length < 2) { infoDiv.innerText = ""; return; } infoDiv.innerText = "Aranıyor..."; debounceTimer = setTimeout(async () => { let res = await getPrice(val); if (res.price > 0) { let sym = res.origin === 'USD' ? '$' : '₺'; infoDiv.innerHTML = `<span style="color:var(--success)">${val.toUpperCase()} (${res.source}): ${sym}${res.price.toFixed(2)}</span>`; } else { infoDiv.innerText = "Bulunamadı (Manuel Girin)"; infoDiv.style.color = "var(--text-sub)"; } }, 600); }
-    function calcLiveTotal() { let amt = parseFloat(document.getElementById('addAmount').value) || 0; let pr = parseFloat(document.getElementById('addBuyPrice').value) || 0; let total = amt * pr; let sym = entryCurrency === 'TRY' ? '₺' : '$'; document.getElementById('liveTradeTotal').innerText = sym + total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
     
-    // --- DÜZELTİLMİŞ PORTFÖYE EKLEME FONKSİYONU ---
+    // --- GÜNCELLENMİŞ: ANLIK TUTAR HESAPLAMA VE RENK DEĞİŞİMİ ---
+    function calcLiveTotal() { 
+        let amt = parseFloat(document.getElementById('addAmount').value) || 0; 
+        let pr = parseFloat(document.getElementById('addBuyPrice').value) || 0; 
+        
+        // Toplam Tutar
+        let total = amt * pr; 
+        let sym = entryCurrency === 'TRY' ? '₺' : '$'; 
+        let totalEl = document.getElementById('liveTradeTotal');
+        
+        totalEl.innerText = sym + total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}); 
+
+        // --- GÖRSEL UYARI KONTROLÜ ---
+        let costInWallet = 0;
+        if (appSettings.currency === entryCurrency) {
+            costInWallet = total;
+        } else {
+            if (appSettings.currency === 'TRY' && entryCurrency === 'USD') costInWallet = total * usdTryRate;
+            else if (appSettings.currency === 'USD' && entryCurrency === 'TRY') costInWallet = total / usdTryRate;
+        }
+
+        // Para yetmiyorsa Kırmızı, yetiyorsa Beyaz yap
+        if(costInWallet > cashBalance) {
+            totalEl.style.color = 'var(--danger)'; 
+            totalEl.style.fontWeight = '800';
+        } else {
+            totalEl.style.color = 'white';
+            totalEl.style.fontWeight = '800';
+        }
+    }
+    
+    // --- GÜNCELLENMİŞ: PORTFÖYE EKLEME (MODAL UYARILI) ---
     function addToPortfolio(){ 
         let s = document.getElementById('addSymbol').value.toUpperCase().trim(); 
         let a = parseFloat(document.getElementById('addAmount').value); 
@@ -1086,6 +1139,7 @@
         let totalCostInEntry = a * b; 
         let costInWallet = 0; 
         
+        // Cüzdan para birimine çevir
         if (appSettings.currency === entryCurrency) { 
             costInWallet = totalCostInEntry; 
         } else { 
@@ -1093,7 +1147,12 @@
             else if (appSettings.currency === 'USD' && entryCurrency === 'TRY') costInWallet = totalCostInEntry / usdTryRate;
         } 
         
-        if(costInWallet > cashBalance) { return addNotification('danger', 'Yetersiz Bakiye', `Bakiye yetersiz.`); } 
+        // --- YETERSİZ BAKİYE KONTROLÜ ---
+        if(costInWallet > cashBalance) { 
+            // Direkt uyarı penceresini aç
+            openModal('noCashModal');
+            return; 
+        } 
         
         cashBalance -= costInWallet; 
         localStorage.setItem('tm_cash_balance', cashBalance); 
@@ -1121,33 +1180,41 @@
         
         localStorage.setItem('myPF_final', JSON.stringify(as)); 
         
-        // DÜZELTME: Entry Currency'yi logHistory'e gönderiyoruz
+        // İşlemi kaydet
         logHistory('ALIM', s, a, b, '', entryCurrency); 
         
         addNotification('success', 'İşlem Başarılı', `${s} portföye eklendi.`); 
+        
+        // Formu temizle
         document.getElementById('addSymbol').value=""; 
         document.getElementById('addAmount').value=""; 
         document.getElementById('addBuyPrice').value=""; 
         document.getElementById('liveInfo').innerText=""; 
         document.getElementById('dcaPreview').style.display='none'; 
-        document.getElementById('liveTradeTotal').innerText="0.00"; 
+        let tEl = document.getElementById('liveTradeTotal');
+        tEl.innerText="0.00"; 
+        tEl.style.color="white"; // Rengi sıfırla
+        
         loadPF(true); 
         fetchNewsCustom(); 
         loadProfile(); 
     }
+
     function toggleAssetChart(symbol, id, btn) { let el = document.getElementById(id); let isActive = el.classList.contains('active'); if (isActive) { el.classList.remove('active'); btn.classList.remove('chart-on'); setTimeout(() => { el.innerHTML = ''; }, 400); } else { el.classList.add('active'); btn.classList.add('chart-on'); el.innerHTML = '<div class="chart-loader-text">Grafik Yükleniyor...</div><div id="tv_'+id+'" style="height:100%; width:100%; border-radius:0 0 16px 16px; overflow:hidden;"></div>'; let tvSymbol = symbol; let s = symbol.toUpperCase().trim(); if(s.includes('BIST:') || s.includes('BINANCE:') || s.includes('TVC:') || s.includes('FX:')) { tvSymbol = s; } else if(s.includes('USDT')) { tvSymbol = "BINANCE:" + s; } else if(s.endsWith('.IS')) { tvSymbol = "BIST:" + s.replace('.IS',''); } else if(s === 'ALTIN' || s === 'GOLD') { tvSymbol = "TVC:GOLD"; } else if(s === 'GRAM') { tvSymbol = "FX:XAUTRY"; } else if(['USD','EUR','GBP'].includes(s)) { tvSymbol = "FX:" + s + "TRY"; } else if(s.length <= 5 && !s.includes('.')) { if(s === 'THYAO' || s === 'ASELS' || s === 'GARAN') tvSymbol = "BIST:" + s; else tvSymbol = "BINANCE:" + s + "USDT"; } new TradingView.widget({ "autosize": true, "symbol": tvSymbol, "interval": "D", "timezone": "Etc/UTC", "theme": "dark", "style": "1", "locale": "tr", "toolbar_bg": "#f1f3f6", "enable_publishing": false, "hide_top_toolbar": true, "hide_legend": false, "save_image": false, "container_id": "tv_" + id }); } }
     function openAlarmModal(i){ let as = JSON.parse(localStorage.getItem('myPF_final')) || []; let asset = as[i]; if(!asset) return; document.getElementById('alarmIdx').value = i; document.getElementById('alarmAssetTitle').innerText = `${asset.name} Alarmları`; document.getElementById('alarmUpper').value = asset.alarmUpper || ""; document.getElementById('alarmLower').value = asset.alarmLower || ""; document.getElementById('alarmPctUp').value = asset.alarmPctUp || ""; document.getElementById('alarmPctDown').value = asset.alarmPctDown || ""; switchAlarmTab('price', document.querySelector('.sim-tab-group .sim-tab')); document.getElementById('alarmModal').style.display='flex'; } 
     function switchAlarmTab(mode, btn) { document.querySelectorAll('.alarm-pane').forEach(el => el.style.display = 'none'); document.getElementById('alarm-pane-' + mode).style.display = 'block'; const group = btn.parentElement; group.querySelectorAll('.sim-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); }
     function saveAlarm(){ let i = document.getElementById('alarmIdx').value; let as = JSON.parse(localStorage.getItem('myPF_final')); let up = parseFloat(document.getElementById('alarmUpper').value); let low = parseFloat(document.getElementById('alarmLower').value); let pUp = parseFloat(document.getElementById('alarmPctUp').value); let pDown = parseFloat(document.getElementById('alarmPctDown').value); as[i].alarmUpper = up || null; as[i].alarmLower = low || null; as[i].alarmPctUp = pUp || null; as[i].alarmPctDown = pDown || null; delete as[i].alarm; localStorage.setItem('myPF_final', JSON.stringify(as)); document.getElementById('alarmModal').style.display='none'; addNotification('success', 'Alarm Kuruldu', `${as[i].name} için bekçiler aktif.`); loadPF(true); } 
     function clearAssetAlarms() { let i = document.getElementById('alarmIdx').value; let as = JSON.parse(localStorage.getItem('myPF_final')); as[i].alarmUpper = null; as[i].alarmLower = null; as[i].alarmPctUp = null; as[i].alarmPctDown = null; localStorage.setItem('myPF_final', JSON.stringify(as)); document.getElementById('alarmUpper').value = ""; document.getElementById('alarmLower').value = ""; document.getElementById('alarmPctUp').value = ""; document.getElementById('alarmPctDown').value = ""; addNotification('info', 'Temizlendi', 'Alarmlar kaldırıldı.'); }
     async function checkAllAlarms(){ let as = JSON.parse(localStorage.getItem('myPF_final')) || []; let updated=false; for(let asset of as){ if(!asset.alarmUpper && !asset.alarmLower && !asset.alarmPctUp && !asset.alarmPctDown) continue; let currentPrice = asset.curr || 0; if(currentPrice === 0) { let p = await getPrice(asset.name); currentPrice = p.price; } if(currentPrice > 0){ if(asset.alarmUpper && currentPrice >= asset.alarmUpper){ addNotification('success', 'HEDEF GELDİ! 🚀', `${asset.name} yükseldi: ${currentPrice}`); asset.alarmUpper = null; updated = true; } if(asset.alarmLower && currentPrice <= asset.alarmLower){ addNotification('danger', 'DÜŞÜŞ UYARISI 🔻', `${asset.name} düştü: ${currentPrice}`); asset.alarmLower = null; updated = true; } let cost = asset.buy; if(cost > 0) { let percentChange = ((currentPrice - cost) / cost) * 100; if(asset.alarmPctUp && percentChange >= asset.alarmPctUp) { addNotification('success', `TEBRİKLER (%${percentChange.toFixed(1)}) 🚀`, `${asset.name} hedef kârına ulaştı.`); asset.alarmPctUp = null; updated = true; } if(asset.alarmPctDown && percentChange <= -(asset.alarmPctDown)) { addNotification('warn', `DİKKAT (%${percentChange.toFixed(1)}) ⚠️`, `${asset.name} zarar limitine indi.`); asset.alarmPctDown = null; updated = true; } } } } if(updated) { localStorage.setItem('myPF_final', JSON.stringify(as)); let l = document.getElementById('portfolioList'); if(l && l.innerHTML !== "") loadPF(); } }
-    
     function toggleExitCurrency() { exitCurrency = (exitCurrency === 'TRY') ? 'USD' : 'TRY'; let btn = document.getElementById('sellCurrencyToggle'); if(exitCurrency === 'TRY') { btn.innerText = '₺'; btn.className = 'currency-toggle-btn active-try'; } else { btn.innerText = '$'; btn.className = 'currency-toggle-btn active-usd'; } calcSellPreview(); }
+    
     function openSell(i) { let as = JSON.parse(localStorage.getItem('myPF_final')) || []; let asset = as[i]; if(!asset) return; document.getElementById('sellIdx').value = i; document.getElementById('sellMaxAmt').innerText = asset.amt; document.getElementById('sellAmt').value = ""; exitCurrency = asset.origin; let btn = document.getElementById('sellCurrencyToggle'); if(exitCurrency === 'TRY') { btn.innerText = '₺'; btn.className = 'currency-toggle-btn active-try'; } else { btn.innerText = '$'; btn.className = 'currency-toggle-btn active-usd'; } let currentP = asset.curr || asset.buy; document.getElementById('sellPrice').value = currentP.toFixed(2); document.getElementById('sellSummaryBox').style.display = 'none'; document.getElementById('sellModal').style.display = 'flex'; calcSellPreview(); }
+    
     function setSellRatio(ratio) { let i = document.getElementById('sellIdx').value; let as = JSON.parse(localStorage.getItem('myPF_final')); if(as[i]) { let val = Math.floor(as[i].amt * ratio * 1000) / 1000; document.getElementById('sellAmt').value = val; calcSellPreview(); } }
+    
     function calcSellPreview() { let i = document.getElementById('sellIdx').value; let as = JSON.parse(localStorage.getItem('myPF_final')); let asset = as[i]; let amt = parseFloat(document.getElementById('sellAmt').value) || 0; let price = parseFloat(document.getElementById('sellPrice').value) || 0; if(amt > 0 && price > 0) { let total = amt * price; let sym = exitCurrency === 'TRY' ? '₺' : '$'; let buyPriceNormalized = asset.buy; if(asset.origin === 'USD' && exitCurrency === 'TRY') buyPriceNormalized = asset.buy * usdTryRate; else if(asset.origin === 'TRY' && exitCurrency === 'USD') buyPriceNormalized = asset.buy / usdTryRate; let pnl = (price - buyPriceNormalized) * amt; document.getElementById('ssTotal').innerText = sym + total.toLocaleString(undefined, {minimumFractionDigits:2}); let pnlEl = document.getElementById('ssPnL'); pnlEl.innerText = (pnl >= 0 ? '+' : '') + sym + pnl.toLocaleString(undefined, {minimumFractionDigits:2}); pnlEl.style.color = pnl >= 0 ? 'var(--success)' : 'var(--danger)'; document.getElementById('sellSummaryBox').style.display = 'block'; } else { document.getElementById('sellSummaryBox').style.display = 'none'; } }
     
-    // --- DÜZELTİLMİŞ SATIŞ ONAY FONKSİYONU ---
+    // --- DÜZELTİLMİŞ SATIŞ ONAYI ---
     function confirmSell() { 
         let i = document.getElementById('sellIdx').value; 
         let amt = parseFloat(document.getElementById('sellAmt').value); 
@@ -1166,11 +1233,8 @@
         if(appSettings.currency === transactionCurrency) {
             amountToAddWallet = totalSaleRaw;
         } else {
-            if(appSettings.currency === 'TRY' && transactionCurrency === 'USD') {
-                amountToAddWallet = totalSaleRaw * usdTryRate;
-            } else if (appSettings.currency === 'USD' && transactionCurrency === 'TRY') {
-                amountToAddWallet = totalSaleRaw / usdTryRate;
-            }
+            if(appSettings.currency === 'TRY' && transactionCurrency === 'USD') amountToAddWallet = totalSaleRaw * usdTryRate;
+            else if (appSettings.currency === 'USD' && transactionCurrency === 'TRY') amountToAddWallet = totalSaleRaw / usdTryRate;
         }
 
         let buyCostInTransCurr = ast.buy;
@@ -1191,7 +1255,6 @@
         localStorage.setItem('tm_cash_balance', cashBalance); 
         localStorage.setItem('tm_realized_pnl', realizedPnL); 
         
-        // DÜZELTME: Satış Para Birimini Geçmişe Gönder
         logHistory('SATIM', ast.name, amt, pr, '', transactionCurrency); 
         
         ast.amt -= amt; 
@@ -1212,6 +1275,7 @@
     function calcSimScenarioPercent() { let p = parseFloat(document.getElementById('simPercent').value); if(isNaN(p)) return; let as = JSON.parse(localStorage.getItem('myPF_final')); let asset = as[currentSimAssetIndex]; let targetP = asset.buy * (1 + (p/100)); document.getElementById('simTargetPrice').value = targetP.toFixed(2); calcSimScenario(); }
     function calcSimAvg() { let newAmt = parseFloat(document.getElementById('simAddAmt').value); let newPrice = parseFloat(document.getElementById('simAddPrice').value); if(!newAmt || !newPrice) return; let as = JSON.parse(localStorage.getItem('myPF_final')); let asset = as[currentSimAssetIndex]; let oldTotal = asset.amt * asset.buy; let newTotal = newAmt * newPrice; let finalAmt = asset.amt + newAmt; let finalAvg = (oldTotal + newTotal) / finalAmt; let sym = asset.origin === 'USD' ? '$' : '₺'; document.getElementById('resOldAvg').innerText = sym + asset.buy.toFixed(2); document.getElementById('resNewAvg').innerText = sym + finalAvg.toFixed(2); document.getElementById('resTotalCost').innerText = sym + (oldTotal + newTotal).toLocaleString(undefined, {minimumFractionDigits:2}); let box = document.getElementById('simResAvg'); box.style.display = 'block'; box.className = 'sim-result-box'; }
     function calcSimRealize() { let sellAmt = parseFloat(document.getElementById('simSellAmt').value); let sellPrice = parseFloat(document.getElementById('simRealizePrice').value); if(!sellAmt || !sellPrice) return; let as = JSON.parse(localStorage.getItem('myPF_final')); let asset = as[currentSimAssetIndex]; if(sellAmt > asset.amt) { alert("Fazla miktar!"); return; } let cashIn = sellAmt * sellPrice; let profit = (sellPrice - asset.buy) * sellAmt; let remaining = asset.amt - sellAmt; let sym = asset.origin === 'USD' ? '$' : '₺'; document.getElementById('resCashIn').innerText = sym + cashIn.toLocaleString(undefined, {minimumFractionDigits:2}); let pnlEl = document.getElementById('resRealizedPnL'); pnlEl.innerText = (profit >= 0 ? '+' : '') + sym + profit.toLocaleString(undefined, {minimumFractionDigits:2}); pnlEl.className = profit >= 0 ? 'val-up' : 'val-down'; document.getElementById('resLeftAmt').innerText = remaining + " Adet"; let box = document.getElementById('simResRealize'); box.style.display = 'block'; box.className = 'sim-result-box ' + (profit >= 0 ? 'profit' : 'loss'); }
+    
     function fetchNewsCustom(isFallback = false){ let queryUrl = ""; let assetKeywords = []; let statusText = document.getElementById('newsStatusText'); let as = JSON.parse(localStorage.getItem('myPF_final')) || []; const f = document.getElementById('newsFeed'); if(!isFallback && f.innerHTML.includes('news-card-pro')) return; if (as.length > 0) { assetKeywords = as.map(a => { return a.name.toUpperCase().replace('BINANCE:', '').replace('BIST:', '').replace('FX:', '').replace('TVC:', '').replace('USDT', '').replace('.IS', ''); }); } if (isFallback) { queryUrl = `https://news.google.com/rss/topics/CAAqJggBCiCPASowCAUiKC9tLzA5czFmK0J1c2luZXNzL0J1c2luZXNzL0ZpbmFuY2UvZWNvbm9teQ?hl=tr&gl=TR&ceid=TR%3Atr`; statusText.innerText = "Genel Piyasa (Canlı)"; statusText.style.color = "var(--text-sub)"; } else { if (as.length > 0) { let topAsset = as.sort((a,b) => (b.amt*b.curr) - (a.amt*a.curr))[0]; let topSym = topAsset.name.toUpperCase().replace('BINANCE:', '').replace('BIST:', '').replace('USDT', '').replace('.IS', ''); queryUrl = `https://news.google.com/rss/search?q=${topSym}&hl=tr&gl=TR&ceid=TR%3Atr`; statusText.innerText = `Odak: ${topSym}`; statusText.style.color = "var(--success)"; } else { fetchNewsCustom(true); return; } } let userQuery = document.getElementById('newsSearch').value.trim(); if(userQuery) { queryUrl = `https://news.google.com/rss/search?q=${userQuery}&hl=tr&gl=TR&ceid=TR%3Atr`; statusText.innerText = `Arama: ${userQuery}`; } const l = document.getElementById('newsLoader'); if(!isFallback) { f.innerHTML=""; l.style.display="block"; } fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(queryUrl)}`).then(r=>r.json()).then(d=>{ l.style.display="none"; if((!d.items || d.items.length === 0) && !isFallback && !userQuery) { fetchNewsCustom(true); return; } if(d.items && d.items.length > 0){ let h=""; d.items.slice(0,25).forEach(i=>{ let src = i.author || "Haber"; let tUp = i.title.toUpperCase(); let matchedTags = []; if(assetKeywords.length > 0) { assetKeywords.forEach(kw => { if(tUp.includes(kw) && !matchedTags.includes(kw)) matchedTags.push(kw); }); } let catTag = "FİNANS"; let catClass = "finans"; if(tUp.includes("BITCOIN") || tUp.includes("KRİPTO")) { catTag = "KRİPTO"; catClass = "kripto"; } else if(tUp.includes("BORSA") || tUp.includes("HİSSE")) { catTag = "BORSA"; catClass = "borsa"; } let tagsHtml = `<span class="nc-tag ${catClass}">${catTag}</span>`; matchedTags.forEach(tag => { tagsHtml += `<span class="nc-tag nc-asset-tag"><i class="fas fa-tag"></i> ${tag}</span>`; }); h+=`<div class="news-card-pro" style="border-left-color:${catClass==='kripto'?'#f59e0b':(catClass==='borsa'?'#3b82f6':'#10b981')}"><div class="nc-header"><div class="nc-tags-row">${tagsHtml}</div></div><div class="nc-title">${i.title}</div><div class="nc-footer"><div class="nc-source"><i class="fas fa-newspaper"></i> ${src}</div><a href="${i.link}" target="_blank" class="nc-read-btn">Oku <i class="fas fa-chevron-right"></i></a></div></div>`; }); f.innerHTML=h; } else { f.innerHTML=`<div style='padding:20px;text-align:center;color:var(--text-sub)'>Haber bulunamadı.<br><button onclick="fetchNewsCustom(true)" class="btn-main btn-sec" style="margin-top:10px; width:auto; display:inline-block;">Genel Akışı Yükle</button></div>`;} }).catch((e)=>{ l.style.display="none"; if(!isFallback && !userQuery) fetchNewsCustom(true); else f.innerHTML=`<div style='padding:20px;text-align:center;color:var(--text-sub)'>Bağlantı Hatası.<br><button onclick="fetchNewsCustom(true)" class="btn-main btn-sec" style="margin-top:10px; width:auto; display:inline-block;">Tekrar Dene</button></div>`; }); }
     
     function toggleTradeMenu() { const content = document.getElementById('tradeContent'); const chevron = document.getElementById('tradeChevron'); const card = document.getElementById('tradeCard'); if (content.classList.contains('collapsed')) { content.classList.remove('collapsed'); chevron.classList.add('rotated'); card.classList.add('open'); } else { content.classList.add('collapsed'); chevron.classList.remove('rotated'); card.classList.remove('open'); } }
@@ -1249,7 +1313,6 @@
     async function addToWatchlist(){ let s = document.getElementById('wlInput').value.trim().toUpperCase(); if(!s) return; let w = JSON.parse(localStorage.getItem('tm_watchlist')) || []; if(w.includes(s)) { return addNotification('warn', 'Zaten Ekli', 'Bu sembol izleme listesinde var.'); } w.push(s); localStorage.setItem('tm_watchlist', JSON.stringify(w)); document.getElementById('wlInput').value = ""; updateWatchlist(); addNotification('success', 'Eklendi', `${s} izlemeye alındı.`); }
     function removeFromWatchlist(s){ let w = JSON.parse(localStorage.getItem('tm_watchlist')) || []; w = w.filter(i => i !== s); localStorage.setItem('tm_watchlist', JSON.stringify(w)); updateWatchlist(); }
     async function updateWatchlist(){ let wl = JSON.parse(localStorage.getItem('tm_watchlist')) || []; let l = document.getElementById('wlList'); l.innerHTML = ""; if(wl.length === 0) { l.innerHTML = "<div style='text-align:center; padding:20px; color:var(--text-sub)'>Liste boş.</div>"; return; } for(let s of wl){ let r = await getHistoricalChange(s); let priceDisplay = r.price > 0 ? (r.origin === 'USD' ? '$' : '₺') + r.price.toFixed(2) : 'Veri Yok'; let changeDisplay = r.price > 0 ? `%${r.change.toFixed(2)}` : '--'; let color = r.change >= 0 ? '#10b981' : '#ef4444'; let tag = getAssetTag(s); let tagClass = tag.t === 'KRİPTO' ? 'kripto' : (tag.t === 'BORSA' ? 'borsa' : 'doviz'); l.innerHTML += `<div class="wl-card-classic" style="border-left-color: ${color};"><div class="wl-c-header"><div><span class="wl-c-sym">${s}</span><span class="wl-c-tag ${tagClass}">${tag.t}</span></div><div class="wl-c-price-box"><span class="wl-c-price">${priceDisplay}</span><span class="wl-c-change" style="color:${color}">${changeDisplay}</span></div></div><div class="wl-c-stats"><div class="wl-c-stat-item"><span class="wl-c-lbl">GÜNLÜK</span><span class="wl-c-val" style="color:${color}">${(r.daily).toFixed(2)}%</span></div><div class="wl-c-stat-item"><span class="wl-c-lbl">AYLIK</span><span class="wl-c-val" style="color:${color}">${(r.monthly).toFixed(2)}%</span></div><div class="wl-c-stat-item"><span class="wl-c-lbl">YILLIK</span><span class="wl-c-val" style="color:${color}">${(r.yearly).toFixed(2)}%</span></div></div><button class="wl-c-del" onclick="removeFromWatchlist('${s}')"><i class="fas fa-trash"></i></button></div>`; } }
-    
     function getAssetTag(s) { if(['ALTIN','GOLD','GRAM'].includes(s)) return {t:'EMTİA'}; if(s.includes('USDT') || (!s.includes('.') && s.length <= 5)) return {t:'KRİPTO'}; if(['USD','EUR','GBP'].includes(s)) return {t:'DÖVİZ'}; return {t:'BORSA'}; }
     function calcDca(){ let s=document.getElementById('addSymbol').value.toUpperCase(); let a=parseFloat(document.getElementById('addAmount').value); let p=parseFloat(document.getElementById('addBuyPrice').value); if(s&&a&&p){ let as=JSON.parse(localStorage.getItem('myPF_final'))||[]; let ex=as.find(i=>i.name===s); if(ex){ let n=((ex.amt*ex.buy)+(a*p))/(ex.amt+a); document.getElementById('dcaPreview').style.display='block'; document.getElementById('dcaText').innerHTML=`Eski: ${ex.buy.toFixed(2)} -> <span class="dca-val">Yeni: ${n.toFixed(2)}</span>`; } else {document.getElementById('dcaPreview').style.display='none';} } calcLiveTotal(); }
     function closeModal(id){document.getElementById(id).style.display='none';} function openModal(id){document.getElementById(id).style.display='flex';}
@@ -1267,3 +1330,5 @@
 </script>
 </body>
 </html>
+
+    
