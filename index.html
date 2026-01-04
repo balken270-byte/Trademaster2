@@ -377,7 +377,14 @@
 </div>
 
 <div class="top-bar">
-    <div class="app-title">Trade<span>Master</span></div>
+    <div style="display:flex; align-items:center;">
+        <div id="manualBackBtn" onclick="goBackHome()" style="display:none; margin-right:10px; cursor:pointer; width:30px; height:30px; align-items:center; justify-content:center;">
+            <i class="fas fa-arrow-left" style="font-size:18px; color:white;"></i>
+        </div>
+        
+        <div class="app-title">Trade<span>Master</span></div>
+    </div>
+    
     <div class="header-icons">
         <div class="icon-btn" onclick="switchPage('notifications', document.querySelector('.nav-item'))">
             <i class="fas fa-bell"></i>
@@ -385,6 +392,7 @@
         </div>
     </div>
 </div>
+
 
 <div class="content-area">
     <div id="page-portfolio" class="page active">
@@ -1441,75 +1449,34 @@ function initBackgroundAnimation() {
 
 initBackgroundAnimation();
 
-/* --- KESİN ÇÖZÜM: HASH (#) TABANLI NAVİGASYON --- */
+/* --- MANUEL GERİ BUTONU MANTIĞI --- */
 
-// 1. Mevcut switchPage fonksiyonunu eziyoruz (değiştiriyoruz)
-// Artık butona basınca sadece adresi değiştiriyoruz (#market gibi)
-// Sayfa açma işini "hashchange" olayına bırakıyoruz.
+// 1. Ana Sayfaya Dönme Fonksiyonu
+function goBackHome() {
+    // Alttaki menüden ilk sıradakini (Cüzdan) seçmiş gibi davran
+    switchPage('portfolio', document.querySelectorAll('.nav-item')[0]);
+}
+
+// 2. Mevcut Sayfa Değiştirme Fonksiyonunu Güncelle
+// (Eski fonksiyonu saklayıp üzerine özellik ekliyoruz)
+const oldSwitchPage = switchPage;
+
 switchPage = function(p, btn) {
-    // Eğer zaten o sayfadaysak işlem yapma
-    if(location.hash === '#' + p) return;
+    // Orijinal geçiş işlemini yap
+    oldSwitchPage(p, btn);
     
-    // Tarayıcı geçmişine yeni sayfa ekle (#market)
-    window.location.hash = p;
+    // Buton kontrolü yap
+    const backBtn = document.getElementById('manualBackBtn');
+    if(backBtn) {
+        if(p === 'portfolio') {
+            // Ana sayfadaysak butonu gizle
+            backBtn.style.display = 'none';
+        } else {
+            // Diğer sayfalardaysak butonu göster (flex yaparak ortalıyoruz)
+            backBtn.style.display = 'flex';
+        }
+    }
 };
-
-// 2. Adres Değişikliğini Yakalayan (Android Geri Tuşunu Yöneten) Kısım
-window.addEventListener('hashchange', function() {
-    // Adresteki hash'i al (örn: #market -> market). Boşsa 'portfolio' yap.
-    let p = location.hash.replace('#', '') || 'portfolio';
-
-    // Önce Açık Modalları Kapat (Geri tuşuna basınca modal kapansın diye)
-    document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
-
-    // Tüm sayfaları gizle
-    document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
-
-    // Hedef sayfayı bul ve aç
-    let targetPage = document.getElementById('page-' + p);
-    if(targetPage) {
-        targetPage.classList.add('active');
-    } else {
-        // Sayfa bulunamazsa cüzdana dön
-        document.getElementById('page-portfolio').classList.add('active');
-    }
-
-    // Alt menüdeki ikonların rengini güncelle
-    document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
-    
-    // Sayfa isimlerine göre ikonları eşleştir
-    let navMap = {'portfolio':0, 'market':1, 'analysis':2, 'news':3, 'settings':4};
-    let btnIndex = navMap[p];
-    let navItems = document.querySelectorAll('.nav-item');
-    if(navItems[btnIndex]) {
-        navItems[btnIndex].classList.add('active');
-    }
-
-    // --- Sayfa Özel Yüklemeleri ---
-    // (Senin orijinal kodundaki özel fonksiyonları buraya taşıdık)
-    if(p === 'market') {
-        // Market butonunu aktif etmek için hile yapıyoruz
-        let marketBtn = document.querySelector('.ms-btn'); 
-        if(typeof switchMarketMode === 'function') switchMarketMode('main', marketBtn);
-    }
-    if(p === 'analysis' && typeof renderAnalyticsPage === 'function') renderAnalyticsPage();
-    if(p === 'news' && typeof fetchNewsCustom === 'function') fetchNewsCustom();
-    if(p === 'notifications' && typeof renderNotifications === 'function') renderNotifications(); 
-});
-
-// 3. Uygulama İlk Açıldığında Başlangıç Ayarı
-window.addEventListener('load', function() {
-    // Eğer adreste # yoksa, #portfolio ekle ama geçmişi kirletme (replace)
-    if(!location.hash) {
-        history.replaceState(null, null, '#portfolio');
-        // İlk açılışta manuel tetikle
-        document.getElementById('page-portfolio').classList.add('active');
-        document.querySelectorAll('.nav-item')[0].classList.add('active');
-    } else {
-        // Sayfa yenilendiyse veya hash varsa tetikle
-        window.dispatchEvent(new Event('hashchange'));
-    }
-});
 
 </script>
 </body>
