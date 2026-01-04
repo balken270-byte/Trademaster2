@@ -928,15 +928,71 @@
         try { let r = await fetch(`https://api.polygon.io/v2/aggs/ticker/${symbol}/prevClose?adjusted=true&apiKey=${polyApiKey}`); if(r.ok) { let d = await r.json(); if(d.results && d.results[0]) { let res = d.results[0]; return { price: res.c, origin: 'USD', change: ((res.c - res.o) / res.o) * 100, source: 'POLYGON' }; } } } catch(e) {} return null;
     }
 
+        /* --- ZIRHLI YAHOO FONKSİYONU (3 Aşamalı) --- */
     async function tryYahoo(symbol) {
-        try { let r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d`)}`); 
-            let d = await r.json(); let c = JSON.parse(d.contents); 
-            if (c.chart && c.chart.result) { 
-                let meta = c.chart.result[0].meta; let price = meta.regularMarketPrice; let change = ((price - meta.chartPreviousClose) / meta.chartPreviousClose) * 100; let origin = 'TRY'; if(symbol.includes('=F') || (symbol.includes('=X') && !symbol.includes('TRY=X'))) origin = 'USD';
-                return { price: parseFloat(price), origin: origin, change: change, source: 'YAHOO' }; 
-            } 
-        } catch(e) {} return null;
+        // 1. Sembol Düzeltme: Borsa İstanbul hissesi ise ve .IS yoksa ekle
+        let s = symbol.toUpperCase().trim();
+        if(!s.includes('=') && !s.includes('.') && s.length <= 5 && !s.includes('USD') && !s.includes('EUR')) {
+             s += '.IS';
+        }
+
+        // Yahoo API URL'si
+        const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${s}?interval=1d&range=1d`;
+        
+        // Denenecek Proxy Listesi (Sırayla dener)
+        const proxies = [
+            { url: 'https://api.allorigins.win/raw?url=', name: 'AllOrigins' },
+            { url: 'https://corsproxy.io/?', name: 'CorsProxy' },
+            { url: 'https://api.codetabs.com/v1/proxy?quest=', name: 'CodeTabs' }
+        ];
+
+        // Döngü: Sırayla proxy'leri dene
+        for (let proxy of proxies) {
+            try {
+                // console.log(`Denenen Kaynak: ${proxy.name} -> ${s}`); // Test için konsola yazar
+                
+                const response = await fetch(proxy.url + encodeURIComponent(targetUrl));
+                
+                if (response.ok) {
+                    const d = await response.json();
+                    
+                    // Veri yapısını kontrol et (Yahoo JSON formatı)
+                    if (d.chart && d.chart.result && d.chart.result[0]) {
+                        let meta = d.chart.result[0].meta;
+                        let price = meta.regularMarketPrice;
+                        let prevClose = meta.chartPreviousClose;
+                        
+                        // Fiyat sıfır veya null gelirse diğer proxy'ye geç
+                        if(!price) throw new Error("Fiyat boş");
+
+                        let change = 0;
+                        if (prevClose > 0) change = ((price - prevClose) / prevClose) * 100;
+
+                        // Para birimi belirleme
+                        let origin = 'TRY';
+                        if (s.includes('=F') || (s.includes('=X') && !s.includes('TRY=X') && !s.includes('EURTRY=X'))) {
+                            origin = 'USD';
+                        }
+                        
+                        // Başarılı olursa döndür ve döngüden çık
+                        return { 
+                            price: parseFloat(price), 
+                            origin: origin, 
+                            change: change, 
+                            source: 'YAHOO' // Hangi proxy ile çalıştığını görmek istersen: proxy.name yazabilirsin
+                        };
+                    }
+                }
+            } catch (err) {
+                // Bu proxy başarısız olduysa, sessizce bir sonrakine geç
+                continue;
+            }
+        }
+
+        // Hiçbiri çalışmazsa null dön
+        return null;
     }
+
 
     function setSortMode(mode) { currentSortMode = mode; loadPF(); }
     
@@ -1481,5 +1537,3 @@ switchPage = function(p, btn) {
 </script>
 </body>
 </html>
-
-    
