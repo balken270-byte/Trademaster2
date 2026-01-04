@@ -905,17 +905,33 @@
     }
     /* --- PORTFÖY VE FİYAT FONKSİYONLARI --- */
     async function getPrice(s) {
-        s = s.toUpperCase().trim(); if(!s) return { price: 0, origin: 'TRY', change: 0 };
-        // Kripto veya özel durumlar
-        if(s.includes('USDT') || s.includes('BUSD') || (!s.includes('=') && !s.includes('.IS') && !s.includes('USD') && !s.includes('EUR') && s.length <= 8)) {
-             let res = await tryBinance(s); if(res) return res; 
-        }
-        // Polygon (Varsa)
-        if(polyApiKey) { let res = await tryPolygon(s); if(res) return res; }
-        // Fallback: Yahoo Finance
-        let res = await tryYahoo(s); if(res) return res;
-        return { price: 0, origin: 'TRY', change: 0 };
+    s = s.toUpperCase().trim(); 
+    if(!s) return { price: 0, origin: 'TRY', change: 0 };
+    
+    // 1. ÖNCE KRİPTO KONTROLÜ - Binance
+    if(s.includes('USDT') || s.includes('BUSD') || (!s.includes('=') && !s.includes('.IS') && !s.includes('USD') && !s.includes('EUR') && s.length <= 8)) {
+         let res = await tryBinance(s); 
+         if(res) return res; 
     }
+    
+    // 2. BIST HİSSELERİ İÇİN GOOGLE FINANCE (YENİ!)
+    if(s.includes('.IS') || (s.length <= 5 && !s.includes('USDT') && !s.includes('='))) {
+        let res = await tryGoogleFinance(s);
+        if(res) return res;
+    }
+    
+    // 3. Polygon (Varsa ve USD bazlı hisseler için)
+    if(polyApiKey && !s.includes('.IS')) { 
+        let res = await tryPolygon(s); 
+        if(res) return res; 
+    }
+    
+    // 4. Yahoo Finance (Son çare - Yedek)
+    let res = await tryYahoo(s); 
+    if(res) return res;
+    
+    return { price: 0, origin: 'TRY', change: 0 };
+}
 
     async function tryBinance(symbol) {
         let s = symbol.replace('BINANCE:', '').trim();
@@ -927,6 +943,79 @@
         if(!polyApiKey) return null; if(symbol.includes('.IS') || symbol.includes('=') || symbol.includes('TRY')) return null; 
         try { let r = await fetch(`https://api.polygon.io/v2/aggs/ticker/${symbol}/prevClose?adjusted=true&apiKey=${polyApiKey}`); if(r.ok) { let d = await r.json(); if(d.results && d.results[0]) { let res = d.results[0]; return { price: res.c, origin: 'USD', change: ((res.c - res.o) / res.o) * 100, source: 'POLYGON' }; } } } catch(e) {} return null;
     }
+
+/* --- GOOGLE FINANCE VERİ ÇEKME FONKSİYONU --- */
+async function tryGoogleFinance(symbol) {
+    let s = symbol.toUpperCase().trim();
+    
+    // BIST hissesi değilse çık
+    if(!s.includes('.IS') && (s.length > 5 || s.includes('USDT') || s.includes('='))) {
+        return null;
+    }
+    
+    // .IS varsa kaldır, IST: ekle (Google Finance formatı)
+    let gSymbol = 'IST:' + s.replace('.IS', '');
+    
+    // Proxy listesi (CORS bypass için)
+    const proxies = [
+        { url: 'https://api.allorigins.win/raw?url=', name: 'AllOrigins' },
+        { url: 'https://corsproxy.io/?', name: 'CorsProxy' },
+        { url: 'https://api.codetabs.com/v1/proxy?quest=', name: 'CodeTabs' }
+    ];
+    
+    for(let proxy of proxies) {
+        try {
+            const targetUrl = `https://www.google.com/finance/quote/${gSymbol}`;
+            const response = await fetch(proxy.url + encodeURIComponent(targetUrl), {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                }
+            });
+            
+            if(!response.ok) continue;
+            
+            const html = await response.text();
+            
+            // Fiyat çıkarma (Birden fazla pattern dene)
+            let priceMatch = html.match(/data-last-price="([0-9,.]+)"/i) || 
+                            html.match(/"regularMarketPrice"[:\s]*([0-9,.]+)/i) ||
+                            html.match(/class="[^"]*YMlKec[^"]*"[^>]*>([0-9,.]+)/i);
+            
+            if(priceMatch) {
+                // Virgül/nokta formatını düzelt (Türkçe: 123,45 -> 123.45)
+                let priceStr = priceMatch[1].replace(/\./g, '').replace(',', '.');
+                const price = parseFloat(priceStr);
+                
+                if(isNaN(price) || price <= 0) continue;
+                
+                // Değişim oranını çıkarmayı dene
+                let changeMatch = html.match(/data-last-change="([0-9,.+-]+)"/i);
+                let changePercent = 0;
+                
+                if(changeMatch) {
+                    let changeStr = changeMatch[1].replace(',', '.');
+                    let changeValue = parseFloat(changeStr);
+                    if(!isNaN(changeValue)) {
+                        changePercent = (changeValue / price) * 100;
+                    }
+                }
+                
+                return {
+                    price: price,
+                    origin: 'TRY',
+                    change: changePercent,
+                    source: 'GOOGLE'
+                };
+            }
+        } catch(e) {
+            // Bu proxy çalışmadı, bir sonrakini dene
+            continue;
+        }
+    }
+    
+    // Hiçbiri çalışmadıysa null dön
+    return null;
+}
 
         /* --- ZIRHLI YAHOO FONKSİYONU (3 Aşamalı) --- */
     async function tryYahoo(symbol) {
