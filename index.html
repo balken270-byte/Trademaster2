@@ -14,6 +14,18 @@
         :root { --bg-body: #0b0f19; --bg-card: #151b2b; --bg-input: #1e2538; --text-main: #ffffff; --text-sub: #94a3b8; --accent: #3b82f6; --success: #10b981; --danger: #ef4444; --gold: #f59e0b; --kap: #8b5cf6; --radius: 16px; --accent-glow: rgba(59, 130, 246, 0.5); }
         [data-theme="purple"] { --bg-body: #0f0718; --bg-card: #1a0b2e; --bg-input: #261245; --accent: #8b5cf6; --text-sub: #a78bfa; --accent-glow: rgba(139, 92, 246, 0.5); }
         [data-theme="dark"] { --bg-body: #000000; --bg-card: #111111; --bg-input: #222222; --accent: #ffffff; --text-sub: #666666; --accent-glow: rgba(255, 255, 255, 0.3); }
+        
+        /* --- ARKA PLAN ANİMASYONU --- */
+#bg-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* Her şeyin arkasında */
+    pointer-events: none; /* Tıklamaları engellemez */
+    opacity: 0.6; /* Çok baskın olmaması için */
+}
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; transition: background 0.3s; }
@@ -337,6 +349,7 @@
     </style>
 </head>
 <body>
+    <canvas id="bg-canvas"></canvas>
 <div id="splash-screen">
     <div class="original-logo-container">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 273 270">
@@ -1327,6 +1340,107 @@
     function renderTradingView(symbol) { let container = document.getElementById('tradingview_container'); if(container) { container.innerHTML = ""; new TradingView.widget({ "autosize": true, "symbol": symbol, "interval": "D", "timezone": "Etc/UTC", "theme": "dark", "style": "1", "locale": "tr", "toolbar_bg": "#f1f3f6", "enable_publishing": false, "hide_top_toolbar": true, "container_id": "tradingview_container" }); } }
 
     initApp();
+    /* --- PARÇACIK AĞI ANİMASYONU (Final Versiyon) --- */
+function initBackgroundAnimation() {
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let particles = [];
+    
+    // Tema renkleri (RGB Formatında)
+    const themeColors = {
+        'ocean': '59, 130, 246', // Mavi
+        'purple': '139, 92, 246', // Mor
+        'dark': '255, 255, 255'   // Beyaz
+    };
+
+    function resize() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+    }
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * width;
+            this.y = Math.random() * height;
+            // Hızları çok hafif artırdım, daha akıcı görünsün
+            this.vx = (Math.random() - 0.5) * 0.8; 
+            this.vy = (Math.random() - 0.5) * 0.8;
+            this.size = Math.random() * 2 + 1;
+        }
+        
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+            
+            // Ekrandan çıkarsa karşıdan geri girsin (Sonsuz döngü)
+            if (this.x < 0) this.x = width;
+            if (this.x > width) this.x = 0;
+            if (this.y < 0) this.y = height;
+            if (this.y > height) this.y = 0;
+        }
+        
+        draw(rgb) {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${rgb}, 0.6)`; // Noktalar biraz daha belirgin
+            ctx.fill();
+        }
+    }
+
+    function initParticles() {
+        particles = [];
+        // Yoğunluk ayarı: Ekran genişliğine göre dinamik sayı
+        // Eskiden width/10 idi, şimdi width/9 yaptık (biraz daha fazla nokta)
+        const particleCount = Math.floor(width / 9); 
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+        
+        let currentTheme = appSettings.theme || 'ocean';
+        let rgb = themeColors[currentTheme] || themeColors['ocean'];
+
+        particles.forEach((p, index) => {
+            p.update();
+            p.draw(rgb);
+            
+            // Ağ bağlantılarını çiz
+            for (let j = index + 1; j < particles.length; j++) {
+                const p2 = particles[j];
+                const dx = p.x - p2.x;
+                const dy = p.y - p2.y;
+                const distance = Math.sqrt(dx*dx + dy*dy);
+                
+                // Bağlantı mesafesi: 110px (Eskiden 100'dü, ağlar daha kolay oluşacak)
+                if (distance < 110) {
+                    ctx.beginPath();
+                    // Uzaklığa göre şeffaflık (Yakınsa koyu, uzaksa silik)
+                    ctx.strokeStyle = `rgba(${rgb}, ${0.15 - distance/1000})`; 
+                    ctx.lineWidth = 0.6;
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.stroke();
+                }
+            }
+        });
+        
+        requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', () => { resize(); initParticles(); });
+    resize();
+    initParticles();
+    animate();
+}
+
+initBackgroundAnimation();
+
 </script>
 </body>
 </html>
