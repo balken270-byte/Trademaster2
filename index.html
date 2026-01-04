@@ -1441,91 +1441,74 @@ function initBackgroundAnimation() {
 
 initBackgroundAnimation();
 
-/* --- GERİ TUŞU VE NAVİGASYON YÖNETİMİ (APK İÇİN) --- */
+/* --- KESİN ÇÖZÜM: HASH (#) TABANLI NAVİGASYON --- */
 
-// 1. Sayfa değişim fonksiyonunu güncelliyoruz (History State eklemek için)
-const originalSwitchPage = switchPage; // Eski fonksiyonu yedekle
+// 1. Mevcut switchPage fonksiyonunu eziyoruz (değiştiriyoruz)
+// Artık butona basınca sadece adresi değiştiriyoruz (#market gibi)
+// Sayfa açma işini "hashchange" olayına bırakıyoruz.
 switchPage = function(p, btn) {
     // Eğer zaten o sayfadaysak işlem yapma
-    if(document.getElementById('page-'+p).classList.contains('active')) return;
+    if(location.hash === '#' + p) return;
     
-    // Geçmişe bu sayfayı ekle
-    history.pushState({page: p}, null, "#"+p);
-    
-    // Orijinal geçiş işlemini yap
-    originalSwitchPage(p, btn);
+    // Tarayıcı geçmişine yeni sayfa ekle (#market)
+    window.location.hash = p;
 };
 
-// 2. Modalları açarken de geçmişe kayıt atalım (Geri tuşu modalı kapatsın diye)
-const modalIds = ['sellModal', 'alarmModal', 'simModal', 'cashModal', 'noCashModal'];
-modalIds.forEach(id => {
-    // Modalın display stilini izlemek için bir gözlemci (Observer) kuralım
-    // Çünkü modallar farklı fonksiyonlarla açılıyor, hepsini tek tek değiştirmek zor.
-    let modalEl = document.getElementById(id);
-    if(modalEl){
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.attributeName === "style") {
-                    // Modal görünür olduysa geçmişe ekle
-                    if (modalEl.style.display === 'flex' || modalEl.style.display === 'block') {
-                        // Eğer son state zaten modal değilse ekle (çift eklemeyi önle)
-                        if(!history.state || history.state.modal !== id) {
-                            history.pushState({modal: id}, null, "#modal");
-                        }
-                    }
-                }
-            });
-        });
-        observer.observe(modalEl, { attributes: true });
-    }
-});
+// 2. Adres Değişikliğini Yakalayan (Android Geri Tuşunu Yöneten) Kısım
+window.addEventListener('hashchange', function() {
+    // Adresteki hash'i al (örn: #market -> market). Boşsa 'portfolio' yap.
+    let p = location.hash.replace('#', '') || 'portfolio';
 
-// 3. Android Geri Tuşunu (Popstate) Yakala
-window.addEventListener('popstate', function(event) {
-    // A) Eğer açık bir modal varsa onu kapat
-    let openModal = document.querySelector('.modal-overlay[style*="display: flex"]');
-    if (openModal) {
-        // Modal'ı manuel kapat (fonksiyon kullanmadan, style ile)
-        openModal.style.display = 'none';
-        // Eğer modal için özel temizlik gerekiyorsa burada yapılabilir
-        return; 
-    }
+    // Önce Açık Modalları Kapat (Geri tuşuna basınca modal kapansın diye)
+    document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
 
-    // B) Eğer geçmişte bir sayfa verisi varsa o sayfaya dön
-    if (event.state && event.state.page) {
-        // Orijinal geçişi çağır ama history.push yapma (zaten popstate içindeyiz)
-        let targetPage = event.state.page;
-        document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); 
-        document.getElementById('page-'+targetPage).classList.add('active'); 
-        
-        document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); 
-        // İlgili nav butonunu bul ve aktif yap
-        let navMap = {'portfolio':0, 'market':1, 'analysis':2, 'news':3, 'settings':4};
-        let navItems = document.querySelectorAll('.nav-item');
-        if(navItems[navMap[targetPage]]) navItems[navMap[targetPage]].classList.add('active');
-        
-        // Sayfa özel yüklemeleri
-        if(targetPage==='market') switchMarketMode('main', document.querySelector('.ms-btn')); 
-        if(targetPage==='analysis') renderAnalyticsPage();
-        if(targetPage==='news') fetchNewsCustom();
-        if(targetPage==='notifications') renderNotifications(); 
-        
+    // Tüm sayfaları gizle
+    document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+
+    // Hedef sayfayı bul ve aç
+    let targetPage = document.getElementById('page-' + p);
+    if(targetPage) {
+        targetPage.classList.add('active');
     } else {
-        // C) Eğer geçmiş boşaldıysa ve şu an Cüzdan (Ana sayfa) dışındaysak -> Cüzdana dön
-        if (!document.getElementById('page-portfolio').classList.contains('active')) {
-             originalSwitchPage('portfolio', document.querySelectorAll('.nav-item')[0]);
-             // Bunu yaptıktan sonra tekrar pushState yapalım ki kullanıcı bir daha basarsa çıkabilsin
-             history.replaceState({page: 'portfolio'}, null, "#portfolio");
-        } else {
-            // D) Zaten ana sayfadayız ve geri basıldı -> Uygulama kapansın (Android standardı)
-            // Burada history.back() tarayıcıyı/uygulamayı kapatır.
-        }
+        // Sayfa bulunamazsa cüzdana dön
+        document.getElementById('page-portfolio').classList.add('active');
     }
+
+    // Alt menüdeki ikonların rengini güncelle
+    document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+    
+    // Sayfa isimlerine göre ikonları eşleştir
+    let navMap = {'portfolio':0, 'market':1, 'analysis':2, 'news':3, 'settings':4};
+    let btnIndex = navMap[p];
+    let navItems = document.querySelectorAll('.nav-item');
+    if(navItems[btnIndex]) {
+        navItems[btnIndex].classList.add('active');
+    }
+
+    // --- Sayfa Özel Yüklemeleri ---
+    // (Senin orijinal kodundaki özel fonksiyonları buraya taşıdık)
+    if(p === 'market') {
+        // Market butonunu aktif etmek için hile yapıyoruz
+        let marketBtn = document.querySelector('.ms-btn'); 
+        if(typeof switchMarketMode === 'function') switchMarketMode('main', marketBtn);
+    }
+    if(p === 'analysis' && typeof renderAnalyticsPage === 'function') renderAnalyticsPage();
+    if(p === 'news' && typeof fetchNewsCustom === 'function') fetchNewsCustom();
+    if(p === 'notifications' && typeof renderNotifications === 'function') renderNotifications(); 
 });
 
-// 4. Uygulama ilk açıldığında ana sayfayı geçmişe işle
+// 3. Uygulama İlk Açıldığında Başlangıç Ayarı
 window.addEventListener('load', function() {
-    history.replaceState({page: 'portfolio'}, null, "#portfolio");
+    // Eğer adreste # yoksa, #portfolio ekle ama geçmişi kirletme (replace)
+    if(!location.hash) {
+        history.replaceState(null, null, '#portfolio');
+        // İlk açılışta manuel tetikle
+        document.getElementById('page-portfolio').classList.add('active');
+        document.querySelectorAll('.nav-item')[0].classList.add('active');
+    } else {
+        // Sayfa yenilendiyse veya hash varsa tetikle
+        window.dispatchEvent(new Event('hashchange'));
+    }
 });
 
 </script>
