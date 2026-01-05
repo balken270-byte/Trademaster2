@@ -450,77 +450,36 @@
 
 .loader-spinner { text-align: center; padding: 20px; color: var(--text-sub); font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; display: none; }
 .loader-spinner.active { display: block; animation: pulse 1s infinite; }
+/* --- MARKET DETAY MODAL (BOTTOM SHEET) --- */
+.market-sheet {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 20px 20px 0 0; /* Sadece üst köşeler yuvarlak */
+    padding: 20px;
+    background: var(--bg-card);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    animation: slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    margin: 0;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
-/* --- KAYMAYI DÜZELTEN SABİT ALT MENÜ --- */
+.sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.sheet-title { font-size: 18px; font-weight: 800; color: white; display: flex; align-items: center; gap: 10px; }
+.sheet-close-btn { background: var(--bg-input); border: none; color: var(--text-sub); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display:flex; align-items:center; justify-content:center;}
 
-.nav-container {
-    /* Konumlandırma */
-    position: fixed;
-    bottom: 0;
-    left: 0; /* Sol tarafı sıfırla */
-    right: 0; /* Sağ tarafı sıfırla */
-    
-    /* Boyutlandırma */
-    width: 100% !important; /* Genişliği zorla */
-    max-width: none !important;
-    height: 70px;
-    
-    /* Hizalamayı Sıfırlama (Kaymayı bitiren kısım) */
-    transform: none !important; 
-    margin: 0 !important;
-    
-    /* Görünüm: Açık Füme / Soft Dark */
-    background: #1c2233 !important; 
-    
-    /* Köşeler: Sadece üst kısımlar yumuşak */
-    border-radius: 20px 20px 0 0;
-    
-    /* Ayrıştırma ve Derinlik */
-    border: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.5) !important;
-    
-    /* İçerik Düzeni */
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    z-index: 1000;
-    
-    /* Mobil Güvenli Alan Payı */
-    padding-bottom: env(safe-area-inset-bottom);
+.chart-box-lg {
+    width: 100%;
+    height: 300px;
+    background: #131722;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255,255,255,0.05);
 }
 
-/* MENÜ ÖĞELERİ (Stabil Tutuldu) */
-.nav-item {
-    color: #94a3b8;
-    font-size: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    flex: 1;
-    height: 100%;
-    transition: all 0.2s ease;
-    cursor: pointer;
-}
+.sheet-actions { display: flex; gap: 10px; }
+.sheet-actions .btn-main { padding: 16px; font-size: 14px; }
 
-.nav-item span {
-    font-size: 10px;
-    font-weight: 600;
-}
-
-/* AKTİF DURUM */
-.nav-item.active {
-    color: #ffffff !important;
-    background: rgba(255, 255, 255, 0.05);
-}
-
-/* ÖZEL ANALİZ (KALKAN) SİMGESİ - AKTİF DURUM */
-.nav-item.special-analysis-tab.active {
-    color: #f59e0b !important; /* Altın Sarısı */
-    text-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
-}
 
     </style>
 </head>
@@ -829,29 +788,39 @@
 </div> 
 
 <div class="nav-container">
-    <div class="nav-item active" onclick="switchPage('portfolio', this)">
-        <i class="fas fa-wallet"></i>
-        <span>Cüzdan</span>
-    </div>
-    <div class="nav-item" onclick="switchPage('market', this)">
-        <i class="fas fa-chart-line"></i>
-        <span>Piyasa</span>
-    </div>
-    <div class="nav-item special-analysis-tab" onclick="switchPage('analysis', this)">
-        <i class="fas fa-shield-alt"></i>
-        <span>Analiz</span>
-    </div>
-    <div class="nav-item" onclick="switchPage('news', this)">
-        <i class="far fa-newspaper"></i>
-        <span>Haber</span>
-    </div>
-    <div class="nav-item" onclick="switchPage('settings', this)">
-        <i class="fas fa-cog"></i>
-        <span>Ayarlar</span>
+    <div class="nav-item active" onclick="switchPage('portfolio', this)"><i class="fas fa-wallet"></i><span data-lang="nav_wallet">Cüzdan</span></div>
+    <div class="nav-item" onclick="switchPage('market', this)"><i class="fas fa-chart-line"></i><span data-lang="nav_market">Piyasa</span></div>
+    <div class="nav-item" onclick="switchPage('analysis', this)"><i class="fas fa-chart-pie"></i><span>Analiz</span></div>
+    <div class="nav-item" onclick="switchPage('news', this)"><i class="far fa-newspaper"></i><span data-lang="nav_news">Haber</span></div>
+    <div class="nav-item" onclick="switchPage('settings', this)"><i class="fas fa-cog"></i><span data-lang="nav_settings">Ayarlar</span></div>
+</div>
+<div id="sellModal" class="modal-overlay">
+    <div class="modal">
+        <div class="sell-header-row">
+            <div class="card-title" style="margin:0; font-size:14px;">SATIŞ EMRİ</div>
+            <button id="sellCurrencyToggle" class="currency-toggle-btn active-try" onclick="toggleExitCurrency()">₺</button>
+        </div>
+        <input type="hidden" id="sellIdx">
+        <div style="margin-bottom:5px; font-size:11px; color:var(--text-sub);">Miktar (<span id="sellMaxAmt">0</span> Mevcut)</div>
+        <div class="sell-ratio-group">
+            <button class="ratio-btn" onclick="setSellRatio(0.25)">%25</button>
+            <button class="ratio-btn" onclick="setSellRatio(0.50)">%50</button>
+            <button class="ratio-btn" onclick="setSellRatio(0.75)">%75</button>
+            <button class="ratio-btn" onclick="setSellRatio(1.0)">TÜMÜ</button>
+        </div>
+        <input type="number" id="sellAmt" class="modern-input" placeholder="Adet Giriniz" onkeyup="calcSellPreview()">
+        <div style="margin-bottom:5px; font-size:11px; color:var(--text-sub); margin-top:5px;">Satış Fiyatı (Birim)</div>
+        <input type="number" id="sellPrice" class="modern-input" placeholder="Fiyat Giriniz" onkeyup="calcSellPreview()">
+        <div class="sell-summary-box" id="sellSummaryBox" style="display:none;">
+            <div class="ss-row"><span class="ss-lbl">Tahmini Tutar:</span><span class="ss-val" id="ssTotal">0.00</span></div>
+            <div class="ss-row"><span class="ss-lbl">Bu İşlemden Kâr/Zarar:</span><span class="ss-pnl" id="ssPnL">0.00</span></div>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:15px;">
+            <button class="btn-main btn-sec" onclick="document.getElementById('sellModal').style.display='none'">İptal</button>
+            <button class="btn-main" onclick="confirmSell()">SATIŞI ONAYLA</button>
+        </div>
     </div>
 </div>
-
-
 
 <div id="alarmModal" class="modal-overlay">
     <div class="modal">
