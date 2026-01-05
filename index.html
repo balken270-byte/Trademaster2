@@ -432,6 +432,35 @@
 
 .loader-spinner { text-align: center; padding: 20px; color: var(--text-sub); font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; display: none; }
 .loader-spinner.active { display: block; animation: pulse 1s infinite; }
+/* --- MARKET DETAY MODAL (BOTTOM SHEET) --- */
+.market-sheet {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 20px 20px 0 0; /* Sadece üst köşeler yuvarlak */
+    padding: 20px;
+    background: var(--bg-card);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    animation: slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    margin: 0;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+.sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.sheet-title { font-size: 18px; font-weight: 800; color: white; display: flex; align-items: center; gap: 10px; }
+.sheet-close-btn { background: var(--bg-input); border: none; color: var(--text-sub); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display:flex; align-items:center; justify-content:center;}
+
+.chart-box-lg {
+    width: 100%;
+    height: 300px;
+    background: #131722;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.sheet-actions { display: flex; gap: 10px; }
+.sheet-actions .btn-main { padding: 16px; font-size: 14px; }
 
     </style>
 </head>
@@ -856,6 +885,26 @@
         <div style="display:flex; gap:10px;">
             <button class="btn-main btn-sec" onclick="closeModal('noCashModal')">Vazgeç</button>
             <button class="btn-main" onclick="closeModal('noCashModal'); openCashModal()">Nakit Ekle</button>
+        </div>
+    </div>
+</div>
+
+<div id="marketDetailModal" class="modal-overlay" style="align-items: flex-end;">
+    <div class="modal market-sheet">
+        <div class="sheet-header">
+            <div id="mdTitle" class="sheet-title">--</div>
+            <button class="sheet-close-btn" onclick="closeMarketDetail()"><i class="fas fa-times"></i></button>
+        </div>
+        
+        <div id="mdChartContainer" class="chart-box-lg"></div>
+
+        <div class="sheet-actions">
+            <button class="btn-main btn-sec" onclick="actionWatchFromMarket()">
+                <i class="fas fa-plus"></i> İzlemeye Ekle
+            </button>
+            <button class="btn-main" onclick="actionBuyFromMarket()">
+                <i class="fas fa-shopping-cart"></i> İŞLEM YAP (AL)
+            </button>
         </div>
     </div>
 </div>
@@ -1900,8 +1949,101 @@ function openMarketDetail(sym) {
     addNotification('info', 'Seçildi', `${sym} detayları hazırlanıyor...`);
 }
 
-// Sayfa ilk yüklendiğinde varsayılanı çalıştır
-// (Mevcut initApp fonksiyonunun sonuna şunu eklemeyi unutma: loadMarketCategory('kripto'); )
+let currentDetailSymbol = ""; // O an incelenen sembolü tutar
+
+// 1. Modalı Açan Fonksiyon
+function openMarketDetail(rawSymbol) {
+    currentDetailSymbol = rawSymbol; // Sembolü hafızaya al (Örn: BTC, THYAO)
+    
+    // Başlığı güncelle
+    let displayName = rawSymbol;
+    if(rawSymbol === 'GC=F') displayName = 'ONS ALTIN';
+    else if(rawSymbol === 'TRY=X') displayName = 'USD/TRY';
+    
+    document.getElementById('mdTitle').innerHTML = getAssetLogoHtml(rawSymbol) + " " + displayName;
+
+    // Modalı göster
+    document.getElementById('marketDetailModal').style.display = 'flex';
+
+    // TradingView Grafiğini Oluştur
+    let tvSymbol = rawSymbol;
+    
+    // Kategoriye göre TradingView sembolünü düzelt
+    if(currentCategory === 'kripto') {
+        tvSymbol = "BINANCE:" + rawSymbol + "USDT";
+    } else if(currentCategory === 'hisse') {
+        tvSymbol = "BIST:" + rawSymbol.replace('.IS', '');
+    } else if(currentCategory === 'altin') {
+        if(rawSymbol === 'GC=F') tvSymbol = "TVC:GOLD";
+        else if(rawSymbol === 'SI=F') tvSymbol = "TVC:SILVER";
+    } else if(currentCategory === 'doviz') {
+        if(rawSymbol === 'TRY=X') tvSymbol = "FX:USDTRY";
+        else if(rawSymbol === 'EURTRY=X') tvSymbol = "FX:EURTRY";
+    }
+
+    // Grafiği bas
+    new TradingView.widget({
+        "autosize": true,
+        "symbol": tvSymbol,
+        "interval": "D",
+        "timezone": "Etc/UTC",
+        "theme": "dark",
+        "style": "1",
+        "locale": "tr",
+        "toolbar_bg": "#f1f3f6",
+        "enable_publishing": false,
+        "hide_top_toolbar": true, // Mobilde yer kaplamasın
+        "hide_legend": false,
+        "save_image": false,
+        "container_id": "mdChartContainer"
+    });
+}
+
+// 2. Modalı Kapatan Fonksiyon
+function closeMarketDetail() {
+    document.getElementById('marketDetailModal').style.display = 'none';
+    document.getElementById('mdChartContainer').innerHTML = ""; // Grafiği temizle (Performans için)
+}
+
+// 3. "İŞLEM YAP (AL)" Butonu Fonksiyonu
+function actionBuyFromMarket() {
+    closeMarketDetail(); // Modalı kapat
+    
+    // Cüzdan sayfasına git
+    switchPage('portfolio', document.querySelectorAll('.nav-item')[0]);
+    
+    // "Hızlı İşlem" menüsü kapalıysa aç
+    const content = document.getElementById('tradeContent');
+    const card = document.getElementById('tradeCard');
+    const chevron = document.getElementById('tradeChevron');
+    
+    if (content.classList.contains('collapsed')) {
+        content.classList.remove('collapsed');
+        chevron.classList.add('rotated');
+        card.classList.add('open');
+    }
+
+    // Sembolü kutuya yaz ve fiyatı getir
+    const input = document.getElementById('addSymbol');
+    input.value = currentDetailSymbol;
+    debouncedPreview(currentDetailSymbol); // Fiyatı çekip ekrana basar
+    
+    // Kullanıcıya miktar girmesi için input'a odaklan
+    document.getElementById('addAmount').focus();
+}
+
+// 4. "İzlemeye Ekle" Butonu Fonksiyonu
+function actionWatchFromMarket() {
+    let w = JSON.parse(localStorage.getItem('tm_watchlist')) || [];
+    if(w.includes(currentDetailSymbol)) { 
+        return addNotification('warn', 'Zaten Ekli', 'Bu sembol izleme listesinde var.'); 
+    } 
+    w.push(currentDetailSymbol); 
+    localStorage.setItem('tm_watchlist', JSON.stringify(w)); 
+    updateWatchlist(); 
+    addNotification('success', 'Eklendi', `${currentDetailSymbol} izlemeye alındı.`);
+}
+
 
 </script>
 </body>
