@@ -346,93 +346,6 @@
         .cash-modal-btn { flex: 1; padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: var(--bg-input); color: white; font-weight: 700; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; transition: 0.2s; }
         .cash-modal-btn.deposit:hover, .cash-modal-btn.deposit.active { background: rgba(16, 185, 129, 0.15); border-color: var(--success); color: var(--success); }
         .cash-modal-btn.withdraw:hover, .cash-modal-btn.withdraw.active { background: rgba(239, 68, 68, 0.15); border-color: var(--danger); color: var(--danger); }
-      /* --- YENİ PİYASA LİSTE STİLLERİ (PREMIUM TASARIM) --- */
-.market-filter-group { 
-    display: flex; gap: 8px; padding: 0 5px 10px 5px; 
-    overflow-x: auto; scrollbar-width: none; 
-}
-.mf-chip { 
-    background: rgba(255,255,255,0.03); 
-    border: 1px solid rgba(255,255,255,0.08); 
-    color: var(--text-sub); 
-    padding: 8px 16px; 
-    border-radius: 12px; 
-    font-size: 11px; font-weight: 700; 
-    cursor: pointer; white-space: nowrap; 
-    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-.mf-chip.active { 
-    background: rgba(59, 130, 246, 0.15); 
-    color: var(--accent); 
-    border-color: var(--accent); 
-    box-shadow: 0 0 15px rgba(59, 130, 246, 0.25);
-}
-
-.infinite-list-container { 
-    height: calc(100vh - 280px); /* Alt navigasyon payı */
-    overflow-y: auto; 
-    padding: 5px; 
-    padding-bottom: 80px; 
-}
-
-/* Kart Tasarımı */
-.infinite-item { 
-    display: flex; justify-content: space-between; align-items: center; 
-    background: linear-gradient(145deg, var(--bg-card) 0%, rgba(30, 41, 59, 0.4) 100%);
-    border: 1px solid rgba(255,255,255,0.05); 
-    padding: 12px 14px; 
-    border-radius: 16px; 
-    margin-bottom: 8px; /* Kartlar arası boşluk */
-    cursor: pointer; 
-    transition: transform 0.2s, background 0.2s;
-    position: relative;
-    overflow: hidden;
-}
-.infinite-item:active { 
-    transform: scale(0.98); 
-    background: var(--bg-input); 
-}
-
-/* Sol Taraf */
-.ii-left { display: flex; align-items: center; gap: 12px; }
-
-/* Sıralama Rozeti */
-.ii-rank { 
-    font-size: 10px; color: var(--text-sub); 
-    width: 22px; height: 22px; 
-    display: flex; align-items: center; justify-content: center;
-    border-radius: 6px; 
-    font-weight: 800; 
-    background: rgba(255,255,255,0.03);
-}
-/* İlk 3 Sıra İçin Özel Renkler */
-.rank-gold { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
-.rank-silver { background: rgba(148, 163, 184, 0.15); color: #e2e8f0; border: 1px solid rgba(148, 163, 184, 0.3); }
-.rank-bronze { background: rgba(180, 83, 9, 0.15); color: #fdba74; border: 1px solid rgba(180, 83, 9, 0.3); }
-
-.ii-info { display: flex; flex-direction: column; gap: 2px; }
-.ii-sym { font-size: 14px; font-weight: 800; color: white; letter-spacing: 0.3px; }
-.ii-vol { font-size: 10px; color: var(--text-sub); opacity: 0.7; font-weight: 500; }
-
-/* Sağ Taraf */
-.ii-right { text-align: right; display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
-.ii-price { font-size: 15px; font-weight: 700; color: white; letter-spacing: -0.5px; }
-
-/* Yüzde Rozeti */
-.ii-change { 
-    font-size: 11px; font-weight: 800; 
-    padding: 4px 10px; 
-    border-radius: 8px; 
-    min-width: 65px; 
-    text-align: center;
-    display: flex; align-items: center; justify-content: center; gap: 4px;
-}
-.bg-up { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); }
-.bg-down { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
-
-.loader-spinner { text-align: center; padding: 20px; color: var(--text-sub); font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; display: none; }
-.loader-spinner.active { display: block; animation: pulse 1s infinite; }
-
     </style>
 </head>
 <body>
@@ -531,49 +444,43 @@
     <div id="page-notifications" class="page"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;"><div class="ac-title" style="font-weight:800; font-size:16px; color:white;">BİLDİRİMLER</div><button class="tool-btn" onclick="clearNotifications()" style="font-size:11px; color:var(--text-sub);">TEMİZLE</button></div><div id="notificationList"></div></div>
     
     <div id="page-market" class="page">
-    <div class="market-switcher">
-        <div class="ms-btn active" onclick="switchMarketMode('main', this)">PİYASA</div>
-        <div class="ms-btn" onclick="switchMarketMode('watchlist', this)">İZLEME LİSTESİ</div>
-    </div>
-    
-    <div id="mv-main" class="market-view-section active">
-        <div class="market-tabs-pro">
-            <div class="m-tab-pro active" onclick="loadMarketCategory('kripto', this)">KRİPTO</div>
-            <div class="m-tab-pro" onclick="loadMarketCategory('hisse', this)">BIST 100</div>
-            <div class="m-tab-pro" onclick="loadMarketCategory('altin', this)">EMTİA</div>
-            <div class="m-tab-pro" onclick="loadMarketCategory('doviz', this)">DÖVİZ</div>
-        </div>
-
-        <div class="market-filter-group">
-            <div class="mf-chip active" onclick="sortMarketData('vol', this)">Hacim (Popüler)</div>
-            <div class="mf-chip" onclick="sortMarketData('gainers', this)">En Çok Artanlar</div>
-            <div class="mf-chip" onclick="sortMarketData('losers', this)">En Çok Düşenler</div>
-        </div>
-
-        <div style="display:flex; justify-content:space-between; padding:0 10px 5px 10px; font-size:10px; color:var(--text-sub); font-weight:700; text-transform:uppercase;">
-            <span>Varlık</span>
-            <span>Fiyat / 24s Değişim</span>
-        </div>
-
-        <div id="infiniteMarketList" class="infinite-list-container">
+         <div class="market-switcher">
+             <div class="ms-btn active" onclick="switchMarketMode('main', this)">PİYASA</div>
+             <div class="ms-btn" onclick="switchMarketMode('watchlist', this)">İZLEME</div>
+         </div>
+         
+         <div id="mv-main" class="market-view-section active">
+            <div class="market-tabs-pro">
+                <div class="m-tab-pro active" onclick="loadMarketTab('kripto', this)">KRİPTO</div>
+                <div class="m-tab-pro" onclick="loadMarketTab('hisse', this)">BIST</div>
+                <div class="m-tab-pro" onclick="loadMarketTab('altin', this)">EMTİA</div>
+                <div class="m-tab-pro" onclick="loadMarketTab('doviz', this)">DÖVİZ</div>
             </div>
-        <div id="marketLoader" class="loader-spinner">Yükleniyor...</div>
-    </div>
 
-    <div id="mv-watchlist" class="market-view-section">
-        <div class="wl-search-wrapper">
-            <div class="wl-search-box">
-                <input type="text" id="wlInput" class="wl-search-input" placeholder="Sembol Ekle..." onkeyup="debouncedWlPreview(this.value)">
-                <button class="wl-add-btn" onclick="addToWatchlist()"><i class="fas fa-plus"></i></button>
+            <div id="marketLiveList" class="market-list-container">
+                <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
             </div>
-            <div id="wlLiveInfo"></div>
-        </div>
-        <div id="wlList" style="margin-top:10px; padding-bottom:100px;"></div>
+
+            <div class="chart-container-pro" style="height:350px;">
+                <div class="chart-search-overlay">
+                    <input type="text" id="chartSearchInput" class="cso-input" placeholder="GRAFİK ARA..." onchange="searchInChart()">
+                    <i class="fas fa-search" style="color:var(--accent); font-size:11px;"></i>
+                </div>
+                <div id="tradingview_container"></div>
+            </div>
+         </div>
+
+         <div id="mv-watchlist" class="market-view-section">
+             <div class="wl-search-wrapper">
+                 <div class="wl-search-box">
+                     <input type="text" id="wlInput" class="wl-search-input" placeholder="Sembol Ekle..." onkeyup="debouncedWlPreview(this.value)">
+                     <button class="wl-add-btn" onclick="addToWatchlist()"><i class="fas fa-plus"></i></button>
+                 </div>
+                 <div id="wlLiveInfo"></div>
+             </div>
+             <div id="wlList" style="margin-top:10px;"></div>
+         </div>
     </div>
-</div>
-
-
-
 
     <div id="page-analysis" class="page">
         <div style="margin-bottom: 20px;">
@@ -1626,271 +1533,6 @@ switchPage = function(p, btn) {
         }
     }
 };
-
-/* --- YENİ INFINITE SCROLL & LIVE MARKET MOTORU --- */
-
-// Genişletilmiş BIST Listesi (Infinite Scroll hissi vermek için)
-const bistExtended = [
-    'THYAO','GARAN','AKBNK','ASELS','EREGL','SASA','KCHOL','SISE','BIMAS','TUPRS',
-    'YKBNK','ISCTR','FROTO','EKGYO','PETKM','HALKB','VAKBN','TCELL','KOZAL','ASTOR',
-    'ENKAI','ARCLK','TOASO','HEKTS','ODAS','ALARK','TTKOM','MGROS','GUBRF','OYAKC',
-    'PGSUS','SAHOL','SOKM','KONTR','EUPWR','SMRTG','GESAN','CANTE','ISGYO','DOHOL',
-    'VESTL','TKFEN','ZOREN','KRDMD','TSKB','SKBNK','QUAGR','BERA','MAVI','CIMSA'
-];
-
-let marketDataCache = []; // Tüm çekilen veriyi tutar
-let displayedData = [];   // Ekranda o an gösterilen veri
-let currentCategory = 'kripto';
-let currentSortType = 'vol';
-let currentPage = 1;
-const itemsPerPage = 20;
-let isMarketLoading = false;
-
-// 1. Kategori Değiştirme
-function loadMarketCategory(cat, btn) {
-    if(btn) {
-        document.querySelectorAll('.m-tab-pro').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-    }
-    currentCategory = cat;
-    currentPage = 1;
-    marketDataCache = [];
-    document.getElementById('infiniteMarketList').innerHTML = '';
-    
-    // Kategoriye göre veri çekme stratejisi
-    fetchMarketData();
-}
-
-// 2. Sıralama Değiştirme
-function sortMarketData(type, btn) {
-    if(btn) {
-        document.querySelectorAll('.mf-chip').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-    }
-    currentSortType = type;
-    currentPage = 1;
-    
-    // Mevcut cache'i sırala ve yeniden render et
-    processAndRenderData();
-}
-
-// 3. Veri Çekme (API Bağlantısı)
-async function fetchMarketData() {
-    const loader = document.getElementById('marketLoader');
-    loader.classList.add('active');
-    isMarketLoading = true;
-
-    try {
-        if(currentCategory === 'kripto') {
-            // Binance Tüm Tickerları Çek (USDT çiftleri)
-            const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
-            const data = await res.json();
-            
-            // Sadece USDT çiftlerini filtrele ve gereksizleri at
-            marketDataCache = data.filter(d => d.symbol.endsWith('USDT') && !d.symbol.includes('UP') && !d.symbol.includes('DOWN'))
-                .map(d => ({
-                    symbol: d.symbol.replace('USDT', ''),
-                    price: parseFloat(d.lastPrice),
-                    change: parseFloat(d.priceChangePercent),
-                    vol: parseFloat(d.quoteVolume), // Hacim sıralaması için
-                    source: 'KRİPTO'
-                }));
-
-        } else if(currentCategory === 'hisse') {
-            // BIST için yahoo/custom proxy ile tek tek çekim (Simüle Edilmiş Toplu Veri)
-            // Gerçek API olmadığı için ön tanımlı listeyi kullanacağız
-            marketDataCache = bistExtended.map(sym => ({
-                symbol: sym,
-                price: 0, // Sonra doldurulacak
-                change: 0,
-                vol: 0,
-                source: 'BIST'
-            }));
-            
-            // Fiyatları asenkron doldur (UI donmasın diye)
-            updateBistPrices();
-        } else if(currentCategory === 'altin' || currentCategory === 'doviz') {
-            // Mevcut presetleri kullan
-            let list = (currentCategory === 'altin') ? ['GC=F','SI=F','CL=F','HG=F'] : ['TRY=X','EURTRY=X','EUR=X','GBPTRY=X'];
-            marketDataCache = list.map(sym => ({
-                symbol: sym, // Display name mapping yapılabilir
-                price: 0,
-                change: 0,
-                vol: 0,
-                source: currentCategory.toUpperCase()
-            }));
-            updateOtherPrices();
-        }
-
-        processAndRenderData();
-
-    } catch (error) {
-        console.error("Veri hatası:", error);
-        loader.classList.remove('active');
-    }
-}
-
-// 4. BIST ve Diğerleri İçin Fiyat Güncelleme (Arka Planda)
-async function updateBistPrices() {
-    for(let item of marketDataCache) {
-        // Hızlı sonuç için mevcut getPrice fonksiyonunu kullan
-        let s = item.symbol.includes('=') ? item.symbol : item.symbol + '.IS';
-        getPrice(s).then(res => {
-            if(res && res.price > 0) {
-                item.price = res.price;
-                item.change = res.change;
-                // Değişim olduğunda ilgili DOM elementini güncelle (Live effect)
-                updateDomItem(item);
-            }
-        });
-        await new Promise(r => setTimeout(r, 100)); // API limitine takılmamak için gecikme
-    }
-}
-
-async function updateOtherPrices() {
-     // Altın/Döviz için benzer mantık, daha hızlı döngü
-     for(let item of marketDataCache) {
-        getPrice(item.symbol).then(res => {
-            if(res && res.price > 0) {
-                item.price = res.price;
-                item.change = res.change;
-                updateDomItem(item);
-            }
-        });
-    }
-}
-
-// 5. Veriyi İşle ve Ekrana Bas (Sıralama + Pagination)
-function processAndRenderData() {
-    // Sıralama Mantığı
-    if(currentSortType === 'vol') {
-        // Hacme göre (Kripto için quoteVolume, diğerleri için varsayılan sıra)
-        if(currentCategory === 'kripto') marketDataCache.sort((a,b) => b.vol - a.vol);
-    } else if(currentSortType === 'gainers') {
-        marketDataCache.sort((a,b) => b.change - a.change);
-    } else if(currentSortType === 'losers') {
-        marketDataCache.sort((a,b) => a.change - b.change);
-    }
-
-    // Listeyi Temizle (Eğer sayfa 1 ise)
-    const listEl = document.getElementById('infiniteMarketList');
-    if(currentPage === 1) listEl.innerHTML = '';
-    
-    renderNextBatch();
-    isMarketLoading = false;
-    document.getElementById('marketLoader').classList.remove('active');
-}
-
-// 6. Sonraki Grubu Render Et (PREMIUM TASARIMLI GÜNCEL HALİ)
-function renderNextBatch() {
-    const listEl = document.getElementById('infiniteMarketList');
-    const start = (currentPage - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-    const batch = marketDataCache.slice(start, end);
-
-    if(batch.length === 0 && currentPage === 1) {
-        listEl.innerHTML = "<div style='text-align:center; padding:30px; color:var(--text-sub); opacity:0.6;'><i class='fas fa-search' style='font-size:24px; margin-bottom:10px;'></i><br>Veri bulunamadı.</div>";
-        return;
-    }
-
-    let html = "";
-    batch.forEach((item, idx) => {
-        let globalIdx = start + idx + 1;
-        let pStr = item.price > 0 ? formatPrice(item.price, currentCategory) : "--";
-        
-        // Yüzde değişime göre ikon ve renk
-        let isUp = item.change >= 0;
-        let cClass = isUp ? 'bg-up' : 'bg-down';
-        let cIcon = isUp ? '<i class="fas fa-caret-up"></i>' : '<i class="fas fa-caret-down"></i>';
-        let cStr = item.change !== 0 ? `${cIcon}%${Math.abs(item.change).toFixed(2)}` : "--";
-        
-        let logo = getAssetLogoHtml(item.symbol); 
-        
-        // İsim Düzeltmeleri
-        let dName = item.symbol;
-        if(dName === 'GC=F') dName = 'ONS ALTIN';
-        if(dName === 'TRY=X') dName = 'USD/TRY';
-
-        // İlk 3 sıraya özel madalya rengi (Gold, Silver, Bronze)
-        let rankClass = '';
-        if(globalIdx === 1) rankClass = 'rank-gold';
-        else if(globalIdx === 2) rankClass = 'rank-silver';
-        else if(globalIdx === 3) rankClass = 'rank-bronze';
-
-        let uniqueId = `m_item_${item.symbol.replace(/[^a-zA-Z0-9]/g, '')}`;
-
-        // Hacim Gösterimi (Milyon/Bin cinsinden kısaltma)
-        let volStr = item.source;
-        if(currentCategory === 'kripto' && item.vol > 0) {
-            if(item.vol > 1000000) volStr = (item.vol/1000000).toFixed(1) + 'M Hacim';
-            else if(item.vol > 1000) volStr = (item.vol/1000).toFixed(1) + 'K Hacim';
-        }
-
-        // YENİ KART TASARIMI HTML'İ
-        html += `
-        <div class="infinite-item" id="${uniqueId}" onclick="openMarketDetail('${item.symbol}')">
-            <div class="ii-left">
-                <div class="ii-rank ${rankClass}">${globalIdx}</div>
-                ${logo}
-                <div class="ii-info">
-                    <span class="ii-sym">${dName}</span>
-                    <span class="ii-vol">${volStr}</span>
-                </div>
-            </div>
-            <div class="ii-right">
-                <span class="ii-price">${pStr}</span>
-                <span class="ii-change ${cClass}">${cStr}</span>
-            </div>
-        </div>`;
-    });
-
-    listEl.insertAdjacentHTML('beforeend', html);
-}
-
-
-    
-
-// 7. Scroll Event Listener (Listenin sonuna gelince tetiklenir)
-document.getElementById('infiniteMarketList').addEventListener('scroll', function() {
-    if(this.scrollTop + this.clientHeight >= this.scrollHeight - 50) {
-        if(!isMarketLoading && (currentPage * itemsPerPage < marketDataCache.length)) {
-            currentPage++;
-            renderNextBatch();
-        }
-    }
-});
-
-// Yardımcı: Fiyat Formatı
-function formatPrice(p, cat) {
-    if(cat === 'kripto' || cat === 'altin') return '$' + p.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-    return '₺' + p.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-}
-
-// Yardımcı: Tekil DOM Güncelleme (BIST Live Effect için)
-function updateDomItem(item) {
-    let uniqueId = `m_item_${item.symbol.replace(/[^a-zA-Z0-9]/g, '')}`;
-    let el = document.getElementById(uniqueId);
-    if(el) {
-        let pEl = el.querySelector('.ii-price');
-        let cEl = el.querySelector('.ii-change');
-        
-        if(pEl) pEl.innerText = formatPrice(item.price, currentCategory);
-        if(cEl) {
-            cEl.innerText = `%${item.change.toFixed(2)}`;
-            cEl.className = `ii-change ${item.change >= 0 ? 'bg-up' : 'bg-down'}`;
-        }
-    }
-}
-
-// Liste elemanına tıklayınca ne olsun? (Şimdilik sembolü kopyalasın veya TradingView açsın)
-function openMarketDetail(sym) {
-    // İstersen burada modal açabilirsin. Şimdilik panoya kopyalayalım
-    // veya mevcut grafiği açmak istersen eski fonksiyonu çağırabilirsin.
-    addNotification('info', 'Seçildi', `${sym} detayları hazırlanıyor...`);
-}
-
-// Sayfa ilk yüklendiğinde varsayılanı çalıştır
-// (Mevcut initApp fonksiyonunun sonuna şunu eklemeyi unutma: loadMarketCategory('kripto'); )
 
 </script>
 </body>
