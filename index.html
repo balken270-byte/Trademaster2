@@ -1249,7 +1249,10 @@
                 </div>
                 <div class="md-action-grid">
                     <button class="btn-quick bq-buy" onclick="actionBuyFromMarket()"><span><i class="fas fa-arrow-down"></i> ALIM YAP</span><span class="bq-sub">Portföye Ekle</span></button>
-                    <button class="btn-quick bq-sell" onclick="closeMarketDetail(); switchPage('portfolio', null)"><span><i class="fas fa-arrow-up"></i> SATIŞ YAP</span><span class="bq-sub">Portföye Git</span></button>
+                    <button class="btn-quick bq-sell" onclick="actionSellFromMarket()">
+    <span><i class="fas fa-arrow-up"></i> SATIŞ YAP</span><span class="bq-sub">Portföyden Sat</span>
+</button>
+
                 </div>
             </div>
         </div>
@@ -2570,17 +2573,18 @@ function closeMarketDetail() {
     document.getElementById('mdChartContainer').innerHTML = ""; // Grafiği temizle (Performans için)
 }
 
-// 3. "İŞLEM YAP (AL)" Butonu Fonksiyonu
+/* --- GÜNCELLENMİŞ ALIM BUTONU AKSİYONU --- */
 function actionBuyFromMarket() {
-    closeMarketDetail(); // Modalı kapat
+    // 1. Modalı Kapat
+    closeMarketDetail(); 
     
-    // Cüzdan sayfasına git
+    // 2. Cüzdan Sayfasına Git
     switchPage('portfolio', document.querySelectorAll('.nav-item')[0]);
     
-    // "Hızlı İşlem" menüsü kapalıysa aç
+    // 3. "Hızlı İşlem" Menüsü Kapalıysa Zorla Aç
     const content = document.getElementById('tradeContent');
-    const card = document.getElementById('tradeCard');
     const chevron = document.getElementById('tradeChevron');
+    const card = document.getElementById('tradeCard');
     
     if (content.classList.contains('collapsed')) {
         content.classList.remove('collapsed');
@@ -2588,31 +2592,26 @@ function actionBuyFromMarket() {
         card.classList.add('open');
     }
 
-    // Sembolü kutuya yaz ve fiyatı getir
+    // 4. Sembolü Kutuya Yaz (Değişken ismi düzeltildi: currentMdSymbol)
     const input = document.getElementById('addSymbol');
-    input.value = currentDetailSymbol;
-    debouncedPreview(currentDetailSymbol); // Fiyatı çekip ekrana basar
+    if(currentMdSymbol) {
+        // Eğer sembol 'BINANCE:BTCUSDT' gibi gelirse temizle, sadece 'BTC' yaz
+        let cleanSym = currentMdSymbol.replace('BINANCE:','').replace('BIST:','').replace('USDT','').replace('.IS','');
+        input.value = cleanSym;
+        
+        // 5. Fiyatı Getir (Simülasyon)
+        debouncedPreview(cleanSym); 
+    }
     
-    // Kullanıcıya miktar girmesi için input'a odaklan
-    document.getElementById('addAmount').focus();
+    // 6. Kullanıcı direkt miktar girebilsin diye oraya odaklan
+    setTimeout(() => {
+        document.getElementById('addAmount').focus();
+    }, 300);
 }
 
-// 4. "İzlemeye Ekle" Butonu Fonksiyonu
-function actionWatchFromMarket() {
-    let w = JSON.parse(localStorage.getItem('tm_watchlist')) || [];
-    if(w.includes(currentDetailSymbol)) { 
-        return addNotification('warn', 'Zaten Ekli', 'Bu sembol izleme listesinde var.'); 
-    } 
-    w.push(currentDetailSymbol); 
-    localStorage.setItem('tm_watchlist', JSON.stringify(w)); 
-    updateWatchlist(); 
-    addNotification('success', 'Eklendi', `${currentDetailSymbol} izlemeye alındı.`);
-}
+/* --- YENİ DETAY MODAL JS MOTORU (DÜZELTİLMİŞ) --- */
 
-/* --- YENİ DETAY MODAL JS MOTORU --- */
-
-let currentMdSymbol = "";
-let currentMdPrice = 0;
+let currentMdSymbol = ""; // Global değişken
 
 function switchMdTab(tab, btn) {
     document.querySelectorAll('.md-content').forEach(c => c.classList.remove('active'));
@@ -2621,74 +2620,43 @@ function switchMdTab(tab, btn) {
     btn.classList.add('active');
 }
 
-async function openMarketDetail(rawSymbol) {
-    currentMdSymbol = rawSymbol;
-    
-    // 1. Modalı Aç ve Yükleniyor Göster
-    document.getElementById('marketDetailModal').style.display = 'flex';
-    document.getElementById('mdSymbolTitle').innerText = rawSymbol;
-    document.getElementById('mdBigPrice').innerText = "Yükleniyor...";
-    
-    // Varsayılan Tab'a Dön
-    switchMdTab('overview', document.querySelectorAll('.md-tab')[0]);
-
-    // Logo Getir
-    document.getElementById('mdAssetLogo').innerHTML = getAssetLogoHtml(rawSymbol);
-
-    // Kategoriye göre Veri Çekme Stratejisi
-    let details = { price: 0, change: 0, high: 0, low: 0, vol: 0, vwap: 0 };
-    let displaySym = rawSymbol;
-
-    try {
-        if(currentCategory === 'kripto') {
-            // Binance API'den Detaylı Veri (24hr Ticker)
-            let s = rawSymbol.replace('USDT', '') + 'USDT';
-            const res = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${s}`);
-            const d = await res.json();
-            
-            details.price = parseFloat(d.lastPrice);
-            details.change = parseFloat(d.priceChangePercent);
-            details.high = parseFloat(d.highPrice);
-            details.low = parseFloat(d.lowPrice);
-            details.vol = parseFloat(d.quoteVolume);
-            details.vwap = parseFloat(d.weightedAvgPrice);
-            displaySym = rawSymbol + " / USDT";
-            
-        } else {
-            // Diğer varlıklar için mevcut getPrice fonksiyonunu ve simülasyonu kullan
-            // Çünkü ücretsiz API'lerde High/Low verisi anlık bulmak zor
-            let pData = await getPrice(rawSymbol);
-            details.price = pData.price;
-            details.change = pData.change;
-            
-            // Simüle edilmiş veriler (API kısıtı nedeniyle mantıklı tahminler)
-            // Gerçek projede buraya Yahoo Finance detaylı API bağlanmalı
-            details.high = details.price * (1 + (Math.random() * 0.02)); 
-            details.low = details.price * (1 - (Math.random() * 0.02));
-            details.vol = Math.floor(Math.random() * 10000000); 
-            details.vwap = details.price;
-        }
-
-        currentMdPrice = details.price;
-        renderMdUI(details, displaySym);
-        
-        // TradingView Başlat (Sadece tab değişince görünecek ama hazır olsun)
-        initMdChart(rawSymbol);
-
-    } catch (e) {
-        console.error(e);
-        addNotification('danger', 'Hata', 'Detay verisi alınamadı.');
-        closeMarketDetail();
-    }
-}
-
+// FORMAT VOLUME FONKSİYONU
 function formatVolume(val, sym) {
+    if(!val) return "--";
     if(val > 1000000000) return sym + (val/1000000000).toFixed(2) + " Mr";
     if(val > 1000000) return sym + (val/1000000).toFixed(2) + " M";
     if(val > 1000) return sym + (val/1000).toFixed(2) + " K";
     return sym + val.toFixed(0);
 }
 
+// GRAFİK BAŞLATICI
+function initMdChart(rawSymbol) {
+    let tvSymbol = rawSymbol;
+    if(currentCategory === 'kripto') {
+        if(!rawSymbol.includes(':')) tvSymbol = "BINANCE:" + rawSymbol.replace('USDT','') + "USDT";
+    }
+    else if(currentCategory === 'hisse') tvSymbol = "BIST:" + rawSymbol.replace('.IS', '');
+    else if(currentCategory === 'altin' && rawSymbol === 'GC=F') tvSymbol = "TVC:GOLD";
+    else if(currentCategory === 'doviz') tvSymbol = "FX:" + rawSymbol.replace('=X','').replace('TRY','USDTRY');
+
+    new TradingView.widget({
+        "autosize": true,
+        "symbol": tvSymbol,
+        "interval": "D",
+        "timezone": "Etc/UTC",
+        "theme": "dark",
+        "style": "1",
+        "locale": "tr",
+        "toolbar_bg": "#f1f3f6",
+        "enable_publishing": false,
+        "hide_top_toolbar": false, 
+        "hide_legend": false,
+        "save_image": false,
+        "container_id": "mdChartContainer"
+    });
+}
+
+// DETAYLARI EKRANA BASAN FONKSİYON
 function renderMdUI(d, title) {
     let sym = (currentCategory === 'kripto' || currentCategory === 'altin') ? '$' : '₺';
     
@@ -2745,89 +2713,19 @@ function renderMdUI(d, title) {
     document.getElementById('mdMaxBuy').innerText = maxBuy.toFixed(4) + " Adet";
 }
 
-function initMdChart(rawSymbol) {
-
-    // Range Bar Hesaplama (Fiyatın High-Low arasındaki yüzdesi)
-    let rangePercent = 50;
-    if(d.high > d.low) {
-        rangePercent = ((d.price - d.low) / (d.high - d.low)) * 100;
-    }
-    // Sınırları zorla (0-100 arası)
-    rangePercent = Math.max(0, Math.min(100, rangePercent));
-    
-    document.getElementById('mdRangeDot').style.left = `${rangePercent}%`;
-    document.getElementById('mdLow').innerText = sym + d.low.toLocaleString();
-    document.getElementById('mdHigh').innerText = sym + d.high.toLocaleString();
-
-    // İstatistikler
-    document.getElementById('mdVol').innerText = formatVolume(d.vol, sym);
-    document.getElementById('mdVwap').innerText = sym + d.vwap.toLocaleString(undefined, {maximumFractionDigits:2});
-    document.getElementById('mdType').innerText = currentCategory.toUpperCase();
-
-    // Bakite Hesaplayıcı
-    let myCash = cashBalance;
-    let maxBuy = d.price > 0 ? (myCash / d.price) : 0;
-    let balanceSym = appSettings.currency === 'TRY' ? '₺' : '$';
-    
-    // Eğer varlık USD ise ve bakiye TRY ise kur dönüşümü gerekir (Basit mantık)
-    // Detaylı dönüşümü `actionBuyFromMarket` zaten yapıyor.
-    document.getElementById('mdUserBalance').innerText = balanceSym + myCash.toLocaleString();
-    document.getElementById('mdMaxBuy').innerText = maxBuy.toFixed(4) + " Adet";
-}
-
-function formatVolume(val, sym) {
-    if(val > 1000000000) return sym + (val/1000000000).toFixed(2) + " Mr";
-    if(val > 1000000) return sym + (val/1000000).toFixed(2) + " M";
-    if(val > 1000) return sym + (val/1000).toFixed(2) + " K";
-    return sym + val.toFixed(0);
-}
-
-function initMdChart(rawSymbol) {
-    let tvSymbol = rawSymbol;
-    if(currentCategory === 'kripto') tvSymbol = "BINANCE:" + rawSymbol + "USDT";
-    else if(currentCategory === 'hisse') tvSymbol = "BIST:" + rawSymbol.replace('.IS', '');
-    else if(currentCategory === 'altin' && rawSymbol === 'GC=F') tvSymbol = "TVC:GOLD";
-    else if(currentCategory === 'doviz') tvSymbol = "FX:" + rawSymbol.replace('=X','').replace('TRY','USDTRY');
-
-    new TradingView.widget({
-        "autosize": true,
-        "symbol": tvSymbol,
-        "interval": "D",
-        "timezone": "Etc/UTC",
-        "theme": "dark",
-        "style": "1",
-        "locale": "tr",
-        "toolbar_bg": "#f1f3f6",
-        "enable_publishing": false,
-        "hide_top_toolbar": false, // Toolbar açık olsun, detay grafiği
-        "hide_legend": false,
-        "save_image": false,
-        "container_id": "mdChartContainer"
-    });
-}
-
-/* --- YENİ WATCHLIST BUTON MANTIĞI --- */
-
-// 1. Modal Açılırken Yıldızın Rengini Ayarla
+// ANA MARKET DETAY FONKSİYONU
 async function openMarketDetail(rawSymbol) {
-    currentMdSymbol = rawSymbol;
+    currentMdSymbol = rawSymbol; 
     
-    // Modalı Aç
     document.getElementById('marketDetailModal').style.display = 'flex';
     document.getElementById('mdSymbolTitle').innerText = rawSymbol;
     document.getElementById('mdBigPrice').innerText = "Yükleniyor...";
     
     let w = JSON.parse(localStorage.getItem('tm_watchlist')) || [];
     let icon = document.getElementById('mdWatchIcon');
+    if(w.includes(rawSymbol)) icon.style.color = "#f59e0b"; 
+    else icon.style.color = "var(--text-sub)"; 
     
-    // Eğer sembol listede varsa SARI, yoksa GRİ yap
-    if(w.includes(rawSymbol)) {
-        icon.style.color = "#f59e0b"; // Sarı (Gold)
-    } else {
-        icon.style.color = "var(--text-sub)"; // Gri
-    }
-    
-    // ... (Kalan kodlarınız aynı şekilde devam ediyor) ...
     switchMdTab('overview', document.querySelectorAll('.md-tab')[0]);
     document.getElementById('mdAssetLogo').innerHTML = getAssetLogoHtml(rawSymbol);
 
@@ -2837,7 +2735,11 @@ async function openMarketDetail(rawSymbol) {
     try {
         if(currentCategory === 'kripto') {
             let s = rawSymbol.replace('USDT', '') + 'USDT';
+            s = s.replace('BINANCE:', ''); 
+            
             const res = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${s}`);
+            if(!res.ok) throw new Error("Binance Veri Hatası");
+            
             const d = await res.json();
             details.price = parseFloat(d.lastPrice);
             details.change = parseFloat(d.priceChangePercent);
@@ -2845,25 +2747,172 @@ async function openMarketDetail(rawSymbol) {
             details.low = parseFloat(d.lowPrice);
             details.vol = parseFloat(d.quoteVolume);
             details.vwap = parseFloat(d.weightedAvgPrice);
-            displaySym = rawSymbol + " / USDT";
+            displaySym = rawSymbol.replace('BINANCE:','').replace('USDT','') + " / USDT";
         } else {
             let pData = await getPrice(rawSymbol);
+            if(pData.price === 0) throw new Error("Fiyat Çekilemedi");
+
             details.price = pData.price;
             details.change = pData.change;
             details.high = details.price * 1.02; 
             details.low = details.price * 0.98;
-            details.vol = Math.floor(Math.random() * 10000000); 
+            details.vol = 0; 
             details.vwap = details.price;
         }
-        currentMdPrice = details.price;
+        
         renderMdUI(details, displaySym);
         initMdChart(rawSymbol);
+
     } catch (e) {
-        console.error(e);
-        addNotification('danger', 'Hata', 'Detay verisi alınamadı.');
-        closeMarketDetail();
+        document.getElementById('mdBigPrice').innerText = "Veri Yok";
+        document.getElementById('mdDisclaimer').innerHTML = "<span style='color:red'>Veri alınamadı, grafik deneniyor...</span>";
+        initMdChart(rawSymbol);
     }
 }
+
+// "AL" BUTONU AKSİYONU (DÜZELTİLMİŞ)
+function actionBuyFromMarket() {
+    closeMarketDetail(); 
+    switchPage('portfolio', document.querySelectorAll('.nav-item')[0]);
+    
+    const content = document.getElementById('tradeContent');
+    const chevron = document.getElementById('tradeChevron');
+    const card = document.getElementById('tradeCard');
+    
+    if (content.classList.contains('collapsed')) {
+        content.classList.remove('collapsed');
+        chevron.classList.add('rotated');
+        card.classList.add('open');
+    }
+
+    const input = document.getElementById('addSymbol');
+    if(currentMdSymbol) {
+        let cleanSym = currentMdSymbol.replace('BINANCE:','').replace('BIST:','').replace('USDT','').replace('.IS','');
+        input.value = cleanSym;
+        debouncedPreview(cleanSym); 
+    }
+    
+    setTimeout(() => { document.getElementById('addAmount').focus(); }, 300);
+}
+
+// İZLEMEYE EKLE BUTONU
+function actionWatchFromMarket() {
+    let w = JSON.parse(localStorage.getItem('tm_watchlist')) || [];
+    let icon = document.getElementById('mdWatchIcon');
+
+    if(w.includes(currentMdSymbol)) { 
+        icon.style.color = "#f59e0b"; 
+        return addNotification('warn', 'Zaten Ekli', 'Bu varlık zaten izleme listenizde.'); 
+    } 
+
+    w.push(currentMdSymbol); 
+    localStorage.setItem('tm_watchlist', JSON.stringify(w)); 
+    updateWatchlist(); 
+    
+    icon.style.color = "#f59e0b"; 
+    icon.style.transform = "scale(1.3)"; 
+    setTimeout(() => { icon.style.transform = "scale(1)"; }, 200); 
+
+    addNotification('success', 'Takipte', `${currentMdSymbol} izleme listesine eklendi.`);
+}
+
+function closeMarketDetail() {
+    document.getElementById('marketDetailModal').style.display = 'none';
+    document.getElementById('mdChartContainer').innerHTML = ""; 
+}
+
+/* --- YENİ WATCHLIST BUTON MANTIĞI --- */
+
+/* --- VERİ GARANTİLİ DETAY PENCERESİ --- */
+async function openMarketDetail(rawSymbol) {
+    currentMdSymbol = rawSymbol; 
+    
+    // 1. Modalı Aç
+    document.getElementById('marketDetailModal').style.display = 'flex';
+    document.getElementById('mdSymbolTitle').innerText = rawSymbol;
+    document.getElementById('mdBigPrice').innerText = "Yükleniyor...";
+
+    // 2. SATIŞ BUTONUNU SIFIRLA (Bug Önleyici)
+    const sellBtn = document.querySelector('.bq-sell');
+    if(sellBtn) {
+        sellBtn.style.background = ""; 
+        sellBtn.style.border = "";
+        sellBtn.style.color = ""; 
+        sellBtn.innerHTML = '<span><i class="fas fa-arrow-up"></i> SATIŞ YAP</span><span class="bq-sub">Portföyden Sat</span>';
+        sellBtn.onclick = actionSellFromMarket; 
+    }
+    
+    // 3. İzleme İkonu
+    let w = JSON.parse(localStorage.getItem('tm_watchlist')) || [];
+    let icon = document.getElementById('mdWatchIcon');
+    if(w.includes(rawSymbol)) icon.style.color = "#f59e0b"; 
+    else icon.style.color = "var(--text-sub)"; 
+    
+    // 4. UI Hazırlığı
+    switchMdTab('overview', document.querySelectorAll('.md-tab')[0]);
+    document.getElementById('mdAssetLogo').innerHTML = getAssetLogoHtml(rawSymbol);
+
+    let details = { price: 0, change: 0, high: 0, low: 0, vol: 0, vwap: 0 };
+    let displaySym = rawSymbol;
+
+    try {
+        // --- A) KRİPTO İSE ---
+        if(currentCategory === 'kripto') {
+            try {
+                // Önce Binance'e Sor
+                let s = rawSymbol.replace('USDT', '') + 'USDT';
+                s = s.replace('BINANCE:', ''); 
+                
+                const res = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${s}`);
+                if(!res.ok) throw new Error("Binance'de Yok");
+                
+                const d = await res.json();
+                details.price = parseFloat(d.lastPrice);
+                details.change = parseFloat(d.priceChangePercent);
+                details.high = parseFloat(d.highPrice);
+                details.low = parseFloat(d.lowPrice);
+                details.vol = parseFloat(d.quoteVolume);
+                details.vwap = parseFloat(d.weightedAvgPrice);
+                displaySym = rawSymbol.replace('BINANCE:','').replace('USDT','') + " / USDT";
+            } catch (binanceErr) {
+                // Binance'de Yoksa -> GENEL MOTORU (CoinGecko) KULLAN
+                // Bu kısım çok önemli, silinirse veri gelmez!
+                let pData = await getPrice(rawSymbol);
+                
+                details.price = pData.price || 0;
+                details.change = pData.change || 0;
+                // Veri yoksa grafiği bozmamak için tahmini doldur
+                details.high = details.price * 1.05; 
+                details.low = details.price * 0.95;
+                details.vwap = details.price;
+                details.vol = 0;
+            }
+        } 
+        // --- B) HİSSE / ALTIN / DÖVİZ İSE ---
+        else {
+            let pData = await getPrice(rawSymbol);
+            details.price = pData.price || 0;
+            details.change = pData.change || 0;
+            details.high = details.price * 1.02; 
+            details.low = details.price * 0.98;
+            details.vwap = details.price;
+        }
+        
+        // Veriyi Ekrana Bas
+        renderMdUI(details, displaySym);
+        
+        // Grafiği Başlat
+        initMdChart(rawSymbol);
+
+    } catch (e) {
+        console.error("Detay Hatası:", e);
+        document.getElementById('mdBigPrice').innerText = "Veri Yok";
+        document.getElementById('mdDisclaimer').innerHTML = "<span style='color:red'>Bağlantı sorunu, grafik deneniyor...</span>";
+        initMdChart(rawSymbol);
+    }
+}
+
+
 
 // 2. Butona Basınca Listeye Ekle ve Sarı Yap
 function actionWatchFromMarket() {
@@ -3144,8 +3193,60 @@ async function openCoinGeckoDetail(coinId) {
         closeMarketDetail();
     }
 }
+/* --- AKILLI SATIŞ (GÖRSEL EFEKTLİ & OTO DÜZELTMELİ) --- */
+function actionSellFromMarket() {
+    if (!currentMdSymbol) return;
+
+    // 1. Sembol Temizliği
+    let cleanSearch = currentMdSymbol
+        .replace('BINANCE:', '').replace('BIST:', '').replace('FX:', '').replace('TVC:', '').replace('.IS', '').trim();
+    if (cleanSearch.endsWith('USDT') && cleanSearch !== 'USDT') cleanSearch = cleanSearch.slice(0, -4);
+
+    // 2. Cüzdanı Tara
+    let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
+    let targetIndex = as.findIndex(a => {
+        let name = a.name.replace('BINANCE:', '').replace('BIST:', '').replace('.IS', '').trim();
+        if (name.endsWith('USDT') && name !== 'USDT') name = name.slice(0, -4);
+        return name === cleanSearch;
+    });
+
+    // A) VARSA -> GİT
+    if (targetIndex !== -1) {
+        closeMarketDetail();
+        switchPage('portfolio', document.querySelectorAll('.nav-item')[0]);
+        setTimeout(() => { openSell(targetIndex); }, 300);
+    } 
+    // B) YOKSA -> EFEKT YAP VE GERİ AL
+    else {
+        addNotification('warn', 'İşlem Başarısız', `${cleanSearch} portföyünüzde yok.`);
+        
+        const btn = document.querySelector('.bq-sell');
+        if(btn) {
+            // Mevcut (orijinal) HTML'i saklamaya gerek yok, elle yazacağız
+            
+            // 1. KIRMIZI VE "YOK" MODUNA GEÇ
+            btn.style.transition = "0.2s";
+            btn.style.background = "rgba(239, 68, 68, 0.2)"; // Kırmızı Zemin
+            btn.style.border = "1px solid var(--danger)";     // Kırmızı Çerçeve
+            btn.style.color = "var(--danger)";                // Kırmızı Yazı
+            
+            // İçeriği Değiştir
+            btn.innerHTML = '<span><i class="fas fa-times"></i> YOK</span><span class="bq-sub" style="opacity:0.8">Portföyde Yok</span>';
+            
+            // 2. 1.5 SANİYE SONRA ESKİ HALİNE DÖN (Reset)
+            setTimeout(() => {
+                btn.style.background = ""; 
+                btn.style.border = "";
+                btn.style.color = ""; // Orijinal CSS rengine döner
+                
+                // Orijinal Yazıyı Geri Getir
+                btn.innerHTML = '<span><i class="fas fa-arrow-up"></i> SATIŞ YAP</span><span class="bq-sub">Portföyden Sat</span>';
+            }, 1500);
+        }
+    }
+}
+
 
 </script>
 </body>
 </html>
-
