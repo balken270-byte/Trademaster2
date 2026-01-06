@@ -2629,15 +2629,37 @@ function formatVolume(val, sym) {
     return sym + val.toFixed(0);
 }
 
-// GRAFİK BAŞLATICI
+/* --- AKILLI GRAFİK MOTORU (OTOMATİK BORSA SEÇİMLİ) --- */
 function initMdChart(rawSymbol) {
-    let tvSymbol = rawSymbol;
+    let s = rawSymbol.toUpperCase().trim();
+    let tvSymbol = s;
+
+    // 1. KATEGORİYE GÖRE SEMBOL FORMATI
     if(currentCategory === 'kripto') {
-        if(!rawSymbol.includes(':')) tvSymbol = "BINANCE:" + rawSymbol.replace('USDT','') + "USDT";
+        // Temizlik: İçinde BINANCE, USDT vs varsa temizle, saf ismi al
+        let clean = s.replace('BINANCE:', '').replace('USDT', '').trim();
+        
+        // ÖNEMLİ DEĞİŞİKLİK:
+        // Başına "BINANCE:" yazmıyoruz. Sadece "SYMBOL" + "USDT" yapıyoruz.
+        // Böylece TradingView en hacimli borsayı (Kucoin, OKX, Gate vb.) kendi bulur.
+        tvSymbol = clean + "USDT";
     }
-    else if(currentCategory === 'hisse') tvSymbol = "BIST:" + rawSymbol.replace('.IS', '');
-    else if(currentCategory === 'altin' && rawSymbol === 'GC=F') tvSymbol = "TVC:GOLD";
-    else if(currentCategory === 'doviz') tvSymbol = "FX:" + rawSymbol.replace('=X','').replace('TRY','USDTRY');
+    else if(currentCategory === 'hisse') {
+        tvSymbol = "BIST:" + s.replace('.IS', '');
+    }
+    else if(currentCategory === 'altin') {
+        if(s === 'GC=F' || s === 'ALTIN' || s === 'ONS') tvSymbol = "TVC:GOLD";
+        else if(s === 'SI=F' || s === 'GÜMÜŞ') tvSymbol = "TVC:SILVER";
+        else tvSymbol = "TVC:" + s.replace('=F','');
+    }
+    else if(currentCategory === 'doviz') {
+        tvSymbol = "FX:" + s.replace('=X','').replace('TRY','USDTRY');
+    }
+
+    // 2. GRAFİĞİ ÇİZ
+    // Eğer eski bir grafik varsa önce içini temizle (Hata önleyici)
+    const container = document.getElementById('mdChartContainer');
+    if(container) container.innerHTML = "";
 
     new TradingView.widget({
         "autosize": true,
