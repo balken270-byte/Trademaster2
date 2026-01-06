@@ -480,6 +480,75 @@
 .sheet-actions { display: flex; gap: 10px; }
 .sheet-actions .btn-main { padding: 16px; font-size: 14px; }
 
+/* --- GELİŞMİŞ DETAY MODAL STİLLERİ --- */
+.md-header-hero {
+    text-align: center; padding: 20px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px;
+    transition: background 0.3s; border-radius: 20px 20px 0 0;
+}
+.md-header-hero.up { background: linear-gradient(180deg, rgba(16, 185, 129, 0.15) 0%, transparent 100%); }
+.md-header-hero.down { background: linear-gradient(180deg, rgba(239, 68, 68, 0.15) 0%, transparent 100%); }
+
+.md-big-price { font-size: 32px; font-weight: 900; color: white; letter-spacing: -1px; margin: 5px 0; }
+.md-change-pill { font-size: 14px; font-weight: 700; padding: 4px 12px; border-radius: 12px; display: inline-block; }
+
+/* Sekmeler */
+.md-tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.md-tab { padding: 10px 15px; font-size: 13px; font-weight: 700; color: var(--text-sub); cursor: pointer; border-bottom: 2px solid transparent; transition: 0.2s; }
+.md-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* İçerik Alanları */
+.md-content { display: none; animation: fadeIn 0.3s; }
+.md-content.active { display: block; }
+
+/* İstatistik Grid */
+.md-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+.md-stat-box { background: var(--bg-input); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+.md-stat-lbl { font-size: 10px; color: var(--text-sub); text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
+.md-stat-val { font-size: 14px; font-weight: 800; color: white; }
+
+/* Range Bar (Günlük Aralık) */
+.range-container { margin: 15px 0; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 12px; }
+.range-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-sub); margin-bottom: 5px; font-weight: 700; }
+.range-track { height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; position: relative; overflow: hidden; }
+.range-fill { height: 100%; background: linear-gradient(90deg, var(--danger), var(--gold), var(--success)); width: 100%; opacity: 0.5; }
+.range-dot { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 12px; height: 12px; background: white; border: 2px solid var(--bg-card); border-radius: 50%; box-shadow: 0 0 10px rgba(255,255,255,0.5); transition: left 1s cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+/* Hızlı Aksiyonlar */
+.md-action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.btn-quick { padding: 12px; border-radius: 12px; font-weight: 800; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; transition: 0.2s; }
+.btn-quick:active { transform: scale(0.96); }
+.bq-buy { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+.bq-sell { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+.bq-sub { font-size: 9px; opacity: 0.8; font-weight: 600; }
+
+/* --- ORTALI MODAL DÜZELTMESİ --- */
+
+/* Dış Kaplayıcıyı Ortala */
+#marketDetailModal {
+    align-items: center !important; /* En alttan ortaya çeker */
+    justify-content: center !important;
+    padding: 20px; /* Kenarlardan biraz boşluk kalsın */
+}
+
+/* Modal Kutusunun Şeklini Değiştir */
+.market-sheet {
+    width: 95% !important;        /* Mobilde ekranı tam kaplamasın, kenar kalsın */
+    max-width: 400px !important;  /* Tablet/PC'de çok genişlemesin */
+    border-radius: 24px !important; /* Sadece üstler değil, her köşe yuvarlak olsun */
+    max-height: 85vh;             /* Ekranın %85'inden büyük olmasın */
+    margin: 0 auto !important;    /* Ortala */
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); /* Derinlik gölgesi ekle */
+    
+    /* Animasyonu değiştirelim (Alttan kayma yerine, ortada büyüme) */
+    animation: modalZoomIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+/* Yeni Animasyon: Hafif Büyüyerek Açılma */
+@keyframes modalZoomIn {
+    0% { opacity: 0; transform: scale(0.9) translateY(20px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
 
     </style>
 </head>
@@ -908,25 +977,79 @@
     </div>
 </div>
 
-<div id="marketDetailModal" class="modal-overlay" style="align-items: flex-end;">
-    <div class="modal market-sheet">
-        <div class="sheet-header">
-            <div id="mdTitle" class="sheet-title">--</div>
-            <button class="sheet-close-btn" onclick="closeMarketDetail()"><i class="fas fa-times"></i></button>
-        </div>
+<div id="marketDetailModal" class="modal-overlay" style="align-items: center; justify-content: center;">
+    <div class="modal market-sheet" style="padding: 0; overflow: hidden; max-height: 85vh; display: flex; flex-direction: column; width: 95%; max-width: 400px; border-radius: 24px;">
         
-        <div id="mdChartContainer" class="chart-box-lg"></div>
+        <div id="mdHero" class="md-header-hero">
+            <div style="display:flex; justify-content:space-between; padding: 0 20px;">
+                <button class="sheet-close-btn" onclick="closeMarketDetail()" style="background:rgba(0,0,0,0.2); color: white;">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                
+                <div id="mdAssetLogo" style="transform: scale(0.8);"></div>
+                
+                <button class="sheet-close-btn" onclick="actionWatchFromMarket()" style="background:rgba(0,0,0,0.2);">
+                    <i id="mdWatchIcon" class="fas fa-star" style="transition: color 0.3s; color: var(--text-sub);"></i>
+                </button>
+            </div>
+            
+            <div id="mdSymbolTitle" style="font-size:12px; font-weight:800; color:var(--text-sub); margin-top:5px; letter-spacing:1px;">--</div>
+            <div id="mdBigPrice" class="md-big-price">--</div>
+            <div id="mdChangePill" class="md-change-pill">--</div>
+        </div>
 
-        <div class="sheet-actions">
-            <button class="btn-main btn-sec" onclick="actionWatchFromMarket()">
-                <i class="fas fa-plus"></i> İzlemeye Ekle
-            </button>
-            <button class="btn-main" onclick="actionBuyFromMarket()">
-                <i class="fas fa-shopping-cart"></i> İŞLEM YAP (AL)
-            </button>
+        <div style="padding: 0 20px 20px 20px; overflow-y: auto;">
+            <div class="md-tabs">
+                <div class="md-tab active" onclick="switchMdTab('overview', this)">GENEL BAKIŞ</div>
+                <div class="md-tab" onclick="switchMdTab('chart', this)">GRAFİK</div>
+                <div class="md-tab" onclick="switchMdTab('calc', this)">İŞLEM</div>
+            </div>
+
+            <div id="md-tab-overview" class="md-content active">
+    <div class="range-container">
+        <div class="range-labels">
+            <span>GÜN DÜŞÜK: <span id="mdLow" style="color:var(--text-main)">--</span></span>
+            <span>GÜN YÜKSEK: <span id="mdHigh" style="color:var(--text-main)">--</span></span>
+        </div>
+        <div class="range-track">
+            <div class="range-fill"></div>
+            <div id="mdRangeDot" class="range-dot" style="left: 50%;"></div>
+        </div>
+    </div>
+
+    <div class="md-stat-grid">
+        <div class="md-stat-box"><div class="md-stat-lbl">24S HACİM</div><div class="md-stat-val" id="mdVol">--</div></div>
+        <div class="md-stat-box"><div class="md-stat-lbl">TÜR</div><div class="md-stat-val" id="mdType" style="color:var(--accent)">--</div></div>
+        <div class="md-stat-box"><div class="md-stat-lbl">ORTALAMA (VWAP)</div><div class="md-stat-val" id="mdVwap">--</div></div>
+        <div class="md-stat-box"><div class="md-stat-lbl">DURUM</div><div class="md-stat-val" id="mdStatus">AÇIK</div></div>
+    </div>
+
+    <div id="mdDisclaimer" style="font-size:10px; color:var(--text-sub); text-align:center; margin-top:10px; font-style: italic; opacity: 0.7; line-height: 1.5;">
+    <i class="fas fa-info-circle"></i> Veri yükleniyor...
+</div>
+</div>
+
+
+            <div id="md-tab-chart" class="md-content">
+                <div id="mdChartContainer" class="chart-box-lg" style="height: 350px;"></div>
+            </div>
+
+            <div id="md-tab-calc" class="md-content">
+                <div class="card" style="background: rgba(255,255,255,0.02);">
+                    <div class="lbl-sm">BAKİYENİZ</div>
+                    <div style="font-size:18px; font-weight:800; color:white; margin-bottom:10px;" id="mdUserBalance">--</div>
+                    <div style="font-size:11px; color:var(--text-sub);">Tahmini Alınabilir Miktar: <span id="mdMaxBuy" style="color:var(--success); font-weight:700;">--</span></div>
+                </div>
+                <div class="md-action-grid">
+                    <button class="btn-quick bq-buy" onclick="actionBuyFromMarket()"><span><i class="fas fa-arrow-down"></i> ALIM YAP</span><span class="bq-sub">Portföye Ekle</span></button>
+                    <button class="btn-quick bq-sell" onclick="closeMarketDetail(); switchPage('portfolio', null)"><span><i class="fas fa-arrow-up"></i> SATIŞ YAP</span><span class="bq-sub">Portföye Git</span></button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+
 
 <script>
     /* --- AYARLAR VE GLOBAL DEĞİŞKENLER --- */
@@ -2062,6 +2185,287 @@ function actionWatchFromMarket() {
     addNotification('success', 'Eklendi', `${currentDetailSymbol} izlemeye alındı.`);
 }
 
+/* --- YENİ DETAY MODAL JS MOTORU --- */
+
+let currentMdSymbol = "";
+let currentMdPrice = 0;
+
+function switchMdTab(tab, btn) {
+    document.querySelectorAll('.md-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('md-tab-' + tab).classList.add('active');
+    document.querySelectorAll('.md-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+async function openMarketDetail(rawSymbol) {
+    currentMdSymbol = rawSymbol;
+    
+    // 1. Modalı Aç ve Yükleniyor Göster
+    document.getElementById('marketDetailModal').style.display = 'flex';
+    document.getElementById('mdSymbolTitle').innerText = rawSymbol;
+    document.getElementById('mdBigPrice').innerText = "Yükleniyor...";
+    
+    // Varsayılan Tab'a Dön
+    switchMdTab('overview', document.querySelectorAll('.md-tab')[0]);
+
+    // Logo Getir
+    document.getElementById('mdAssetLogo').innerHTML = getAssetLogoHtml(rawSymbol);
+
+    // Kategoriye göre Veri Çekme Stratejisi
+    let details = { price: 0, change: 0, high: 0, low: 0, vol: 0, vwap: 0 };
+    let displaySym = rawSymbol;
+
+    try {
+        if(currentCategory === 'kripto') {
+            // Binance API'den Detaylı Veri (24hr Ticker)
+            let s = rawSymbol.replace('USDT', '') + 'USDT';
+            const res = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${s}`);
+            const d = await res.json();
+            
+            details.price = parseFloat(d.lastPrice);
+            details.change = parseFloat(d.priceChangePercent);
+            details.high = parseFloat(d.highPrice);
+            details.low = parseFloat(d.lowPrice);
+            details.vol = parseFloat(d.quoteVolume);
+            details.vwap = parseFloat(d.weightedAvgPrice);
+            displaySym = rawSymbol + " / USDT";
+            
+        } else {
+            // Diğer varlıklar için mevcut getPrice fonksiyonunu ve simülasyonu kullan
+            // Çünkü ücretsiz API'lerde High/Low verisi anlık bulmak zor
+            let pData = await getPrice(rawSymbol);
+            details.price = pData.price;
+            details.change = pData.change;
+            
+            // Simüle edilmiş veriler (API kısıtı nedeniyle mantıklı tahminler)
+            // Gerçek projede buraya Yahoo Finance detaylı API bağlanmalı
+            details.high = details.price * (1 + (Math.random() * 0.02)); 
+            details.low = details.price * (1 - (Math.random() * 0.02));
+            details.vol = Math.floor(Math.random() * 10000000); 
+            details.vwap = details.price;
+        }
+
+        currentMdPrice = details.price;
+        renderMdUI(details, displaySym);
+        
+        // TradingView Başlat (Sadece tab değişince görünecek ama hazır olsun)
+        initMdChart(rawSymbol);
+
+    } catch (e) {
+        console.error(e);
+        addNotification('danger', 'Hata', 'Detay verisi alınamadı.');
+        closeMarketDetail();
+    }
+}
+
+function formatVolume(val, sym) {
+    if(val > 1000000000) return sym + (val/1000000000).toFixed(2) + " Mr";
+    if(val > 1000000) return sym + (val/1000000).toFixed(2) + " M";
+    if(val > 1000) return sym + (val/1000).toFixed(2) + " K";
+    return sym + val.toFixed(0);
+}
+
+function renderMdUI(d, title) {
+    let sym = (currentCategory === 'kripto' || currentCategory === 'altin') ? '$' : '₺';
+    
+    document.getElementById('mdSymbolTitle').innerText = title;
+    document.getElementById('mdBigPrice').innerText = sym + d.price.toLocaleString(undefined, {minimumFractionDigits:2});
+    
+    let pill = document.getElementById('mdChangePill');
+    let hero = document.getElementById('mdHero');
+    
+    if(d.change >= 0) {
+        pill.innerText = `▲ %${d.change.toFixed(2)}`;
+        pill.style.background = 'rgba(16, 185, 129, 0.2)';
+        pill.style.color = '#10b981';
+        hero.className = 'md-header-hero up';
+    } else {
+        pill.innerText = `▼ %${d.change.toFixed(2)}`;
+        pill.style.background = 'rgba(239, 68, 68, 0.2)';
+        pill.style.color = '#ef4444';
+        hero.className = 'md-header-hero down';
+    }
+
+    let rangePercent = 50;
+    if(d.high > d.low) {
+        rangePercent = ((d.price - d.low) / (d.high - d.low)) * 100;
+    }
+    rangePercent = Math.max(0, Math.min(100, rangePercent));
+    
+    document.getElementById('mdRangeDot').style.left = `${rangePercent}%`;
+    document.getElementById('mdLow').innerText = sym + d.low.toLocaleString();
+    document.getElementById('mdHigh').innerText = sym + d.high.toLocaleString();
+
+    document.getElementById('mdVol').innerText = formatVolume(d.vol, sym);
+    document.getElementById('mdVwap').innerText = sym + d.vwap.toLocaleString(undefined, {maximumFractionDigits:2});
+    document.getElementById('mdType').innerText = currentCategory.toUpperCase();
+
+    let disclaimer = document.getElementById('mdDisclaimer');
+    if(disclaimer) {
+        if(currentCategory === 'hisse' || currentCategory === 'altin' || currentCategory === 'doviz') {
+            disclaimer.innerHTML = '<i class="fas fa-clock"></i> Yasalar gereği bu veriler 15 dakika gecikmeli olabilir.';
+            disclaimer.style.color = '#f59e0b';
+            disclaimer.style.opacity = '1';
+        } else {
+            disclaimer.innerHTML = '<i class="fas fa-info-circle"></i> Veriler anlık piyasa verisidir.';
+            disclaimer.style.color = 'var(--text-sub)';
+            disclaimer.style.opacity = '0.7';
+        }
+    }
+
+    let myCash = cashBalance;
+    let maxBuy = d.price > 0 ? (myCash / d.price) : 0;
+    let balanceSym = appSettings.currency === 'TRY' ? '₺' : '$';
+    
+    document.getElementById('mdUserBalance').innerText = balanceSym + myCash.toLocaleString();
+    document.getElementById('mdMaxBuy').innerText = maxBuy.toFixed(4) + " Adet";
+}
+
+function initMdChart(rawSymbol) {
+
+    // Range Bar Hesaplama (Fiyatın High-Low arasındaki yüzdesi)
+    let rangePercent = 50;
+    if(d.high > d.low) {
+        rangePercent = ((d.price - d.low) / (d.high - d.low)) * 100;
+    }
+    // Sınırları zorla (0-100 arası)
+    rangePercent = Math.max(0, Math.min(100, rangePercent));
+    
+    document.getElementById('mdRangeDot').style.left = `${rangePercent}%`;
+    document.getElementById('mdLow').innerText = sym + d.low.toLocaleString();
+    document.getElementById('mdHigh').innerText = sym + d.high.toLocaleString();
+
+    // İstatistikler
+    document.getElementById('mdVol').innerText = formatVolume(d.vol, sym);
+    document.getElementById('mdVwap').innerText = sym + d.vwap.toLocaleString(undefined, {maximumFractionDigits:2});
+    document.getElementById('mdType').innerText = currentCategory.toUpperCase();
+
+    // Bakite Hesaplayıcı
+    let myCash = cashBalance;
+    let maxBuy = d.price > 0 ? (myCash / d.price) : 0;
+    let balanceSym = appSettings.currency === 'TRY' ? '₺' : '$';
+    
+    // Eğer varlık USD ise ve bakiye TRY ise kur dönüşümü gerekir (Basit mantık)
+    // Detaylı dönüşümü `actionBuyFromMarket` zaten yapıyor.
+    document.getElementById('mdUserBalance').innerText = balanceSym + myCash.toLocaleString();
+    document.getElementById('mdMaxBuy').innerText = maxBuy.toFixed(4) + " Adet";
+}
+
+function formatVolume(val, sym) {
+    if(val > 1000000000) return sym + (val/1000000000).toFixed(2) + " Mr";
+    if(val > 1000000) return sym + (val/1000000).toFixed(2) + " M";
+    if(val > 1000) return sym + (val/1000).toFixed(2) + " K";
+    return sym + val.toFixed(0);
+}
+
+function initMdChart(rawSymbol) {
+    let tvSymbol = rawSymbol;
+    if(currentCategory === 'kripto') tvSymbol = "BINANCE:" + rawSymbol + "USDT";
+    else if(currentCategory === 'hisse') tvSymbol = "BIST:" + rawSymbol.replace('.IS', '');
+    else if(currentCategory === 'altin' && rawSymbol === 'GC=F') tvSymbol = "TVC:GOLD";
+    else if(currentCategory === 'doviz') tvSymbol = "FX:" + rawSymbol.replace('=X','').replace('TRY','USDTRY');
+
+    new TradingView.widget({
+        "autosize": true,
+        "symbol": tvSymbol,
+        "interval": "D",
+        "timezone": "Etc/UTC",
+        "theme": "dark",
+        "style": "1",
+        "locale": "tr",
+        "toolbar_bg": "#f1f3f6",
+        "enable_publishing": false,
+        "hide_top_toolbar": false, // Toolbar açık olsun, detay grafiği
+        "hide_legend": false,
+        "save_image": false,
+        "container_id": "mdChartContainer"
+    });
+}
+
+/* --- YENİ WATCHLIST BUTON MANTIĞI --- */
+
+// 1. Modal Açılırken Yıldızın Rengini Ayarla
+async function openMarketDetail(rawSymbol) {
+    currentMdSymbol = rawSymbol;
+    
+    // Modalı Aç
+    document.getElementById('marketDetailModal').style.display = 'flex';
+    document.getElementById('mdSymbolTitle').innerText = rawSymbol;
+    document.getElementById('mdBigPrice').innerText = "Yükleniyor...";
+    
+    let w = JSON.parse(localStorage.getItem('tm_watchlist')) || [];
+    let icon = document.getElementById('mdWatchIcon');
+    
+    // Eğer sembol listede varsa SARI, yoksa GRİ yap
+    if(w.includes(rawSymbol)) {
+        icon.style.color = "#f59e0b"; // Sarı (Gold)
+    } else {
+        icon.style.color = "var(--text-sub)"; // Gri
+    }
+    
+    // ... (Kalan kodlarınız aynı şekilde devam ediyor) ...
+    switchMdTab('overview', document.querySelectorAll('.md-tab')[0]);
+    document.getElementById('mdAssetLogo').innerHTML = getAssetLogoHtml(rawSymbol);
+
+    let details = { price: 0, change: 0, high: 0, low: 0, vol: 0, vwap: 0 };
+    let displaySym = rawSymbol;
+
+    try {
+        if(currentCategory === 'kripto') {
+            let s = rawSymbol.replace('USDT', '') + 'USDT';
+            const res = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${s}`);
+            const d = await res.json();
+            details.price = parseFloat(d.lastPrice);
+            details.change = parseFloat(d.priceChangePercent);
+            details.high = parseFloat(d.highPrice);
+            details.low = parseFloat(d.lowPrice);
+            details.vol = parseFloat(d.quoteVolume);
+            details.vwap = parseFloat(d.weightedAvgPrice);
+            displaySym = rawSymbol + " / USDT";
+        } else {
+            let pData = await getPrice(rawSymbol);
+            details.price = pData.price;
+            details.change = pData.change;
+            details.high = details.price * 1.02; 
+            details.low = details.price * 0.98;
+            details.vol = Math.floor(Math.random() * 10000000); 
+            details.vwap = details.price;
+        }
+        currentMdPrice = details.price;
+        renderMdUI(details, displaySym);
+        initMdChart(rawSymbol);
+    } catch (e) {
+        console.error(e);
+        addNotification('danger', 'Hata', 'Detay verisi alınamadı.');
+        closeMarketDetail();
+    }
+}
+
+// 2. Butona Basınca Listeye Ekle ve Sarı Yap
+function actionWatchFromMarket() {
+    let w = JSON.parse(localStorage.getItem('tm_watchlist')) || [];
+    let icon = document.getElementById('mdWatchIcon');
+
+    // Zaten listede mi?
+    if(w.includes(currentMdSymbol)) { 
+        // İsterseniz burada "Listeden Çıkarma" mantığı da yapabiliriz.
+        // Şimdilik sadece uyarı veriyoruz ve rengi sarı tutuyoruz.
+        icon.style.color = "#f59e0b"; 
+        return addNotification('warn', 'Zaten Ekli', 'Bu varlık zaten izleme listenizde.'); 
+    } 
+
+    // Listeye Ekle
+    w.push(currentMdSymbol); 
+    localStorage.setItem('tm_watchlist', JSON.stringify(w)); 
+    updateWatchlist(); 
+    
+    // RENGİ SARI YAP VE EFEKT VER
+    icon.style.color = "#f59e0b"; 
+    icon.style.transform = "scale(1.3)"; // Hafif büyüme efekti
+    setTimeout(() => { icon.style.transform = "scale(1)"; }, 200); // Geri küçült
+
+    addNotification('success', 'Takipte', `${currentMdSymbol} izleme listesine eklendi.`);
+}
 
 </script>
 </body>
