@@ -1401,42 +1401,39 @@
         }, 5000); 
     }
     /* --- PORTFÖY VE FİYAT FONKSİYONLARI --- */
-    /* --- GÜNCELLENMİŞ FİYAT MOTORU (GLOBAL ARAMA DESTEKLİ) --- */
+   /* --- GÜNCELLENMİŞ FİYAT MOTORU (SEMBOL DÜZELTMELİ) --- */
 async function getPrice(s) {
     s = s.toUpperCase().trim(); 
     if(!s) return { price: 0, origin: 'TRY', change: 0 };
 
-    // 1. Önce Binance Dene (Hızlı ve Bedava)
+    // 1. Binance Dene
     if(s.includes('USDT') || s.includes('BUSD') || (!s.includes('=') && !s.includes('.IS') && !s.includes('USD') && !s.includes('EUR') && s.length <= 8)) {
          let res = await tryBinance(s); 
          if(res) return res; 
     }
 
-    // 2. Polygon Dene (Varsa)
+    // 2. Polygon Dene
     if(polyApiKey) { 
         let res = await tryPolygon(s); 
         if(res) return res; 
     }
 
-    // 3. Yahoo Dene (Borsa/Döviz/Emtia için)
+    // 3. Yahoo Dene
     let res = await tryYahoo(s); 
     if(res) return res;
 
-    // 4. SON ÇARE: COINGECKO GLOBAL ARAMA (YENİ!) 🚀
+    // 4. COINGECKO (SEMBOL DÜZELTMELİ) 🚀
     if(coingeckoApiKey) {
         try {
-            // Arama Endpoint'ini kullan (İsimden ID bulur: "pepe" -> "pepe")
             const searchUrl = `https://api.coingecko.com/api/v3/search?query=${s}&x_cg_demo_api_key=${coingeckoApiKey}`;
             const searchRes = await fetch(searchUrl);
             const searchData = await searchRes.json();
 
-            // Eğer sonuç varsa ilkini al
             if(searchData.coins && searchData.coins.length > 0) {
-                // En iyi eşleşmeyi bulmaya çalış (Sembolü birebir tutan)
+                // En iyi eşleşmeyi bul
                 let coin = searchData.coins.find(c => c.symbol.toUpperCase() === s) || searchData.coins[0];
 
                 if(coin) {
-                    // ID ile Fiyat Çek
                     const priceUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${coin.id}&vs_currencies=usd&include_24hr_change=true&x_cg_demo_api_key=${coingeckoApiKey}`;
                     const priceRes = await fetch(priceUrl);
                     const priceData = await priceRes.json();
@@ -1446,19 +1443,20 @@ async function getPrice(s) {
                             price: priceData[coin.id].usd, 
                             origin: 'USD', 
                             change: priceData[coin.id].usd_24h_change, 
-                            source: 'CG', // Kaynak etiketi
-                            image: coin.thumb // Logo URL'si
+                            source: 'CG', 
+                            image: coin.thumb,
+                            // KRİTİK NOKTA: Sembolü buradan alıp düzeltiyoruz
+                            correctedSymbol: coin.symbol.toUpperCase() 
                         };
                     }
                 }
             }
-        } catch(e) {
-            console.log("CG Arama Hatası");
-        }
+        } catch(e) { console.log("CG Hatası"); }
     }
 
     return { price: 0, origin: 'TRY', change: 0 };
 }
+
 
 
     async function tryBinance(symbol) {
@@ -1890,77 +1888,89 @@ function debouncedPreview(val) {
         }
     }
     
-    // --- GÜNCELLENMİŞ: PORTFÖYE EKLEME (MODAL UYARILI) ---
-    function addToPortfolio(){ 
-        let s = document.getElementById('addSymbol').value.toUpperCase().trim(); 
-        let a = parseFloat(document.getElementById('addAmount').value); 
-        let b = parseFloat(document.getElementById('addBuyPrice').value); 
+ /* --- GÜNCELLENMİŞ PORTFÖYE EKLEME (SEMBOL ZORLAMA) --- */
+async function addToPortfolio(){ 
+    // 1. Kullanıcının yazdığını al
+    let rawInput = document.getElementById('addSymbol').value.trim();
+    let a = parseFloat(document.getElementById('addAmount').value); 
+    let b = parseFloat(document.getElementById('addBuyPrice').value); 
+    
+    if(!rawInput || !a || !b) return addNotification('danger', 'Hata', 'Eksik bilgi girdiniz.'); 
+
+    // 2. Fiyatı ve DOĞRU SEMBOLÜ tekrar çek
+    // (Kullanıcı "pepe" yazmış olabilir ama doğrusu "PEPE"dir)
+    addNotification('info', 'İşleniyor', 'Varlık doğrulanıyor...');
+    let checkRes = await getPrice(rawInput);
+    
+    // Eğer CoinGecko'dan düzeltilmiş sembol geldiyse onu kullan, yoksa kullanıcının yazdığını büyüt
+    let s = checkRes.correctedSymbol ? checkRes.correctedSymbol : rawInput.toUpperCase();
+
+    let totalCostInEntry = a * b; 
+    let costInWallet = 0; 
+    
+    if (appSettings.currency === entryCurrency) { 
+        costInWallet = totalCostInEntry; 
+    } else { 
+        if (appSettings.currency === 'TRY' && entryCurrency === 'USD') costInWallet = totalCostInEntry * usdTryRate;
+        else if (appSettings.currency === 'USD' && entryCurrency === 'TRY') costInWallet = totalCostInEntry / usdTryRate;
+    } 
+    
+    if(costInWallet > cashBalance) { 
+        openModal('noCashModal');
+        return; 
+    } 
+    
+    cashBalance -= costInWallet; 
+    localStorage.setItem('tm_cash_balance', cashBalance); 
+    
+    let as = JSON.parse(localStorage.getItem('myPF_final')) || []; 
+    let ex = as.find(i=>i.name===s); 
+    let assetOrigin = entryCurrency; 
+    
+    if(ex){ 
+        let existingTotal = ex.amt * ex.buy; 
+        let newTotal = 0;
+        if(ex.origin === entryCurrency) newTotal = totalCostInEntry;
+        else newTotal = (ex.origin === 'USD') ? totalCostInEntry / usdTryRate : totalCostInEntry * usdTryRate;
         
-        if(!s || !a || !b) return addNotification('danger', 'Hata', 'Eksik bilgi girdiniz.'); 
+        let finalTotal = existingTotal + newTotal; 
+        let finalAmt = ex.amt + a; 
+        ex.buy = finalTotal / finalAmt; 
+        ex.amt = finalAmt; 
         
-        let totalCostInEntry = a * b; 
-        let costInWallet = 0; 
-        
-        // Cüzdan para birimine çevir
-        if (appSettings.currency === entryCurrency) { 
-            costInWallet = totalCostInEntry; 
-        } else { 
-            if (appSettings.currency === 'TRY' && entryCurrency === 'USD') costInWallet = totalCostInEntry * usdTryRate;
-            else if (appSettings.currency === 'USD' && entryCurrency === 'TRY') costInWallet = totalCostInEntry / usdTryRate;
-        } 
-        
-        // --- YETERSİZ BAKİYE KONTROLÜ ---
-        if(costInWallet > cashBalance) { 
-            // Direkt uyarı penceresini aç
-            openModal('noCashModal');
-            return; 
-        } 
-        
-        cashBalance -= costInWallet; 
-        localStorage.setItem('tm_cash_balance', cashBalance); 
-        
-        let as = JSON.parse(localStorage.getItem('myPF_final')) || []; 
-        let ex = as.find(i=>i.name===s); 
-        let assetOrigin = entryCurrency; 
-        
-        if(ex){ 
-            let existingTotal = ex.amt * ex.buy; 
-            let newTotal = 0;
-            if(ex.origin === entryCurrency) {
-                newTotal = totalCostInEntry;
-            } else {
-                if(ex.origin === 'USD') newTotal = totalCostInEntry / usdTryRate; 
-                else newTotal = totalCostInEntry * usdTryRate; 
-            }
-            let finalTotal = existingTotal + newTotal; 
-            let finalAmt = ex.amt + a; 
-            ex.buy = finalTotal / finalAmt; 
-            ex.amt = finalAmt; 
-        } else { 
-            as.push({name:s, amt:a, buy:b, curr:b, origin:assetOrigin}); 
-        } 
-        
-        localStorage.setItem('myPF_final', JSON.stringify(as)); 
-        
-        // İşlemi kaydet
-        logHistory('ALIM', s, a, b, '', entryCurrency); 
-        
-        addNotification('success', 'İşlem Başarılı', `${s} portföye eklendi.`); 
-        
-        // Formu temizle
-        document.getElementById('addSymbol').value=""; 
-        document.getElementById('addAmount').value=""; 
-        document.getElementById('addBuyPrice').value=""; 
-        document.getElementById('liveInfo').innerText=""; 
-        document.getElementById('dcaPreview').style.display='none'; 
-        let tEl = document.getElementById('liveTradeTotal');
-        tEl.innerText="0.00"; 
-        tEl.style.color="white"; // Rengi sıfırla
-        
-        loadPF(true); 
-        fetchNewsCustom(); 
-        loadProfile(); 
-    }
+        // Logoyu da güncelle (Varsa)
+        if(checkRes.image) ex.image = checkRes.image;
+        if(checkRes.source) ex.source = checkRes.source;
+
+    } else { 
+        as.push({
+            name: s, // Düzeltilmiş isim (PEPE)
+            amt: a, 
+            buy: b, 
+            curr: checkRes.price || b, 
+            origin: assetOrigin,
+            image: checkRes.image || null, // Logo
+            source: checkRes.source || null // Kaynak
+        }); 
+    } 
+    
+    localStorage.setItem('myPF_final', JSON.stringify(as)); 
+    logHistory('ALIM', s, a, b, '', entryCurrency); 
+    
+    addNotification('success', 'İşlem Başarılı', `${s} portföye eklendi.`); 
+    
+    document.getElementById('addSymbol').value=""; 
+    document.getElementById('addAmount').value=""; 
+    document.getElementById('addBuyPrice').value=""; 
+    document.getElementById('liveInfo').innerText=""; 
+    document.getElementById('dcaPreview').style.display='none'; 
+    document.getElementById('liveTradeTotal').innerText="0.00"; 
+    
+    loadPF(true); 
+    fetchNewsCustom(); 
+    loadProfile(); 
+}
+
 
     function toggleAssetChart(symbol, id, btn) { let el = document.getElementById(id); let isActive = el.classList.contains('active'); if (isActive) { el.classList.remove('active'); btn.classList.remove('chart-on'); setTimeout(() => { el.innerHTML = ''; }, 400); } else { el.classList.add('active'); btn.classList.add('chart-on'); el.innerHTML = '<div class="chart-loader-text">Grafik Yükleniyor...</div><div id="tv_'+id+'" style="height:100%; width:100%; border-radius:0 0 16px 16px; overflow:hidden;"></div>'; let tvSymbol = symbol; let s = symbol.toUpperCase().trim(); if(s.includes('BIST:') || s.includes('BINANCE:') || s.includes('TVC:') || s.includes('FX:')) { tvSymbol = s; } else if(s.includes('USDT')) { tvSymbol = "BINANCE:" + s; } else if(s.endsWith('.IS')) { tvSymbol = "BIST:" + s.replace('.IS',''); } else if(s === 'ALTIN' || s === 'GOLD') { tvSymbol = "TVC:GOLD"; } else if(s === 'GRAM') { tvSymbol = "FX:XAUTRY"; } else if(['USD','EUR','GBP'].includes(s)) { tvSymbol = "FX:" + s + "TRY"; } else if(s.length <= 5 && !s.includes('.')) { if(s === 'THYAO' || s === 'ASELS' || s === 'GARAN') tvSymbol = "BIST:" + s; else tvSymbol = "BINANCE:" + s + "USDT"; } new TradingView.widget({ "autosize": true, "symbol": tvSymbol, "interval": "D", "timezone": "Etc/UTC", "theme": "dark", "style": "1", "locale": "tr", "toolbar_bg": "#f1f3f6", "enable_publishing": false, "hide_top_toolbar": true, "hide_legend": false, "save_image": false, "container_id": "tv_" + id }); } }
     function openAlarmModal(i){ let as = JSON.parse(localStorage.getItem('myPF_final')) || []; let asset = as[i]; if(!asset) return; document.getElementById('alarmIdx').value = i; document.getElementById('alarmAssetTitle').innerText = `${asset.name} Alarmları`; document.getElementById('alarmUpper').value = asset.alarmUpper || ""; document.getElementById('alarmLower').value = asset.alarmLower || ""; document.getElementById('alarmPctUp').value = asset.alarmPctUp || ""; document.getElementById('alarmPctDown').value = asset.alarmPctDown || ""; switchAlarmTab('price', document.querySelector('.sim-tab-group .sim-tab')); document.getElementById('alarmModal').style.display='flex'; } 
