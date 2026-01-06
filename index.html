@@ -550,6 +550,186 @@
     100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 
+/* --- YENİ "UNIFIED" (BÜTÜNLEŞİK) MARKET HEADER --- */
+.market-unified-header {
+    background: var(--bg-card); /* Kart rengiyle bütünleşik */
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-radius: 0 0 24px 24px; /* Sadece alt köşeleri yuvarla */
+    padding: 15px 15px 0 15px; /* İç boşluklar */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2); /* Derinlik hissi */
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 12px; /* Elemanlar arası boşluk */
+    margin-bottom: 10px; /* Liste ile mesafe */
+}
+
+/* 1. SATIR: Başlık ve Kontroller */
+.muh-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Sol Taraf: Toggle Switch */
+.view-toggle-group {
+    background: var(--bg-input);
+    border-radius: 20px;
+    padding: 3px;
+    display: flex;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+.vt-btn {
+    padding: 6px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-sub);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.vt-btn.active {
+    background: var(--accent); /* Mavi vurgu */
+    color: white;
+    box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
+}
+
+/* Sağ Taraf: Arama İkonu */
+.muh-search-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.2s;
+}
+.muh-search-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+/* 2. SATIR: Gizli Arama Inputu */
+.muh-search-container {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.muh-search-container.open {
+    max-height: 60px;
+    margin-bottom: 5px;
+}
+.muh-input-wrap {
+    position: relative;
+    width: 100%;
+}
+.muh-input {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 10px 10px 10px 35px;
+    color: white;
+    font-size: 13px;
+    outline: none;
+}
+.muh-search-icon-pos {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-sub);
+    font-size: 12px;
+}
+
+/* 3. SATIR: Kategoriler (Tabs) */
+/* --- GÜNCELLENMİŞ KOMPAKT TABLAR --- */
+
+.muh-tabs-scroll {
+    display: flex;
+    gap: 6px; /* Butonlar arası boşluğu azalttık (10px -> 6px) */
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-bottom: none;
+    padding-bottom: 5px;
+    width: 100%; /* Genişliği tam kapla */
+}
+
+.muh-tab {
+    flex: 1; /* SİHİRLİ KOD: Hepsi eşit genişlikte olsun ve ekrana yayılsın */
+    display: flex;
+    align-items: center;
+    justify-content: center; /* İçeriği ortala */
+    
+    background: var(--bg-input); 
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 10px; /* Biraz daha az yuvarlak */
+    
+    /* Küçültülmüş Değerler: */
+    padding: 8px 4px; /* Üst-Alt: 8px, Sağ-Sol: 4px (Kenarlardan kıstık) */
+    gap: 5px; /* İkon ve yazı arasını yaklaştırdık */
+    
+    font-size: 11px; /* Yazı boyutu küçüldü (12px -> 11px) */
+    font-weight: 700;
+    color: var(--text-sub);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+/* İkon Boyutu Ayarı */
+.muh-tab i {
+    font-size: 13px; /* İkon hafif küçüldü */
+}
+
+/* Aktif Durum */
+.muh-tab.active {
+    background: var(--bg-card);
+    border-color: var(--accent);
+    color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+}
+
+/* Aktif olunca alt çizgi yok */
+.muh-tab.active::after { display: none; }
+
+
+/* 4. SATIR: Filtre Çipleri (Chips) */
+.muh-filters {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 15px; /* Alt boşluk */
+}
+.muh-chip {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    color: var(--text-sub);
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.muh-chip.active {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
     </style>
 </head>
 <body>
@@ -647,49 +827,76 @@
 
     <div id="page-notifications" class="page"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;"><div class="ac-title" style="font-weight:800; font-size:16px; color:white;">BİLDİRİMLER</div><button class="tool-btn" onclick="clearNotifications()" style="font-size:11px; color:var(--text-sub);">TEMİZLE</button></div><div id="notificationList"></div></div>
     
-    <div id="page-market" class="page">
-    <div class="market-switcher">
-        <div class="ms-btn active" onclick="switchMarketMode('main', this)">PİYASA</div>
-        <div class="ms-btn" onclick="switchMarketMode('watchlist', this)">İZLEME LİSTESİ</div>
+    <div id="page-market" class="page" style="padding: 0; padding-bottom: 80px;">
+    
+    <div class="market-unified-header">
+        
+        <div class="muh-top-row">
+            <div class="view-toggle-group">
+                <div id="btn-view-main" class="vt-btn active" onclick="switchMarketMode('main', this)">Piyasa</div>
+                <div id="btn-view-watch" class="vt-btn" onclick="switchMarketMode('watchlist', this)">İzleme Listem</div>
+            </div>
+            
+            <div class="muh-search-btn" onclick="toggleUnifiedSearch(this)">
+                <i class="fas fa-search"></i>
+            </div>
+        </div>
+
+        <div id="unifiedSearchBox" class="muh-search-container">
+            <div class="muh-input-wrap">
+                <i class="fas fa-search muh-search-icon-pos"></i>
+                <input type="text" id="unifiedSearchInput" class="muh-input" placeholder="Sembol ara..." onkeyup="filterUnifiedList(this.value)">
+            </div>
+        </div>
+
+        <div id="unifiedCategories" class="muh-tabs-scroll">
+    <div class="muh-tab active" onclick="loadMarketCategory('kripto', this)">
+        <i class="fab fa-bitcoin" style="color:#f59e0b;"></i>
+        <span>Kripto</span>
     </div>
     
-    <div id="mv-main" class="market-view-section active">
-        <div class="market-tabs-pro">
-            <div class="m-tab-pro active" onclick="loadMarketCategory('kripto', this)">KRİPTO</div>
-            <div class="m-tab-pro" onclick="loadMarketCategory('hisse', this)">BIST 100</div>
-            <div class="m-tab-pro" onclick="loadMarketCategory('altin', this)">EMTİA</div>
-            <div class="m-tab-pro" onclick="loadMarketCategory('doviz', this)">DÖVİZ</div>
-        </div>
-
-        <div class="market-filter-group">
-            <div class="mf-chip active" onclick="sortMarketData('vol', this)">Hacim (Popüler)</div>
-            <div class="mf-chip" onclick="sortMarketData('gainers', this)">En Çok Artanlar</div>
-            <div class="mf-chip" onclick="sortMarketData('losers', this)">En Çok Düşenler</div>
-        </div>
-
-        <div style="display:flex; justify-content:space-between; padding:0 10px 5px 10px; font-size:10px; color:var(--text-sub); font-weight:700; text-transform:uppercase;">
-            <span>Varlık</span>
-            <span>Fiyat / 24s Değişim</span>
-        </div>
-
-        <div id="infiniteMarketList" class="infinite-list-container">
-            </div>
-        <div id="marketLoader" class="loader-spinner">Yükleniyor...</div>
+    <div class="muh-tab" onclick="loadMarketCategory('hisse', this)">
+        <i class="fas fa-chart-line" style="color:#3b82f6;"></i>
+        <span>BIST 100</span>
     </div>
-
-    <div id="mv-watchlist" class="market-view-section">
-        <div class="wl-search-wrapper">
-            <div class="wl-search-box">
-                <input type="text" id="wlInput" class="wl-search-input" placeholder="Sembol Ekle..." onkeyup="debouncedWlPreview(this.value)">
-                <button class="wl-add-btn" onclick="addToWatchlist()"><i class="fas fa-plus"></i></button>
-            </div>
-            <div id="wlLiveInfo"></div>
-        </div>
-        <div id="wlList" style="margin-top:10px; padding-bottom:100px;"></div>
+    
+    <div class="muh-tab" onclick="loadMarketCategory('altin', this)">
+        <i class="fas fa-gem" style="color:#eab308;"></i>
+        <span>Emtia</span>
+    </div>
+    
+    <div class="muh-tab" onclick="loadMarketCategory('doviz', this)">
+        <i class="fas fa-money-bill-wave" style="color:#10b981;"></i>
+        <span>Döviz</span>
     </div>
 </div>
 
 
+        <div id="unifiedFilters" class="muh-filters">
+            <div class="muh-chip active" onclick="sortMarketData('vol', this)">Hacim</div>
+            <div class="muh-chip" onclick="sortMarketData('gainers', this)">En Çok Artan</div>
+            <div class="muh-chip" onclick="sortMarketData('losers', this)">En Çok Düşen</div>
+        </div>
+    </div>
+    <div style="padding: 0 15px;">
+        
+        <div id="mv-main" class="market-view-section active">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:10px; color:var(--text-sub); font-weight:700; text-transform:uppercase; padding:0 5px;">
+                <span>Varlık</span>
+                <span>Fiyat / 24S</span>
+            </div>
+            <div id="infiniteMarketList" class="infinite-list-container" style="height: calc(100vh - 280px); overflow-y: auto; padding-bottom: 20px;"></div>
+
+            <div id="marketLoader" class="loader-spinner">Yükleniyor...</div>
+        </div>
+
+        <div id="mv-watchlist" class="market-view-section">
+            <div id="wlLiveInfo" style="font-size:11px; color:var(--text-sub); text-align:center; margin-bottom:10px;"></div>
+            <div id="wlList" style="padding-bottom:100px;"></div>
+        </div>
+
+    </div>
+</div>
 
 
     <div id="page-analysis" class="page">
@@ -1052,7 +1259,11 @@
 
 
 <script>
-    /* --- AYARLAR VE GLOBAL DEĞİŞKENLER --- */
+        /* --- AYARLAR VE GLOBAL DEĞİŞKENLER --- */
+    // YENİ: CoinGecko Anahtarı Otomatik Tanımlı
+    const AUTO_CG_KEY = "CG-G2hRKmRzcPTYJUA3L79dg8Ta";
+    let coingeckoApiKey = AUTO_CG_KEY; 
+
     const trans = { tr: { loading:"Yükleniyor..." }, en: { loading:"Loading..." } };
     let appSettings = JSON.parse(localStorage.getItem('tm_settings')) || {currency:'TRY', lang:'tr', theme:'ocean'};
     let userProfile = JSON.parse(localStorage.getItem('tm_user_profile')) || { name: 'Misafir', bio: 'Yatırımcı', joinDate: new Date().toLocaleDateString(), img: null };
@@ -1190,18 +1401,65 @@
         }, 5000); 
     }
     /* --- PORTFÖY VE FİYAT FONKSİYONLARI --- */
-    async function getPrice(s) {
-        s = s.toUpperCase().trim(); if(!s) return { price: 0, origin: 'TRY', change: 0 };
-        // Kripto veya özel durumlar
-        if(s.includes('USDT') || s.includes('BUSD') || (!s.includes('=') && !s.includes('.IS') && !s.includes('USD') && !s.includes('EUR') && s.length <= 8)) {
-             let res = await tryBinance(s); if(res) return res; 
-        }
-        // Polygon (Varsa)
-        if(polyApiKey) { let res = await tryPolygon(s); if(res) return res; }
-        // Fallback: Yahoo Finance
-        let res = await tryYahoo(s); if(res) return res;
-        return { price: 0, origin: 'TRY', change: 0 };
+    /* --- GÜNCELLENMİŞ FİYAT MOTORU (GLOBAL ARAMA DESTEKLİ) --- */
+async function getPrice(s) {
+    s = s.toUpperCase().trim(); 
+    if(!s) return { price: 0, origin: 'TRY', change: 0 };
+
+    // 1. Önce Binance Dene (Hızlı ve Bedava)
+    if(s.includes('USDT') || s.includes('BUSD') || (!s.includes('=') && !s.includes('.IS') && !s.includes('USD') && !s.includes('EUR') && s.length <= 8)) {
+         let res = await tryBinance(s); 
+         if(res) return res; 
     }
+
+    // 2. Polygon Dene (Varsa)
+    if(polyApiKey) { 
+        let res = await tryPolygon(s); 
+        if(res) return res; 
+    }
+
+    // 3. Yahoo Dene (Borsa/Döviz/Emtia için)
+    let res = await tryYahoo(s); 
+    if(res) return res;
+
+    // 4. SON ÇARE: COINGECKO GLOBAL ARAMA (YENİ!) 🚀
+    if(coingeckoApiKey) {
+        try {
+            // Arama Endpoint'ini kullan (İsimden ID bulur: "pepe" -> "pepe")
+            const searchUrl = `https://api.coingecko.com/api/v3/search?query=${s}&x_cg_demo_api_key=${coingeckoApiKey}`;
+            const searchRes = await fetch(searchUrl);
+            const searchData = await searchRes.json();
+
+            // Eğer sonuç varsa ilkini al
+            if(searchData.coins && searchData.coins.length > 0) {
+                // En iyi eşleşmeyi bulmaya çalış (Sembolü birebir tutan)
+                let coin = searchData.coins.find(c => c.symbol.toUpperCase() === s) || searchData.coins[0];
+
+                if(coin) {
+                    // ID ile Fiyat Çek
+                    const priceUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${coin.id}&vs_currencies=usd&include_24hr_change=true&x_cg_demo_api_key=${coingeckoApiKey}`;
+                    const priceRes = await fetch(priceUrl);
+                    const priceData = await priceRes.json();
+
+                    if(priceData[coin.id]) {
+                        return { 
+                            price: priceData[coin.id].usd, 
+                            origin: 'USD', 
+                            change: priceData[coin.id].usd_24h_change, 
+                            source: 'CG', // Kaynak etiketi
+                            image: coin.thumb // Logo URL'si
+                        };
+                    }
+                }
+            }
+        } catch(e) {
+            console.log("CG Arama Hatası");
+        }
+    }
+
+    return { price: 0, origin: 'TRY', change: 0 };
+}
+
 
     async function tryBinance(symbol) {
         let s = symbol.replace('BINANCE:', '').trim();
@@ -1282,49 +1540,151 @@
 
     function setSortMode(mode) { currentSortMode = mode; loadPF(); }
     
-    async function loadPF(refreshData = false){
-        let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
-        if(refreshData && as.length > 0) {
-            document.getElementById('totalWallet').style.opacity = "0.5";
-            const promises = as.map(async (a) => {
-                let s = a.name; if(!s.includes('USDT') && !s.includes('.') && s.length<=5 && s !== 'ALTIN' && !s.includes('=') && !s.includes('USD')) s += '.IS';
-                let live = await getPrice(s); if(live.price > 0) a.curr = live.price; return a;
-            });
-            await Promise.all(promises);
-            localStorage.setItem('myPF_final', JSON.stringify(as));
-            document.getElementById('totalWallet').style.opacity = "1";
+    /* --- GÜNCELLENMİŞ VERİ YÜKLEYİCİ (KAYNAK KAYITLI) --- */
+async function loadPF(refreshData = false){
+    let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
+    if(as.length === 0) { renderPortfolioHTML([]); return; }
+
+    if(refreshData) {
+        document.getElementById('totalWallet').style.opacity = "0.5";
+        
+        // 1. COINGECKO VARSA
+        if(coingeckoApiKey) {
+            try {
+                const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false&x_cg_demo_api_key=${coingeckoApiKey}`;
+                const res = await fetch(url);
+                if(res.ok) {
+                    const cgData = await res.json();
+                    as.forEach(asset => {
+                        const isCrypto = asset.name.includes('USDT') || (!asset.name.includes('.') && !asset.name.includes('='));
+                        if(isCrypto) {
+                            let cleanSym = asset.name.replace('USDT','').replace('BINANCE:','').toLowerCase();
+                            const matchedCoin = cgData.find(c => c.symbol === cleanSym);
+                            if(matchedCoin) {
+                                asset.curr = matchedCoin.current_price;
+                                asset.image = matchedCoin.image;
+                                asset.source = 'CG'; // GECKO ETİKETİ İÇİN BU LAZIM
+                            }
+                        }
+                    });
+                }
+            } catch(e) {}
         }
-        renderPortfolioHTML(as);
+
+        // 2. DİĞERLERİ
+        const promises = as.map(async (a) => {
+            if(a.source === 'CG') return a; // Zaten CG ise geç
+            
+            let s = a.name; 
+            if(!s.includes('USDT') && !s.includes('.') && s.length<=5 && s !== 'ALTIN' && !s.includes('=') && !s.includes('USD')) s += '.IS';
+            
+            let live = await getPrice(s); 
+            if(live.price > 0) {
+                a.curr = live.price;
+                a.source = live.source || 'Piyasa'; // Kaynağı kaydet
+            }
+            return a;
+        });
+
+        await Promise.all(promises);
+        localStorage.setItem('myPF_final', JSON.stringify(as));
+        document.getElementById('totalWallet').style.opacity = "1";
     }
 
-    function renderPortfolioHTML(as) {
-        let l = document.getElementById('portfolioList'); if(!l) return;
-        if(!as || as.length === 0) {
-            if(cashBalance > 0 && tradeHistory.length === 0 && (!as || as.length === 0)) { l.innerHTML = "<div style='text-align:center; padding:30px; color:var(--text-sub); opacity:0.6;'><i class='fas fa-wallet' style='font-size:32px; margin-bottom:10px;'></i><br>Portföy Boş</div>"; } 
-            else { l.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>'; }
-            updateHeaderTotals(0, 0, { bist: 0, crypto: 0, other: 0, cash: cashBalance });
-            return;
+    renderPortfolioHTML(as);
+}
+
+    /* --- GÜNCELLENMİŞ CÜZDAN GÖRÜNÜMÜ (KAYNAK ETİKETLİ) --- */
+function renderPortfolioHTML(as) {
+    let l = document.getElementById('portfolioList'); 
+    if(!l) return;
+    
+    if(!as || as.length === 0) {
+        if(cashBalance > 0 && tradeHistory.length === 0 && (!as || as.length === 0)) { 
+            l.innerHTML = "<div style='text-align:center; padding:30px; color:var(--text-sub); opacity:0.6;'><i class='fas fa-wallet' style='font-size:32px; margin-bottom:10px;'></i><br>Portföy Boş</div>"; 
+        } else { 
+            l.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>'; 
         }
-        let totalVal = 0; let chartData = { bist: 0, crypto: 0, other: 0, cash: cashBalance }; let uCurr = appSettings.currency; let sym = uCurr==='TRY'?'₺':'$'; let totalUnrealizedPnL = 0;
-        let displayAssets = (as || []).map((a, i) => { 
-            let rp = (a.curr && a.curr > 0) ? a.curr : a.buy; let dVal = 0; let dCost = 0; 
-            if(uCurr === 'TRY') { if(a.origin === 'USD') { dVal = rp * a.amt * usdTryRate; dCost = a.buy * a.amt * usdTryRate; } else { dVal = rp * a.amt; dCost = a.buy * a.amt; } } else { if(a.origin === 'TRY') { dVal = (rp * a.amt) / usdTryRate; dCost = (a.buy * a.amt) / usdTryRate; } else { dVal = rp * a.amt; dCost = a.buy * a.amt; } } 
-            let pnl = dVal - dCost; let pnlPercent = (dCost > 0) ? (pnl / dCost) * 100 : 0; totalUnrealizedPnL += pnl; 
-            return { ...a, originalIndex: i, dVal, dCost, pnl, pnlPercent, rp }; 
-        });
-        if(currentSortMode === 'value_desc') displayAssets.sort((a,b) => b.dVal - a.dVal); else if(currentSortMode === 'pnl_desc') displayAssets.sort((a,b) => b.pnl - a.pnl); else if(currentSortMode === 'pnl_asc') displayAssets.sort((a,b) => a.pnl - b.pnl); else if(currentSortMode === 'percent_desc') displayAssets.sort((a,b) => b.pnlPercent - a.pnlPercent); else if(currentSortMode === 'alpha_asc') displayAssets.sort((a,b) => a.name.localeCompare(b.name));
-        let htmlBuilder = ""; 
-        if(displayAssets.length > 0) { htmlBuilder += `<div class="sort-scroll-wrapper"><div class="sort-chip ${currentSortMode==='value_desc'?'active':''}" onclick="setSortMode('value_desc')"><i class="fas fa-coins"></i> Değer</div><div class="sort-chip ${currentSortMode==='percent_desc'?'active':''}" onclick="setSortMode('percent_desc')"><i class="fas fa-percent"></i> Kâr (%)</div><div class="sort-chip ${currentSortMode==='pnl_desc'?'active':''}" onclick="setSortMode('pnl_desc')"><i class="fas fa-arrow-up"></i> Kazanç</div><div class="sort-chip ${currentSortMode==='pnl_asc'?'active':''}" onclick="setSortMode('pnl_asc')"><i class="fas fa-arrow-down"></i> Kayıp</div><div class="sort-chip ${currentSortMode==='alpha_asc'?'active':''}" onclick="setSortMode('alpha_asc')">A-Z</div></div>`; }
-        displayAssets.forEach((a) => { 
-            totalVal += a.dVal; let tag = getAssetTag(a.name).t; if(tag === 'KRİPTO') chartData.crypto += a.dVal; else if(tag === 'BORSA') chartData.bist += a.dVal; else chartData.other += a.dVal;
-            let cls = a.pnl >= 0 ? 'pnl-up' : 'pnl-down'; let priceUnit = a.origin === 'USD' ? `<b id="live_price_${a.originalIndex}">$${a.rp.toFixed(2)}</b>` : `<b id="live_price_${a.originalIndex}">₺${a.rp.toFixed(2)}</b>`; 
-            let logoHtml = getAssetLogoHtml(a.name.replace('.IS','')); let cardColorClass = 'asset-card' + (a.pnl > 0 ? ' profit-bg' : (a.pnl < 0 ? ' loss-bg' : '')); let chartId = `mini_chart_${a.originalIndex}`; let percentBadge = `<span id="live_pct_${a.originalIndex}" style="font-size:10px; opacity:0.8; margin-right:4px;">(%${a.pnlPercent.toFixed(1)})</span>`; 
-            htmlBuilder += `<div class="${cardColorClass}" id="card_bg_${a.originalIndex}"><div class="asset-header collapsible-header" onclick="toggleAssetDetails(${a.originalIndex})"><div class="asset-left">${logoHtml}<div><span class="asset-name">${a.name.replace('.IS','')}</span><div class="asset-meta">${a.amt} Adet</div></div></div><div style="display:flex; align-items:center; gap:10px;"><div class="asset-pnl ${cls}" id="live_pnl_badge_${a.originalIndex}">${percentBadge}${sym}<span id="live_pnl_val_${a.originalIndex}">${a.pnl.toFixed(0)}</span></div><i id="asset-chevron-${a.originalIndex}" class="fas fa-chevron-down rotate-icon" style="font-size:12px; color:var(--text-sub);"></i></div></div><div id="asset-content-${a.originalIndex}" class="collapsible-content collapsed"><div class="asset-body-content"><div class="asset-details-grid"><div class="detail-item"><span class="detail-label">Ortalama</span><span class="detail-val">${a.buy.toFixed(2)} ${a.origin==='USD'?'$':'₺'}</span></div><div class="detail-item" style="text-align:right;"><span class="detail-label">Güncel</span><span class="detail-val accent">${priceUnit}</span></div><div class="detail-item"><span class="detail-label">Maliyet</span><span class="detail-val">${sym}${a.dCost.toFixed(0)}</span></div><div class="detail-item" style="text-align:right;"><span class="detail-label">Toplam Değer</span><span class="detail-val" id="live_total_val_${a.originalIndex}">${sym}${a.dVal.toFixed(0)}</span></div></div>${a.note ? `<div class="asset-note"><i class="fas fa-sticky-note"></i> ${a.note}</div>` : ''}<div class="asset-footer"><button class="tool-btn" onclick="toggleAssetChart('${a.name}', '${chartId}', this)"><i class="fas fa-chart-area"></i></button><button class="tool-btn ${a.alarm?'active-alarm':''}" onclick="openAlarmModal(${a.originalIndex})"><i class="fas fa-bell"></i></button><button class="tool-btn active-sim" onclick="openSimulator(${a.originalIndex})"><i class="fas fa-magic"></i></button><button class="tool-btn" onclick="editNote(${a.originalIndex})"><i class="fas fa-edit"></i></button><button class="tool-btn" onclick="openSell(${a.originalIndex})"><i class="fas fa-coins"></i></button><button class="tool-btn" onclick="delAsset(${a.originalIndex})"><i class="fas fa-trash"></i></button></div><div id="${chartId}" class="asset-mini-chart"></div></div></div></div>`; 
-        });
-        l.innerHTML = htmlBuilder;
-        updateHeaderTotals(totalVal, totalUnrealizedPnL, chartData);
-        checkAllAlarms();
+        updateHeaderTotals(0, 0, { bist: 0, crypto: 0, other: 0, cash: cashBalance });
+        return;
     }
+
+    let totalVal = 0; 
+    let chartData = { bist: 0, crypto: 0, other: 0, cash: cashBalance }; 
+    let uCurr = appSettings.currency; 
+    let sym = uCurr==='TRY'?'₺':'$'; 
+    let totalUnrealizedPnL = 0;
+    
+    // Sıralama ve Hesaplama Mantığı
+    let displayAssets = (as || []).map((a, i) => { 
+        let rp = (a.curr && a.curr > 0) ? a.curr : a.buy; 
+        let dVal = 0; let dCost = 0; 
+        if(uCurr === 'TRY') { 
+            if(a.origin === 'USD') { dVal = rp * a.amt * usdTryRate; dCost = a.buy * a.amt * usdTryRate; } 
+            else { dVal = rp * a.amt; dCost = a.buy * a.amt; } 
+        } else { 
+            if(a.origin === 'TRY') { dVal = (rp * a.amt) / usdTryRate; dCost = (a.buy * a.amt) / usdTryRate; } 
+            else { dVal = rp * a.amt; dCost = a.buy * a.amt; } 
+        } 
+        let pnl = dVal - dCost; 
+        let pnlPercent = (dCost > 0) ? (pnl / dCost) * 100 : 0; 
+        totalUnrealizedPnL += pnl; 
+        return { ...a, originalIndex: i, dVal, dCost, pnl, pnlPercent, rp }; 
+    });
+
+    // Sıralama
+    if(currentSortMode === 'value_desc') displayAssets.sort((a,b) => b.dVal - a.dVal); 
+    else if(currentSortMode === 'pnl_desc') displayAssets.sort((a,b) => b.pnl - a.pnl); 
+    else if(currentSortMode === 'pnl_asc') displayAssets.sort((a,b) => a.pnl - b.pnl); 
+    else if(currentSortMode === 'percent_desc') displayAssets.sort((a,b) => b.pnlPercent - a.pnlPercent); 
+    else if(currentSortMode === 'alpha_asc') displayAssets.sort((a,b) => a.name.localeCompare(b.name));
+
+    let htmlBuilder = ""; 
+    if(displayAssets.length > 0) { 
+        htmlBuilder += `<div class="sort-scroll-wrapper"><div class="sort-chip ${currentSortMode==='value_desc'?'active':''}" onclick="setSortMode('value_desc')"><i class="fas fa-coins"></i> Değer</div><div class="sort-chip ${currentSortMode==='percent_desc'?'active':''}" onclick="setSortMode('percent_desc')"><i class="fas fa-percent"></i> Kâr (%)</div><div class="sort-chip ${currentSortMode==='pnl_desc'?'active':''}" onclick="setSortMode('pnl_desc')"><i class="fas fa-arrow-up"></i> Kazanç</div><div class="sort-chip ${currentSortMode==='pnl_asc'?'active':''}" onclick="setSortMode('pnl_asc')"><i class="fas fa-arrow-down"></i> Kayıp</div><div class="sort-chip ${currentSortMode==='alpha_asc'?'active':''}" onclick="setSortMode('alpha_asc')">A-Z</div></div>`; 
+    }
+
+    displayAssets.forEach((a) => { 
+        totalVal += a.dVal; 
+        let tag = getAssetTag(a.name).t; 
+        if(tag === 'KRİPTO') chartData.crypto += a.dVal; 
+        else if(tag === 'BORSA') chartData.bist += a.dVal; 
+        else chartData.other += a.dVal;
+
+        let cls = a.pnl >= 0 ? 'pnl-up' : 'pnl-down'; 
+        let priceUnit = a.origin === 'USD' ? `<b id="live_price_${a.originalIndex}">$${a.rp.toFixed(2)}</b>` : `<b id="live_price_${a.originalIndex}">₺${a.rp.toFixed(2)}</b>`; 
+        
+        let logoHtml = "";
+        if(a.image) logoHtml = `<div class="asset-logo-wrap" style="background:transparent; border:none;"><img src="${a.image}" class="asset-logo-img"></div>`;
+        else logoHtml = getAssetLogoHtml(a.name.replace('.IS',''));
+        
+        let cardColorClass = 'asset-card' + (a.pnl > 0 ? ' profit-bg' : (a.pnl < 0 ? ' loss-bg' : '')); 
+        let chartId = `mini_chart_${a.originalIndex}`; 
+        let percentBadge = `<span id="live_pct_${a.originalIndex}" style="font-size:10px; opacity:0.8; margin-right:4px;">(%${a.pnlPercent.toFixed(1)})</span>`; 
+        
+        // --- YENİ ETİKET MANTIĞI BURADA ---
+        let sourceBadge = "";
+        if(a.source) {
+            let sColor = "#94a3b8"; // Varsayılan Gri
+            let sText = a.source;
+            
+            if(a.source === 'CG' || a.source.includes('RANK')) { sColor = "#8bc34a"; sText = "GECKO"; } // Yeşil
+            else if(a.source === 'BINANCE') { sColor = "#f59e0b"; } // Turuncu
+            else if(a.source === 'BIST') { sColor = "#3b82f6"; } // Mavi
+            else if(a.source === 'YAHOO') { sColor = "#8b5cf6"; } // Mor
+            
+            sourceBadge = `<span style="font-size:8px; font-weight:800; background:${sColor}20; color:${sColor}; padding:2px 6px; border-radius:4px; margin-left:6px; letter-spacing:0.5px;">${sText}</span>`;
+        }
+        // ----------------------------------
+
+        htmlBuilder += `<div class="${cardColorClass}" id="card_bg_${a.originalIndex}"><div class="asset-header collapsible-header" onclick="toggleAssetDetails(${a.originalIndex})"><div class="asset-left">${logoHtml}<div><span class="asset-name">${a.name.replace('.IS','')}${sourceBadge}</span><div class="asset-meta">${a.amt} Adet</div></div></div><div style="display:flex; align-items:center; gap:10px;"><div class="asset-pnl ${cls}" id="live_pnl_badge_${a.originalIndex}">${percentBadge}${sym}<span id="live_pnl_val_${a.originalIndex}">${a.pnl.toFixed(0)}</span></div><i id="asset-chevron-${a.originalIndex}" class="fas fa-chevron-down rotate-icon" style="font-size:12px; color:var(--text-sub);"></i></div></div><div id="asset-content-${a.originalIndex}" class="collapsible-content collapsed"><div class="asset-body-content"><div class="asset-details-grid"><div class="detail-item"><span class="detail-label">Ortalama</span><span class="detail-val">${a.buy.toFixed(2)} ${a.origin==='USD'?'$':'₺'}</span></div><div class="detail-item" style="text-align:right;"><span class="detail-label">Güncel</span><span class="detail-val accent">${priceUnit}</span></div><div class="detail-item"><span class="detail-label">Maliyet</span><span class="detail-val">${sym}${a.dCost.toFixed(0)}</span></div><div class="detail-item" style="text-align:right;"><span class="detail-label">Toplam Değer</span><span class="detail-val" id="live_total_val_${a.originalIndex}">${sym}${a.dVal.toFixed(0)}</span></div></div>${a.note ? `<div class="asset-note"><i class="fas fa-sticky-note"></i> ${a.note}</div>` : ''}<div class="asset-footer"><button class="tool-btn" onclick="toggleAssetChart('${a.name}', '${chartId}', this)"><i class="fas fa-chart-area"></i></button><button class="tool-btn ${a.alarm?'active-alarm':''}" onclick="openAlarmModal(${a.originalIndex})"><i class="fas fa-bell"></i></button><button class="tool-btn active-sim" onclick="openSimulator(${a.originalIndex})"><i class="fas fa-magic"></i></button><button class="tool-btn" onclick="editNote(${a.originalIndex})"><i class="fas fa-edit"></i></button><button class="tool-btn" onclick="openSell(${a.originalIndex})"><i class="fas fa-coins"></i></button><button class="tool-btn" onclick="delAsset(${a.originalIndex})"><i class="fas fa-trash"></i></button></div><div id="${chartId}" class="asset-mini-chart"></div></div></div></div>`; 
+    });
+    
+    l.innerHTML = htmlBuilder;
+    updateHeaderTotals(totalVal, totalUnrealizedPnL, chartData);
+    checkAllAlarms();
+}
+
 
     function updateHeaderTotals(totalVal, totalUnrealizedPnL, chartData) {
         let sym = appSettings.currency==='TRY'?'₺':'$';
@@ -1457,7 +1817,47 @@
     let allocChartNew = null; function renderNewAllocationChart(as) { const ctx = document.getElementById('newAllocationChart').getContext('2d'); if(allocChartNew) allocChartNew.destroy(); let crypto = 0, bist = 0, forex = 0, cash = cashBalance; as.forEach(a => { let val = (a.curr || a.buy) * a.amt; if(appSettings.currency === 'TRY' && a.origin === 'USD') val *= usdTryRate; let tag = getAssetTag(a.name).t; if(tag === 'KRİPTO') crypto += val; else if(tag === 'BORSA') bist += val; else forex += val; }); allocChartNew = new Chart(ctx, { type: 'doughnut', data: { labels: ['Kripto', 'Borsa', 'Döviz', 'Nakit'], datasets: [{ data: [crypto, bist, forex, cash], backgroundColor: ['#f59e0b', '#3b82f6', '#8b5cf6', '#10b981'], borderWidth: 0, hoverOffset: 10 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: 'white', boxWidth: 10, font: {size: 10} } } } } }); }
     function updateGrowthChart(days) { document.querySelectorAll('.chart-filter-btn').forEach(b => b.classList.remove('active')); event.target.classList.add('active'); renderRealGrowthChart(); }
     /* --- DİĞER YARDIMCI FONKSİYONLAR --- */
-    let debounceTimer; function debouncedPreview(val) { clearTimeout(debounceTimer); const infoDiv = document.getElementById('liveInfo'); if(val.length < 2) { infoDiv.innerText = ""; return; } infoDiv.innerText = "Aranıyor..."; debounceTimer = setTimeout(async () => { let res = await getPrice(val); if (res.price > 0) { let sym = res.origin === 'USD' ? '$' : '₺'; infoDiv.innerHTML = `<span style="color:var(--success)">${val.toUpperCase()} (${res.source}): ${sym}${res.price.toFixed(2)}</span>`; } else { infoDiv.innerText = "Bulunamadı (Manuel Girin)"; infoDiv.style.color = "var(--text-sub)"; } }, 600); }
+    /* --- GÜNCELLENMİŞ ÖNİZLEME (KAYNAK GÖSTERGELİ) --- */
+let debounceTimer; 
+function debouncedPreview(val) { 
+    clearTimeout(debounceTimer); 
+    const infoDiv = document.getElementById('liveInfo'); 
+    
+    if(val.length < 2) { 
+        infoDiv.innerText = ""; 
+        return; 
+    } 
+    
+    infoDiv.innerHTML = "<i class='fas fa-circle-notch fa-spin'></i> Aranıyor..."; 
+    
+    debounceTimer = setTimeout(async () => { 
+        let res = await getPrice(val); 
+        
+        if (res.price > 0) { 
+            let sym = res.origin === 'USD' ? '$' : '₺'; 
+            let sourceColor = "var(--text-sub)";
+            let sourceText = res.source || "PİYASA";
+
+            // Kaynağa göre renkler
+            if(sourceText === 'CG') { sourceText = "COINGECKO"; sourceColor = "#8bc34a"; }
+            else if(sourceText === 'BINANCE') { sourceColor = "#f59e0b"; }
+            else if(sourceText === 'BIST') { sourceColor = "#3b82f6"; }
+
+            infoDiv.innerHTML = `
+                <span style="color:var(--success); font-weight:700;">
+                    ${val.toUpperCase()} 
+                    <span style="font-size:9px; background:${sourceColor}20; color:${sourceColor}; padding:2px 5px; border-radius:4px; margin-left:5px;">${sourceText}</span>
+                </span>
+                <span style="color:white; margin-left:5px;">
+                    : ${sym}${res.price.toFixed(2)}
+                </span>`; 
+        } else { 
+            infoDiv.innerText = "Bulunamadı"; 
+            infoDiv.style.color = "var(--text-sub)"; 
+        } 
+    }, 800); // 0.8 sn bekleme (API tasarrufu için)
+}
+
     
     // --- GÜNCELLENMİŞ: ANLIK TUTAR HESAPLAMA VE RENK DEĞİŞİMİ ---
     function calcLiveTotal() { 
@@ -1875,61 +2275,73 @@ function sortMarketData(type, btn) {
     processAndRenderData();
 }
 
-// 3. Veri Çekme (API Bağlantısı)
+/* --- GÜNCELLENMİŞ VERİ MOTORU (COINGECKO DESTEKLİ) --- */
 async function fetchMarketData() {
     const loader = document.getElementById('marketLoader');
-    loader.classList.add('active');
+    if(loader) loader.classList.add('active');
     isMarketLoading = true;
 
     try {
         if(currentCategory === 'kripto') {
-            // Binance Tüm Tickerları Çek (USDT çiftleri)
-            const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
-            const data = await res.json();
-            
-            // Sadece USDT çiftlerini filtrele ve gereksizleri at
-            marketDataCache = data.filter(d => d.symbol.endsWith('USDT') && !d.symbol.includes('UP') && !d.symbol.includes('DOWN'))
-                .map(d => ({
-                    symbol: d.symbol.replace('USDT', ''),
-                    price: parseFloat(d.lastPrice),
-                    change: parseFloat(d.priceChangePercent),
-                    vol: parseFloat(d.quoteVolume), // Hacim sıralaması için
-                    source: 'KRİPTO'
-                }));
+            // EĞER COINGECKO ANAHTARI VARSA
+            if (coingeckoApiKey) {
+                // CoinGecko API Bağlantısı
+                const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${itemsPerPage}&page=${currentPage}&sparkline=false&x_cg_demo_api_key=${coingeckoApiKey}`;
+                
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                if(Array.isArray(data)) {
+                    // CoinGecko verisini formatla
+                    const cgData = data.map(d => ({
+                        symbol: d.symbol.toUpperCase(),
+                        name: d.name,
+                        price: d.current_price,
+                        change: d.price_change_percentage_24h,
+                        vol: d.total_volume,
+                        image: d.image, // Orijinal logo URL'si
+                        source: 'RANK #' + d.market_cap_rank
+                    }));
+                    
+                    if(currentPage === 1) marketDataCache = cgData;
+                    else marketDataCache = [...marketDataCache, ...cgData];
+                }
+            } else {
+                // YOKSA ESKİ YÖNTEM (BINANCE)
+                if(currentPage === 1) {
+                    const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+                    const data = await res.json();
+                    marketDataCache = data.filter(d => d.symbol.endsWith('USDT'))
+                        .map(d => ({
+                            symbol: d.symbol.replace('USDT', ''),
+                            price: parseFloat(d.lastPrice),
+                            change: parseFloat(d.priceChangePercent),
+                            vol: parseFloat(d.quoteVolume),
+                            source: 'BINANCE'
+                        }));
+                    marketDataCache.sort((a,b) => b.vol - a.vol);
+                }
+            }
 
         } else if(currentCategory === 'hisse') {
-            // BIST için yahoo/custom proxy ile tek tek çekim (Simüle Edilmiş Toplu Veri)
-            // Gerçek API olmadığı için ön tanımlı listeyi kullanacağız
             marketDataCache = bistExtended.map(sym => ({
-                symbol: sym,
-                price: 0, // Sonra doldurulacak
-                change: 0,
-                vol: 0,
-                source: 'BIST'
+                symbol: sym, price: 0, change: 0, vol: 0, source: 'BIST'
             }));
-            
-            // Fiyatları asenkron doldur (UI donmasın diye)
             updateBistPrices();
-        } else if(currentCategory === 'altin' || currentCategory === 'doviz') {
-            // Mevcut presetleri kullan
+        } else {
             let list = (currentCategory === 'altin') ? ['GC=F','SI=F','CL=F','HG=F'] : ['TRY=X','EURTRY=X','EUR=X','GBPTRY=X'];
             marketDataCache = list.map(sym => ({
-                symbol: sym, // Display name mapping yapılabilir
-                price: 0,
-                change: 0,
-                vol: 0,
-                source: currentCategory.toUpperCase()
+                symbol: sym, price: 0, change: 0, vol: 0, source: currentCategory.toUpperCase()
             }));
             updateOtherPrices();
         }
-
         processAndRenderData();
-
     } catch (error) {
         console.error("Veri hatası:", error);
-        loader.classList.remove('active');
+        if(loader) loader.classList.remove('active');
     }
 }
+
 
 // 4. BIST ve Diğerleri İçin Fiyat Güncelleme (Arka Planda)
 async function updateBistPrices() {
@@ -1983,6 +2395,7 @@ function processAndRenderData() {
 }
 
 // 6. Sonraki Grubu Render Et (PREMIUM TASARIMLI GÜNCEL HALİ)
+/* --- GÜNCELLENMİŞ LOGO GÖSTERİMİ --- */
 function renderNextBatch() {
     const listEl = document.getElementById('infiniteMarketList');
     const start = (currentPage - 1) * itemsPerPage;
@@ -1999,35 +2412,39 @@ function renderNextBatch() {
         let globalIdx = start + idx + 1;
         let pStr = item.price > 0 ? formatPrice(item.price, currentCategory) : "--";
         
-        // Yüzde değişime göre ikon ve renk
         let isUp = item.change >= 0;
         let cClass = isUp ? 'bg-up' : 'bg-down';
         let cIcon = isUp ? '<i class="fas fa-caret-up"></i>' : '<i class="fas fa-caret-down"></i>';
         let cStr = item.change !== 0 ? `${cIcon}%${Math.abs(item.change).toFixed(2)}` : "--";
         
-        let logo = getAssetLogoHtml(item.symbol); 
-        
-        // İsim Düzeltmeleri
+        // --- LOGO AYARI ---
+        let logo = "";
+        if (item.image) {
+            // CoinGecko Resmi Varsa
+            logo = `<div class="asset-logo-wrap" style="background:transparent; border:none; width:32px; height:32px;"><img src="${item.image}" class="asset-logo-img"></div>`;
+        } else {
+            // Yoksa Eski Harf Logosu
+            logo = getAssetLogoHtml(item.symbol);
+        }
+        // ------------------
+
         let dName = item.symbol;
         if(dName === 'GC=F') dName = 'ONS ALTIN';
         if(dName === 'TRY=X') dName = 'USD/TRY';
 
-        // İlk 3 sıraya özel madalya rengi (Gold, Silver, Bronze)
         let rankClass = '';
         if(globalIdx === 1) rankClass = 'rank-gold';
         else if(globalIdx === 2) rankClass = 'rank-silver';
         else if(globalIdx === 3) rankClass = 'rank-bronze';
 
-        let uniqueId = `m_item_${item.symbol.replace(/[^a-zA-Z0-9]/g, '')}`;
-
-        // Hacim Gösterimi (Milyon/Bin cinsinden kısaltma)
         let volStr = item.source;
         if(currentCategory === 'kripto' && item.vol > 0) {
             if(item.vol > 1000000) volStr = (item.vol/1000000).toFixed(1) + 'M Hacim';
             else if(item.vol > 1000) volStr = (item.vol/1000).toFixed(1) + 'K Hacim';
         }
 
-        // YENİ KART TASARIMI HTML'İ
+        let uniqueId = `m_item_${item.symbol.replace(/[^a-zA-Z0-9]/g, '')}`;
+
         html += `
         <div class="infinite-item" id="${uniqueId}" onclick="openMarketDetail('${item.symbol}')">
             <div class="ii-left">
@@ -2047,9 +2464,6 @@ function renderNextBatch() {
 
     listEl.insertAdjacentHTML('beforeend', html);
 }
-
-
-    
 
 // 7. Scroll Event Listener (Listenin sonuna gelince tetiklenir)
 document.getElementById('infiniteMarketList').addEventListener('scroll', function() {
@@ -2467,6 +2881,261 @@ function actionWatchFromMarket() {
     addNotification('success', 'Takipte', `${currentMdSymbol} izleme listesine eklendi.`);
 }
 
+/* --- UNIFIED HEADER İŞLEVLERİ --- */
+
+// Arama kutusunu aç/kapa
+function toggleUnifiedSearch(btn) {
+    const box = document.getElementById('unifiedSearchBox');
+    const input = document.getElementById('unifiedSearchInput');
+    
+    if (box.classList.contains('open')) {
+        box.classList.remove('open');
+        btn.classList.remove('active');
+        btn.innerHTML = '<i class="fas fa-search"></i>';
+        input.value = '';
+        filterUnifiedList(''); // Listeyi temizle
+    } else {
+        box.classList.add('open');
+        btn.classList.add('active');
+        btn.innerHTML = '<i class="fas fa-times"></i>';
+        setTimeout(() => input.focus(), 300);
+    }
+}
+
+// Listeyi Filtrele
+function filterUnifiedList(val) {
+    val = val.toUpperCase().trim();
+    const isMain = document.getElementById('mv-main').classList.contains('active');
+    const container = document.getElementById(isMain ? 'infiniteMarketList' : 'wlList');
+    const items = container.querySelectorAll(isMain ? '.infinite-item' : '.wl-card-classic');
+
+    items.forEach(item => {
+        let text = isMain ? item.querySelector('.ii-sym').innerText : item.querySelector('.wl-c-sym').innerText;
+        item.style.display = text.toUpperCase().includes(val) ? (isMain ? 'flex' : 'block') : 'none';
+    });
+}
+
+// Mod Değiştirme (Piyasa <-> İzleme) - GÜNCELLENMİŞ
+switchMarketMode = function(mode, btn) {
+    // İçerik alanlarını değiştir
+    document.querySelectorAll('.market-view-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('mv-' + mode).classList.add('active');
+
+    // Header butonlarını güncelle
+    document.querySelectorAll('.vt-btn').forEach(b => b.classList.remove('active'));
+    
+    // İzleme ve Piyasa moduna göre butonları ayarla
+    if(mode === 'main') {
+        document.getElementById('btn-view-main').classList.add('active');
+        // Piyasa modunda kategori ve filtreleri GÖSTER
+        document.getElementById('unifiedCategories').style.display = 'flex';
+        document.getElementById('unifiedFilters').style.display = 'flex';
+        
+        loadMarketCategory(currentCategory, null);
+    } else {
+        document.getElementById('btn-view-watch').classList.add('active');
+        // İzleme modunda kategori ve filtreleri GİZLE (Sade görünüm)
+        document.getElementById('unifiedCategories').style.display = 'none';
+        document.getElementById('unifiedFilters').style.display = 'none';
+        
+        updateWatchlist();
+    }
+};
+
+// Kategori Yükleme Fonksiyonu (Sınıfları yeni yapıya uydurduk)
+const oldLoadMarketCategory2 = loadMarketCategory;
+loadMarketCategory = function(cat, btn) {
+    if(btn) {
+        document.querySelectorAll('.muh-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+    // Eski mantığı çağır
+    currentCategory = cat;
+    currentPage = 1;
+    marketDataCache = [];
+    document.getElementById('infiniteMarketList').innerHTML = '';
+    fetchMarketData();
+};
+
+/* --- TAM KAPSAMLI GLOBAL ARAMA (COINGECKO ENGINE) --- */
+let autoSearchTimer;
+
+function filterUnifiedList(val) {
+    val = val.trim(); // Boşlukları al ama uppercase yapma (API hassas olabilir)
+    
+    // Aktif Listeyi Bul
+    const isMain = document.getElementById('mv-main').classList.contains('active');
+    const container = document.getElementById(isMain ? 'infiniteMarketList' : 'wlList');
+    if(!container) return;
+
+    // Eski sonuçları temizle
+    const oldResult = document.getElementById('global-search-result');
+    if(oldResult) oldResult.remove();
+    clearTimeout(autoSearchTimer);
+
+    // 1. MEVCUT LİSTEYİ FİLTRELE
+    const itemClass = isMain ? '.infinite-item' : '.wl-card-classic';
+    const items = container.querySelectorAll(itemClass);
+    let visibleCount = 0;
+
+    items.forEach(item => {
+        let text = isMain ? item.querySelector('.ii-sym').innerText : item.querySelector('.wl-c-sym').innerText;
+        if (text.toUpperCase().includes(val.toUpperCase())) {
+            item.style.display = isMain ? 'flex' : 'block';
+            visibleCount++;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+
+    // 2. LİSTEDE YOKSA -> COINGECKO DEV HAVUZUNDA ARA
+    if (visibleCount === 0 && val.length > 2) {
+        
+        // Yükleniyor Mesajı
+        const loadingHtml = `
+            <div id="global-search-result" style="text-align:center; padding:20px; color:var(--text-sub); animation:fadeIn 0.3s;">
+                <i class="fas fa-satellite-dish fa-spin"></i> CoinGecko Veritabanı Taranıyor: <b>${val}</b>
+            </div>`;
+        container.insertAdjacentHTML('beforeend', loadingHtml);
+
+        autoSearchTimer = setTimeout(async () => {
+            const resultBox = document.getElementById('global-search-result');
+            if(!resultBox) return;
+
+            // CoinGecko Search API (Her şeyi bulur)
+            if(coingeckoApiKey) {
+                try {
+                    const url = `https://api.coingecko.com/api/v3/search?query=${val}&x_cg_demo_api_key=${coingeckoApiKey}`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    
+                    // İlk 5 sonucu al (Çok fazla sonuç gelebilir)
+                    const coins = data.coins ? data.coins.slice(0, 5) : [];
+
+                    if(coins.length > 0) {
+                        resultBox.innerHTML = `<div style="padding:10px; font-size:11px; color:var(--text-sub); text-align:center;">GLOBAL SONUÇLAR</div>`;
+                        
+                        coins.forEach(coin => {
+                            // Kart HTML'i
+                            resultBox.innerHTML += `
+                                <div class="infinite-item" onclick="openCoinGeckoDetail('${coin.id}')" style="border: 1px solid var(--accent); background: rgba(59, 130, 246, 0.05); margin-bottom:5px;">
+                                    <div class="ii-left">
+                                        <div class="ii-rank" style="background:#8bc34a; color:white;">CG</div>
+                                        <div class="asset-logo-wrap" style="background:transparent; border:none; width:32px; height:32px;">
+                                            <img src="${coin.thumb}" class="asset-logo-img">
+                                        </div>
+                                        <div class="ii-info">
+                                            <span class="ii-sym">${coin.symbol}</span>
+                                            <span class="ii-vol">${coin.name}</span>
+                                        </div>
+                                    </div>
+                                    <div class="ii-right">
+                                        <span class="ii-price" style="font-size:11px; color:var(--accent);">Görüntüle <i class="fas fa-chevron-right"></i></span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        resultBox.innerHTML = `<div style="opacity:0.5; text-align:center;">"${val}" bulunamadı.</div>`;
+                    }
+                } catch(e) {
+                    resultBox.innerHTML = `<div style="color:var(--danger); text-align:center;">Bağlantı Hatası</div>`;
+                }
+            } else {
+                // Anahtar yoksa eski usul
+                filterUnifiedListOld(val); 
+            }
+        }, 800);
+    }
+}
+
+/* --- SONSUZ KAYDIRMA VE SAYFALAMA DÜZELTMESİ --- */
+
+// 1. Önce mevcut listener'ı temizleyelim (Varsa çakışmasın)
+const listContainer = document.getElementById('infiniteMarketList');
+const newContainer = listContainer.cloneNode(true);
+listContainer.parentNode.replaceChild(newContainer, listContainer);
+
+// 2. Yeni ve Güçlü Scroll Algılayıcıyı Ekleyelim
+newContainer.addEventListener('scroll', function() {
+    
+    // Listenin sonuna yaklaştık mı? (Son 100px kala tetiklensin)
+    if (this.scrollTop + this.clientHeight >= this.scrollHeight - 100) {
+        
+        // Eğer zaten yükleme yapılıyorsa veya tüm veri bittiyse dur
+        if (isMarketLoading) return;
+
+        // --- SENARYO 1: Kripto (CoinGecko) ---
+        // CoinGecko sayfa sayfa veri verir, yeni istek atmalıyız.
+        if (currentCategory === 'kripto' && coingeckoApiKey) {
+            isMarketLoading = true;
+            currentPage++; // Sayfayı artır (Örn: 1 -> 2)
+            fetchMarketData(); // Yeni sayfayı API'den iste
+        } 
+        
+        // --- SENARYO 2: Diğerleri (Binance/Bist) ---
+        // Veri zaten cache'de var, sadece sıradakileri göstermeliyiz.
+        else {
+            // Cache'de daha gösterilecek veri var mı?
+            if ((currentPage * itemsPerPage) < marketDataCache.length) {
+                isMarketLoading = true;
+                currentPage++;
+                renderNextBatch(); // Cache'den sıradaki grubu bas
+                isMarketLoading = false; // İşlem bitti
+            }
+        }
+    }
+});
+
+/* --- COINGECKO ID İLE DETAY AÇMA --- */
+async function openCoinGeckoDetail(coinId) {
+    // Yükleniyor Modalı Aç
+    document.getElementById('marketDetailModal').style.display = 'flex';
+    document.getElementById('mdSymbolTitle').innerText = "YÜKLENİYOR...";
+    document.getElementById('mdBigPrice').innerText = "--";
+    
+    try {
+        // Fiyat ve Detayları Çek (Simple Price Endpoint)
+        const url = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&x_cg_demo_api_key=${coingeckoApiKey}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        const d = data[coinId];
+        if(!d) throw new Error("Veri yok");
+
+        // Detayları Doldur
+        const details = {
+            price: d.usd,
+            change: d.usd_24h_change,
+            vol: d.usd_24h_vol,
+            high: d.usd * 1.05, // API simple endpoint high/low vermez, simüle ediyoruz
+            low: d.usd * 0.95,
+            vwap: d.usd
+        };
+
+        // Sembolü büyük harf yap (coinId genelde 'bitcoin' dir, sembol 'BTC' olsun isteriz)
+        // Burada basitçe ID'yi kullanıyoruz, daha detaylısı için /coins/{id} gerekir ama bu hızlıdır.
+        const displaySym = coinId.toUpperCase();
+        currentMdSymbol = displaySym; // İşlem yapmak için kaydet
+        
+        // UI Güncelle
+        renderMdUI(details, displaySym);
+        
+        // Logoyu (Basit bir trick ile thumb URL'den large yapıyoruz veya search'ten gelen logoyu kullanıyoruz)
+        // Burada varsayılan olarak API'den logo gelmediği için search kısmındaki logoyu kullanamıyoruz.
+        // Hızlı çözüm: Harf logosu göster, grafik yükle.
+        document.getElementById('mdAssetLogo').innerHTML = getAssetLogoHtml(displaySym);
+        
+        // Grafik Başlat
+        initMdChart(displaySym + "USDT"); // TradingView genelde sembolü tanır
+
+    } catch(e) {
+        addNotification('danger', 'Hata', 'Coin verisi alınamadı.');
+        closeMarketDetail();
+    }
+}
+
 </script>
 </body>
 </html>
+
