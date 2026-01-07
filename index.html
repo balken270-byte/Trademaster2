@@ -686,10 +686,23 @@
     text-align: center;
 }
 
-/* İkon Boyutu Ayarı */
+/* İkon Boyutu ve Renklendirme */
 .muh-tab i {
-    font-size: 13px; /* İkon hafif küçüldü */
+    font-size: 16px; 
+    opacity: 0.6; 
+    transition: all 0.2s ease;
 }
+
+.muh-tab.active i {
+    opacity: 1;
+    transform: scale(1.15);
+}
+
+/* Kategoriye Özel Renkler */
+.muh-tab:nth-child(1).active i { color: #f59e0b; } /* Kripto - Turuncu */
+.muh-tab:nth-child(2).active i { color: #3b82f6; } /* BIST - Mavi */
+.muh-tab:nth-child(3).active i { color: #eab308; } /* Emtia - Sarı */
+.muh-tab:nth-child(4).active i { color: #10b981; } /* Döviz - Yeşil */
 
 /* Aktif Durum */
 .muh-tab.active {
@@ -864,27 +877,25 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 
         <div id="unifiedCategories" class="muh-tabs-scroll">
     <div class="muh-tab active" onclick="loadMarketCategory('kripto', this)">
-        <i class="fab fa-bitcoin" style="color:#f59e0b;"></i>
+        <i class="fab fa-bitcoin"></i>
         <span>Kripto</span>
     </div>
     
     <div class="muh-tab" onclick="loadMarketCategory('hisse', this)">
-        <i class="fas fa-chart-line" style="color:#3b82f6;"></i>
+        <i class="fas fa-chart-line"></i>
         <span>BIST 100</span>
     </div>
     
     <div class="muh-tab" onclick="loadMarketCategory('altin', this)">
-        <i class="fas fa-gem" style="color:#eab308;"></i>
+        <i class="fas fa-gem"></i>
         <span>Emtia</span>
     </div>
     
     <div class="muh-tab" onclick="loadMarketCategory('doviz', this)">
-        <i class="fas fa-money-bill-wave" style="color:#10b981;"></i>
+        <i class="fas fa-money-bill-wave"></i>
         <span>Döviz</span>
     </div>
 </div>
-
-
         <div id="unifiedFilters" class="muh-filters">
             <div class="muh-chip active" onclick="sortMarketData('vol', this)">Hacim</div>
             <div class="muh-chip" onclick="sortMarketData('gainers', this)">En Çok Artan</div>
@@ -2306,7 +2317,8 @@ function getAssetLogoHtml(symbol) {
         return `<div class="asset-logo-wrap" style="background:transparent; border:none; width:40px; margin-right:10px;">
             <img src="https://assets.coincap.io/assets/icons/${cleanSym}@2x.png" 
                  style="width:36px; height:36px; border-radius:50%; object-fit:contain;"
-                 onerror="this.style.display='none'; this.parentNode.innerHTML='${boxHtml.replace(/\n/g, '')}'">
+                 
+onerror="this.outerHTML=\`<div style='width:40px;height:40px;background:${color}20;border:1px solid ${color}60;border-radius:12px;display:flex;align-items:center;justify-content:center;color:${color};font-weight:900;font-size:12px;'>${s.substring(0,3)}</div>\`">
         </div>`;
     }
 
