@@ -730,6 +730,19 @@
     border-color: var(--accent);
 }
 
+/* --- TOGGLE SWITCH (ANAHTAR) STİLLERİ --- */
+.switch-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.switch-row:last-child { border-bottom: none; }
+.switch-label { font-size: 13px; color: white; font-weight: 600; }
+.switch-desc { font-size: 10px; color: var(--text-sub); display: block; margin-top: 2px; }
+
+.tgl-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+.tgl-switch input { opacity: 0; width: 0; height: 0; }
+.tgl-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--bg-input); transition: .4s; border-radius: 34px; border: 1px solid rgba(255,255,255,0.1); }
+.tgl-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .tgl-slider { background-color: var(--success); border-color: var(--success); }
+input:checked + .tgl-slider:before { transform: translateX(20px); }
+
     </style>
 </head>
 <body>
@@ -967,21 +980,14 @@
                 </div>
             </div>
         </div>
-    </div>
-    <div id="page-news" class="page">
-        <div class="news-toolbar-fixed"><input type="text" id="newsSearch" class="news-input-fix" placeholder="Haber Ara..."><button class="news-btn-fix" onclick="fetchNewsCustom()"><i class="fas fa-search"></i></button><button class="kap-btn-fix" onclick="window.open('https://www.kap.org.tr','_blank')">KAP</button></div>
-        <div style="font-size:11px; color:var(--text-sub); margin-bottom:10px; display:flex; justify-content:space-between;">
-            <span><i class="fas fa-rss"></i> Canlı Akış</span>
-            <span id="newsStatusText">Senkronize</span>
-        </div>
-        <div id="newsLoader" style="text-align:center; display:none; padding:20px; color:var(--text-sub);">Yükleniyor...</div>
-        <div id="newsFeed"></div>
-    </div>
+        </div> 
 
     <div id="page-settings" class="page">
+        
         <div class="settings-tabs">
             <div class="s-tab active" onclick="switchSettingsTab('profile', this)">PROFİL</div>
             <div class="s-tab" onclick="switchSettingsTab('general', this)">GENEL</div>
+            <div class="s-tab" onclick="switchSettingsTab('notify', this)">BİLDİRİM</div>
             <div class="s-tab" onclick="switchSettingsTab('history', this)">GEÇMİŞ</div>
         </div>
 
@@ -1028,6 +1034,48 @@
             <button class="btn-main btn-danger" onclick="clearAllData()">Tüm Verileri Sıfırla</button>
         </div>
 
+        <div id="set-notify" class="settings-content">
+            <div class="card" id="permRequestCard" style="display:none; border-left: 3px solid var(--gold); background:rgba(245, 158, 11, 0.1);">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-weight:700; font-size:13px; color:var(--gold);">İzin Gerekli</div>
+                        <div style="font-size:11px; color:var(--text-sub);">Telefon bildirimleri için izin verin.</div>
+                    </div>
+                    <button class="btn-main" style="width:auto; padding:6px 12px; font-size:11px;" onclick="requestNotifyPermission()">İZİN VER</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="lbl-sm">BİLDİRİM TERCİHLERİ</div>
+                <div class="switch-row">
+                    <div><span class="switch-label">Fiyat Alarmları</span><span class="switch-desc">Hedef fiyata gelince uyar</span></div>
+                    <label class="tgl-switch"><input type="checkbox" id="ntf_price" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label>
+                </div>
+                <div class="switch-row">
+                    <div><span class="switch-label">İşlem Onayları</span><span class="switch-desc">Alım/Satım yapınca uyar</span></div>
+                    <label class="tgl-switch"><input type="checkbox" id="ntf_trade" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label>
+                </div>
+                <div class="switch-row">
+                    <div><span class="switch-label">Haber & Piyasalar</span><span class="switch-desc">Önemli gelişmelerde uyar</span></div>
+                    <label class="tgl-switch"><input type="checkbox" id="ntf_news" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="lbl-sm">SES & TİTREŞİM</div>
+                <div class="switch-row">
+                    <div><span class="switch-label">Bildirim Sesi</span><span class="switch-desc">Uyarılarda ses çal ("Ding")</span></div>
+                    <label class="tgl-switch"><input type="checkbox" id="ntf_sound" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label>
+                </div>
+                <div class="switch-row">
+                    <div><span class="switch-label">Titreşim</span><span class="switch-desc">Telefonda titreşim oluştur</span></div>
+                    <label class="tgl-switch"><input type="checkbox" id="ntf_vibrate" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label>
+                </div>
+            </div>
+            
+            <button class="btn-main btn-sec" onclick="testNotification()">Test Bildirimi Gönder</button>
+        </div>
+
         <div id="set-history" class="settings-content">
             <div class="accounting-header">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -1035,18 +1083,9 @@
                     <button class="tool-btn" onclick="openCashModal()" style="color:var(--accent); background:rgba(59,130,246,0.1); padding:5px 10px; border-radius:6px; font-weight:700;">+ İşlem Ekle</button>
                 </div>
                 <div class="acc-grid">
-                    <div class="acc-item">
-                        <span class="acc-lbl">TOPLAM GİRİŞ</span>
-                        <span class="acc-val" style="color:var(--success)" id="accTotalIn">0.00</span>
-                    </div>
-                    <div class="acc-item">
-                        <span class="acc-lbl">TOPLAM ÇIKIŞ</span>
-                        <span class="acc-val" style="color:var(--danger)" id="accTotalOut">0.00</span>
-                    </div>
-                    <div class="acc-item acc-net">
-                        <span class="acc-lbl">NET NAKİT AKIŞI</span>
-                        <span class="acc-val" id="accNetFlow">0.00</span>
-                    </div>
+                    <div class="acc-item"><span class="acc-lbl">TOPLAM GİRİŞ</span><span class="acc-val" style="color:var(--success)" id="accTotalIn">0.00</span></div>
+                    <div class="acc-item"><span class="acc-lbl">TOPLAM ÇIKIŞ</span><span class="acc-val" style="color:var(--danger)" id="accTotalOut">0.00</span></div>
+                    <div class="acc-item acc-net"><span class="acc-lbl">NET NAKİT AKIŞI</span><span class="acc-val" id="accNetFlow">0.00</span></div>
                 </div>
             </div>
 
@@ -1060,8 +1099,9 @@
 
             <div id="historyListFull" style="padding-bottom:20px;"></div>
         </div>
-    </div>
-</div> 
+
+    </div> </div> ```
+
 
 <div class="nav-container">
     <div class="nav-item active" onclick="switchPage('portfolio', this)"><i class="fas fa-wallet"></i><span data-lang="nav_wallet">Cüzdan</span></div>
@@ -1266,6 +1306,11 @@
     // YENİ: CoinGecko Anahtarı Otomatik Tanımlı
     const AUTO_CG_KEY = "CG-G2hRKmRzcPTYJUA3L79dg8Ta";
     let coingeckoApiKey = AUTO_CG_KEY; 
+    
+    // Global değişkenlere ekle:
+let notifySettings = JSON.parse(localStorage.getItem('tm_notify_settings')) || {
+    price: true, trade: true, news: false, sound: true, vibrate: true
+};
 
     const trans = { tr: { loading:"Yükleniyor..." }, en: { loading:"Loading..." } };
     let appSettings = JSON.parse(localStorage.getItem('tm_settings')) || {currency:'TRY', lang:'tr', theme:'ocean'};
@@ -1295,6 +1340,8 @@
         
         applyTheme(appSettings.theme);
         applyLang();
+        loadNotifyUI();
+        checkNotifyPermission();
         updateBadge();
         loadProfile();
         checkPolyInit();
@@ -2055,7 +2102,97 @@ async function addToPortfolio(){
     
     function toggleTradeMenu() { const content = document.getElementById('tradeContent'); const chevron = document.getElementById('tradeChevron'); const card = document.getElementById('tradeCard'); if (content.classList.contains('collapsed')) { content.classList.remove('collapsed'); chevron.classList.add('rotated'); card.classList.add('open'); } else { content.classList.add('collapsed'); chevron.classList.remove('rotated'); card.classList.remove('open'); } }
     function toggleAssetDetails(id) { const content = document.getElementById('asset-content-' + id); const chevron = document.getElementById('asset-chevron-' + id); if (content.classList.contains('collapsed')) { content.classList.remove('collapsed'); chevron.classList.add('rotated'); } else { content.classList.add('collapsed'); chevron.classList.remove('rotated'); } }
-    function addNotification(type, title, msg){ let n = { type: type, title: title, msg: msg, time: new Date().toLocaleTimeString(), read: false }; notifications.unshift(n); if(notifications.length > 50) notifications.pop(); localStorage.setItem('tm_notifications', JSON.stringify(notifications)); updateBadge(); if(document.getElementById('page-notifications').classList.contains('active')) renderNotifications(); }
+        /* --- YENİ (SERVICE WORKER DESTEKLİ) BİLDİRİM SİSTEMİ --- */
+
+// 1. Service Worker'ı (Sanal Arka Plan Çalışanı) Hazırlayalım
+if ('serviceWorker' in navigator) {
+    // Harici dosya olmadan, tek dosya içinde sanal worker oluşturuyoruz
+    const swCode = `
+        self.addEventListener('notificationclick', function(event) {
+            event.notification.close();
+            // Bildirime tıklanınca uygulamayı aç/odakla
+            event.waitUntil(
+                clients.matchAll({type: 'window'}).then( windowClients => {
+                    for (var i = 0; i < windowClients.length; i++) {
+                        var client = windowClients[i];
+                        if (client.url === '/' && 'focus' in client) {
+                            return client.focus();
+                        }
+                    }
+                    if (clients.openWindow) {
+                        return clients.openWindow('/');
+                    }
+                })
+            );
+        });
+    `;
+    const blob = new Blob([swCode], {type: 'text/javascript'});
+    const swUrl = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(swUrl).then(reg => {
+        console.log("Bildirim servisi hazır.");
+    });
+}
+
+// 2. Yeni Bildirim Fonksiyonu
+function addNotification(type, title, msg) {
+    // A. Uygulama İçi Kayıt (Listeye Ekleme)
+    let n = { type: type, title: title, msg: msg, time: new Date().toLocaleTimeString(), read: false };
+    notifications.unshift(n);
+    if(notifications.length > 50) notifications.pop();
+    localStorage.setItem('tm_notifications', JSON.stringify(notifications));
+    updateBadge();
+    
+    // Eğer bildirim sayfasındaysak listeyi yenile
+    if(document.getElementById('page-notifications') && document.getElementById('page-notifications').classList.contains('active')) {
+        renderNotifications();
+    }
+
+    // B. Ayar Kontrolü (Ayarlar kapalıysa ses/titreşim yapma)
+    let category = 'trade';
+    if(title.includes('Alarm') || title.includes('HEDEF') || title.includes('DİKKAT')) category = 'price';
+    else if(title.includes('Haber')) category = 'news';
+    
+    if(notifySettings && !notifySettings[category]) return;
+
+    // C. SES VE TİTREŞİM
+    if(notifySettings && notifySettings.sound) playNotificationSound(type);
+    if(notifySettings && notifySettings.vibrate && navigator.vibrate) {
+        if(type === 'danger') navigator.vibrate([100, 50, 100, 50, 100]);
+        else navigator.vibrate(200);
+    }
+
+    // D. BİLDİRİM ÇUBUĞU (SERVICE WORKER İLE ZORLAMA)
+    if ("Notification" in window && Notification.permission === "granted") {
+        let iconUrl = "https://cdn-icons-png.flaticon.com/512/3429/3429170.png";
+        if(type === 'danger') iconUrl = "https://cdn-icons-png.flaticon.com/512/190/190406.png";
+
+        // Yöntem A: Service Worker varsa onu kullan (Daha garantidir)
+        if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.ready.then(function(registration) {
+                registration.showNotification(title, {
+                    body: msg,
+                    icon: iconUrl,
+                    badge: iconUrl, 
+                    vibrate: (notifySettings && notifySettings.vibrate) ? [200, 100, 200] : [],
+                    tag: 'tm-notification', 
+                    renotify: true 
+                });
+            });
+        } else {
+            // Yöntem B: Service Worker yoksa eski yöntem (Yedek)
+            const notif = new Notification(title, {
+                body: msg,
+                icon: iconUrl,
+                vibrate: (notifySettings && notifySettings.vibrate) ? [200, 100, 200] : []
+            });
+             notif.onclick = function() {
+                window.focus();
+                notif.close();
+            };
+        }
+    }
+}
+
     function renderNotifications(){ let l = document.getElementById('notificationList'); l.innerHTML = ""; if(notifications.length === 0){ l.innerHTML = "<div style='text-align:center; padding:30px; color:var(--text-sub); opacity:0.6;'><i class='fas fa-bell-slash' style='font-size:24px; margin-bottom:10px;'></i><br>Bildirim Yok</div>"; return; } notifications.forEach(n => { let icon = 'info-circle'; let cls = 'n-info'; if(n.type === 'success') { icon = 'check-circle'; cls = 'n-success'; } if(n.type === 'danger') { icon = 'exclamation-circle'; cls = 'n-danger'; } if(n.type === 'warn') { icon = 'bell'; cls = 'n-warn'; } l.innerHTML += `<div class="notif-card ${cls} ${n.read ? '' : 'unread'}"><div class="notif-icon-box"><i class="fas fa-${icon}"></i></div><div class="notif-content"><div class="notif-title">${n.title}</div><div class="notif-msg">${n.msg}</div></div><div class="notif-time">${n.time}</div></div>`; }); notifications.forEach(n => n.read = true); localStorage.setItem('tm_notifications', JSON.stringify(notifications)); updateBadge(); }
     function updateBadge(){ let unread = notifications.filter(n => !n.read).length; let b = document.getElementById('notifBadge'); if(unread > 0){ b.innerText = unread; b.classList.add('active'); } else { b.classList.remove('active'); } }
     function clearNotifications(){ if(confirm("Tüm bildirimler silinsin mi?")){ notifications = []; localStorage.setItem('tm_notifications', JSON.stringify(notifications)); renderNotifications(); updateBadge(); } }
@@ -3264,6 +3401,160 @@ function actionSellFromMarket() {
                 // Orijinal Yazıyı Geri Getir
                 btn.innerHTML = '<span><i class="fas fa-arrow-up"></i> SATIŞ YAP</span><span class="bq-sub">Portföyden Sat</span>';
             }, 1500);
+        }
+    }
+}
+
+/* --- BİLDİRİM AYARLARI VE İZİN YÖNETİMİ --- */
+
+// İzin İste
+function requestNotifyPermission() {
+    if (!("Notification" in window)) {
+        alert("Tarayıcınız bildirimleri desteklemiyor.");
+        return;
+    }
+    Notification.requestPermission().then((permission) => {
+        checkNotifyUI();
+        if (permission === "granted") {
+            addNotification('success', 'Bildirimler Aktif', 'Artık önemli gelişmeleri kaçırmayacaksınız.');
+        }
+    });
+}
+
+// İzin Durumunu Kontrol Et (UI Göster/Gizle)
+function checkNotifyPermission() {
+    const card = document.getElementById('permRequestCard');
+    if (!("Notification" in window)) return;
+    
+    if (Notification.permission === "granted" || Notification.permission === "denied") {
+        if(card) card.style.display = 'none';
+    } else {
+        if(card) card.style.display = 'block'; // İzin verilmemişse uyarıyı göster
+    }
+}
+
+// Ayarları UI'a Yansıt
+function loadNotifyUI() {
+    document.getElementById('ntf_price').checked = notifySettings.price;
+    document.getElementById('ntf_trade').checked = notifySettings.trade;
+    document.getElementById('ntf_news').checked = notifySettings.news;
+    document.getElementById('ntf_sound').checked = notifySettings.sound;
+    document.getElementById('ntf_vibrate').checked = notifySettings.vibrate;
+    checkNotifyPermission();
+}
+
+// Ayarları Kaydet
+function saveNotifySettings() {
+    notifySettings.price = document.getElementById('ntf_price').checked;
+    notifySettings.trade = document.getElementById('ntf_trade').checked;
+    notifySettings.news = document.getElementById('ntf_news').checked;
+    notifySettings.sound = document.getElementById('ntf_sound').checked;
+    notifySettings.vibrate = document.getElementById('ntf_vibrate').checked;
+    
+    localStorage.setItem('tm_notify_settings', JSON.stringify(notifySettings));
+    
+    // Ses önizlemesi (Kullanıcı sesi açarsa 'ding' duysun)
+    if(notifySettings.sound && event.target.id === 'ntf_sound') playNotificationSound('success');
+}
+
+// Ses Çalma Fonksiyonu
+function playNotificationSound(type) {
+    // Basit bip sesleri (Base64 encoded audio - dış dosya gerektirmez)
+    let audioSrc = "";
+    
+    if(type === 'success' || type === 'info') {
+        // Success "Ding"
+        audioSrc = "data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU"; // (Kısaltıldı, gerçek bir ding sesi için URL kullanmak daha iyi olabilir veya kısa beep)
+        // Daha güvenilir bir yöntem: Web Audio API Oscillator
+        playBeep(600, 200, 'sine');
+    } else if (type === 'danger' || type === 'warn') {
+        // Error "Buzz"
+        playBeep(150, 400, 'sawtooth');
+    }
+}
+
+// Basit Web Audio Beep (Dosyasız Ses)
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playBeep(freq, duration, type='sine') {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    
+    // Fade out
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (duration/1000));
+    
+    setTimeout(() => osc.stop(), duration);
+}
+
+function testNotification() {
+    addNotification('info', 'Test Bildirimi', 'Bu bir test mesajıdır. Ses ve titreşim çalışıyor mu?');
+}
+
+// checkNotifyUI fonksiyonu eksikti, ekleyelim
+function checkNotifyUI() {
+    checkNotifyPermission();
+}
+/* --- STANDART VE GÜÇLÜ BİLDİRİM SİSTEMİ --- */
+function addNotification(type, title, msg) {
+    // 1. Uygulama İçi (Liste) Kaydı
+    let n = { type: type, title: title, msg: msg, time: new Date().toLocaleTimeString(), read: false };
+    notifications.unshift(n);
+    if(notifications.length > 50) notifications.pop();
+    localStorage.setItem('tm_notifications', JSON.stringify(notifications));
+    updateBadge();
+    
+    // Eğer bildirim sayfasındaysak anlık güncelle
+    if(document.getElementById('page-notifications') && document.getElementById('page-notifications').classList.contains('active')) {
+        renderNotifications();
+    }
+
+    // 2. Ayarları Kontrol Et (Kapalıysa dur)
+    let category = 'trade';
+    if(title.includes('Alarm') || title.includes('HEDEF') || title.includes('DİKKAT')) category = 'price';
+    else if(title.includes('Haber')) category = 'news';
+    
+    // notifySettings tanımlı değilse veya ayar kapalıysa çık
+    if(typeof notifySettings !== 'undefined' && !notifySettings[category]) return;
+
+    // 3. Ses ve Titreşim (Manuel Tetikleme)
+    if(typeof notifySettings !== 'undefined') {
+        if(notifySettings.sound) playNotificationSound(type);
+        if(notifySettings.vibrate && navigator.vibrate) {
+            // Android Chrome bazen titreşimi engeller, bu yüzden kullanıcı etkileşimi simüle ediyoruz
+            try { navigator.vibrate([200, 100, 200]); } catch(e){}
+        }
+    }
+
+    // 4. TELEFON BİLDİRİM ÇUBUĞU (Standart Push)
+    if ("Notification" in window && Notification.permission === "granted") {
+        // İkon Seçimi
+        let iconUrl = "https://cdn-icons-png.flaticon.com/512/3429/3429170.png"; // Normal
+        if(type === 'danger') iconUrl = "https://cdn-icons-png.flaticon.com/512/190/190406.png"; // Kırmızı
+
+        try {
+            // Standart Bildirim Oluştur
+            const notif = new Notification(title, {
+                body: msg,
+                icon: iconUrl,
+                badge: iconUrl,
+                tag: 'tm-notif-' + Date.now(), // Her bildirim benzersiz olsun
+                renotify: true, // Üst üste gelirse tekrar titret
+                requireInteraction: true // Kullanıcı silene kadar ekranda kalsın
+            });
+
+            // Tıklayınca sayfaya dön
+            notif.onclick = function() {
+                window.focus();
+                notif.close();
+            };
+        } catch (e) {
+            console.log("Bildirim hatası:", e);
         }
     }
 }
