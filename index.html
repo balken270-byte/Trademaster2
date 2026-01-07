@@ -1992,7 +1992,7 @@ function debouncedPreview(val) {
         }
     }
     
- /* --- GÜNCELLENMİŞ PORTFÖYE EKLEME (SEMBOL ZORLAMA) --- */
+ /* --- GÜNCELLENMİŞ PORTFÖYE EKLEME (IŞIK HIZINDA) --- */
 async function addToPortfolio(){ 
     // 1. Kullanıcının yazdığını al
     let rawInput = document.getElementById('addSymbol').value.trim();
@@ -2002,11 +2002,9 @@ async function addToPortfolio(){
     if(!rawInput || !a || !b) return addNotification('danger', 'Hata', 'Eksik bilgi girdiniz.'); 
 
     // 2. Fiyatı ve DOĞRU SEMBOLÜ tekrar çek
-    // (Kullanıcı "pepe" yazmış olabilir ama doğrusu "PEPE"dir)
     addNotification('info', 'İşleniyor', 'Varlık doğrulanıyor...');
     let checkRes = await getPrice(rawInput);
     
-    // Eğer CoinGecko'dan düzeltilmiş sembol geldiyse onu kullan, yoksa kullanıcının yazdığını büyüt
     let s = checkRes.correctedSymbol ? checkRes.correctedSymbol : rawInput.toUpperCase();
 
     let totalCostInEntry = a * b; 
@@ -2042,19 +2040,18 @@ async function addToPortfolio(){
         ex.buy = finalTotal / finalAmt; 
         ex.amt = finalAmt; 
         
-        // Logoyu da güncelle (Varsa)
         if(checkRes.image) ex.image = checkRes.image;
         if(checkRes.source) ex.source = checkRes.source;
 
     } else { 
         as.push({
-            name: s, // Düzeltilmiş isim (PEPE)
+            name: s, 
             amt: a, 
             buy: b, 
             curr: checkRes.price || b, 
             origin: assetOrigin,
-            image: checkRes.image || null, // Logo
-            source: checkRes.source || null // Kaynak
+            image: checkRes.image || null, 
+            source: checkRes.source || null 
         }); 
     } 
     
@@ -2070,7 +2067,11 @@ async function addToPortfolio(){
     document.getElementById('dcaPreview').style.display='none'; 
     document.getElementById('liveTradeTotal').innerText="0.00"; 
     
-    loadPF(true); 
+    // --- HIZ AYARI BURADA YAPILDI ---
+    // Eskiden: loadPF(true); -> Her şeyi yeniden indiriyordu.
+    // Şimdi: loadPF(false); -> Sadece listeyi çiziyor (İnterneti meşgul etmiyor).
+    loadPF(false); 
+    
     fetchNewsCustom(); 
     loadProfile(); 
 }
