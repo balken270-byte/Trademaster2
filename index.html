@@ -3631,41 +3631,78 @@ function testNotification() {
 function checkNotifyUI() {
     checkNotifyPermission();
 }
-/* --- YENİ HIZLI ALTIN & DÖVİZ MOTORLARI --- */
-
-// 1. DÖVİZ MOTORU (Frankfurter API - Key Gerektirmez, Çok Hızlı)
+/* --- YENİ DÖVİZ MOTORU (REVIZE EDİLDİ: EUR TABANLI & GARANTİ) --- */
 async function fetchFastForex() {
     try {
-        // EUR tabanlı çekiyoruz ki pariteleri rahat hesaplayalım
-        const res = await fetch('https://api.frankfurter.app/latest?from=USD&to=TRY,EUR,GBP,JPY');
-        const data = await res.json();
-        
-        if (!data || !data.rates) throw new Error("Forex API Hatası");
+        const today = new Date();
+        let yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
 
-        const rates = data.rates; // USD bazlı oranlar
+        // Hafta sonu kontrolü
+        if (yesterday.getDay() === 0) yesterday.setDate(yesterday.getDate() - 2);
+        else if (yesterday.getDay() === 6) yesterday.setDate(yesterday.getDate() - 1);
         
-        // USDTRY = rates.TRY
-        // EURUSD = 1 / rates.EUR
-        // EURTRY = (1 / rates.EUR) * rates.TRY
+        const dateStr = yesterday.toISOString().split('T')[0];
+
+        // NOT: Frankfurter API en iyi 'EUR' tabanlı çalışır. USD/TRY'yi biz hesaplayacağız.
+        const [resNow, resHist] = await Promise.all([
+            fetch('https://api.frankfurter.app/latest?from=EUR&to=USD,TRY,GBP,JPY,CNY,CAD'),
+            fetch(`https://api.frankfurter.app/${dateStr}?from=EUR&to=USD,TRY,GBP,JPY,CNY,CAD`)
+        ]);
+
+        const dataNow = await resNow.json();
+        const dataHist = await resHist.json();
+
+        if (!dataNow || !dataNow.rates) throw new Error("Forex API Hatası");
+
+        const rNow = dataNow.rates;
+        const rHist = dataHist.rates || rNow;
         
-        const usdTry = rates.TRY;
-        const eurUsd = 1 / rates.EUR;
-        const eurTry = eurUsd * usdTry;
-        const gbpUsd = 1 / rates.GBP;
-        const gbpTry = gbpUsd * usdTry;
+        // --- HESAPLAMA MOTORU ---
+        // EUR/USD = rNow.USD
+        // EUR/TRY = rNow.TRY
+        // USD/TRY = rNow.TRY / rNow.USD (Matematiksel Çapraz Kur)
 
-        // Rastgele günlük değişim simülasyonu (Frankfurter anlık değişim %'si vermez, görsel amaçlı hafif random veriyoruz)
-        // Profesyonel çözümde bir önceki günün kapanışını saklamak gerekir.
-        const r = () => (Math.random() * 1.5 - 0.5); 
+        const calcCross = (base, target, name, unitPrefix, flagCode) => {
+    let priceNow, priceHist;
 
+    if (base === 'EUR') {
+        priceNow = rNow[target];
+        priceHist = rHist[target];
+    } else if (target === 'EUR') {
+        priceNow = 1 / rNow[base];
+        priceHist = 1 / rHist[base];
+    } else {
+        priceNow = rNow[target] / rNow[base];
+        priceHist = rHist[target] / rHist[base];
+    }
+
+    const change = ((priceNow - priceHist) / priceHist) * 100;
+    const img = `https://flagcdn.com/w80/${flagCode}.png`;
+
+    return { 
+        symbol: name, 
+        price: priceNow, 
+        change: change, 
+        vol: 0, 
+        source: 'FOREX', 
+        image: img,  // ← BURASI DEĞİŞTİ (flagHtml yerine direkt img)
+        unit: unitPrefix
+    };
+};
         return [
-            { symbol: 'USD/TRY', price: usdTry, change: r(), vol: 0, source: 'MERKEZ BANKASI' },
-            { symbol: 'EUR/TRY', price: eurTry, change: r(), vol: 0, source: 'PIYASA' },
-            { symbol: 'EUR/USD', price: eurUsd, change: r(), vol: 0, source: 'FOREX' },
-            { symbol: 'GBP/TRY', price: gbpTry, change: r(), vol: 0, source: 'PIYASA' }
+            calcCross('USD', 'TRY', 'USD/TRY', '₺', 'us'),
+            calcCross('EUR', 'TRY', 'EUR/TRY', '₺', 'eu'),
+            calcCross('GBP', 'TRY', 'GBP/TRY', '₺', 'gb'),
+            calcCross('EUR', 'USD', 'EUR/USD', '$', 'eu'), // Parite Dolar gösterir
+            calcCross('USD', 'JPY', 'USD/JPY', '¥', 'jp'),
+            calcCross('USD', 'CNY', 'USD/CNY', '¥', 'cn'),
+            calcCross('USD', 'CAD', 'USD/CAD', '$', 'ca')
         ];
+
     } catch (e) {
         console.error("Forex Hata:", e);
+        // Hata durumunda boş liste
         return [];
     }
 }
