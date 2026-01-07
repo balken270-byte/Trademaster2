@@ -3405,36 +3405,69 @@ function actionSellFromMarket() {
     }
 }
 
-/* --- BİLDİRİM AYARLARI VE İZİN YÖNETİMİ --- */
+/* --- TAMİR EDİLMİŞ VE GÜÇLENDİRİLMİŞ BİLDİRİM SİSTEMİ (V2) --- */
 
-// İzin İste
+// 1. Service Worker Kurulumu (Mobil Bildirimler İçin Şart)
+if ('serviceWorker' in navigator) {
+    const swCode = `
+        self.addEventListener('install', (event) => {
+            self.skipWaiting(); // Beklemeden aktif ol
+        });
+        self.addEventListener('activate', (event) => {
+            event.waitUntil(clients.claim()); // Sayfayı ele geçir
+        });
+        self.addEventListener('notificationclick', function(event) {
+            event.notification.close();
+            event.waitUntil(
+                clients.matchAll({type: 'window', includeUncontrolled: true}).then(windowClients => {
+                    for (var i = 0; i < windowClients.length; i++) {
+                        var client = windowClients[i];
+                        if ('focus' in client) return client.focus();
+                    }
+                    if (clients.openWindow) return clients.openWindow('/');
+                })
+            );
+        });
+    `;
+    const blob = new Blob([swCode], {type: 'text/javascript'});
+    const swUrl = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(swUrl).catch(err => console.error("SW Hatası:", err));
+}
+
+// 2. İzin İsteme (Ayarlar Menüsü İçin)
 function requestNotifyPermission() {
     if (!("Notification" in window)) {
-        alert("Tarayıcınız bildirimleri desteklemiyor.");
+        alert("Cihazınız bildirim desteklemiyor.");
         return;
     }
     Notification.requestPermission().then((permission) => {
         checkNotifyUI();
         if (permission === "granted") {
-            addNotification('success', 'Bildirimler Aktif', 'Artık önemli gelişmeleri kaçırmayacaksınız.');
+            addNotification('success', 'İzin Verildi', 'Telefon bildirimleri aktif edildi.');
+        } else {
+            alert("İzin reddedildi. Tarayıcı ayarlarından site izinlerini sıfırlayın.");
         }
     });
 }
 
-// İzin Durumunu Kontrol Et (UI Göster/Gizle)
+// 3. İzin UI Kontrolü
 function checkNotifyPermission() {
     const card = document.getElementById('permRequestCard');
     if (!("Notification" in window)) return;
     
+    // checkNotifyUI fonksiyonu ile aynı işi yapar, ikisini birleştirdik
     if (Notification.permission === "granted" || Notification.permission === "denied") {
         if(card) card.style.display = 'none';
     } else {
-        if(card) card.style.display = 'block'; // İzin verilmemişse uyarıyı göster
+        if(card) card.style.display = 'block';
     }
 }
+// Eski kodda checkNotifyUI çağrıldığı için alias (takma ad) oluşturuyoruz:
+const checkNotifyUI = checkNotifyPermission;
 
-// Ayarları UI'a Yansıt
+// 4. Ayarları Yükle
 function loadNotifyUI() {
+    if(!notifySettings) return;
     document.getElementById('ntf_price').checked = notifySettings.price;
     document.getElementById('ntf_trade').checked = notifySettings.trade;
     document.getElementById('ntf_news').checked = notifySettings.news;
@@ -3443,7 +3476,7 @@ function loadNotifyUI() {
     checkNotifyPermission();
 }
 
-// Ayarları Kaydet
+// 5. Ayarları Kaydet
 function saveNotifySettings() {
     notifySettings.price = document.getElementById('ntf_price').checked;
     notifySettings.trade = document.getElementById('ntf_trade').checked;
@@ -3453,112 +3486,135 @@ function saveNotifySettings() {
     
     localStorage.setItem('tm_notify_settings', JSON.stringify(notifySettings));
     
-    // Ses önizlemesi (Kullanıcı sesi açarsa 'ding' duysun)
-    if(notifySettings.sound && event.target.id === 'ntf_sound') playNotificationSound('success');
+    if(notifySettings.sound && event && event.target.id === 'ntf_sound') playNotificationSound('success');
 }
 
-// Ses Çalma Fonksiyonu
-function playNotificationSound(type) {
-    // Basit bip sesleri (Base64 encoded audio - dış dosya gerektirmez)
-    let audioSrc = "";
-    
-    if(type === 'success' || type === 'info') {
-        // Success "Ding"
-        audioSrc = "data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU"; // (Kısaltıldı, gerçek bir ding sesi için URL kullanmak daha iyi olabilir veya kısa beep)
-        // Daha güvenilir bir yöntem: Web Audio API Oscillator
-        playBeep(600, 200, 'sine');
-    } else if (type === 'danger' || type === 'warn') {
-        // Error "Buzz"
-        playBeep(150, 400, 'sawtooth');
-    }
-}
-
-// Basit Web Audio Beep (Dosyasız Ses)
+// 6. Ses ve Titreşim Motoru
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playBeep(freq, duration, type='sine') {
+function playNotificationSound(type) {
+    // Kullanıcı etkileşimi olmadan ses çalmayı engelleyen tarayıcılar için resume
     if(audioCtx.state === 'suspended') audioCtx.resume();
+
+    // Basit bir osilatör sesi (Dosyasız)
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-    osc.type = type;
-    osc.frequency.value = freq;
+    
+    if(type === 'danger' || type === 'warn') {
+        osc.type = 'sawtooth'; // Uyarı için sert ses
+        osc.frequency.value = 150;
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+        osc.start();
+        setTimeout(() => osc.stop(), 500);
+    } else {
+        osc.type = 'sine'; // Başarı için yumuşak ses
+        osc.frequency.value = 600;
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+        osc.start();
+        setTimeout(() => osc.stop(), 300);
+    }
+    
     osc.connect(gain);
     gain.connect(audioCtx.destination);
-    osc.start();
-    
-    // Fade out
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (duration/1000));
-    
-    setTimeout(() => osc.stop(), duration);
 }
 
+// 7. Test Fonksiyonu
 function testNotification() {
-    addNotification('info', 'Test Bildirimi', 'Bu bir test mesajıdır. Ses ve titreşim çalışıyor mu?');
+    addNotification('info', 'Test Mesajı', 'Telefon bildirimi, ses ve titreşim kontrolü.');
 }
 
-// checkNotifyUI fonksiyonu eksikti, ekleyelim
-function checkNotifyUI() {
-    checkNotifyPermission();
-}
-/* --- STANDART VE GÜÇLÜ BİLDİRİM SİSTEMİ --- */
-function addNotification(type, title, msg) {
-    // 1. Uygulama İçi (Liste) Kaydı
+// 8. ANA BİLDİRİM GÖNDERME MOTORU (Notification Sender)
+async function addNotification(type, title, msg) {
+    // A. Uygulama İçi Listeye Ekle
     let n = { type: type, title: title, msg: msg, time: new Date().toLocaleTimeString(), read: false };
     notifications.unshift(n);
     if(notifications.length > 50) notifications.pop();
     localStorage.setItem('tm_notifications', JSON.stringify(notifications));
     updateBadge();
     
-    // Eğer bildirim sayfasındaysak anlık güncelle
+    // Bildirim sayfasındaysak listeyi yenile
     if(document.getElementById('page-notifications') && document.getElementById('page-notifications').classList.contains('active')) {
         renderNotifications();
     }
 
-    // 2. Ayarları Kontrol Et (Kapalıysa dur)
+    // B. Ayar Kontrolü
     let category = 'trade';
     if(title.includes('Alarm') || title.includes('HEDEF') || title.includes('DİKKAT')) category = 'price';
     else if(title.includes('Haber')) category = 'news';
     
-    // notifySettings tanımlı değilse veya ayar kapalıysa çık
+    // Ayarlar yüklenmemişse varsayılana dön
     if(typeof notifySettings !== 'undefined' && !notifySettings[category]) return;
 
-    // 3. Ses ve Titreşim (Manuel Tetikleme)
+    // C. Ses ve Titreşim
     if(typeof notifySettings !== 'undefined') {
         if(notifySettings.sound) playNotificationSound(type);
         if(notifySettings.vibrate && navigator.vibrate) {
-            // Android Chrome bazen titreşimi engeller, bu yüzden kullanıcı etkileşimi simüle ediyoruz
             try { navigator.vibrate([200, 100, 200]); } catch(e){}
         }
     }
 
-    // 4. TELEFON BİLDİRİM ÇUBUĞU (Standart Push)
-    if ("Notification" in window && Notification.permission === "granted") {
-        // İkon Seçimi
-        let iconUrl = "https://cdn-icons-png.flaticon.com/512/3429/3429170.png"; // Normal
-        if(type === 'danger') iconUrl = "https://cdn-icons-png.flaticon.com/512/190/190406.png"; // Kırmızı
-
-        try {
-            // Standart Bildirim Oluştur
-            const notif = new Notification(title, {
-                body: msg,
-                icon: iconUrl,
-                badge: iconUrl,
-                tag: 'tm-notif-' + Date.now(), // Her bildirim benzersiz olsun
-                renotify: true, // Üst üste gelirse tekrar titret
-                requireInteraction: true // Kullanıcı silene kadar ekranda kalsın
+    // D. TELEFON SİSTEM BİLDİRİMİ (PUSH)
+    if ("Notification" in window) {
+        if (Notification.permission === "granted") {
+            sendSystemNotification(type, title, msg);
+        } else if (Notification.permission !== "denied") {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") sendSystemNotification(type, title, msg);
             });
-
-            // Tıklayınca sayfaya dön
-            notif.onclick = function() {
-                window.focus();
-                notif.close();
-            };
-        } catch (e) {
-            console.log("Bildirim hatası:", e);
         }
     }
 }
 
+// 9. Sistem Bildirimi Tetikleyicisi
+function sendSystemNotification(type, title, msg) {
+    let iconUrl = "https://cdn-icons-png.flaticon.com/512/3429/3429170.png";
+    if(type === 'danger') iconUrl = "https://cdn-icons-png.flaticon.com/512/190/190406.png";
+
+    // Service Worker Varsa (Mobil İçin En İyisi)
+    if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+        navigator.serviceWorker.ready.then(registration => {
+            registration.showNotification(title, {
+                body: msg,
+                icon: iconUrl,
+                badge: iconUrl,
+                vibrate: [200, 100, 200],
+                tag: 'tm-' + Date.now(),
+                renotify: true
+            });
+        });
+    } 
+    // Masaüstü Yedek Yöntem
+    else {
+        try {
+            const notif = new Notification(title, { body: msg, icon: iconUrl });
+            notif.onclick = function() { window.focus(); notif.close(); };
+        } catch(e) { console.log("Bildirim hatası:", e); }
+    }
+}
+/* --- UYGULAMAYI BAŞLATMA KOMUTLARI --- */
+
+// 1. Ana Fonksiyonu Çağır
+try {
+    initApp();
+} catch (e) {
+    console.log("Başlatma hatası:", e);
+}
+
+// 2. Arka Plan Animasyonunu Çağır
+if(typeof initBackgroundAnimation === 'function') {
+    initBackgroundAnimation();
+}
+
+// 3. GÜVENLİK SİGORTASI: Eğer uygulama 3 saniye içinde açılmazsa ekranı zorla aç
+setTimeout(() => {
+    const splash = document.getElementById('splash-screen');
+    if(splash && !splash.classList.contains('hidden')) {
+        console.log("Splash screen zorla kapatılıyor...");
+        splash.classList.add('hidden');
+        setTimeout(() => { 
+            if(splash.parentNode) splash.parentNode.removeChild(splash); 
+        }, 500);
+    }
+}, 3500);
 
 </script>
 </body>
