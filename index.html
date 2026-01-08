@@ -871,6 +871,202 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 .back-btn { background:none; border:none; color:var(--accent); font-size:16px; font-weight:600; display:flex; align-items:center; gap:5px; cursor:pointer;}
 .sub-title { flex:1; text-align:center; font-weight:700; font-size:16px; transform:translateX(-30px); color:white; }
 
+/* --- HABERLER SAYFASI: TIMELINE + STICKY HEADER --- */
+
+/* 1. Üst Sabit Alan (Header) */
+.news-hero-section {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background-color: var(--bg-body); /* Arka plan rengi */
+    padding: 15px 15px 0 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5); /* Koyu gölge ile ayrım */
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* 2. Modern Arama Çubuğu */
+.news-search-box {
+    display: flex;
+    align-items: center;
+    background: var(--bg-input);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 8px 12px;
+    transition: 0.3s;
+}
+.news-search-box:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+}
+.ns-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 13px;
+    outline: none;
+    padding: 0 10px;
+}
+.ns-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 3. Durum ve Sayaç Satırı */
+.news-status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 5px;
+}
+.status-badge {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--success);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 0.5px;
+}
+.dot-pulse {
+    width: 8px;
+    height: 8px;
+    background: var(--success);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--success);
+    animation: pulseDot 2s infinite;
+}
+@keyframes pulseDot { 0%{opacity:1;} 50%{opacity:0.3;} 100%{opacity:1;} }
+
+.timer-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text-sub);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* 4. Filtre Butonları */
+.news-filter-chips {
+    display: flex;
+    gap: 8px;
+    padding-bottom: 15px; /* Alt boşluk */
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.nf-chip {
+    background: var(--bg-input);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text-sub);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.nf-chip.active {
+    background: linear-gradient(90deg, #2563eb, #3b82f6);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+}
+
+/* 5. Timeline (Çizgili Akış) Tasarımı */
+.news-timeline-container {
+    padding: 20px 20px 100px 20px;
+    border-left: 2px solid rgba(255,255,255,0.1); /* Dikey Çizgi */
+    margin-left: 25px; /* Soldan boşluk */
+    position: relative;
+}
+
+.news-item-modern {
+    position: relative;
+    margin-bottom: 30px;
+    padding-left: 20px;
+    animation: slideIn 0.4s ease;
+}
+
+/* Timeline Noktaları (Yuvarlaklar) */
+.news-item-modern::before {
+    content: '';
+    position: absolute;
+    left: -27px; /* Çizginin tam üstüne denk gelir */
+    top: 18px;   /* Kartın başlığına denk gelir */
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--bg-body); /* Ortası delik görünümü */
+    border: 2px solid var(--text-sub);
+    z-index: 2;
+    transition: 0.3s;
+}
+
+/* İlk Haber (Son Dakika) - Kırmızı Nokta */
+.news-item-modern.hot::before {
+    border-color: var(--danger);
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.8);
+    background: var(--danger); /* İçi dolu olsun */
+}
+
+/* Yeni Haberler - Yeşil Nokta */
+.news-item-modern.new::before {
+    border-color: var(--success);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+/* Haber Kartı */
+.nim-card {
+    background: var(--bg-card);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 16px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+.nim-card:active { transform: scale(0.98); background: var(--bg-input); }
+
+.nim-time {
+    font-size: 11px;
+    color: var(--text-sub);
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.nim-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+.nim-source {
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
 
     </style>
 </head>
@@ -1037,21 +1233,47 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 
     </div>
 </div>
-    <div id="page-news" class="page">
-        <div class="news-toolbar-fixed">
-            <input type="text" id="newsSearch" class="news-input-fix" placeholder="Haber Ara...">
-            <button class="news-btn-fix" onclick="fetchNewsCustom()">
-                <i class="fas fa-search"></i>
+  <div id="page-news" class="page" style="padding:0;">
+
+    <div class="news-hero-section">
+        
+        <div class="news-search-box">
+            <i class="fas fa-search" style="color:var(--text-sub)"></i>
+            <input type="text" id="newsSearchInput" class="ns-input" placeholder="Haberlerde ara... (Örn: Fed, Altın)" onkeyup="if(event.key === 'Enter') runNewsSearch()">
+            <button class="ns-btn" onclick="runNewsSearch()"><i class="fas fa-arrow-right"></i></button>
+        </div>
+        
+        <div class="news-status-row">
+            <div class="status-badge">
+                <div class="dot-pulse"></div>
+                CANLI YAYIN
+            </div>
+            <button class="timer-btn" onclick="toggleAutoRefresh(this)">
+                <i class="fas fa-sync-alt fa-spin" id="refreshIcon"></i> 
+                <span id="refreshTimer">57s</span>
             </button>
-            <button class="kap-btn-fix" onclick="window.open('https://www.kap.org.tr','_blank')">KAP</button>
         </div>
-        <div style="font-size:11px; color:var(--text-sub); margin-bottom:10px; display:flex; justify-content:space-between;">
-            <span><i class="fas fa-rss"></i> Canlı Akış</span>
-            <span id="newsStatusText">Senkronize</span>
+
+        <div class="refresh-bar-container" style="margin:0;">
+            <div id="refreshBar" class="refresh-bar-fill"></div>
         </div>
-        <div id="newsLoader" style="text-align:center; display:none; padding:20px; color:var(--text-sub);">Yükleniyor...</div>
-        <div id="newsFeed"></div>
+
+        <div class="news-filter-chips">
+            <div class="nf-chip active" onclick="filterNews('GENEL', this)">🔥 Manşet</div>
+            <div class="nf-chip" onclick="filterNews('EKONOMİ', this)">Ekonomi</div>
+            <div class="nf-chip" onclick="filterNews('KRİPTO', this)">Kripto</div>
+            <div class="nf-chip" onclick="filterNews('BORSA', this)">Borsa</div>
+            <div class="nf-chip" onclick="filterNews('EMTİA', this)">Altın</div>
+        </div>
+    </div> 
+
+    <div id="newsTimeline" class="news-timeline-container">
+        <div style="text-align:center; padding:40px; color:var(--text-sub);">
+            <i class="fas fa-circle-notch fa-spin"></i> Yükleniyor...
+        </div>
     </div>
+
+</div>
 
     <div id="page-analysis" class="page">
         <div style="margin-bottom: 20px;">
@@ -1646,18 +1868,44 @@ let notifySettings = JSON.parse(localStorage.getItem('tm_notify_settings')) || {
         }
     }
 
-    /* --- SAYFA GEÇİŞLERİ --- */
-    function switchPage(p, btn){ 
-        document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); 
-        document.getElementById('page-'+p).classList.add('active'); 
-        document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); 
-        if(btn) btn.classList.add('active'); 
-        
-        if(p==='market') switchMarketMode('main', document.querySelector('.ms-btn')); 
-        if(p==='analysis') { renderAnalyticsPage(); } 
-        if(p==='news') fetchNewsCustom(); 
-        if(p==='notifications') renderNotifications(); 
+   /* --- GÜNCELLENMİŞ SAYFA GEÇİŞ FONKSİYONU --- */
+function switchPage(p, btn){ 
+    // 1. Sayfa Görünürlüğünü Ayarla
+    document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); 
+    document.getElementById('page-'+p).classList.add('active'); 
+    
+    // 2. Alt Menü İkonunu Aktif Yap
+    document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); 
+    if(btn) btn.classList.add('active'); 
+    
+    // 3. Sayfaya Özel İşlemler
+    if(p==='market') switchMarketMode('main', document.querySelector('.ms-btn')); 
+    if(p==='analysis') { renderAnalyticsPage(); } 
+    
+    // --- BURASI DEĞİŞTİ (YENİ HABER TETİKLEYİCİSİ) ---
+    if(p==='news') {
+        // Eğer haberler hiç yüklenmediyse veya "Yükleniyor" yazıyorsa sistemi başlat
+        const tl = document.getElementById('newsTimeline');
+        if(tl && (tl.innerHTML.trim() === "" || tl.innerHTML.includes('Yükleniyor'))) {
+            initNewsSystem();
+        } else {
+            // Zaten yüklüyse sadece sayacı devam ettir
+            startNewsTimer();
+        }
+    } else {
+        // Haber sayfasından çıkınca sayacı durdur (Performans tasarrufu)
+        clearInterval(newsInterval);
     }
+    // ------------------------------------------------
+    
+    if(p==='notifications') renderNotifications(); 
+    
+    // Manuel Geri Butonu Kontrolü (Varsa)
+    const backBtn = document.getElementById('manualBackBtn');
+    if(backBtn) {
+        backBtn.style.display = (p === 'portfolio') ? 'none' : 'flex';
+    }
+}
 
     /* --- CANLI GÜNCELLEME MOTORU --- */
     function startLiveUpdates() {
@@ -2436,8 +2684,140 @@ async function addToPortfolio(){
     function calcSimAvg() { let newAmt = parseFloat(document.getElementById('simAddAmt').value); let newPrice = parseFloat(document.getElementById('simAddPrice').value); if(!newAmt || !newPrice) return; let as = JSON.parse(localStorage.getItem('myPF_final')); let asset = as[currentSimAssetIndex]; let oldTotal = asset.amt * asset.buy; let newTotal = newAmt * newPrice; let finalAmt = asset.amt + newAmt; let finalAvg = (oldTotal + newTotal) / finalAmt; let sym = asset.origin === 'USD' ? '$' : '₺'; document.getElementById('resOldAvg').innerText = sym + asset.buy.toFixed(2); document.getElementById('resNewAvg').innerText = sym + finalAvg.toFixed(2); document.getElementById('resTotalCost').innerText = sym + (oldTotal + newTotal).toLocaleString(undefined, {minimumFractionDigits:2}); let box = document.getElementById('simResAvg'); box.style.display = 'block'; box.className = 'sim-result-box'; }
     function calcSimRealize() { let sellAmt = parseFloat(document.getElementById('simSellAmt').value); let sellPrice = parseFloat(document.getElementById('simRealizePrice').value); if(!sellAmt || !sellPrice) return; let as = JSON.parse(localStorage.getItem('myPF_final')); let asset = as[currentSimAssetIndex]; if(sellAmt > asset.amt) { alert("Fazla miktar!"); return; } let cashIn = sellAmt * sellPrice; let profit = (sellPrice - asset.buy) * sellAmt; let remaining = asset.amt - sellAmt; let sym = asset.origin === 'USD' ? '$' : '₺'; document.getElementById('resCashIn').innerText = sym + cashIn.toLocaleString(undefined, {minimumFractionDigits:2}); let pnlEl = document.getElementById('resRealizedPnL'); pnlEl.innerText = (profit >= 0 ? '+' : '') + sym + profit.toLocaleString(undefined, {minimumFractionDigits:2}); pnlEl.className = profit >= 0 ? 'val-up' : 'val-down'; document.getElementById('resLeftAmt').innerText = remaining + " Adet"; let box = document.getElementById('simResRealize'); box.style.display = 'block'; box.className = 'sim-result-box ' + (profit >= 0 ? 'profit' : 'loss'); }
     
-    function fetchNewsCustom(isFallback = false){ let queryUrl = ""; let assetKeywords = []; let statusText = document.getElementById('newsStatusText'); let as = JSON.parse(localStorage.getItem('myPF_final')) || []; const f = document.getElementById('newsFeed'); if(!isFallback && f.innerHTML.includes('news-card-pro')) return; if (as.length > 0) { assetKeywords = as.map(a => { return a.name.toUpperCase().replace('BINANCE:', '').replace('BIST:', '').replace('FX:', '').replace('TVC:', '').replace('USDT', '').replace('.IS', ''); }); } if (isFallback) { queryUrl = `https://news.google.com/rss/topics/CAAqJggBCiCPASowCAUiKC9tLzA5czFmK0J1c2luZXNzL0J1c2luZXNzL0ZpbmFuY2UvZWNvbm9teQ?hl=tr&gl=TR&ceid=TR%3Atr`; statusText.innerText = "Genel Piyasa (Canlı)"; statusText.style.color = "var(--text-sub)"; } else { if (as.length > 0) { let topAsset = as.sort((a,b) => (b.amt*b.curr) - (a.amt*a.curr))[0]; let topSym = topAsset.name.toUpperCase().replace('BINANCE:', '').replace('BIST:', '').replace('USDT', '').replace('.IS', ''); queryUrl = `https://news.google.com/rss/search?q=${topSym}&hl=tr&gl=TR&ceid=TR%3Atr`; statusText.innerText = `Odak: ${topSym}`; statusText.style.color = "var(--success)"; } else { fetchNewsCustom(true); return; } } let userQuery = document.getElementById('newsSearch').value.trim(); if(userQuery) { queryUrl = `https://news.google.com/rss/search?q=${userQuery}&hl=tr&gl=TR&ceid=TR%3Atr`; statusText.innerText = `Arama: ${userQuery}`; } const l = document.getElementById('newsLoader'); if(!isFallback) { f.innerHTML=""; l.style.display="block"; } fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(queryUrl)}`).then(r=>r.json()).then(d=>{ l.style.display="none"; if((!d.items || d.items.length === 0) && !isFallback && !userQuery) { fetchNewsCustom(true); return; } if(d.items && d.items.length > 0){ let h=""; d.items.slice(0,25).forEach(i=>{ let src = i.author || "Haber"; let tUp = i.title.toUpperCase(); let matchedTags = []; if(assetKeywords.length > 0) { assetKeywords.forEach(kw => { if(tUp.includes(kw) && !matchedTags.includes(kw)) matchedTags.push(kw); }); } let catTag = "FİNANS"; let catClass = "finans"; if(tUp.includes("BITCOIN") || tUp.includes("KRİPTO")) { catTag = "KRİPTO"; catClass = "kripto"; } else if(tUp.includes("BORSA") || tUp.includes("HİSSE")) { catTag = "BORSA"; catClass = "borsa"; } let tagsHtml = `<span class="nc-tag ${catClass}">${catTag}</span>`; matchedTags.forEach(tag => { tagsHtml += `<span class="nc-tag nc-asset-tag"><i class="fas fa-tag"></i> ${tag}</span>`; }); h+=`<div class="news-card-pro" style="border-left-color:${catClass==='kripto'?'#f59e0b':(catClass==='borsa'?'#3b82f6':'#10b981')}"><div class="nc-header"><div class="nc-tags-row">${tagsHtml}</div></div><div class="nc-title">${i.title}</div><div class="nc-footer"><div class="nc-source"><i class="fas fa-newspaper"></i> ${src}</div><a href="${i.link}" target="_blank" class="nc-read-btn">Oku <i class="fas fa-chevron-right"></i></a></div></div>`; }); f.innerHTML=h; } else { f.innerHTML=`<div style='padding:20px;text-align:center;color:var(--text-sub)'>Haber bulunamadı.<br><button onclick="fetchNewsCustom(true)" class="btn-main btn-sec" style="margin-top:10px; width:auto; display:inline-block;">Genel Akışı Yükle</button></div>`;} }).catch((e)=>{ l.style.display="none"; if(!isFallback && !userQuery) fetchNewsCustom(true); else f.innerHTML=`<div style='padding:20px;text-align:center;color:var(--text-sub)'>Bağlantı Hatası.<br><button onclick="fetchNewsCustom(true)" class="btn-main btn-sec" style="margin-top:10px; width:auto; display:inline-block;">Tekrar Dene</button></div>`; }); }
+    /* --- YENİ GELİŞMİŞ HABER MOTORU --- */
+let newsInterval;
+let newsCountdown = 60;
+let isNewsPaused = false;
+let currentNewsQuery = "Ekonomi";
+
+function initNewsSystem() {
+    loadNews(currentNewsQuery);
+    startNewsTimer();
+}
+
+function startNewsTimer() {
+    clearInterval(newsInterval);
+    newsCountdown = 60;
+    updateTimerUI();
+    newsInterval = setInterval(() => {
+        if (isNewsPaused) return;
+        newsCountdown--;
+        updateTimerUI();
+        if (newsCountdown <= 0) {
+            loadNews(currentNewsQuery, true);
+            newsCountdown = 60;
+        }
+    }, 1000);
+}
+
+function updateTimerUI() {
+    const bar = document.getElementById('refreshBar');
+    const txt = document.getElementById('refreshTimer');
+    if (bar) bar.style.width = (newsCountdown / 60 * 100) + "%";
+    if (txt) txt.innerText = newsCountdown + "s";
+}
+
+function toggleAutoRefresh(btn) {
+    isNewsPaused = !isNewsPaused;
+    const icon = document.getElementById('refreshIcon');
+    const badge = document.getElementById('newsStatusBadge');
+    if (isNewsPaused) {
+        icon.classList.remove('fa-spin');
+        btn.style.opacity = "0.5";
+        badge.style.background = "var(--text-sub)";
+        document.getElementById('newsStatusLabel').innerText = "DURAKLATILDI";
+    } else {
+        icon.classList.add('fa-spin');
+        btn.style.opacity = "1";
+        badge.style.background = "var(--success)";
+        document.getElementById('newsStatusLabel').innerText = "CANLI YAYIN";
+    }
+}
+
+function filterNews(topic, btn) {
+    document.querySelectorAll('.nf-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('newsSearchInput').value = "";
+    if (topic === 'GENEL') currentNewsQuery = "Ekonomi Finans";
+    else if (topic === 'KRİPTO') currentNewsQuery = "Bitcoin Kripto Blockchain";
+    else if (topic === 'BORSA') currentNewsQuery = "Borsa İstanbul Bist Hisse";
+    else if (topic === 'EMTİA') currentNewsQuery = "Altın Dolar Euro Petrol";
+    else currentNewsQuery = topic;
+    newsCountdown = 60; 
+    loadNews(currentNewsQuery);
+}
+
+function runNewsSearch() {
+    const val = document.getElementById('newsSearchInput').value.trim();
+    if (val.length < 2) return addNotification('warn', 'Arama', 'Lütfen en az 2 karakter girin.');
+    document.querySelectorAll('.nf-chip').forEach(c => c.classList.remove('active'));
+    currentNewsQuery = val;
+    loadNews(val);
+    document.getElementById('newsSearchInput').blur();
+}
+
+async function loadNews(query, silent = false) {
+    const container = document.getElementById('newsTimeline');
+    if (!container) return;
     
+    if (!silent) {
+        // İlk yüklemede spinner göster
+        container.innerHTML = `<div style="text-align:center; padding:50px; color:var(--text-sub);"><i class="fas fa-satellite-dish fa-spin" style="font-size:24px; margin-bottom:10px;"></i><br>Haberler Taranıyor...</div>`;
+    }
+    
+    const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=tr&gl=TR&ceid=TR:tr`;
+    const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+    
+    try {
+        const res = await fetch(apiUrl);
+        const data = await res.json();
+        
+        if (data.status === 'ok' && data.items.length > 0) {
+            let html = "";
+            data.items.slice(0, 20).forEach((item, index) => {
+                const date = new Date(item.pubDate);
+                const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                let titleParts = item.title.split(' - ');
+                let source = titleParts.pop();
+                let cleanTitle = titleParts.join(' - ');
+                
+                // --- RENKLİ NOKTA MANTIĞI ---
+                // İlk haber "hot" (Kırmızı), ilk 5 haber "new" (Yeşil), gerisi gri
+                let badgeClass = "";
+                let sonDakikaLabel = "";
+                
+                if (index === 0) {
+                    badgeClass = "hot"; // Kırmızı Yanıp Sönen Nokta
+                    sonDakikaLabel = '<span style="color:var(--danger); background:rgba(239,68,68,0.15); padding:2px 6px; border-radius:4px; margin-left:8px; font-size:9px;">SON DAKİKA</span>';
+                } else if (index < 5) {
+                    badgeClass = "new"; // Yeşil Nokta
+                }
+
+                // --- HTML KART YAPISI ---
+                html += `
+                <div class="news-item-modern ${badgeClass}">
+                    <div class="nim-time">
+                        <i class="far fa-clock"></i> ${timeStr} ${sonDakikaLabel}
+                    </div>
+                    <div class="nim-card" onclick="window.open('${item.link}', '_blank')">
+                        <div class="nim-title">${cleanTitle}</div>
+                        <div class="nim-source">
+                            <i class="fas fa-newspaper"></i> ${source}
+                            <i class="fas fa-chevron-right" style="margin-left:auto; opacity:0.5; font-size:12px;"></i>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        } else {
+            container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-sub);">Sonuç bulunamadı.</div>`;
+        }
+    } catch (e) {
+        if (!silent) container.innerHTML = `<div style="text-align:center; color:var(--danger); padding:20px;">Bağlantı hatası.</div>`;
+    }
+}
+
     function toggleTradeMenu() { const content = document.getElementById('tradeContent'); const chevron = document.getElementById('tradeChevron'); const card = document.getElementById('tradeCard'); if (content.classList.contains('collapsed')) { content.classList.remove('collapsed'); chevron.classList.add('rotated'); card.classList.add('open'); } else { content.classList.add('collapsed'); chevron.classList.remove('rotated'); card.classList.remove('open'); } }
     function toggleAssetDetails(id) { const content = document.getElementById('asset-content-' + id); const chevron = document.getElementById('asset-chevron-' + id); if (content.classList.contains('collapsed')) { content.classList.remove('collapsed'); chevron.classList.add('rotated'); } else { content.classList.add('collapsed'); chevron.classList.remove('rotated'); } }
         /* --- YENİ GELİŞMİŞ BİLDİRİM SİSTEMİ (C KISMI) --- */
