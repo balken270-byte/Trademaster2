@@ -3126,95 +3126,114 @@ function closeMarketDetail() {
 
 /* --- YENİ WATCHLIST BUTON MANTIĞI --- */
 
-/* --- VERİ GARANTİLİ DETAY PENCERESİ --- */
+/* --- DÜZELTİLMİŞ VE EKSİK TAMAMLAYICI DETAY PENCERESİ --- */
 async function openMarketDetail(rawSymbol) {
     currentMdSymbol = rawSymbol; 
     
     // 1. Modalı Aç
     document.getElementById('marketDetailModal').style.display = 'flex';
     document.getElementById('mdSymbolTitle').innerText = rawSymbol;
-    document.getElementById('mdBigPrice').innerText = "Yükleniyor...";
-
-    // 2. SATIŞ BUTONUNU SIFIRLA (Bug Önleyici)
-    const sellBtn = document.querySelector('.bq-sell');
-    if(sellBtn) {
-        sellBtn.style.background = ""; 
-        sellBtn.style.border = "";
-        sellBtn.style.color = ""; 
-        sellBtn.innerHTML = '<span><i class="fas fa-arrow-up"></i> SATIŞ YAP</span><span class="bq-sub">Portföyden Sat</span>';
-        sellBtn.onclick = actionSellFromMarket; 
-    }
     
-    // 3. İzleme İkonu
+    // Fiyat yükleniyor efekti
+    document.getElementById('mdBigPrice').innerText = "Yükleniyor...";
+    
+    // İzleme Listesi İkon Kontrolü
     let w = JSON.parse(localStorage.getItem('tm_watchlist')) || [];
     let icon = document.getElementById('mdWatchIcon');
     if(w.includes(rawSymbol)) icon.style.color = "#f59e0b"; 
     else icon.style.color = "var(--text-sub)"; 
     
-    // 4. UI Hazırlığı
+    // Sekmeyi 'Genel Bakış'a al
     switchMdTab('overview', document.querySelectorAll('.md-tab')[0]);
-    document.getElementById('mdAssetLogo').innerHTML = getAssetLogoHtml(rawSymbol);
+    
+    // LOGO AYARI (USDT ve diğerleri için düzeltme)
+    let logoHtml = getAssetLogoHtml(rawSymbol);
+    // Eğer USDT ise ve logo jenerik geldiyse özel Tether logosunu zorla
+    if(rawSymbol === 'USDT' || rawSymbol.includes('USDT')) {
+        logoHtml = `<div class="asset-logo-wrap" style="background:transparent; border:none; width:50px; height:50px;"><img src="https://assets.coincap.io/assets/icons/usdt@2x.png" class="asset-logo-img"></div>`;
+    }
+    document.getElementById('mdAssetLogo').innerHTML = logoHtml;
 
+    // --- VERİ DOLDURMA MOTORU ---
+    
     let details = { price: 0, change: 0, high: 0, low: 0, vol: 0, vwap: 0 };
-    let displaySym = rawSymbol;
+    let dataFound = false;
 
+    // 1. ADIM: Önce Cache'e (Listeye) Bak
+    if(marketDataCache && marketDataCache.length > 0) {
+        const cachedItem = marketDataCache.find(x => x.symbol === rawSymbol);
+        if(cachedItem) {
+            details.price = cachedItem.price;
+            details.change = cachedItem.change;
+            details.vol = cachedItem.vol || 0;
+            details.image = cachedItem.image;
+            // Cache'de High/Low genellikle olmaz, onu aşağıda tamamlayacağız
+            dataFound = true;
+        }
+    }
+
+    // 2. ADIM: Cache'de yoksa veya Hacim eksikse (--) API'den Tamamla
     try {
-        // --- A) KRİPTO İSE ---
         if(currentCategory === 'kripto') {
-            try {
-                // Önce Binance'e Sor
-                let s = rawSymbol.replace('USDT', '') + 'USDT';
-                s = s.replace('BINANCE:', ''); 
-                
-                const res = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${s}`);
-                if(!res.ok) throw new Error("Binance'de Yok");
-                
+            // Hızlıca Binance verisini kontrol et (Çünkü en iyi hacim verisi orada)
+            // Sembol temizliği: BINANCE:BTCUSDT -> BTCUSDT
+            let s = rawSymbol.replace('BINANCE:', '').replace('USDT', '') + 'USDT';
+            
+            // Eğer USDT'nin kendisi ise (USD/USDT olmaz), USDTTRY bakabiliriz veya pas geçeriz
+            if(rawSymbol === 'USDT') s = 'USDTTRY';
+
+            const res = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${s}`);
+            
+            if(res.ok) {
                 const d = await res.json();
-                details.price = parseFloat(d.lastPrice);
+                details.price = parseFloat(d.lastPrice); // Güncel fiyatı yenile
                 details.change = parseFloat(d.priceChangePercent);
-                details.high = parseFloat(d.highPrice);
-                details.low = parseFloat(d.lowPrice);
-                details.vol = parseFloat(d.quoteVolume);
-                details.vwap = parseFloat(d.weightedAvgPrice);
-                displaySym = rawSymbol.replace('BINANCE:','').replace('USDT','') + " / USDT";
-            } catch (binanceErr) {
-                // Binance'de Yoksa -> GENEL MOTORU (CoinGecko) KULLAN
-                // Bu kısım çok önemli, silinirse veri gelmez!
-                let pData = await getPrice(rawSymbol);
-                
-                details.price = pData.price || 0;
-                details.change = pData.change || 0;
-                // Veri yoksa grafiği bozmamak için tahmini doldur
-                details.high = details.price * 1.05; 
-                details.low = details.price * 0.95;
-                details.vwap = details.price;
-                details.vol = 0;
+                details.high = parseFloat(d.highPrice); // Gün Yüksek geldi
+                details.low = parseFloat(d.lowPrice);   // Gün Düşük geldi
+                details.vol = parseFloat(d.quoteVolume); // Hacim geldi!
+                details.vwap = parseFloat(d.weightedAvgPrice); // VWAP geldi!
+                dataFound = true;
+            } else {
+                // Binance'de yoksa CoinGecko'ya sor (Yedek)
+                 let pData = await getPrice(rawSymbol);
+                 if(pData.price > 0) {
+                     details.price = pData.price;
+                     details.change = pData.change;
+                     // Hacim yoksa simüle etme, boş kalsın ama fiyat görünsün
+                 }
             }
         } 
-        // --- B) HİSSE / ALTIN / DÖVİZ İSE ---
         else {
+            // Kripto dışı (Hisse/Altın) için standart getPrice
             let pData = await getPrice(rawSymbol);
-            details.price = pData.price || 0;
-            details.change = pData.change || 0;
-            details.high = details.price * 1.02; 
-            details.low = details.price * 0.98;
-            details.vwap = details.price;
+            if(pData.price > 0) {
+                details.price = pData.price;
+                details.change = pData.change;
+                details.high = pData.price * 1.02; 
+                details.low = pData.price * 0.98;
+                dataFound = true;
+            }
         }
-        
-        // Veriyi Ekrana Bas
-        renderMdUI(details, displaySym);
-        
-        // Grafiği Başlat
-        initMdChart(rawSymbol);
-
     } catch (e) {
-        console.error("Detay Hatası:", e);
-        document.getElementById('mdBigPrice').innerText = "Veri Yok";
-        document.getElementById('mdDisclaimer').innerHTML = "<span style='color:red'>Bağlantı sorunu, grafik deneniyor...</span>";
-        initMdChart(rawSymbol);
+        console.log("Veri tamamlama hatası:", e);
     }
-}
 
+    // 3. ADIM: Verileri Ekrana Bas
+    if(dataFound || details.price > 0) {
+        // Eksik verileri (High/Low) simüle et (Eğer API'den gelmediyse)
+        if(!details.high) details.high = details.price * 1.05;
+        if(!details.low) details.low = details.price * 0.95;
+        if(!details.vwap) details.vwap = details.price;
+        
+        renderMdUI(details, rawSymbol);
+    } else {
+        document.getElementById('mdBigPrice').innerText = "Veri Yok";
+        document.getElementById('mdDisclaimer').innerHTML = "<span style='color:red'>Veri alınamadı.</span>";
+    }
+
+    // 4. ADIM: Grafiği Başlat
+    initMdChart(rawSymbol);
+}
 
 
 // 2. Butona Basınca Listeye Ekle ve Sarı Yap
