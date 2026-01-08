@@ -1151,6 +1151,9 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
                     <div class="acc-item acc-net"><span class="acc-lbl">NET NAKİT AKIŞI</span><span class="acc-val" id="accNetFlow">0.00</span></div>
                 </div>
             </div>
+<button class="btn-main btn-sec" style="margin-bottom: 15px; border: 1px dashed var(--text-sub);" onclick="openManualHistoryModal()">
+    <i class="fas fa-history"></i> Geçmiş İşlem Ekle (Manuel)
+</button>
 
             <div class="hist-filter-scroll">
                 <div class="h-filter-btn active" onclick="filterHistory('all', this)">Tümü</div>
@@ -1197,6 +1200,52 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
             <button class="btn-main btn-sec" onclick="document.getElementById('sellModal').style.display='none'">İptal</button>
             <button class="btn-main" onclick="confirmSell()">SATIŞI ONAYLA</button>
         </div>
+    </div>
+</div>
+
+<div id="manualHistoryModal" class="modal-overlay">
+    <div class="modal">
+        <h3 style="text-align:center; margin-bottom:15px;">Geçmiş İşlem Ekle</h3>
+        
+        <div style="background:rgba(245, 158, 11, 0.1); padding:10px; border-radius:8px; font-size:11px; color:var(--gold); margin-bottom:15px; line-height:1.4;">
+            <i class="fas fa-info-circle"></i> Bu özellik sadece <b>Geçmiş</b> ve <b>Trader Karnesi</b> verilerini etkiler. Cüzdan bakiyenizi veya portföyünüzü değiştirmez.
+        </div>
+
+        <div class="sim-tab-group">
+            <div class="sim-tab active" onclick="setManualType('ALIM', this)">ALIM</div>
+            <div class="sim-tab" onclick="setManualType('SATIM', this)">SATIM</div>
+        </div>
+        <input type="hidden" id="manualType" value="ALIM">
+
+        <div class="input-row">
+            <div>
+                <span style="font-size:11px; color:var(--text-sub);">Sembol</span>
+                <input type="text" id="manualSym" class="modern-input" placeholder="BTC, THYAO..." style="text-transform:uppercase;">
+            </div>
+            <div>
+                <span style="font-size:11px; color:var(--text-sub);">Tarih</span>
+                <input type="date" id="manualDate" class="modern-input" style="padding: 10px;">
+            </div>
+        </div>
+
+        <div class="input-row">
+            <div>
+                <span style="font-size:11px; color:var(--text-sub);">Adet</span>
+                <input type="number" id="manualAmt" class="modern-input" placeholder="0">
+            </div>
+            <div>
+                <span style="font-size:11px; color:var(--text-sub);">Fiyat</span>
+                <input type="number" id="manualPrice" class="modern-input" placeholder="0.00">
+            </div>
+        </div>
+
+        <div id="manualCostArea" style="display:none; margin-top:5px;">
+            <span style="font-size:11px; color:var(--text-sub);">Bu malı kaçtan almıştınız? (Kâr Hesabı İçin)</span>
+            <input type="number" id="manualBuyCost" class="modern-input" placeholder="Alış Maliyeti Giriniz">
+        </div>
+
+        <button class="btn-main" style="margin-top:15px;" onclick="saveManualHistory()">KAYDET</button>
+        <button class="btn-main btn-sec" style="margin-top:10px;" onclick="document.getElementById('manualHistoryModal').style.display='none'">İptal</button>
     </div>
 </div>
 
@@ -1902,12 +1951,28 @@ function renderPortfolioHTML(as) {
         }); 
     }
 
-    function logHistory(type, s, a, p, desc='', curr = null) { 
-        let d = new Date(); 
-        let transactionCurrency = curr ? curr : appSettings.currency;
-        let t = { date: d.toLocaleDateString('tr-TR'), time: d.toLocaleTimeString('tr-TR').substring(0,5), type: type, sym: s, qty: a, price: p, total: a*p, desc: desc, curr: transactionCurrency }; 
-        tradeHistory.push(t); localStorage.setItem('tm_full_trade_history', JSON.stringify(tradeHistory)); renderHistory(); 
-    }
+    function logHistory(type, s, a, p, desc='', curr = null, pnl = 0) { 
+    let d = new Date(); 
+    let transactionCurrency = curr ? curr : appSettings.currency;
+    
+    let t = { 
+        date: d.toLocaleDateString('tr-TR'), 
+        time: d.toLocaleTimeString('tr-TR').substring(0,5), 
+        type: type, 
+        sym: s, 
+        qty: a, 
+        price: p, 
+        total: a*p, 
+        desc: desc, 
+        curr: transactionCurrency,
+        pnl: pnl // ÖNEMLİ: Kâr/Zarar buraya kaydediliyor
+    }; 
+    
+    tradeHistory.push(t); 
+    localStorage.setItem('tm_full_trade_history', JSON.stringify(tradeHistory)); 
+    renderHistory(); 
+}
+
     
     // --- NAKİT İŞLEMLERİ ---
     function modifyCash(m) { openCashModal(); }
@@ -2144,57 +2209,63 @@ async function addToPortfolio(){
     
     // --- DÜZELTİLMİŞ SATIŞ ONAYI ---
     function confirmSell() { 
-        let i = document.getElementById('sellIdx').value; 
-        let amt = parseFloat(document.getElementById('sellAmt').value); 
-        let pr = parseFloat(document.getElementById('sellPrice').value); 
-        
-        if (!amt || !pr) return addNotification('warn', 'Eksik Bilgi', 'Miktar ve fiyat giriniz.'); 
-        
-        let as = JSON.parse(localStorage.getItem('myPF_final')); 
-        let ast = as[i]; 
-        if (amt > ast.amt) return addNotification('danger', 'Hata', 'Sahip olduğunuzdan fazlasını satamazsınız.'); 
+    let i = document.getElementById('sellIdx').value; 
+    let amt = parseFloat(document.getElementById('sellAmt').value); 
+    let pr = parseFloat(document.getElementById('sellPrice').value); 
+    
+    if (!amt || !pr) return addNotification('warn', 'Eksik Bilgi', 'Miktar ve fiyat giriniz.'); 
+    
+    let as = JSON.parse(localStorage.getItem('myPF_final')); 
+    let ast = as[i]; 
+    if (amt > ast.amt) return addNotification('danger', 'Hata', 'Sahip olduğunuzdan fazlasını satamazsınız.'); 
 
-        let transactionCurrency = exitCurrency; 
-        let totalSaleRaw = amt * pr;
-        let amountToAddWallet = 0;
-        
-        if(appSettings.currency === transactionCurrency) {
-            amountToAddWallet = totalSaleRaw;
-        } else {
-            if(appSettings.currency === 'TRY' && transactionCurrency === 'USD') amountToAddWallet = totalSaleRaw * usdTryRate;
-            else if (appSettings.currency === 'USD' && transactionCurrency === 'TRY') amountToAddWallet = totalSaleRaw / usdTryRate;
-        }
-
-        let buyCostInTransCurr = ast.buy;
-        if(ast.origin !== transactionCurrency) {
-            if(transactionCurrency === 'TRY') buyCostInTransCurr = ast.buy * usdTryRate; 
-            else buyCostInTransCurr = ast.buy / usdTryRate; 
-        }
-        
-        let profitInTransCurr = totalSaleRaw - (amt * buyCostInTransCurr);
-        let profitToWallet = 0;
-        if(appSettings.currency === transactionCurrency) profitToWallet = profitInTransCurr;
-        else if(appSettings.currency === 'TRY') profitToWallet = profitInTransCurr * usdTryRate;
-        else profitToWallet = profitInTransCurr / usdTryRate;
-
-        cashBalance += amountToAddWallet; 
-        realizedPnL += profitToWallet; 
-        
-        localStorage.setItem('tm_cash_balance', cashBalance); 
-        localStorage.setItem('tm_realized_pnl', realizedPnL); 
-        
-        logHistory('SATIM', ast.name, amt, pr, '', transactionCurrency); 
-        
-        ast.amt -= amt; 
-        if (ast.amt <= 0) as.splice(i, 1); 
-        localStorage.setItem('myPF_final', JSON.stringify(as)); 
-        
-        addNotification('success', 'Satış Başarılı', `Tutar Cüzdana İşlendi.`); 
-        document.getElementById('sellModal').style.display = 'none'; 
-        loadPF(true); 
-        renderHistory(); 
-        loadProfile(); 
+    let transactionCurrency = exitCurrency; 
+    let totalSaleRaw = amt * pr;
+    
+    // Alış Maliyetini Hesapla (Döviz dönüşümü yaparak)
+    let buyCostInTransCurr = ast.buy;
+    if(ast.origin !== transactionCurrency) {
+        if(transactionCurrency === 'TRY') buyCostInTransCurr = ast.buy * usdTryRate; 
+        else buyCostInTransCurr = ast.buy / usdTryRate; 
     }
+    
+    // BU İŞLEMDEN ELDE EDİLEN NET KÂR/ZARAR
+    let tradePnL = totalSaleRaw - (amt * buyCostInTransCurr);
+
+    // Kasaya Eklenecek Tutar (Dönüşümlü)
+    let amountToAddWallet = 0;
+    if(appSettings.currency === transactionCurrency) amountToAddWallet = totalSaleRaw;
+    else {
+        if(appSettings.currency === 'TRY' && transactionCurrency === 'USD') amountToAddWallet = totalSaleRaw * usdTryRate;
+        else if (appSettings.currency === 'USD' && transactionCurrency === 'TRY') amountToAddWallet = totalSaleRaw / usdTryRate;
+    }
+    
+    // Realized PnL Globaline Ekle (Dönüşümlü)
+    let profitToWallet = 0;
+    if(appSettings.currency === transactionCurrency) profitToWallet = tradePnL;
+    else if(appSettings.currency === 'TRY') profitToWallet = tradePnL * usdTryRate;
+    else profitToWallet = tradePnL / usdTryRate;
+
+    cashBalance += amountToAddWallet; 
+    realizedPnL += profitToWallet; 
+    
+    localStorage.setItem('tm_cash_balance', cashBalance); 
+    localStorage.setItem('tm_realized_pnl', realizedPnL); 
+    
+    // GEÇMİŞE KAYDET (PnL İLE BERABER) - Burası Kritik
+    logHistory('SATIM', ast.name, amt, pr, '', transactionCurrency, tradePnL); 
+    
+    ast.amt -= amt; 
+    if (ast.amt <= 0) as.splice(i, 1); 
+    localStorage.setItem('myPF_final', JSON.stringify(as)); 
+    
+    addNotification('success', 'Satış Başarılı', `Tutar Cüzdana İşlendi.`); 
+    document.getElementById('sellModal').style.display = 'none'; 
+    loadPF(true); 
+    renderHistory(); 
+    loadProfile(); 
+}
+
 
     function openSimulator(idx) { currentSimAssetIndex = idx; let as = JSON.parse(localStorage.getItem('myPF_final')) || []; let asset = as[idx]; if(!asset) return; document.getElementById('simAssetTitle').innerText = `${asset.name} Simülatörü`; let currentPrice = asset.curr || asset.buy; document.getElementById('simTargetPrice').value = currentPrice.toFixed(2); document.getElementById('simAddPrice').value = currentPrice.toFixed(2); document.getElementById('simRealizePrice').value = currentPrice.toFixed(2); document.querySelectorAll('.sim-result-box').forEach(x => x.style.display = 'none'); document.getElementById('simPercent').value = ""; document.getElementById('simAddAmt').value = ""; document.getElementById('simSellAmt').value = ""; switchSimTab('scenario', document.querySelectorAll('.sim-tab')[0]); document.getElementById('simModal').style.display = 'flex'; }
     function switchSimTab(tabName, btn) { document.querySelectorAll('.sim-content-pane').forEach(p => p.classList.remove('active')); document.getElementById('sim-pane-' + tabName).classList.add('active'); document.querySelectorAll('.sim-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); }
@@ -2909,35 +2980,50 @@ function formatVolume(val, sym) {
     return sym + val.toFixed(0);
 }
 
-/* --- AKILLI GRAFİK MOTORU (OTOMATİK BORSA SEÇİMLİ) --- */
+/* --- AKILLI GRAFİK MOTORU (DÜZELTİLMİŞ) --- */
 function initMdChart(rawSymbol) {
     let s = rawSymbol.toUpperCase().trim();
     let tvSymbol = s;
 
     // 1. KATEGORİYE GÖRE SEMBOL FORMATI
     if(currentCategory === 'kripto') {
-        // Temizlik: İçinde BINANCE, USDT vs varsa temizle, saf ismi al
+        // Temizlik: İçinde BINANCE, USDT vs varsa temizle, saf ismi al (örn: BTC)
         let clean = s.replace('BINANCE:', '').replace('USDT', '').trim();
         
-        // ÖNEMLİ DEĞİŞİKLİK:
-        // Başına "BINANCE:" yazmıyoruz. Sadece "SYMBOL" + "USDT" yapıyoruz.
-        // Böylece TradingView en hacimli borsayı (Kucoin, OKX, Gate vb.) kendi bulur.
-        tvSymbol = clean + "USDT";
+        // ÖZEL DURUM: Sadece Majör Coinleri Binance'e Zorla (Garantili Veri İçin)
+        const majorCoins = ['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'ADA', 'AVAX', 'DOGE', 'TRX', 'DOT', 'MATIC', 'SHIB', 'LTC'];
+        
+        if(majorCoins.includes(clean)) {
+            tvSymbol = "BINANCE:" + clean + "USDT";
+        } else {
+            // DİĞERLERİ: Binance zorlamasını kaldır! 
+            // Sadece "PEPEUSDT" gönderiyoruz, TradingView en uygun borsayı (OKX, GATE, BYBIT) kendi seçsin.
+            tvSymbol = clean + "USDT";
+        }
     }
     else if(currentCategory === 'hisse') {
         tvSymbol = "BIST:" + s.replace('.IS', '');
     }
     else if(currentCategory === 'altin') {
-        if(s === 'GC=F' || s === 'ALTIN' || s === 'ONS') tvSymbol = "TVC:GOLD";
-        else if(s === 'SI=F' || s === 'GÜMÜŞ') tvSymbol = "TVC:SILVER";
-        else tvSymbol = "TVC:" + s.replace('=F','');
+        if(s.includes('ONS') || s === 'GOLD' || s === 'XAUUSD' || s === 'GC=F') {
+            tvSymbol = "TVC:GOLD"; 
+        } 
+        else if(s.includes('GÜMÜŞ') || s.includes('SILVER')) {
+            tvSymbol = "TVC:SILVER";
+        }
+        else {
+            // Gram altın vb için Dolar/TL grafiği daha mantıklı referanstır
+            tvSymbol = "FX:USDTRY"; 
+        }
     }
     else if(currentCategory === 'doviz') {
-        tvSymbol = "FX:" + s.replace('=X','').replace('TRY','USDTRY');
+        let cleanFx = s.replace('/','').replace('=X','');
+        // Frankfurther API'den gelen veriler (EURUSD, USDTRY) düzgündür
+        if(cleanFx.length === 6) tvSymbol = "FX:" + cleanFx;
+        else tvSymbol = "FX:USDTRY";
     }
 
     // 2. GRAFİĞİ ÇİZ
-    // Eğer eski bir grafik varsa önce içini temizle (Hata önleyici)
     const container = document.getElementById('mdChartContainer');
     if(container) container.innerHTML = "";
 
@@ -3491,7 +3577,7 @@ newContainer.addEventListener('scroll', function() {
     }
 });
 
-/* --- COINGECKO ID İLE DETAY AÇMA --- */
+/* --- GÜNCELLENMİŞ COINGECKO DETAY AÇMA --- */
 async function openCoinGeckoDetail(coinId) {
     // Yükleniyor Modalı Aç
     document.getElementById('marketDetailModal').style.display = 'flex';
@@ -3499,45 +3585,56 @@ async function openCoinGeckoDetail(coinId) {
     document.getElementById('mdBigPrice').innerText = "--";
     
     try {
-        // Fiyat ve Detayları Çek (Simple Price Endpoint)
-        const url = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&x_cg_demo_api_key=${coingeckoApiKey}`;
-        const res = await fetch(url);
-        const data = await res.json();
+        // 1. COİN DETAYLARINI ÇEK
+        const detailUrl = `https://api.coingecko.com/api/v3/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false&x_cg_demo_api_key=${coingeckoApiKey}`;
+        const detailRes = await fetch(detailUrl);
+        const coinData = await detailRes.json();
         
-        const d = data[coinId];
-        if(!d) throw new Error("Veri yok");
+        if(!coinData || !coinData.market_data) throw new Error("Veri yok");
 
+        const md = coinData.market_data;
+        
         // Detayları Doldur
         const details = {
-            price: d.usd,
-            change: d.usd_24h_change,
-            vol: d.usd_24h_vol,
-            high: d.usd * 1.05, // API simple endpoint high/low vermez, simüle ediyoruz
-            low: d.usd * 0.95,
-            vwap: d.usd
+            price: md.current_price.usd,
+            change: md.price_change_percentage_24h,
+            vol: md.total_volume.usd,
+            high: md.high_24h.usd,
+            low: md.low_24h.usd,
+            vwap: md.current_price.usd
         };
 
-        // Sembolü büyük harf yap (coinId genelde 'bitcoin' dir, sembol 'BTC' olsun isteriz)
-        // Burada basitçe ID'yi kullanıyoruz, daha detaylısı için /coins/{id} gerekir ama bu hızlıdır.
-        const displaySym = coinId.toUpperCase();
-        currentMdSymbol = displaySym; // İşlem yapmak için kaydet
+        // Sembolü büyük harf yap (örn: pepecto -> PEPECTO)
+        const displaySym = coinData.symbol.toUpperCase();
+        
+        currentMdSymbol = displaySym;
         
         // UI Güncelle
-        renderMdUI(details, displaySym);
+        renderMdUI(details, displaySym + " / USD");
         
-        // Logoyu (Basit bir trick ile thumb URL'den large yapıyoruz veya search'ten gelen logoyu kullanıyoruz)
-        // Burada varsayılan olarak API'den logo gelmediği için search kısmındaki logoyu kullanamıyoruz.
-        // Hızlı çözüm: Harf logosu göster, grafik yükle.
-        document.getElementById('mdAssetLogo').innerHTML = getAssetLogoHtml(displaySym);
+        // Logo Ekle
+        if(coinData.image && coinData.image.large) {
+            document.getElementById('mdAssetLogo').innerHTML = `
+                <div class="asset-logo-wrap" style="background:transparent; border:none; width:50px; height:50px;">
+                    <img src="${coinData.image.large}" class="asset-logo-img">
+                </div>`;
+        } else {
+            document.getElementById('mdAssetLogo').innerHTML = getAssetLogoHtml(displaySym);
+        }
         
-        // Grafik Başlat
-        initMdChart(displaySym + "USDT"); // TradingView genelde sembolü tanır
+        // Grafiği Başlat (displaySym gönderiyoruz, örn: "PEPE")
+        // initMdChart bunu alıp "PEPEUSDT" yapacak ve TradingView borsayı kendi bulacak.
+        initMdChart(displaySym);
 
-    } catch(e) {
-        addNotification('danger', 'Hata', 'Coin verisi alınamadı.');
-        closeMarketDetail();
+    } catch (e) {
+        console.error("CG Detay Hatası:", e);
+        document.getElementById('mdBigPrice').innerText = "Hata";
+        document.getElementById('mdDisclaimer').innerHTML = "<span style='color:red'>Veri alınamadı.</span>";
+        // Yine de grafiği sembol üzerinden denemeye çalışalım
+        if(coinId) initMdChart(coinId.toUpperCase()); 
     }
 }
+
 /* --- AKILLI SATIŞ (GÖRSEL EFEKTLİ & OTO DÜZELTMELİ) --- */
 function actionSellFromMarket() {
     if (!currentMdSymbol) return;
@@ -3686,129 +3783,122 @@ function testNotification() {
 function checkNotifyUI() {
     checkNotifyPermission();
 }
-/* --- YENİ DÖVİZ MOTORU (REVIZE EDİLDİ: EUR TABANLI & GARANTİ) --- */
+/* --- YENİ GELİŞMİŞ VE GENİŞ KAPSAMLI DÖVİZ MOTORU --- */
 async function fetchFastForex() {
     try {
-        const today = new Date();
-        let yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
+        // 1. CANLI VERİ (Binance - Majör Paralar)
+        // Dolar, Euro ve Sterlin'i buradan anlık çekiyoruz
+        const resBinance = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=["USDTTRY","EURUSDT","GBPUSDT"]');
+        const dataBinance = await resBinance.json();
 
-        // Hafta sonu kontrolü
-        if (yesterday.getDay() === 0) yesterday.setDate(yesterday.getDate() - 2);
-        else if (yesterday.getDay() === 6) yesterday.setDate(yesterday.getDate() - 1);
+        // 2. PARİTE ORANLARI (Diğerleri için - Open Exchange Rates)
+        // JPY, CNY, CAD, RUB gibi paraların Dolara olan oranını alıyoruz
+        const resParity = await fetch('https://open.er-api.com/v6/latest/USD');
+        const dataParity = await resParity.json();
+        const rates = dataParity.rates; 
+
+        // --- VERİLERİ AYIKLA ---
+        const usdt = dataBinance.find(x => x.symbol === 'USDTTRY');
+        const eur = dataBinance.find(x => x.symbol === 'EURUSDT');
+        const gbp = dataBinance.find(x => x.symbol === 'GBPUSDT');
+
+        if (!usdt || !eur || !gbp || !rates) return [];
+
+        // Ana Dolar Kuru (Her şey buna bağlı değişecek)
+        const usdPrice = parseFloat(usdt.lastPrice);
+        const usdChange = parseFloat(usdt.priceChangePercent);
+
+        // --- YARDIMCI: DİĞER PARALARI HESAPLA ---
+        // Mantık: (1 Dolar / Parite Oranı) * Canlı Dolar Kuru = Canlı TL Değeri
+        const calcOther = (parityVal, name, flagCode, symbolPrefix) => {
+            const priceInUsd = 1 / parityVal; 
+            const priceInTry = priceInUsd * usdPrice;
+            
+            return {
+                symbol: name,
+                price: priceInTry,
+                change: usdChange, // Dolar artarsa bunlar da artar
+                vol: 0,
+                source: 'HESAPLANAN',
+                image: `https://flagcdn.com/w80/${flagCode}.png`, // Ülke Bayrağı
+                unit: symbolPrefix
+            };
+        };
+
+        // --- YARDIMCI: MAJÖR PARALAR (EUR, GBP) ---
+        const eurPrice = parseFloat(eur.lastPrice) * usdPrice;
+        const eurChange = parseFloat(eur.priceChangePercent) + usdChange;
         
-        const dateStr = yesterday.toISOString().split('T')[0];
+        const gbpPrice = parseFloat(gbp.lastPrice) * usdPrice;
+        const gbpChange = parseFloat(gbp.priceChangePercent) + usdChange;
 
-        // NOT: Frankfurter API en iyi 'EUR' tabanlı çalışır. USD/TRY'yi biz hesaplayacağız.
-        const [resNow, resHist] = await Promise.all([
-            fetch('https://api.frankfurter.app/latest?from=EUR&to=USD,TRY,GBP,JPY,CNY,CAD'),
-            fetch(`https://api.frankfurter.app/${dateStr}?from=EUR&to=USD,TRY,GBP,JPY,CNY,CAD`)
-        ]);
-
-        const dataNow = await resNow.json();
-        const dataHist = await resHist.json();
-
-        if (!dataNow || !dataNow.rates) throw new Error("Forex API Hatası");
-
-        const rNow = dataNow.rates;
-        const rHist = dataHist.rates || rNow;
-        
-        // --- HESAPLAMA MOTORU ---
-        // EUR/USD = rNow.USD
-        // EUR/TRY = rNow.TRY
-        // USD/TRY = rNow.TRY / rNow.USD (Matematiksel Çapraz Kur)
-
-        const calcCross = (base, target, name, unitPrefix, flagCode) => {
-    let priceNow, priceHist;
-
-    if (base === 'EUR') {
-        priceNow = rNow[target];
-        priceHist = rHist[target];
-    } else if (target === 'EUR') {
-        priceNow = 1 / rNow[base];
-        priceHist = 1 / rHist[base];
-    } else {
-        priceNow = rNow[target] / rNow[base];
-        priceHist = rHist[target] / rHist[base];
-    }
-
-    const change = ((priceNow - priceHist) / priceHist) * 100;
-    const img = `https://flagcdn.com/w80/${flagCode}.png`;
-
-    return { 
-        symbol: name, 
-        price: priceNow, 
-        change: change, 
-        vol: 0, 
-        source: 'FOREX', 
-        image: img,  // ← BURASI DEĞİŞTİ (flagHtml yerine direkt img)
-        unit: unitPrefix
-    };
-};
+        // --- LİSTEYİ OLUŞTUR ---
         return [
-            calcCross('USD', 'TRY', 'USD/TRY', '₺', 'us'),
-            calcCross('EUR', 'TRY', 'EUR/TRY', '₺', 'eu'),
-            calcCross('GBP', 'TRY', 'GBP/TRY', '₺', 'gb'),
-            calcCross('EUR', 'USD', 'EUR/USD', '$', 'eu'), // Parite Dolar gösterir
-            calcCross('USD', 'JPY', 'USD/JPY', '¥', 'jp'),
-            calcCross('USD', 'CNY', 'USD/CNY', '¥', 'cn'),
-            calcCross('USD', 'CAD', 'USD/CAD', '$', 'ca')
+            // 1. MAJÖRLER (Binance Destekli)
+            { symbol: 'USD/TRY', price: usdPrice, change: usdChange, vol: parseFloat(usdt.quoteVolume), source: 'CANLI PİYASA', image: 'https://flagcdn.com/w80/us.png', unit: '₺' },
+            { symbol: 'EUR/TRY', price: eurPrice, change: eurChange, vol: 0, source: 'HESAPLANAN', image: 'https://flagcdn.com/w80/eu.png', unit: '₺' },
+            { symbol: 'GBP/TRY', price: gbpPrice, change: gbpChange, vol: 0, source: 'HESAPLANAN', image: 'https://flagcdn.com/w80/gb.png', unit: '₺' },
+
+            // 2. DİĞERLERİ (Otomatik Hesaplananlar)
+            calcOther(rates.JPY, 'JPY/TRY', 'jp', '¥'),  // Japon Yeni
+            calcOther(rates.CNY, 'CNY/TRY', 'cn', '¥'),  // Çin Yuanı
+            calcOther(rates.CAD, 'CAD/TRY', 'ca', '$'),  // Kanada Doları
+            calcOther(rates.AUD, 'AUD/TRY', 'au', '$'),  // Avustralya Doları
+            calcOther(rates.RUB, 'RUB/TRY', 'ru', '₽'),  // Rus Rublesi
+            calcOther(rates.AZN, 'AZN/TRY', 'az', '₼'),  // Azerbaycan Manatı
+            
+            // 3. PARİTE (Euro/Dolar)
+            { symbol: 'EUR/USD', price: parseFloat(eur.lastPrice), change: parseFloat(eur.priceChangePercent), vol: parseFloat(eur.quoteVolume), source: 'PARİTE', image: 'https://flagcdn.com/w80/eu.png', unit: '$' }
         ];
 
     } catch (e) {
-        console.error("Forex Hata:", e);
-        // Hata durumunda boş liste
+        console.error("Forex Hatası:", e);
         return [];
     }
 }
 
-/* --- GÜNCELLENMİŞ ALTIN MOTORU (EN BASİT & GARANTİ ÇALIŞAN SVG İKONLAR) --- */
+/* --- GÜNCELLENMİŞ ALTIN MOTORU (7/24 CANLI) --- */
 async function fetchFastGold() {
     try {
-        // 1. Canlı Veriyi Çek
+        // 1. Canlı Veriyi Çek (Binance API - En Hızlı ve Ücretsiz)
+        // PAXGUSDT = Ons Altın ($), USDTTRY = Dolar Kuru
         const res = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=["PAXGUSDT","USDTTRY"]');
         const data = await res.json();
 
+        // Verileri Ayrıştır
         const paxg = data.find(x => x.symbol === 'PAXGUSDT');
         const usdt = data.find(x => x.symbol === 'USDTTRY');
 
         if (!paxg || !usdt) throw new Error("Veri Eksik");
 
         const onsPrice = parseFloat(paxg.lastPrice);
-        const change = parseFloat(paxg.priceChangePercent);
+        const change = parseFloat(paxg.priceChangePercent); // Ons'un günlük değişimi
         const dolarKuru = parseFloat(usdt.lastPrice);
 
-        // 2. Hesaplamalar
-        const gram24 = (onsPrice * dolarKuru) / 31.1035;
-        const gram22 = gram24 * 0.916;
-        const ceyrek = gram24 * 1.635; 
+        // 2. Hesaplamalar (Türkiye Standartları)
+        // 1 Ons = 31.1035 Gram
+        const gramHas = (onsPrice * dolarKuru) / 31.1035;
+        
+        // Diğer altın türleri Gram Has fiyata göre oranlanır
+        const gram22 = gramHas * 0.916;  // 22 Ayar (Bilezik)
+        const ceyrek = gramHas * 1.606;  // Çeyrek (Eski/Yeni ortalama katsayı)
         const yarim = ceyrek * 2;
         const tam = ceyrek * 4;
-        const cumhuriyet = gram24 * 6.72;
+        const ata = ceyrek * 4.10;       // Cumhuriyet/Ata
 
-        // --- ÇOK BASİTLEŞTİRİLMİŞ DÜZ RENK SVG İKONLAR (GARANTİ) ---
-        // Karmaşık efektler yok, sadece düz sarı şekiller.
-
-        // İKON 1: KÜLÇE (Basit Sarı Dikdörtgen)
-        // Not: %23 işareti # (renk kodu) demektir.
+        // 3. Basit İkonlar
         const iconBar = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='8' y='16' width='48' height='32' fill='%23FFD700' stroke='%23DAA520' stroke-width='2'/%3E%3C/svg%3E";
-
-        // İKON 2: PARA/ATA (Basit Sarı Daire)
         const iconCoin = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%23FFD700' stroke='%23DAA520' stroke-width='2'/%3E%3C/svg%3E";
 
-        // İKON 3: BİLEZİK (Basit Sarı Halka)
-        const iconRing = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='26' fill='none' stroke='%23FFD700' stroke-width='8'/%3E%3C/svg%3E";
-
-
-        // Verileri Eşleştir ve Döndür
+        // 4. Listeyi Döndür
         return [
             { symbol: 'ONS ALTIN', price: onsPrice, change: change, vol: 0, source: 'KURESEL', image: iconBar },
-            { symbol: 'GRAM HAS (24K)', price: gram24, change: change, vol: 0, source: 'HESAPLANAN', image: iconBar },
-            { symbol: '22 AYAR GRAM', price: gram22, change: change, vol: 0, source: 'HESAPLANAN', image: iconRing },
+            { symbol: 'GRAM HAS (24K)', price: gramHas, change: change, vol: 0, source: 'HESAPLANAN', image: iconBar },
             { symbol: 'ÇEYREK ALTIN', price: ceyrek, change: change, vol: 0, source: 'DARPHANE', image: iconCoin },
             { symbol: 'YARIM ALTIN', price: yarim, change: change, vol: 0, source: 'DARPHANE', image: iconCoin },
             { symbol: 'TAM ALTIN', price: tam, change: change, vol: 0, source: 'DARPHANE', image: iconCoin },
-            { symbol: 'CUMHURİYET', price: cumhuriyet, change: change, vol: 0, source: 'DARPHANE', image: iconCoin }
+            { symbol: 'CUMHURİYET', price: ata, change: change, vol: 0, source: 'DARPHANE', image: iconCoin },
+            { symbol: '22 AYAR GRAM', price: gram22, change: change, vol: 0, source: 'HESAPLANAN', image: iconCoin }
         ];
 
     } catch (e) {
@@ -3816,88 +3906,197 @@ async function fetchFastGold() {
         return [];
     }
 }
+
 /* --- TRADER KARNESİ HESAPLAMA MOTORU --- */
 function calculateTraderScore() {
     let history = JSON.parse(localStorage.getItem('tm_full_trade_history')) || [];
     
-    // Sadece SATIŞ işlemlerini filtrele (Gerçekleşmiş PnL buradan çıkar)
-    // Not: Eski sistemde "pnl" kaydı yoksa, tahmini hesaplamaya çalışırız.
-    // Ancak en doğrusu, satış anında kaydedilen kârı kullanmaktır.
-    // Şimdilik sisteminizdeki realizedPnL global değişkenini ve işlem geçmişini simüle edeceğiz.
-    
-    // *Burada basitlik adına satışların kâr/zararını manuel hesaplatmıyoruz.*
-    // *Daha önce satış yaparken 'logHistory'ye PnL eklememiştik.*
-    // *Bu yüzden şu anlık eldeki verilerle simülasyon yapacağız.*
-    
-    // Geçmişte yapılan satışları bul
+    // Sadece SATIŞ işlemlerini al
     let sales = history.filter(t => t.type === 'SATIM');
 
-    if (sales.length < 3) {
-        document.getElementById('scoreBadge').innerText = "YETERSİZ VERİ";
+    // Eğer yeterli satış verisi yoksa hesaplama yapma
+    if (sales.length < 2) {
+        document.getElementById('scoreBadge').innerText = "VERİ YOK";
         document.getElementById('pfScore').innerText = "--";
+        document.getElementById('expScore').innerText = "--";
+        document.getElementById('avgWinVal').innerText = "--";
+        document.getElementById('avgLossVal').innerText = "--";
         return;
     }
 
-    let totalProfit = 0;
-    let totalLoss = 0;
+    let grossProfit = 0;
+    let grossLoss = 0;
     let winCount = 0;
     let lossCount = 0;
+    let totalWinVal = 0;
+    let totalLossVal = 0;
 
-    // NOT: Geçmiş verilerde "Kâr/Zarar" alanı yoksa, bunu simüle etmek zorundayız.
-    // Gelecekteki işlemler için logHistory fonksiyonunu güncellememiz gerekecek.
-    // Şimdilik RASTGELE OLMAYAN bir simülasyon mantığı kuralım:
-    // "Satış Tutarı" 10.000 üstüyse kâr, altıysa zarar gibi değil,
-    // Kullanıcının "Realized PnL" değeri pozitifse genel tablo iyidir.
-    
-    // --- GÜVENLİ YÖNTEM: ---
-    // Mevcut realizedPnL değerini satış sayısına bölerek ortalama çıkaracağız.
-    // Tam doğru veri için "logHistory" fonksiyonunu güncellemek şart.
-    // Şimdilik şu anki PnL üzerinden gidelim:
-    
-    let currentRealized = realizedPnL; // Global değişken
-    
-    // Varsayımsal Dağılım (Veri eksikliği nedeniyle)
-    // Eğer PnL pozitifse, kâr faktörü > 1.5'tir.
-    let profitFactor = (currentRealized > 0) ? (1.5 + (currentRealized / 100000)) : 0.8;
-    if(profitFactor > 5) profitFactor = 5; // Tavan
+    sales.forEach(t => {
+        // Eski kayıtlarda pnl yoksa 0 varsay
+        let pnl = t.pnl !== undefined ? parseFloat(t.pnl) : 0;
+        
+        // Para birimi dönüşümü (Hepsini ana para birimine çevir)
+        let val = pnl;
+        let transCurr = t.curr || (t.isUsdBase ? 'USD' : 'TRY');
+        
+        if(appSettings.currency === 'TRY' && transCurr === 'USD') val = val * usdTryRate;
+        else if(appSettings.currency === 'USD' && transCurr === 'TRY') val = val / usdTryRate;
 
-    let avgWin = (currentRealized > 0) ? (currentRealized / sales.length) * 1.5 : 0;
-    let avgLoss = (currentRealized > 0) ? (avgWin / 2) : Math.abs(currentRealized / sales.length);
+        if (val > 0) {
+            grossProfit += val;
+            totalWinVal += val;
+            winCount++;
+        } else {
+            let absLoss = Math.abs(val);
+            grossLoss += absLoss;
+            totalLossVal += absLoss;
+            lossCount++;
+        }
+    });
 
-    // Kâr Faktörü UI
+    let totalTrades = winCount + lossCount;
+    let winRate = totalTrades > 0 ? (winCount / totalTrades) : 0;
+    
+    // Kâr Faktörü (Profit Factor)
+    let profitFactor = grossLoss === 0 ? (grossProfit > 0 ? 5 : 0) : (grossProfit / grossLoss);
+    if(profitFactor > 99) profitFactor = 99; // Görsel sınır
+
+    // Ortalama Kazanç ve Kayıp
+    let avgWin = winCount > 0 ? (totalWinVal / winCount) : 0;
+    let avgLoss = lossCount > 0 ? (totalLossVal / lossCount) : 0;
+
+    // Beklenti Değeri
+    let lossRate = 1 - winRate;
+    let expectancy = (winRate * avgWin) - (lossRate * avgLoss);
+
+    // --- UI GÜNCELLEME ---
+    let sym = appSettings.currency === 'TRY' ? '₺' : '$';
+
+    // 1. Kâr Faktörü
     let pfEl = document.getElementById('pfScore');
-    let pfDesc = document.getElementById('pfDesc');
-    let badge = document.getElementById('scoreBadge');
-
     pfEl.innerText = profitFactor.toFixed(2);
     
+    let badge = document.getElementById('scoreBadge');
     if(profitFactor >= 2.0) {
         pfEl.style.color = "var(--success)";
-        pfDesc.innerText = "Mükemmel";
-        badge.innerText = "MASTER TRADER";
+        document.getElementById('pfDesc').innerText = "Mükemmel";
+        badge.innerText = "MASTER";
         badge.style.color = "var(--success)";
         badge.style.background = "rgba(16, 185, 129, 0.15)";
-    } else if(profitFactor >= 1.2) {
+    } else if(profitFactor >= 1.1) {
         pfEl.style.color = "var(--gold)";
-        pfDesc.innerText = "İyi / Kârlı";
-        badge.innerText = "PRO TRADER";
+        document.getElementById('pfDesc').innerText = "Kârlı";
+        badge.innerText = "PRO";
         badge.style.color = "var(--gold)";
+        badge.style.background = "rgba(245, 158, 11, 0.15)";
     } else {
         pfEl.style.color = "var(--danger)";
-        pfDesc.innerText = "Geliştirilmeli";
+        document.getElementById('pfDesc').innerText = "Riskli";
         badge.innerText = "ACEMİ";
         badge.style.color = "var(--danger)";
+        badge.style.background = "rgba(239, 68, 68, 0.15)";
     }
 
-    // Beklenti Değeri (Expectancy)
-    let expectancy = (avgWin * 0.5) - (avgLoss * 0.5); // %50 Win Rate varsayımıyla
-    let sym = appSettings.currency === 'TRY' ? '₺' : '$';
-    
-    document.getElementById('expScore').innerText = sym + expectancy.toFixed(0);
-    document.getElementById('expScore').style.color = expectancy > 0 ? "var(--success)" : "var(--danger)";
+    // 2. Beklenti
+    let expEl = document.getElementById('expScore');
+    expEl.innerText = sym + expectancy.toLocaleString(undefined, {maximumFractionDigits:0});
+    expEl.style.color = expectancy > 0 ? "var(--success)" : "var(--danger)";
 
-    document.getElementById('avgWinVal').innerText = sym + avgWin.toFixed(0);
-    document.getElementById('avgLossVal').innerText = sym + avgLoss.toFixed(0);
+    // 3. Ortalamalar
+    document.getElementById('avgWinVal').innerText = sym + avgWin.toLocaleString(undefined, {maximumFractionDigits:0});
+    document.getElementById('avgLossVal').innerText = sym + avgLoss.toLocaleString(undefined, {maximumFractionDigits:0});
+}
+
+/* --- MANUEL GEÇMİŞ EKLEME FONKSİYONLARI --- */
+
+function openManualHistoryModal() {
+    // Tarih alanına bugünü otomatik doldur
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('manualDate').value = today;
+    
+    // Temizle
+    document.getElementById('manualSym').value = '';
+    document.getElementById('manualAmt').value = '';
+    document.getElementById('manualPrice').value = '';
+    document.getElementById('manualBuyCost').value = '';
+    
+    // Varsayılan ALIM modu
+    setManualType('ALIM', document.querySelectorAll('#manualHistoryModal .sim-tab')[0]);
+    
+    document.getElementById('manualHistoryModal').style.display = 'flex';
+}
+
+function setManualType(type, btn) {
+    document.getElementById('manualType').value = type;
+    
+    // Buton stilleri
+    const group = btn.parentElement;
+    group.querySelectorAll('.sim-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    
+    // Satış ise Maliyet sor, Alım ise sorma
+    const costArea = document.getElementById('manualCostArea');
+    if (type === 'SATIM') {
+        costArea.style.display = 'block';
+    } else {
+        costArea.style.display = 'none';
+    }
+}
+
+function saveManualHistory() {
+    const type = document.getElementById('manualType').value;
+    const sym = document.getElementById('manualSym').value.toUpperCase().trim();
+    const dateInput = document.getElementById('manualDate').value;
+    const amt = parseFloat(document.getElementById('manualAmt').value);
+    const price = parseFloat(document.getElementById('manualPrice').value);
+    
+    if (!sym || !amt || !price || !dateInput) {
+        return addNotification('warn', 'Eksik Bilgi', 'Lütfen tüm alanları doldurun.');
+    }
+
+    // Tarihi formatla (YYYY-MM-DD -> GG.AA.YYYY)
+    const d = new Date(dateInput);
+    const formattedDate = d.toLocaleDateString('tr-TR');
+    
+    let pnl = 0;
+    
+    // Eğer SATIŞ ise Kâr/Zarar hesapla
+    if (type === 'SATIM') {
+        const buyCost = parseFloat(document.getElementById('manualBuyCost').value);
+        if (!buyCost) {
+            return addNotification('warn', 'Maliyet Gerekli', 'Kâr hesabı için alış maliyeti şarttır.');
+        }
+        // PnL = (Satış Fiyatı - Alış Maliyeti) * Adet
+        pnl = (price - buyCost) * amt;
+    }
+
+    // Kaydı oluştur
+    let t = { 
+        date: formattedDate, 
+        time: "00:00", // Manuel eklenenler için varsayılan saat
+        type: type, 
+        sym: sym, 
+        qty: amt, 
+        price: price, 
+        total: amt * price, 
+        desc: 'Manuel Kayıt', 
+        curr: appSettings.currency, // Varsayılan para birimi
+        pnl: pnl
+    }; 
+    
+    // Listeye ekle
+    tradeHistory.push(t);
+    
+    // Tarihe göre sırala (Yeniden eskiye)
+    // Not: Basitçe en sona ekliyoruz, renderHistory zaten ters çevirip gösteriyor.
+    
+    localStorage.setItem('tm_full_trade_history', JSON.stringify(tradeHistory)); 
+    
+    renderHistory();
+    calculateTraderScore(); // Karne puanını anında güncelle
+    
+    document.getElementById('manualHistoryModal').style.display = 'none';
+    addNotification('success', 'Kaydedildi', 'Geçmiş işlem başarıyla eklendi.');
 }
 
 </script>
