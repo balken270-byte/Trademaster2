@@ -3126,104 +3126,127 @@ function closeMarketDetail() {
 
 /* --- YENİ WATCHLIST BUTON MANTIĞI --- */
 
-/* --- DÜZELTİLMİŞ VE EKSİK TAMAMLAYICI DETAY PENCERESİ --- */
+/* --- ORİJİNAL COINGECKO ENTEGRASYONLU DETAY PENCERESİ --- */
 async function openMarketDetail(rawSymbol) {
     currentMdSymbol = rawSymbol; 
     
     // 1. Modalı Aç
     document.getElementById('marketDetailModal').style.display = 'flex';
     document.getElementById('mdSymbolTitle').innerText = rawSymbol;
-    
-    // Fiyat yükleniyor efekti
     document.getElementById('mdBigPrice').innerText = "Yükleniyor...";
     
-    // İzleme Listesi İkon Kontrolü
+    // İzleme İkonu
     let w = JSON.parse(localStorage.getItem('tm_watchlist')) || [];
     let icon = document.getElementById('mdWatchIcon');
-    if(w.includes(rawSymbol)) icon.style.color = "#f59e0b"; 
-    else icon.style.color = "var(--text-sub)"; 
+    icon.style.color = w.includes(rawSymbol) ? "#f59e0b" : "var(--text-sub)"; 
     
     // Sekmeyi 'Genel Bakış'a al
     switchMdTab('overview', document.querySelectorAll('.md-tab')[0]);
-    
-    // LOGO AYARI (USDT ve diğerleri için düzeltme)
-    let logoHtml = getAssetLogoHtml(rawSymbol);
-    // Eğer USDT ise ve logo jenerik geldiyse özel Tether logosunu zorla
-    if(rawSymbol === 'USDT' || rawSymbol.includes('USDT')) {
-        logoHtml = `<div class="asset-logo-wrap" style="background:transparent; border:none; width:50px; height:50px;"><img src="https://assets.coincap.io/assets/icons/usdt@2x.png" class="asset-logo-img"></div>`;
-    }
-    document.getElementById('mdAssetLogo').innerHTML = logoHtml;
 
-    // --- VERİ DOLDURMA MOTORU ---
-    
+    // Değişkenler
     let details = { price: 0, change: 0, high: 0, low: 0, vol: 0, vwap: 0 };
+    let logoHtml = getAssetLogoHtml(rawSymbol); // Varsayılan logo
     let dataFound = false;
 
-    // 1. ADIM: Önce Cache'e (Listeye) Bak
+    // --- 1. ADIM: CACHE (HAZIR LİSTE) KONTROLÜ (EN HIZLI YÖNTEM) ---
+    // Eğer ana listede bu coini görüyorsanız, verisi zaten elinizdedir. Tekrar istek atmaya gerek yok.
     if(marketDataCache && marketDataCache.length > 0) {
-        const cachedItem = marketDataCache.find(x => x.symbol === rawSymbol);
+        // Sembol eşleşmesi yap (Büyük/Küçük harf duyarsız)
+        const cachedItem = marketDataCache.find(x => x.symbol.toUpperCase() === rawSymbol.toUpperCase());
+        
         if(cachedItem) {
+            // Veriler Cache'den alınıyor (Burada her şey doludur)
             details.price = cachedItem.price;
             details.change = cachedItem.change;
             details.vol = cachedItem.vol || 0;
-            details.image = cachedItem.image;
-            // Cache'de High/Low genellikle olmaz, onu aşağıda tamamlayacağız
+            
+            // CoinGecko 'markets' endpoint'i high/low bilgisini de verir.
+            // Eğer cache yapımızda high/low saklamıyorsak simüle ederiz.
+            if(cachedItem.high_24h) details.high = cachedItem.high_24h;
+            else details.high = details.price * 1.05;
+
+            if(cachedItem.low_24h) details.low = cachedItem.low_24h;
+            else details.low = details.price * 0.95;
+            
+            details.vwap = details.price; // VWAP CoinGecko'da standart yok, fiyatı basıyoruz
+
+            // Logo Cache'den
+            if(cachedItem.image) {
+                logoHtml = `<div class="asset-logo-wrap" style="background:transparent; border:none; width:50px; height:50px;"><img src="${cachedItem.image}" class="asset-logo-img"></div>`;
+            }
+            
             dataFound = true;
         }
     }
 
-    // 2. ADIM: Cache'de yoksa veya Hacim eksikse (--) API'den Tamamla
-    try {
-        if(currentCategory === 'kripto') {
-            // Hızlıca Binance verisini kontrol et (Çünkü en iyi hacim verisi orada)
-            // Sembol temizliği: BINANCE:BTCUSDT -> BTCUSDT
-            let s = rawSymbol.replace('BINANCE:', '').replace('USDT', '') + 'USDT';
+    // --- 2. ADIM: CACHE'DE YOKSA API'YE SOR (ARAMA YAPILDIYSA) ---
+    if(!dataFound && currentCategory === 'kripto' && coingeckoApiKey) {
+        try {
+            // Önce: Sembolden ID bul (Search API)
+            const searchUrl = `https://api.coingecko.com/api/v3/search?query=${rawSymbol}&x_cg_demo_api_key=${coingeckoApiKey}`;
+            const searchRes = await fetch(searchUrl);
+            const searchData = await searchRes.json();
             
-            // Eğer USDT'nin kendisi ise (USD/USDT olmaz), USDTTRY bakabiliriz veya pas geçeriz
-            if(rawSymbol === 'USDT') s = 'USDTTRY';
+            let coinId = null;
+            if(searchData.coins && searchData.coins.length > 0) {
+                // Tam eşleşme ara, yoksa ilkini al
+                const match = searchData.coins.find(c => c.symbol.toUpperCase() === rawSymbol.toUpperCase());
+                coinId = match ? match.id : searchData.coins[0].id;
+                
+                // Logoyu buradan alabiliriz (large versiyonu)
+                if(match && match.thumb) {
+                    let largeImg = match.thumb.replace('thumb', 'large');
+                    logoHtml = `<div class="asset-logo-wrap" style="background:transparent; border:none; width:50px; height:50px;"><img src="${largeImg}" class="asset-logo-img"></div>`;
+                }
+            }
 
-            const res = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${s}`);
-            
-            if(res.ok) {
-                const d = await res.json();
-                details.price = parseFloat(d.lastPrice); // Güncel fiyatı yenile
-                details.change = parseFloat(d.priceChangePercent);
-                details.high = parseFloat(d.highPrice); // Gün Yüksek geldi
-                details.low = parseFloat(d.lowPrice);   // Gün Düşük geldi
-                details.vol = parseFloat(d.quoteVolume); // Hacim geldi!
-                details.vwap = parseFloat(d.weightedAvgPrice); // VWAP geldi!
-                dataFound = true;
-            } else {
-                // Binance'de yoksa CoinGecko'ya sor (Yedek)
-                 let pData = await getPrice(rawSymbol);
-                 if(pData.price > 0) {
-                     details.price = pData.price;
-                     details.change = pData.change;
-                     // Hacim yoksa simüle etme, boş kalsın ama fiyat görünsün
-                 }
+            if(coinId) {
+                // Sonra: ID ile detay çek (Market Data API)
+                // Bu endpoint High, Low, Vol her şeyi verir.
+                const detailUrl = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${coinId}&x_cg_demo_api_key=${coingeckoApiKey}`;
+                const detailRes = await fetch(detailUrl);
+                const detailData = await detailRes.json();
+
+                if(detailData && detailData.length > 0) {
+                    const d = detailData[0];
+                    details.price = d.current_price;
+                    details.change = d.price_change_percentage_24h;
+                    details.high = d.high_24h;
+                    details.low = d.low_24h;
+                    details.vol = d.total_volume;
+                    details.vwap = d.current_price;
+                    
+                    // Logo API'den geldiyse güncelle
+                    if(d.image) {
+                        logoHtml = `<div class="asset-logo-wrap" style="background:transparent; border:none; width:50px; height:50px;"><img src="${d.image}" class="asset-logo-img"></div>`;
+                    }
+                    dataFound = true;
+                }
             }
-        } 
-        else {
-            // Kripto dışı (Hisse/Altın) için standart getPrice
-            let pData = await getPrice(rawSymbol);
-            if(pData.price > 0) {
-                details.price = pData.price;
-                details.change = pData.change;
-                details.high = pData.price * 1.02; 
-                details.low = pData.price * 0.98;
-                dataFound = true;
-            }
+        } catch(e) {
+            console.log("CG Detay Hatası:", e);
         }
-    } catch (e) {
-        console.log("Veri tamamlama hatası:", e);
     }
 
-    // 3. ADIM: Verileri Ekrana Bas
+    // --- 3. ADIM: HİSSE / ALTIN / DÖVİZ (ESKİ SİSTEM) ---
+    if(!dataFound && currentCategory !== 'kripto') {
+        let pData = await getPrice(rawSymbol);
+        if(pData.price > 0) {
+            details.price = pData.price;
+            details.change = pData.change;
+            details.high = pData.price * 1.02;
+            details.low = pData.price * 0.98;
+            dataFound = true;
+        }
+    }
+
+    // Ekrana Bas
+    document.getElementById('mdAssetLogo').innerHTML = logoHtml;
+
     if(dataFound || details.price > 0) {
-        // Eksik verileri (High/Low) simüle et (Eğer API'den gelmediyse)
+        // Eksik veri varsa (örn: hisse) simüle et
         if(!details.high) details.high = details.price * 1.05;
         if(!details.low) details.low = details.price * 0.95;
-        if(!details.vwap) details.vwap = details.price;
         
         renderMdUI(details, rawSymbol);
     } else {
@@ -3231,7 +3254,7 @@ async function openMarketDetail(rawSymbol) {
         document.getElementById('mdDisclaimer').innerHTML = "<span style='color:red'>Veri alınamadı.</span>";
     }
 
-    // 4. ADIM: Grafiği Başlat
+    // Grafiği Başlat
     initMdChart(rawSymbol);
 }
 
