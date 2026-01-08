@@ -756,6 +756,122 @@
 input:checked + .tgl-slider { background-color: var(--success); border-color: var(--success); }
 input:checked + .tgl-slider:before { transform: translateX(20px); }
 
+/* --- APP SETTINGS (DÜZELTİLMİŞ & SABİTLENMİŞ) --- */
+.app-settings-container { 
+    padding: 10px 0 80px 0; 
+}
+
+/* 1. PROFİL KARTI (Aynen Koruyoruz) */
+.profile-banner-card {
+    background: var(--bg-card);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 20px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.profile-banner-card.premium-glow {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(180, 83, 9, 0.05) 100%);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    box-shadow: 0 10px 30px rgba(245, 158, 11, 0.15);
+}
+.pbc-img {
+    width: 60px; height: 60px; border-radius: 50%; object-fit: cover;
+    border: 2px solid var(--accent); flex-shrink: 0; /* Küçülmeyi önle */
+}
+.profile-banner-card.premium-glow .pbc-img { border-color: var(--gold); }
+.pbc-info { display: flex; flex-direction: column; }
+.pbc-name { font-size: 18px; font-weight: 800; color: white; margin-bottom: 4px; }
+.pbc-badge { font-size: 10px; font-weight: 700; background: rgba(255,255,255,0.1); padding: 3px 8px; border-radius: 8px; width: fit-content; }
+.profile-banner-card.premium-glow .pbc-badge { background: linear-gradient(90deg, #f59e0b, #d97706); color:white; }
+
+/* 2. TAB MENÜSÜ (SEGMENTED) */
+.settings-tabs.segmented {
+    display: flex; gap: 5px;
+    background: rgba(255,255,255,0.03);
+    padding: 4px; border-radius: 12px; margin-bottom: 20px;
+}
+.s-tab.seg-style {
+    flex: 1; text-align: center; padding: 10px; font-size: 12px; font-weight: 600;
+    color: var(--text-sub); border-radius: 8px; cursor: pointer; transition: 0.2s;
+}
+.s-tab.seg-style.active {
+    background: var(--bg-card); color: white; font-weight: 700;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* 3. MENÜ LİSTESİ (SORUNLU KISIM DÜZELTİLDİ) */
+.menu-list-wrapper {
+    background: var(--bg-card);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.05);
+    margin-bottom: 20px;
+}
+
+/* Satır Yapısı - Flexbox Zorlaması */
+.menu-list-item {
+    display: flex !important; /* Kesinlikle yan yana */
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    padding: 16px !important;
+    background: transparent !important; /* Arka plan karışmasın */
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    cursor: pointer;
+    box-sizing: border-box;
+}
+.menu-list-item:active { background: rgba(255,255,255,0.03) !important; }
+.menu-list-item:last-child { border-bottom: none; }
+
+/* Sol Taraf (İkon + Yazı) */
+.mli-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+}
+
+/* İkon Kutusu - Boyut Sabitleme */
+.mli-icon-box {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important; /* Asla küçülme */
+    min-height: 36px !important;
+    border-radius: 10px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 16px;
+    color: white;
+    flex-shrink: 0 !important; /* Sıkışmayı önle */
+}
+
+/* İkon Renkleri (Gradientli) */
+.bg-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.bg-orange { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.bg-green { background: linear-gradient(135deg, #10b981, #059669); }
+.bg-red { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+.mli-text {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    color: white !important;
+    white-space: nowrap;
+}
+
+.mli-arrow { font-size: 12px; color: var(--text-sub); opacity: 0.5; }
+
+/* Detay Sayfaları */
+.settings-detail-wrapper { display: none; padding-top: 10px; }
+.sub-header { display: flex; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.back-btn { background:none; border:none; color:var(--accent); font-size:16px; font-weight:600; display:flex; align-items:center; gap:5px; cursor:pointer;}
+.sub-title { flex:1; text-align:center; font-weight:700; font-size:16px; transform:translateX(-30px); color:white; }
+
+
     </style>
 </head>
 <body>
@@ -1044,129 +1160,174 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
         </div> 
     </div>
 
+        <div id="page-settings" class="page" style="padding:0; background:var(--bg-body);">
+    <div class="app-settings-container" style="padding: 20px;">
 
-    <div id="page-settings" class="page">
-        
-        <div class="settings-tabs">
-            <div class="s-tab active" onclick="switchSettingsTab('profile', this)">PROFİL</div>
-            <div class="s-tab" onclick="switchSettingsTab('general', this)">GENEL</div>
-            <div class="s-tab" onclick="switchSettingsTab('notify', this)">BİLDİRİM</div>
-            <div class="s-tab" onclick="switchSettingsTab('history', this)">GEÇMİŞ</div>
-        </div>
-
-        <div id="set-profile" class="settings-content active">
-            <div class="profile-section">
-                <div class="profile-img-wrap">
-                    <img id="displayProfileImg" src="https://via.placeholder.com/150/1e2538/ffffff?text=USER" class="profile-img">
-                    <label class="profile-upload-btn"><i class="fas fa-camera"></i><input type="file" id="imgUploadInput" style="display:none;" accept="image/*" onchange="uploadProfileImg(this)"></label>
-                </div>
-                <div class="profile-name" id="displayProfileName">Misafir Kullanıcı</div>
-                <span class="profile-tag" id="displayProfileBio">Yatırımcı</span>
-                <div class="membership-badge" id="membershipBadge"><i class="fas fa-crown"></i> PRO ÜYE</div>
-            </div>
-            <div class="membership-card-pro"><div class="mc-left"><div class="mc-title">Üyelik Planı</div><div class="mc-sub">TradeMaster Pro (Ömür Boyu)</div></div><div style="color:var(--success); font-size:18px;"><i class="fas fa-check-circle"></i></div></div>
-            <div class="card">
-                <div class="lbl-sm">KİMLİK BİLGİLERİ</div>
-                <div style="margin-bottom:10px;"><span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:5px;">Ad Soyad / Ünvan</span><input type="text" id="profileNameInput" class="modern-input" placeholder="Adınızı giriniz..." onchange="saveProfileData()"></div>
-                <div><span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:5px;">Yatırım Felsefesi (Bio)</span><input type="text" id="profileBioInput" class="modern-input" placeholder="Örn: Uzun vadeci, Kripto uzmanı..." onchange="saveProfileData()"></div>
-            </div>
-            <div class="card">
-                <div class="lbl-sm">İSTATİSTİKLER</div>
-                <div class="stats-grid"><div class="stat-box"><span class="stat-label">İŞLEM SAYISI</span><div class="stat-val" id="profileTradeCount">0</div></div><div class="stat-box"><span class="stat-label">KAYIT TARİHİ</span><div class="stat-val" id="profileJoinDate">--</div></div></div>
-            </div>
-        </div>
-
-        <div id="set-general" class="settings-content">
-            <div class="card">
-                <div class="lbl-sm" data-lang="pref">TERCİHLER</div>
-                <div class="setting-item"><span>Para Birimi</span><select id="currSelect" class="setting-select" onchange="changeBaseCurrency(this.value)"><option value="TRY">TRY (₺)</option><option value="USD">USD ($)</option></select></div>
-                <div class="setting-item"><span>Dil</span><select id="langSelect" class="setting-select" onchange="changeLanguage(this.value)"><option value="tr">Türkçe</option><option value="en">English</option></select></div>
-                <div class="setting-item"><span>Tema</span><select id="themeSelect" class="setting-select" onchange="changeTheme(this.value)"><option value="ocean">Okyanus</option><option value="purple">Mor Gece</option><option value="dark">Zifiri</option></select></div>
-            </div>
-            <div class="card" style="border-left: 3px solid var(--accent);">
-                <div class="lbl-sm">VERİ SAĞLAYICI (POLYGON.IO)</div>
-                <div class="setting-item" style="display:block; border:none; padding-bottom:0;">
-                    <div style="margin-bottom:5px; font-size:12px; display:flex; justify-content:space-between;"><span>API Key (Ücretsiz Plan)</span><span id="polyStatusText" style="font-size:10px; font-weight:700; color:var(--text-sub);">DURUM: BEKLİYOR</span></div>
-                    <div class="poly-wrapper"><div id="polyIndicator" class="poly-status-dot idle"></div><input type="text" id="polyKey" class="modern-input" style="margin:0; font-size:12px;" placeholder="Polygon.io Key Yapıştır..." onchange="savePolyKey(this.value)"><button class="btn-main" style="width:auto; padding:0 15px; height:46px;" onclick="testPolygonConnection()"><i class="fas fa-sync-alt"></i></button></div>
-                </div>
-            </div>
-            <div class="card">
-                <div class="lbl-sm" data-lang="data_mgmt">VERİ YÖNETİMİ</div>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;"><button class="btn-main btn-sec" onclick="downloadBackup()">Yedekle</button><label class="btn-main btn-sec" style="margin:0;">Yükle <input type="file" style="display:none;" onchange="uploadBackup(this)"></label></div><button class="btn-main btn-sec" onclick="exportExcel()">Excel İndir</button>
-            </div>
-            <button class="btn-main btn-danger" onclick="clearAllData()">Tüm Verileri Sıfırla</button>
-        </div>
-
-        <div id="set-notify" class="settings-content">
-            <div class="card" id="permRequestCard" style="display:none; border-left: 3px solid var(--gold); background:rgba(245, 158, 11, 0.1);">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <div style="font-weight:700; font-size:13px; color:var(--gold);">İzin Gerekli</div>
-                        <div style="font-size:11px; color:var(--text-sub);">Telefon bildirimleri için izin verin.</div>
-                    </div>
-                    <button class="btn-main" style="width:auto; padding:6px 12px; font-size:11px;" onclick="requestNotifyPermission()">İZİN VER</button>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="lbl-sm">BİLDİRİM TERCİHLERİ</div>
-                <div class="switch-row">
-                    <div><span class="switch-label">Fiyat Alarmları</span><span class="switch-desc">Hedef fiyata gelince uyar</span></div>
-                    <label class="tgl-switch"><input type="checkbox" id="ntf_price" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label>
-                </div>
-                <div class="switch-row">
-                    <div><span class="switch-label">İşlem Onayları</span><span class="switch-desc">Alım/Satım yapınca uyar</span></div>
-                    <label class="tgl-switch"><input type="checkbox" id="ntf_trade" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label>
-                </div>
-                <div class="switch-row">
-                    <div><span class="switch-label">Haber & Piyasalar</span><span class="switch-desc">Önemli gelişmelerde uyar</span></div>
-                    <label class="tgl-switch"><input type="checkbox" id="ntf_news" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="lbl-sm">SES & TİTREŞİM</div>
-                <div class="switch-row">
-                    <div><span class="switch-label">Bildirim Sesi</span><span class="switch-desc">Uyarılarda ses çal ("Ding")</span></div>
-                    <label class="tgl-switch"><input type="checkbox" id="ntf_sound" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label>
-                </div>
-                <div class="switch-row">
-                    <div><span class="switch-label">Titreşim</span><span class="switch-desc">Telefonda titreşim oluştur</span></div>
-                    <label class="tgl-switch"><input type="checkbox" id="ntf_vibrate" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label>
-                </div>
-            </div>
+        <div id="settings-home" class="settings-home-wrapper">
             
-            <button class="btn-main btn-sec" onclick="testNotification()">Test Bildirimi Gönder</button>
-        </div>
-
-        <div id="set-history" class="settings-content">
-            <div class="accounting-header">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div class="lc-title" style="font-size:14px;"><i class="fas fa-file-invoice-dollar"></i> KASA HAREKETLERİ</div>
-                    <button class="tool-btn" onclick="openCashModal()" style="color:var(--accent); background:rgba(59,130,246,0.1); padding:5px 10px; border-radius:6px; font-weight:700;">+ İşlem Ekle</button>
-                </div>
-                <div class="acc-grid">
-                    <div class="acc-item"><span class="acc-lbl">TOPLAM GİRİŞ</span><span class="acc-val" style="color:var(--success)" id="accTotalIn">0.00</span></div>
-                    <div class="acc-item"><span class="acc-lbl">TOPLAM ÇIKIŞ</span><span class="acc-val" style="color:var(--danger)" id="accTotalOut">0.00</span></div>
-                    <div class="acc-item acc-net"><span class="acc-lbl">NET NAKİT AKIŞI</span><span class="acc-val" id="accNetFlow">0.00</span></div>
+            <div id="mainProfileCard" class="profile-banner-card" onclick="openSubPage('profile')">
+                <img id="menuProfileImg" 
+                     src="https://via.placeholder.com/150/1e2538/ffffff?text=TR" 
+                     class="pbc-img"
+                     onerror="this.src='https://via.placeholder.com/150/1e2538/ffffff?text=USER'">
+                
+                <div class="pbc-info">
+                    <span class="pbc-name" id="menuProfileName">Yükleniyor...</span>
+                    <div class="pbc-badge"><i class="fas fa-crown"></i> PRO ÜYE</div>
                 </div>
             </div>
-<button class="btn-main btn-sec" style="margin-bottom: 15px; border: 1px dashed var(--text-sub);" onclick="openManualHistoryModal()">
-    <i class="fas fa-history"></i> Geçmiş İşlem Ekle (Manuel)
-</button>
 
-            <div class="hist-filter-scroll">
-                <div class="h-filter-btn active" onclick="filterHistory('all', this)">Tümü</div>
-                <div class="h-filter-btn" onclick="filterHistory('NAKİT', this)">Kasa</div>
-                <div class="h-filter-btn" onclick="filterHistory('ALIM', this)">Alımlar</div>
-                <div class="h-filter-btn" onclick="filterHistory('SATIM', this)">Satışlar</div>
-                <div class="h-filter-btn" onclick="filterHistory('TEMETTÜ', this)">Temettü</div>
+            <div style="font-size:11px; font-weight:700; color:var(--text-sub); margin-bottom:10px; margin-left:10px;">UYGULAMA AYARLARI</div>
+            
+            <div class="menu-list-wrapper">
+                
+                <div class="menu-list-item" onclick="openSubPage('general')">
+                    <div class="mli-left">
+                        <div class="mli-icon-box bg-blue"><i class="fas fa-sliders-h"></i></div>
+                        <span class="mli-text">Genel & Görünüm</span>
+                    </div>
+                    <div class="mli-arrow"><i class="fas fa-chevron-right"></i></div>
+                </div>
+
+                <div class="menu-list-item" onclick="openSubPage('notify')">
+                    <div class="mli-left">
+                        <div class="mli-icon-box bg-orange"><i class="fas fa-bell"></i></div>
+                        <span class="mli-text">Bildirimler</span>
+                    </div>
+                    <div class="mli-arrow"><i class="fas fa-chevron-right"></i></div>
+                </div>
+
+                <div class="menu-list-item" onclick="openSubPage('history')">
+                    <div class="mli-left">
+                        <div class="mli-icon-box bg-green"><i class="fas fa-history"></i></div>
+                        <span class="mli-text">Kasa & Geçmiş</span>
+                    </div>
+                    <div class="mli-arrow"><i class="fas fa-chevron-right"></i></div>
+                </div>
+
             </div>
 
-            <div id="historyListFull" style="padding-bottom:20px;"></div>
+            <div class="menu-list-wrapper" style="margin-top:20px;">
+                <div class="menu-list-item" onclick="clearAllData()">
+                    <div class="mli-left">
+                        <div class="mli-icon-box bg-red"><i class="fas fa-trash-alt"></i></div>
+                        <span class="mli-text" style="color:#ef4444;">Verileri Sıfırla</span>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
-    </div> </div> ```
+        <div id="settings-detail" class="settings-detail-wrapper">
+            
+            <div class="sub-header">
+                <button class="back-btn" onclick="closeSubPage()">
+                    <i class="fas fa-chevron-left"></i> Geri
+                </button>
+                <span class="sub-title" id="subPageTitle">Detay</span>
+            </div>
+
+            <div id="set-profile" class="settings-content" style="display:none;">
+                <div style="text-align:center; margin-bottom:20px;">
+                    <div class="profile-img-wrap" style="margin:0 auto 10px auto;">
+                        <img id="displayProfileImg" src="" class="profile-img">
+                        <label class="profile-upload-btn"><i class="fas fa-camera"></i><input type="file" id="imgUploadInput" style="display:none;" accept="image/*" onchange="uploadProfileImg(this)"></label>
+                    </div>
+                    <div style="font-size:11px; color:var(--text-sub);">Fotoğrafı güncellemek için ikona tıkla</div>
+                </div>
+
+                <div class="card">
+                    <div class="lbl-sm">BİLGİLER</div>
+                    <div style="margin-bottom:15px;">
+                        <span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:5px;">Ad Soyad</span>
+                        <input type="text" id="profileNameInput" class="modern-input" onchange="saveProfileData()">
+                    </div>
+                    <div>
+                        <span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:5px;">Bio / Ünvan</span>
+                        <input type="text" id="profileBioInput" class="modern-input" onchange="saveProfileData()">
+                    </div>
+                    <div id="displayProfileName" style="display:none;"></div>
+                    <div id="displayProfileBio" style="display:none;"></div>
+                    <div id="membershipBadge" style="display:none;"></div>
+                </div>
+
+                <div class="card">
+                    <div class="lbl-sm">İSTATİSTİKLER</div>
+                    <div class="stats-grid">
+                        <div class="stat-box"><span class="stat-label">İŞLEM</span><div class="stat-val" id="profileTradeCount">0</div></div>
+                        <div class="stat-box"><span class="stat-label">TARİH</span><div class="stat-val" id="profileJoinDate">--</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="set-general" class="settings-content" style="display:none;">
+                <div class="card">
+                    <div class="lbl-sm">TERCİHLER</div>
+                    <div class="setting-item"><span>Para Birimi</span><select id="currSelect" class="setting-select" onchange="changeBaseCurrency(this.value)"><option value="TRY">TRY (₺)</option><option value="USD">USD ($)</option></select></div>
+                    <div class="setting-item"><span>Dil</span><select id="langSelect" class="setting-select" onchange="changeLanguage(this.value)"><option value="tr">Türkçe</option><option value="en">English</option></select></div>
+                    <div class="setting-item"><span>Tema</span><select id="themeSelect" class="setting-select" onchange="changeTheme(this.value)"><option value="ocean">Okyanus</option><option value="purple">Mor Gece</option><option value="dark">Zifiri</option></select></div>
+                </div>
+                <div class="card">
+                    <div class="lbl-sm">VERİ API</div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;"><span id="polyStatusText" style="font-size:10px;">DURUM: BEKLİYOR</span><div id="polyIndicator" class="poly-status-dot idle"></div></div>
+                    <input type="text" id="polyKey" class="modern-input" placeholder="API Key..." onchange="savePolyKey(this.value)">
+                    <button class="btn-main" onclick="testPolygonConnection()">Bağlantıyı Test Et</button>
+                </div>
+                <div class="card">
+                    <div class="lbl-sm">YEDEKLEME</div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                        <button class="btn-main btn-sec" onclick="downloadBackup()">İndir</button>
+                        <label class="btn-main btn-sec" style="margin:0;">Yükle <input type="file" style="display:none;" onchange="uploadBackup(this)"></label>
+                    </div>
+                    <button class="btn-main btn-sec" onclick="exportExcel()">Excel Raporu</button>
+                </div>
+            </div>
+
+            <div id="set-notify" class="settings-content" style="display:none;">
+                <div class="card" id="permRequestCard" style="display:none; background:rgba(245, 158, 11, 0.1); border-left:3px solid var(--gold);">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="font-size:12px; color:var(--gold); font-weight:700;">İzin Gerekli</div>
+                        <button class="btn-main" style="width:auto; padding:5px 10px; font-size:10px;" onclick="requestNotifyPermission()">İZİN VER</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="switch-row"><div><span class="switch-label">Fiyat Alarmları</span></div><label class="tgl-switch"><input type="checkbox" id="ntf_price" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label></div>
+                    <div class="switch-row"><div><span class="switch-label">İşlem Onayları</span></div><label class="tgl-switch"><input type="checkbox" id="ntf_trade" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label></div>
+                    <div class="switch-row"><div><span class="switch-label">Haberler</span></div><label class="tgl-switch"><input type="checkbox" id="ntf_news" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label></div>
+                </div>
+                <div class="card">
+                    <div class="switch-row"><div><span class="switch-label">Ses</span></div><label class="tgl-switch"><input type="checkbox" id="ntf_sound" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label></div>
+                    <div class="switch-row"><div><span class="switch-label">Titreşim</span></div><label class="tgl-switch"><input type="checkbox" id="ntf_vibrate" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label></div>
+                </div>
+                <button class="btn-main btn-sec" onclick="testNotification()">Test Bildirimi</button>
+            </div>
+
+            <div id="set-history" class="settings-content" style="display:none;">
+                <div class="accounting-header">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div class="lc-title">KASA</div>
+                        <button class="tool-btn" onclick="openCashModal()" style="background:rgba(255,255,255,0.1); color:white; padding:5px 10px; border-radius:8px;">+ Ekle</button>
+                    </div>
+                    <div class="acc-grid">
+                        <div class="acc-item"><span class="acc-lbl">GİRİŞ</span><span class="acc-val" id="accTotalIn" style="color:var(--success)">0</span></div>
+                        <div class="acc-item"><span class="acc-lbl">ÇIKIŞ</span><span class="acc-val" id="accTotalOut" style="color:var(--danger)">0</span></div>
+                        <div class="acc-item acc-net"><span class="acc-lbl">NET</span><span class="acc-val" id="accNetFlow">0</span></div>
+                    </div>
+                </div>
+                <div class="hist-filter-scroll">
+                    <div class="h-filter-btn active" onclick="filterHistory('all', this)">Tümü</div>
+                    <div class="h-filter-btn" onclick="filterHistory('NAKİT', this)">Kasa</div>
+                    <div class="h-filter-btn" onclick="filterHistory('ALIM', this)">Alım</div>
+                    <div class="h-filter-btn" onclick="filterHistory('SATIM', this)">Satım</div>
+                </div>
+                <button class="btn-main btn-sec" style="margin-bottom:10px; border:1px dashed var(--text-sub);" onclick="openManualHistoryModal()">Manuel Ekle</button>
+                <div id="historyListFull"></div>
+            </div>
+
+        </div>
+
+    </div> 
+</div>
 
 <div class="nav-container">
     <div class="nav-item active" onclick="switchPage('portfolio', this)"><i class="fas fa-wallet"></i><span data-lang="nav_wallet">Cüzdan</span></div>
@@ -4098,6 +4259,87 @@ function saveManualHistory() {
     document.getElementById('manualHistoryModal').style.display = 'none';
     addNotification('success', 'Kaydedildi', 'Geçmiş işlem başarıyla eklendi.');
 }
+
+// --- YENİ AYARLAR MENÜSÜ FONKSİYONLARI ---
+
+// Alt sayfayı açar (Sağdan gelir)
+function openSubPage(pageId) {
+    // Ana menüyü gizle
+    document.getElementById('settings-home').style.display = 'none';
+    // Detay kapsayıcıyı göster (Animasyonlu)
+    const detailWrapper = document.getElementById('settings-detail');
+    detailWrapper.style.display = 'block';
+    detailWrapper.style.animation = 'slideInRight 0.3s forwards';
+
+    // Tüm içerikleri gizle, sadece isteneni aç
+    document.querySelectorAll('.settings-content').forEach(el => el.style.display = 'none');
+    document.getElementById('set-' + pageId).style.display = 'block';
+
+    // Başlığı güncelle
+    let titles = { 'profile': 'Profilim', 'general': 'Genel Ayarlar', 'notify': 'Bildirimler', 'history': 'Geçmiş İşlemler' };
+    document.getElementById('subPageTitle').innerText = titles[pageId] || 'Detay';
+}
+
+// Ana menüye döner
+function closeSubPage() {
+    document.getElementById('settings-detail').style.display = 'none';
+    document.getElementById('settings-home').style.display = 'block';
+    document.getElementById('settings-home').style.animation = 'fadeIn 0.3s forwards';
+}
+
+// Profil yüklendiğinde menüdeki kartı da güncelle
+// (Mevcut loadProfile fonksiyonunu bozmadan genişletiyoruz)
+const _originalLoadProfile = loadProfile;
+loadProfile = function() {
+    _originalLoadProfile(); // Eski fonksiyonu çalıştır
+    
+    // Menüdeki resmi ve ismi güncelle
+    if(userProfile.name) document.getElementById('menuProfileName').innerText = userProfile.name;
+    if(userProfile.img) document.getElementById('menuProfileImg').src = userProfile.img;
+};
+    // --- 3. ADIM: PROFİL RESMİ VE PREMIUM GÖRÜNÜM ---
+
+    // Mevcut yükleme fonksiyonunu sakla (hata vermemesi için)
+    var eskiLoadProfile = typeof loadProfile === 'function' ? loadProfile : function(){};
+
+    // Yeni ve Gelişmiş Profil Yükleyici
+    loadProfile = function() {
+        // 1. Önceki işlemleri yap (İsimleri inputlara doldur vs.)
+        eskiLoadProfile();
+
+        // 2. Hafızadan bilgileri çek
+        let up = JSON.parse(localStorage.getItem('tm_user_profile')) || {};
+        let name = up.name || 'Misafir';
+        
+        // 3. Menüdeki İsim ve Resmi Güncelle
+        // (Eğer isim yoksa 'Misafir' yazar)
+        let nameEl = document.getElementById('menuProfileName');
+        if(nameEl) nameEl.innerText = name;
+        
+        // 4. Resim Ayarı (Resim yoksa Baş Harf Avatarı oluştur)
+        let imgSource = up.img;
+        if(!imgSource || imgSource === "null" || imgSource === "") {
+            // UI Avatars servisi: İsmin baş harflerinden resim yapar (Örn: Ahmet Yılmaz -> AY)
+            imgSource = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1e2538&color=ffffff&size=128&bold=true`;
+        }
+        
+        // Hem ana menüdeki (küçük) hem detaydaki (büyük) resmi güncelle
+        const menuImg = document.getElementById('menuProfileImg');
+        const detailImg = document.getElementById('displayProfileImg');
+        
+        if(menuImg) menuImg.src = imgSource;
+        if(detailImg) detailImg.src = imgSource;
+
+        // 5. PREMIUM PARILTISI (GOLD EFEKT)
+        // Kartı bul ve parlaması için sınıf ekle
+        const card = document.getElementById('mainProfileCard');
+        if(card) {
+            card.classList.add('premium-glow'); 
+        }
+    };
+    
+    // Sayfa açıldığında tetikle
+    setTimeout(loadProfile, 500);
 
 </script>
 </body>
