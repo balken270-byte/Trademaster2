@@ -9,7 +9,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 
-    
+        <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client"></script>
+
     <style>
         /* --- TEMALAR & DEĞİŞKENLER --- */
         :root { --bg-body: #0b0f19; --bg-card: #151b2b; --bg-input: #1e2538; --text-main: #ffffff; --text-sub: #94a3b8; --accent: #3b82f6; --success: #10b981; --danger: #ef4444; --gold: #f59e0b; --kap: #8b5cf6; --radius: 16px; --accent-glow: rgba(59, 130, 246, 0.5); }
@@ -5055,58 +5057,69 @@ function proceedToNews() {
     }
 }
 
-/* --- GOOGLE DRIVE ENTEGRASYONU --- */
+/* --- GOOGLE DRIVE ENTEGRASYONU (GÜNCELLENMİŞ) --- */
 
 // 1. YAPILANDIRMA
 const CLIENT_ID = '188241284734-3tdriq9svbm1vh8acq2vqm80lieo5v7u.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyCCxeYq1C4mnv-3CRvTDertau_Jlv11OaA';
 const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
-const SCOPES = 'https://www.googleapis.com/auth/drive.file'; // Sadece uygulamanın oluşturduğu dosyalara erişir
+const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
 let tokenClient;
 let gapiInited = false;
 let gisInited = false;
 
+// Sayfa yüklendiğinde API'leri başlat
+document.addEventListener('DOMContentLoaded', () => {
+    if(typeof gapi !== 'undefined') gapiLoaded();
+    if(typeof google !== 'undefined') gisLoaded();
+});
+
 // 2. KÜTÜPHANE YÜKLEME
 function gapiLoaded() {
-    gapi.load('client', initializeGapiClient);
-}
-
-async function initializeGapiClient() {
-    await gapi.client.init({
-        apiKey: API_KEY,
-        discoveryDocs: [DISCOVERY_DOC],
+    gapi.load('client', async () => {
+        await gapi.client.init({
+            apiKey: API_KEY,
+            discoveryDocs: [DISCOVERY_DOC],
+        });
+        gapiInited = true;
+        updateDriveUI("Hazır. Giriş yapabilirsiniz.");
+        console.log("GAPI Yüklendi");
     });
-    gapiInited = true;
-    updateDriveUI("Hazır. Giriş yapabilirsiniz.");
 }
 
 function gisLoaded() {
     tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPES,
-        callback: '', // Token alındığında tetiklenir (aşağıda manuel yöneteceğiz)
+        callback: '', // Manuel yöneteceğiz
     });
     gisInited = true;
+    console.log("GIS Yüklendi");
 }
 
 // 3. GİRİŞ / ÇIKIŞ İŞLEMLERİ
 function handleAuthClick() {
-    if(!gapiInited || !gisInited) {
-        addNotification('warn', 'Hata', 'Google servisleri yüklenemedi.');
+    if (!tokenClient) {
+        addNotification('warn', 'Yükleniyor', 'Google servisleri hazırlanıyor, bekleyin...');
+        // Eğer yüklenmemişse tekrar dene
+        if(typeof gapi !== 'undefined' && !gapiInited) gapiLoaded();
+        if(typeof google !== 'undefined' && !gisInited) gisLoaded();
         return;
     }
-    
+
     tokenClient.callback = async (resp) => {
         if (resp.error !== undefined) {
             throw (resp);
         }
         updateDriveUI("Bağlandı ✅");
         addNotification('success', 'Başarılı', 'Google hesabına bağlandı.');
+        
+        // Token'ı gapi'ye ata
+        gapi.client.setToken(resp);
     };
 
     if (gapi.client.getToken() === null) {
-        // Token iste
         tokenClient.requestAccessToken({prompt: 'consent'});
     } else {
         tokenClient.requestAccessToken({prompt: ''});
@@ -5132,12 +5145,12 @@ function updateDriveUI(msg) {
 async function uploadToDrive() {
     if(!gapi.client.getToken()) {
         addNotification('warn', 'Giriş Gerekli', 'Önce Google Giriş yapmalısınız.');
+        handleAuthClick(); // Otomatik giriş penceresi aç
         return;
     }
 
     addNotification('info', 'Yedekleniyor', 'Veriler hazırlanıyor...');
 
-    // Tüm verileri topla
     const backupData = {
         myPF_final: localStorage.getItem('myPF_final'),
         tm_cash_balance: localStorage.getItem('tm_cash_balance'),
@@ -5152,7 +5165,7 @@ async function uploadToDrive() {
     const fileName = 'trademaster_backup.json';
 
     try {
-        // Önce eski dosya var mı kontrol et
+        // Dosya ara
         const response = await gapi.client.drive.files.list({
             q: "name = '" + fileName + "' and trashed = false",
             fields: 'files(id, name)',
@@ -5170,15 +5183,15 @@ async function uploadToDrive() {
         const delimiter = "\r\n--" + boundary + "\r\n";
         const close_delim = "\r\n--" + boundary + "--";
 
-        const contentType = 'application/json';
-        const base64Data = btoa(unescape(encodeURIComponent(fileContent))); // UTF-8 Karakter sorunu çözümü için
+        // Türkçe karakter sorunu için encode
+        const base64Data = btoa(unescape(encodeURIComponent(fileContent)));
 
         const multipartRequestBody =
             delimiter +
             'Content-Type: application/json\r\n\r\n' +
             JSON.stringify(fileMetadata) +
             delimiter +
-            'Content-Type: ' + contentType + '\r\n' +
+            'Content-Type: application/json\r\n' +
             'Content-Transfer-Encoding: base64\r\n' +
             '\r\n' +
             base64Data +
@@ -5187,30 +5200,24 @@ async function uploadToDrive() {
         let request;
 
         if (files && files.length > 0) {
-            // Dosya varsa GÜNCELLE (Update)
+            // Güncelle
             const fileId = files[0].id;
             request = gapi.client.request({
                 'path': '/upload/drive/v3/files/' + fileId,
                 'method': 'PATCH',
                 'params': {'uploadType': 'multipart'},
-                'headers': {
-                    'Content-Type': 'multipart/related; boundary="' + boundary + '"'
-                },
+                'headers': { 'Content-Type': 'multipart/related; boundary="' + boundary + '"' },
                 'body': multipartRequestBody
             });
-            console.log("Dosya güncelleniyor: " + fileId);
         } else {
-            // Dosya yoksa YENİ OLUŞTUR (Create)
+            // Oluştur
             request = gapi.client.request({
                 'path': '/upload/drive/v3/files',
                 'method': 'POST',
                 'params': {'uploadType': 'multipart'},
-                'headers': {
-                    'Content-Type': 'multipart/related; boundary="' + boundary + '"'
-                },
+                'headers': { 'Content-Type': 'multipart/related; boundary="' + boundary + '"' },
                 'body': multipartRequestBody
             });
-            console.log("Yeni dosya oluşturuluyor.");
         }
 
         await request;
@@ -5218,7 +5225,7 @@ async function uploadToDrive() {
 
     } catch (err) {
         console.error("Drive Hatası:", err);
-        addNotification('danger', 'Hata', 'Yedekleme başarısız oldu.');
+        addNotification('danger', 'Hata', 'Yedekleme başarısız oldu. Konsolu kontrol edin.');
     }
 }
 
@@ -5226,6 +5233,7 @@ async function uploadToDrive() {
 async function downloadFromDrive() {
     if(!gapi.client.getToken()) {
         addNotification('warn', 'Giriş Gerekli', 'Önce Google Giriş yapmalısınız.');
+        handleAuthClick();
         return;
     }
 
@@ -5244,15 +5252,13 @@ async function downloadFromDrive() {
         if (files && files.length > 0) {
             const fileId = files[0].id;
             
-            // Dosya içeriğini indir
             const fileRes = await gapi.client.drive.files.get({
                 fileId: fileId,
                 alt: 'media'
             });
 
-            const data = fileRes.result; // JSON objesi olarak döner
+            const data = fileRes.result;
 
-            // Verileri localStorage'a yaz
             if(data.myPF_final) localStorage.setItem('myPF_final', data.myPF_final);
             if(data.tm_cash_balance) localStorage.setItem('tm_cash_balance', data.tm_cash_balance);
             if(data.tm_full_trade_history) localStorage.setItem('tm_full_trade_history', data.tm_full_trade_history);
@@ -5263,7 +5269,11 @@ async function downloadFromDrive() {
             if(confirm("Yedek başarıyla indirildi. Uygulama yeniden başlatılsın mı?")) {
                 location.reload();
             } else {
-                addNotification('success', 'Tamamlandı', 'Veriler yüklendi, sayfayı yenileyin.');
+                addNotification('success', 'Tamamlandı', 'Veriler yüklendi.');
+                // Sayfayı yenilemeden verileri güncelle
+                loadPF(true);
+                renderHistory();
+                loadProfile();
             }
 
         } else {
@@ -5276,12 +5286,7 @@ async function downloadFromDrive() {
     }
 }
 
-
-
 </script>
-<script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
-    <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
-
 </body>
 </html>
 
