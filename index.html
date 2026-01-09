@@ -1068,6 +1068,65 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     gap: 5px;
 }
 
+/* --- HABER GÖRSELLERİ İÇİN YENİ CSS --- */
+
+/* Haber kartını yatay düzen (flex row) yapıyoruz */
+.nim-card {
+    display: flex !important; /* Flex düzeni zorla */
+    flex-direction: row !important; /* Yan yana sırala */
+    align-items: center;
+    gap: 12px; /* Görsel ile metin arası boşluk */
+    padding: 10px !important; /* İç boşluğu düzenle */
+}
+
+/* Görsel Kutusu */
+.nim-img-box {
+    flex-shrink: 0; /* Kutunun küçülmesini engelle */
+    width: 64px; 
+    height: 64px;
+    border-radius: 10px; /* Yuvarlak köşeler */
+    overflow: hidden; /* Taşan kısımları gizle */
+    background: rgba(255,255,255,0.05); /* Resim yoksa zemin rengi */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Görselin Kendisi */
+.nim-img-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Görseli kutuya doldur, bozma */
+}
+
+/* Görsel Yoksa Çıkacak İkon */
+.nim-placeholder-icon {
+    font-size: 24px;
+    color: var(--text-sub);
+    opacity: 0.5;
+}
+
+/* Metin Alanı */
+.nim-content {
+    flex: 1; /* Kalan alanı kapla */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0; /* Metin taşmasını önlemek için kritik */
+}
+
+/* Başlık stili güncellemesi */
+.nim-title {
+    margin-bottom: 6px;
+    line-height: 1.3;
+    max-height: 40px; /* Çok uzun başlıkları sınırla */
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Max 2 satır göster */
+    -webkit-box-orient: vertical;
+}
+
     </style>
 </head>
 <body>
@@ -1850,6 +1909,79 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     </div>
 </div>
 
+<div id="newsRedirectModal" class="modal-overlay" style="align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    
+    <div class="modal market-sheet" style="padding: 0; width: 90%; max-width: 360px; height: 65vh; border-radius: 24px; overflow: hidden; display: flex; flex-direction: column; background: #151b2b; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 20px 40px rgba(0,0,0,0.6);">
+        
+        <div style="flex: 1; padding: 16px; display: flex; flex-direction: column; background: #151b2b;">
+            
+            <div id="newsAdSpace" style="
+                flex: 1; 
+                width: 100%; 
+                background: rgba(0, 0, 0, 0.2); /* Daha koyu ve nötr zemin */
+                border-radius: 16px; 
+                border: 2px dashed rgba(255, 255, 255, 0.1); /* Göze batmayan çerçeve */
+                display: flex; 
+                align-items: center; 
+                justify-content: center; 
+                flex-direction: column;
+                margin-bottom: 15px;
+                position: relative;
+                overflow: hidden;">
+                
+                <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(255, 255, 255, 0.05); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-ad" style="font-size: 24px; color: var(--text-sub); opacity: 0.5;"></i>
+                </div>
+                
+                <span style="font-size: 10px; color: var(--text-sub); opacity: 0.5; font-weight: 700; margin-top: 15px; letter-spacing: 1px;">REKLAM</span>
+            </div>
+
+            <div style="flex-shrink: 0; display: flex; gap: 10px; height: 44px;">
+                
+                <button onclick="closeNewsModal()" style="
+                    flex: 1;
+                    height: 100%;
+                    background: #1e2538; /* Uygulama input rengi */
+                    color: #94a3b8;      /* Uygulama yan metin rengi */
+                    border: 1px solid rgba(255,255,255,0.05);
+                    border-radius: 12px;
+                    font-weight: 600;
+                    font-size: 12px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: 0.2s;">
+                    Vazgeç
+                </button>
+
+                <button onclick="proceedToNews()" style="
+                    flex: 2;
+                    height: 100%;
+                    background: #3b82f6; /* TradeMaster Mavisi */
+                    color: white;
+                    border: none;
+                    border-radius: 12px;
+                    font-weight: 700;
+                    font-size: 13px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* Hafif gölge */
+                    transition: 0.1s;">
+                    <span>Kaynağa Git</span>
+                    <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
+                </button>
+            </div>
+            
+            <div style="text-align: center; margin-top: 10px;">
+                <span style="font-size: 9px; color: var(--text-sub); opacity: 0.3;">Güvenli Bağlantı</span>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 <script>
@@ -2813,16 +2945,17 @@ function runNewsSearch() {
     document.getElementById('newsSearchInput').blur();
 }
 
+/* --- GÖRSELLİ YENİ LOADNEWS FONKSİYONU --- */
 async function loadNews(query, silent = false) {
     const container = document.getElementById('newsTimeline');
     if (!container) return;
     
     if (!silent) {
-        // İlk yüklemede spinner göster
         container.innerHTML = `<div style="text-align:center; padding:50px; color:var(--text-sub);"><i class="fas fa-satellite-dish fa-spin" style="font-size:24px; margin-bottom:10px;"></i><br>Haberler Taranıyor...</div>`;
     }
     
     const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=tr&gl=TR&ceid=TR:tr`;
+    // api.rss2json.com servisi thumbnail (görsel) desteği sunar
     const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
     
     try {
@@ -2839,30 +2972,49 @@ async function loadNews(query, silent = false) {
                 let source = titleParts.pop();
                 let cleanTitle = titleParts.join(' - ');
                 
-                // --- RENKLİ NOKTA MANTIĞI ---
-                // İlk haber "hot" (Kırmızı), ilk 5 haber "new" (Yeşil), gerisi gri
                 let badgeClass = "";
                 let sonDakikaLabel = "";
                 
                 if (index === 0) {
-                    badgeClass = "hot"; // Kırmızı Yanıp Sönen Nokta
+                    badgeClass = "hot"; 
                     sonDakikaLabel = '<span style="color:var(--danger); background:rgba(239,68,68,0.15); padding:2px 6px; border-radius:4px; margin-left:8px; font-size:9px;">SON DAKİKA</span>';
                 } else if (index < 5) {
-                    badgeClass = "new"; // Yeşil Nokta
+                    badgeClass = "new"; 
                 }
 
-                // --- HTML KART YAPISI ---
+                const safeLink = item.link.replace(/'/g, "\\'");
+                
+                // --- GÖRSEL MANTIĞI ---
+                let imageHtml = '';
+                // Eğer thumbnail varsa ve Google'ın kendi logosu değilse
+                if (item.thumbnail && !item.thumbnail.includes('google_news')) {
+                    // Görseli yüklemeyi dene, hata verirse (onerror) placeholder ikonunu göster
+                    imageHtml = `<img src="${item.thumbnail}" alt="Haber" onerror="this.style.display='none'; this.parentNode.innerHTML='<i class=\\'fas fa-newspaper nim-placeholder-icon\\'></i>'">`;
+                } else {
+                    // Görsel yoksa direkt placeholder ikonu göster
+                    imageHtml = `<i class="fas fa-newspaper nim-placeholder-icon"></i>`;
+                }
+                // ----------------------
+
                 html += `
                 <div class="news-item-modern ${badgeClass}">
                     <div class="nim-time">
                         <i class="far fa-clock"></i> ${timeStr} ${sonDakikaLabel}
                     </div>
-                    <div class="nim-card" onclick="window.open('${item.link}', '_blank')">
-                        <div class="nim-title">${cleanTitle}</div>
-                        <div class="nim-source">
-                            <i class="fas fa-newspaper"></i> ${source}
-                            <i class="fas fa-chevron-right" style="margin-left:auto; opacity:0.5; font-size:12px;"></i>
+                    
+                    <div class="nim-card" onclick="openNewsRedirect('${safeLink}')">
+                        
+                        <div class="nim-img-box">
+                            ${imageHtml}
                         </div>
+
+                        <div class="nim-content">
+                            <div class="nim-title">${cleanTitle}</div>
+                            <div class="nim-source">
+                                <i class="fas fa-newspaper" style="margin-right:4px;"></i> ${source}
+                            </div>
+                        </div>
+
                     </div>
                 </div>`;
             });
@@ -2871,9 +3023,11 @@ async function loadNews(query, silent = false) {
             container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-sub);">Sonuç bulunamadı.</div>`;
         }
     } catch (e) {
+        console.error("Haber hatası:", e);
         if (!silent) container.innerHTML = `<div style="text-align:center; color:var(--danger); padding:20px;">Bağlantı hatası.</div>`;
     }
 }
+
 
     function toggleTradeMenu() { const content = document.getElementById('tradeContent'); const chevron = document.getElementById('tradeChevron'); const card = document.getElementById('tradeCard'); if (content.classList.contains('collapsed')) { content.classList.remove('collapsed'); chevron.classList.add('rotated'); card.classList.add('open'); } else { content.classList.add('collapsed'); chevron.classList.remove('rotated'); card.classList.remove('open'); } }
     function toggleAssetDetails(id) { const content = document.getElementById('asset-content-' + id); const chevron = document.getElementById('asset-chevron-' + id); if (content.classList.contains('collapsed')) { content.classList.remove('collapsed'); chevron.classList.add('rotated'); } else { content.classList.add('collapsed'); chevron.classList.remove('rotated'); } }
@@ -4797,6 +4951,33 @@ loadProfile = function() {
     setTimeout(() => {
         addNotification('success', 'İletildi', 'Geri bildiriminiz için teşekkürler! 🚀');
     }, 1000);
+}
+
+// Global değişken: Tıklanan linki burada tutacağız
+let currentTargetUrl = "";
+
+// 1. Habere tıklandığında bu çalışır: Linki kaydeder ve Modalı açar
+function openNewsRedirect(url) {
+    if(!url) return;
+    currentTargetUrl = url;
+    
+    // Modalı göster
+    document.getElementById('newsRedirectModal').style.display = 'flex';
+}
+
+// 2. Kullanıcı "GİT" butonuna basınca bu çalışır
+function proceedToNews() {
+    if(currentTargetUrl) {
+        // Yeni sekmede güvenli açılış
+        window.open(currentTargetUrl, '_blank', 'noopener,noreferrer');
+    }
+    closeNewsModal();
+}
+
+// 3. İptal veya kapatma fonksiyonu
+function closeNewsModal() {
+    document.getElementById('newsRedirectModal').style.display = 'none';
+    currentTargetUrl = ""; // Linki temizle
 }
 
 
