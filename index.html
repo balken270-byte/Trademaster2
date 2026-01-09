@@ -9,6 +9,10 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 
+    <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+    <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+
+
     <style>
         /* --- TEMALAR & DEĞİŞKENLER --- */
         :root { --bg-body: #0b0f19; --bg-card: #151b2b; --bg-input: #1e2538; --text-main: #ffffff; --text-sub: #94a3b8; --accent: #3b82f6; --success: #10b981; --danger: #ef4444; --gold: #f59e0b; --kap: #8b5cf6; --radius: 16px; --accent-glow: rgba(59, 130, 246, 0.5); }
@@ -1580,6 +1584,29 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
                         <label class="btn-main btn-sec" style="margin:0;">Yükle <input type="file" style="display:none;" onchange="uploadBackup(this)"></label>
                     </div>
                     <button class="btn-main btn-sec" onclick="exportExcel()">Excel Raporu</button>
+                    <div style="margin-top:15px; padding-top:15px; border-top:1px solid rgba(255,255,255,0.1);">
+    <div class="lbl-sm" style="margin-bottom:10px;"><i class="fab fa-google-drive"></i> GOOGLE DRIVE YEDEKLEME</div>
+    <div id="drive-status" style="font-size:10px; color:var(--text-sub); margin-bottom:5px;">Bağlantı Bekleniyor...</div>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+        <button class="btn-main" style="background:#1f2937; border:1px solid rgba(255,255,255,0.1);" onclick="handleAuthClick()">
+            <i class="fas fa-sign-in-alt"></i> Giriş Yap
+        </button>
+        <button class="btn-main" style="background:#1f2937; border:1px solid rgba(255,255,255,0.1);" onclick="handleSignoutClick()">
+            <i class="fas fa-sign-out-alt"></i> Çıkış
+        </button>
+    </div>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+        <button class="btn-main" style="background:#10b981;" onclick="uploadToDrive()">
+            <i class="fas fa-cloud-upload-alt"></i> Buluta Yedekle
+        </button>
+        <button class="btn-main" style="background:#3b82f6;" onclick="downloadFromDrive()">
+            <i class="fas fa-cloud-download-alt"></i> Buluttan Yükle
+        </button>
+        <div style="height: 80px; width: 100%; clear: both;"></div>
+
+    </div>
+</div>
+
                 </div>
             </div>
 
@@ -5028,6 +5055,227 @@ function proceedToNews() {
                 history.back(); // Geçmişi temizleyerek kapat
             }
         }, 300);
+    }
+}
+
+/* --- GOOGLE DRIVE ENTEGRASYONU --- */
+
+// 1. YAPILANDIRMA
+const CLIENT_ID = '188241284734-3tdriq9svbm1vh8acq2vqm80lieo5v7u.apps.googleusercontent.com';
+const API_KEY = 'AIzaSyCCxeYq1C4mnv-3CRvTDertau_Jlv11OaA';
+const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
+const SCOPES = 'https://www.googleapis.com/auth/drive.file'; // Sadece uygulamanın oluşturduğu dosyalara erişir
+
+let tokenClient;
+let gapiInited = false;
+let gisInited = false;
+
+// 2. KÜTÜPHANE YÜKLEME
+function gapiLoaded() {
+    gapi.load('client', initializeGapiClient);
+}
+
+async function initializeGapiClient() {
+    await gapi.client.init({
+        apiKey: API_KEY,
+        discoveryDocs: [DISCOVERY_DOC],
+    });
+    gapiInited = true;
+    updateDriveUI("Hazır. Giriş yapabilirsiniz.");
+}
+
+function gisLoaded() {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: '', // Token alındığında tetiklenir (aşağıda manuel yöneteceğiz)
+    });
+    gisInited = true;
+}
+
+// 3. GİRİŞ / ÇIKIŞ İŞLEMLERİ
+function handleAuthClick() {
+    if(!gapiInited || !gisInited) {
+        addNotification('warn', 'Hata', 'Google servisleri yüklenemedi.');
+        return;
+    }
+    
+    tokenClient.callback = async (resp) => {
+        if (resp.error !== undefined) {
+            throw (resp);
+        }
+        updateDriveUI("Bağlandı ✅");
+        addNotification('success', 'Başarılı', 'Google hesabına bağlandı.');
+    };
+
+    if (gapi.client.getToken() === null) {
+        // Token iste
+        tokenClient.requestAccessToken({prompt: 'consent'});
+    } else {
+        tokenClient.requestAccessToken({prompt: ''});
+    }
+}
+
+function handleSignoutClick() {
+    const token = gapi.client.getToken();
+    if (token !== null) {
+        google.accounts.oauth2.revoke(token.access_token);
+        gapi.client.setToken('');
+        updateDriveUI("Çıkış yapıldı.");
+        addNotification('info', 'Çıkış', 'Bağlantı kesildi.');
+    }
+}
+
+function updateDriveUI(msg) {
+    const el = document.getElementById('drive-status');
+    if(el) el.innerText = msg;
+}
+
+// 4. YEDEKLEME (UPLOAD) İŞLEMİ
+async function uploadToDrive() {
+    if(!gapi.client.getToken()) {
+        addNotification('warn', 'Giriş Gerekli', 'Önce Google Giriş yapmalısınız.');
+        return;
+    }
+
+    addNotification('info', 'Yedekleniyor', 'Veriler hazırlanıyor...');
+
+    // Tüm verileri topla
+    const backupData = {
+        myPF_final: localStorage.getItem('myPF_final'),
+        tm_cash_balance: localStorage.getItem('tm_cash_balance'),
+        tm_full_trade_history: localStorage.getItem('tm_full_trade_history'),
+        tm_user_profile: localStorage.getItem('tm_user_profile'),
+        tm_watchlist: localStorage.getItem('tm_watchlist'),
+        tm_settings: localStorage.getItem('tm_settings'),
+        backup_date: new Date().toLocaleString()
+    };
+
+    const fileContent = JSON.stringify(backupData);
+    const fileName = 'trademaster_backup.json';
+
+    try {
+        // Önce eski dosya var mı kontrol et
+        const response = await gapi.client.drive.files.list({
+            q: "name = '" + fileName + "' and trashed = false",
+            fields: 'files(id, name)',
+            spaces: 'drive'
+        });
+
+        const files = response.result.files;
+        
+        const fileMetadata = {
+            'name': fileName,
+            'mimeType': 'application/json'
+        };
+
+        const boundary = '-------314159265358979323846';
+        const delimiter = "\r\n--" + boundary + "\r\n";
+        const close_delim = "\r\n--" + boundary + "--";
+
+        const contentType = 'application/json';
+        const base64Data = btoa(unescape(encodeURIComponent(fileContent))); // UTF-8 Karakter sorunu çözümü için
+
+        const multipartRequestBody =
+            delimiter +
+            'Content-Type: application/json\r\n\r\n' +
+            JSON.stringify(fileMetadata) +
+            delimiter +
+            'Content-Type: ' + contentType + '\r\n' +
+            'Content-Transfer-Encoding: base64\r\n' +
+            '\r\n' +
+            base64Data +
+            close_delim;
+
+        let request;
+
+        if (files && files.length > 0) {
+            // Dosya varsa GÜNCELLE (Update)
+            const fileId = files[0].id;
+            request = gapi.client.request({
+                'path': '/upload/drive/v3/files/' + fileId,
+                'method': 'PATCH',
+                'params': {'uploadType': 'multipart'},
+                'headers': {
+                    'Content-Type': 'multipart/related; boundary="' + boundary + '"'
+                },
+                'body': multipartRequestBody
+            });
+            console.log("Dosya güncelleniyor: " + fileId);
+        } else {
+            // Dosya yoksa YENİ OLUŞTUR (Create)
+            request = gapi.client.request({
+                'path': '/upload/drive/v3/files',
+                'method': 'POST',
+                'params': {'uploadType': 'multipart'},
+                'headers': {
+                    'Content-Type': 'multipart/related; boundary="' + boundary + '"'
+                },
+                'body': multipartRequestBody
+            });
+            console.log("Yeni dosya oluşturuluyor.");
+        }
+
+        await request;
+        addNotification('success', 'Yedeklendi ☁️', 'Verileriniz Google Drive\'a kaydedildi.');
+
+    } catch (err) {
+        console.error("Drive Hatası:", err);
+        addNotification('danger', 'Hata', 'Yedekleme başarısız oldu.');
+    }
+}
+
+// 5. GERİ YÜKLEME (DOWNLOAD) İŞLEMİ
+async function downloadFromDrive() {
+    if(!gapi.client.getToken()) {
+        addNotification('warn', 'Giriş Gerekli', 'Önce Google Giriş yapmalısınız.');
+        return;
+    }
+
+    addNotification('info', 'Aranıyor', 'Yedek dosyası aranıyor...');
+
+    try {
+        const fileName = 'trademaster_backup.json';
+        const response = await gapi.client.drive.files.list({
+            q: "name = '" + fileName + "' and trashed = false",
+            fields: 'files(id, name)',
+            spaces: 'drive'
+        });
+
+        const files = response.result.files;
+
+        if (files && files.length > 0) {
+            const fileId = files[0].id;
+            
+            // Dosya içeriğini indir
+            const fileRes = await gapi.client.drive.files.get({
+                fileId: fileId,
+                alt: 'media'
+            });
+
+            const data = fileRes.result; // JSON objesi olarak döner
+
+            // Verileri localStorage'a yaz
+            if(data.myPF_final) localStorage.setItem('myPF_final', data.myPF_final);
+            if(data.tm_cash_balance) localStorage.setItem('tm_cash_balance', data.tm_cash_balance);
+            if(data.tm_full_trade_history) localStorage.setItem('tm_full_trade_history', data.tm_full_trade_history);
+            if(data.tm_user_profile) localStorage.setItem('tm_user_profile', data.tm_user_profile);
+            if(data.tm_watchlist) localStorage.setItem('tm_watchlist', data.tm_watchlist);
+            if(data.tm_settings) localStorage.setItem('tm_settings', data.tm_settings);
+
+            if(confirm("Yedek başarıyla indirildi. Uygulama yeniden başlatılsın mı?")) {
+                location.reload();
+            } else {
+                addNotification('success', 'Tamamlandı', 'Veriler yüklendi, sayfayı yenileyin.');
+            }
+
+        } else {
+            addNotification('warn', 'Bulunamadı', 'Drive\'da yedek dosyası yok.');
+        }
+
+    } catch (err) {
+        console.error("İndirme Hatası:", err);
+        addNotification('danger', 'Hata', 'Veri indirilemedi.');
     }
 }
 
