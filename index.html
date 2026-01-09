@@ -4980,6 +4980,56 @@ function closeNewsModal() {
     currentTargetUrl = ""; // Linki temizle
 }
 
+/* --- GERİ GELME (SWIPE / TUŞ) YÖNETİMİ --- */
+
+// 1. Geri hareketini dinle (Ekran kaydırma veya tuş)
+window.addEventListener('popstate', function(event) {
+    const modal = document.getElementById('newsRedirectModal');
+    
+    // Eğer Haber Modalı Açıksa:
+    if (modal && modal.style.display === 'flex') {
+        // Uygulamayı kapatma, sadece modalı gizle
+        modal.style.display = 'none';
+        currentTargetUrl = ""; 
+    }
+});
+
+// 2. Modalı açarken tarayıcıya "Sahte Geçmiş" ekle
+function openNewsRedirect(url) {
+    if(!url) return;
+    currentTargetUrl = url;
+    
+    // BU SATIR ÇOK ÖNEMLİ:
+    // Tarayıcıya "Yeni bir sayfaya geçtik" diyoruz.
+    // Böylece kullanıcı kaydırınca (swipe yapınca) uygulamadan çıkmıyor,
+    // sadece bu eklediğimiz sahte geçmiş siliniyor.
+    history.pushState({ popup: 'news' }, null, window.location.href);
+    
+    document.getElementById('newsRedirectModal').style.display = 'flex';
+}
+
+// 3. Vazgeç butonuna basılırsa
+function closeNewsModal() {
+    // Manuel olarak geri git (Bu, yukarıdaki popstate olayını tetikler)
+    history.back(); 
+}
+
+// 4. Git butonuna basılırsa
+function proceedToNews() {
+    if(currentTargetUrl) {
+        // Yeni sekmede aç
+        window.open(currentTargetUrl, '_blank');
+        
+        // Kullanıcı haberi okuyup uygulamaya geri döndüğünde modal açık kalmasın
+        // Hafif gecikmeli olarak arkadaki modalı kapatıyoruz
+        setTimeout(() => {
+            const modal = document.getElementById('newsRedirectModal');
+            if (modal && modal.style.display === 'flex') {
+                history.back(); // Geçmişi temizleyerek kapat
+            }
+        }, 300);
+    }
+}
 
 </script>
 </body>
