@@ -1148,6 +1148,8 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
+    <script src="config.js"></script>
+
 
 
 </head>
@@ -2183,8 +2185,11 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 <script>
         /* --- AYARLAR VE GLOBAL DEĞİŞKENLER --- */
     // YENİ: CoinGecko Anahtarı Otomatik Tanımlı
-    const AUTO_CG_KEY = "CG-G2hRKmRzcPTYJUA3L79dg8Ta";
-    let coingeckoApiKey = AUTO_CG_KEY; 
+    // Anahtar artık config.js dosyasından geliyor
+const AUTO_CG_KEY = AppConfig.COINGECKO_KEY;
+let coingeckoApiKey = AUTO_CG_KEY; 
+
+
     
     // Global değişkenlere ekle:
 let notifySettings = JSON.parse(localStorage.getItem('tm_notify_settings')) || {
@@ -5231,8 +5236,9 @@ function proceedToNews() {
 /* --- GOOGLE DRIVE ENTEGRASYONU (GÜNCELLENMİŞ) --- */
 
 // 1. YAPILANDIRMA
-const CLIENT_ID = '188241284734-3tdriq9svbm1vh8acq2vqm80lieo5v7u.apps.googleusercontent.com';
-const API_KEY = 'AIzaSyCCxeYq1C4mnv-3CRvTDertau_Jlv11OaA';
+const CLIENT_ID = AppConfig.GOOGLE_CLIENT_ID;
+const API_KEY = AppConfig.GOOGLE_API_KEY;
+
 const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
