@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-   <title>TradeFlow Pro (Live Edition)</title>
+   <title>TradeVia (Live Edition)</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -14,6 +14,25 @@
     <script src="https://accounts.google.com/gsi/client"></script>
 
     <style>
+                    .bottom-nav {
+            position: fixed;       /* Ekrana çivile */
+            bottom: 0 !important;  /* Kesinlikle en altta olsun */
+            left: 0 !important;    /* Kesinlikle en solda olsun */
+            right: 0 !important;   /* Kesinlikle en sağa kadar gitsin */
+            width: 100%;           /* Ekranı tam kapla */
+            height: 70px;          
+            background: rgba(21, 27, 43, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 99999;        /* Her şeyin en en üstünde */
+            margin: 0;             /* Dış boşluk yok */
+            padding-bottom: env(safe-area-inset-bottom); /* iPhone çizgisi için */
+        }
+
+        
         /* --- TEMALAR & DEĞİŞKENLER --- */
         :root { --bg-body: #0b0f19; --bg-card: #151b2b; --bg-input: #1e2538; --text-main: #ffffff; --text-sub: #94a3b8; --accent: #3b82f6; --success: #10b981; --danger: #ef4444; --gold: #f59e0b; --kap: #8b5cf6; --radius: 16px; --accent-glow: rgba(59, 130, 246, 0.5); }
         [data-theme="purple"] { --bg-body: #0f0718; --bg-card: #1a0b2e; --bg-input: #261245; --accent: #8b5cf6; --text-sub: #a78bfa; --accent-glow: rgba(139, 92, 246, 0.5); }
@@ -32,8 +51,9 @@
 }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; transition: background 0.3s; }
-        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        
+                body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; transition: background 0.3s; }
+
 
         /* ÜST BAR */
         .top-bar { height: 60px; flex-shrink: 0; background: var(--bg-body); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; z-index: 50; }
@@ -258,28 +278,71 @@
         .hist-filter-scroll { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 15px; scrollbar-width: none; }
         .h-filter-btn { background: var(--bg-input); border: 1px solid rgba(255,255,255,0.1); color: var(--text-sub); padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; }
         .h-filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-.nav-container {
-    position: fixed;
-    bottom: 20px; /* Ekranın en altından boşluk */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 95%;
-    max-width: 420px;
-    height: 65px;
-    background: rgba(21, 27, 43, 0.98); /* Biraz daha opak */
-    backdrop-filter: blur(15px);
-    border-radius: 20px;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    z-index: 999; /* Z-Index artırıldı, diğer öğelerin üstünde kalır */
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    border: 1px solid rgba(255,255,255,0.08);
-    /* transition satırını kaldırdık, böylece animasyon beklemez */
-}
-        .nav-item { color: var(--text-sub); font-size: 18px; padding: 10px 5px; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
-        .nav-item.active { color: var(--accent); transform: translateY(-2px); }
-        .nav-item span { font-size: 9px; font-weight: 500; }
+       
+                  .nav-container {
+            position: fixed;
+            bottom: 0 !important;        /* En alta yapıştır */
+            left: 0 !important;          /* En sola yasla */
+            width: 100% !important;      /* Ekranı tam kapla */
+            height: 60px;                /* Yükseklik (İdeal incelik) */
+            
+            background: rgba(21, 27, 43, 0.95); /* Arka plan rengi */
+            backdrop-filter: blur(15px);        /* Buzlu cam efekti */
+            -webkit-backdrop-filter: blur(15px);
+            
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.08); /* Sadece üstte ince çizgi */
+            border-radius: 0;            /* Köşeler düz */
+            
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 9999;
+            
+            transform: none !important;  /* Ortalamayı iptal et */
+            max-width: none !important;  /* Genişlik sınırını kaldır */
+            padding-bottom: env(safe-area-inset-bottom); /* iPhone alt çizgi payı */
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.2); /* Hafif gölge */
+        }
+
+                     .nav-item { 
+            color: #64748b;        /* Pasif ikon rengi (Gri) */
+            padding: 0;
+            height: 100%;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+            gap: 4px;              /* İkon ve yazı arası boşluk */
+            flex: 1; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .nav-item i {
+            font-size: 20px;       /* İkon boyutu */
+            transition: 0.3s;
+        }
+        
+        .nav-item span {
+            font-size: 10px;       /* Yazı boyutu */
+            font-weight: 600;
+        }
+
+        /* Aktif Olduğunda Ne Olsun? */
+        .nav-item.active { 
+            color: white; 
+            transform: translateY(-4px); /* Seçilince hafif yukarı çıksın */
+        }
+        
+        .nav-item.active i {
+            color: #3b82f6;       /* Mavi renk */
+            filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.6)); /* NEON PARLAMA */
+        }
+
+
+
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal { background: var(--bg-card); padding: 20px; border-radius: 20px; width: 90%; max-width: 350px; border: 1px solid rgba(255,255,255,0.1); color: white; }
         .privacy-blur { filter: blur(8px); opacity: 0.5; transition: 0.3s; }
@@ -1132,173 +1195,16 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 }
 
     </style>
+    
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5912166843737955"
      crossorigin="anonymous"></script>
      
      
      <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <title>TradeVia - Canlı Borsa, Altın, Kripto ve Portföy Takip Aracı</title>
-    <meta name="description" content="TradeVia ile BIST 100 hisseleri, canlı altın fiyatları, kripto paralar ve döviz kurlarını anlık takip edin. Profesyonel portföy yönetimi ve finansal analiz aracı.">
-    <meta name="keywords" content="borsa takip, canlı altın, kripto para, portföy yönetimi, bist 100, dolar kuru, finans analizi, trademaster">
-    <meta name="author" content="TradeVia">
-    <meta name="robots" content="index, follow">
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
-    <script src="config.js"></script>
-
-
-
-</head>
 <body>
     <canvas id="bg-canvas"></canvas>
  
-<div id="landing-page-container" style="
-    position: fixed; 
-    top: 0; 
-    left: 0; 
-    width: 100%; 
-    height: 100%; 
-    background: radial-gradient(circle at top center, #1e293b 0%, #0b0f19 70%); 
-    z-index: 99999; 
-    overflow-y: auto; 
-    padding: 20px; 
-    display: flex; 
-    flex-direction: column;
-    font-family: 'Inter', sans-serif;">
-
-    <div style="position:fixed; top:-100px; left:50%; transform:translateX(-50%); width:300px; height:300px; background:#3b82f6; filter:blur(150px); opacity:0.2; z-index:-1; pointer-events:none;"></div>
-
-    <div style="max-width:1000px; margin:0 auto; color:white; padding-bottom:50px; width:100%;">
-        
-        <div style="text-align:center; margin-top:60px; margin-bottom:50px; animation:fadeInDown 0.8s ease;">
-            <div style="
-                display:inline-flex; 
-                align-items:center; 
-                gap:10px; 
-                background: rgba(255,255,255,0.03); 
-                padding: 15px 25px; 
-                border-radius: 20px; 
-                border: 1px solid rgba(255,255,255,0.05);
-                backdrop-filter: blur(10px);
-                box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-                
-                <div style="font-size:28px; font-weight:900; letter-spacing:1px; color:white;">
-                    TRADE<span style="color:#3b82f6;">VİA</span>
-                </div>
-                
-                <div style="
-                    font-size: 10px; 
-                    font-weight: 800; 
-                    background: rgba(245, 158, 11, 0.15); 
-                    color: #f59e0b; 
-                    padding: 4px 8px; 
-                    border-radius: 8px; 
-                    border: 1px solid rgba(245, 158, 11, 0.3);
-                    letter-spacing: 0.5px;">
-                    BETA
-                </div>
-            </div>
-
-            <h1 style="font-size:16px; font-weight:400; color:#94a3b8; margin-top:20px; max-width:800px; margin-left:auto; margin-right:auto; line-height:1.6;">
-                Borsa, Kripto Para ve Emtia piyasaları için hepsi bir arada finans terminali. Gecikmeli veya anlık veri akışıyla piyasaların nabzını tutun, analiz araçlarıyla yatırımlarınızı yönetin.
-            </h1>
-            
-            <button onclick="enterApplication()" style="
-                background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-                color: white; 
-                border: none; 
-                padding: 16px 45px; 
-                font-size: 16px; 
-                font-weight: 700; 
-                border-radius: 16px; 
-                cursor: pointer; 
-                box-shadow: 0 0 25px rgba(59, 130, 246, 0.4); 
-                margin-top: 30px; 
-                transition: all 0.3s ease;
-                border: 1px solid rgba(255,255,255,0.1);
-                display: inline-flex;
-                align-items: center;
-                gap: 10px;">
-                UYGULAMAYI BAŞLAT <i class="fas fa-rocket"></i>
-            </button>
-        </div>
-
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:20px;">
-            
-            <div style="
-                background: rgba(21, 27, 43, 0.6); 
-                border: 1px solid rgba(255,255,255,0.05); 
-                padding: 25px; 
-                border-radius: 20px; 
-                backdrop-filter: blur(10px);">
-                <div style="width:40px; height:40px; background:rgba(59, 130, 246, 0.1); border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:15px; color:#3b82f6;">
-                    <i class="fas fa-chart-line" style="font-size:18px;"></i>
-                </div>
-                <h2 style="color:white; font-size:16px; font-weight:700; margin-bottom:10px;">Piyasa Takibi</h2>
-                <p style="color:#94a3b8; font-size:13px; line-height:1.6; margin:0;">
-                    TradeVia; Borsa hisseleri, Kripto paralar, Altın (Ons, Gram) ve Döviz kurlarını tek bir ekrandan takip etmenizi sağlar. Veri sağlayıcı politikalarına göre fiyatlar <strong>anlık veya gecikmeli</strong> olarak sunulabilir. Gelişmiş algoritması ile piyasa hareketlerini yakalayın.
-                </p>
-            </div>
-
-            <div style="
-                background: rgba(21, 27, 43, 0.6); 
-                border: 1px solid rgba(255,255,255,0.05); 
-                padding: 25px; 
-                border-radius: 20px; 
-                backdrop-filter: blur(10px);">
-                <div style="width:40px; height:40px; background:rgba(245, 158, 11, 0.1); border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:15px; color:#f59e0b;">
-                    <i class="fas fa-chart-pie" style="font-size:18px;"></i>
-                </div>
-                <h2 style="color:white; font-size:16px; font-weight:700; margin-bottom:10px;">Cüzdan ve Analiz</h2>
-                <p style="color:#94a3b8; font-size:13px; line-height:1.6; margin:0;">
-                    Varlıklarınızı Excel tablolarında takip etmekten yoruldunuz mu? TradeVia ile hisse, coin veya dövizlerinizi maliyetleriyle kaydedin. Uygulama, ortalama maliyetinizi, anlık kâr/zarar durumunuzu ve varlık dağılımınızı grafiklerle <strong>analiz eder</strong>. Portföyünüzün performansını profesyonel araçlarla ölçün.
-                </p>
-            </div>
-
-            <div style="
-                background: rgba(21, 27, 43, 0.6); 
-                border: 1px solid rgba(255,255,255,0.05); 
-                padding: 25px; 
-                border-radius: 20px; 
-                backdrop-filter: blur(10px);">
-                <div style="width:40px; height:40px; background:rgba(16, 185, 129, 0.1); border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:15px; color:#10b981;">
-                    <i class="fas fa-newspaper" style="font-size:18px;"></i>
-                </div>
-                <h2 style="color:white; font-size:16px; font-weight:700; margin-bottom:10px;">Haber Akışı</h2>
-                <p style="color:#94a3b8; font-size:13px; line-height:1.6; margin:0;">
-                    Ekonomi dünyasındaki son gelişmelerden anında haberdar olun. Fed faiz kararları, TCMB açıklamaları, kripto para regülasyonları ve şirket bilançoları gibi piyasayı etkileyen haberleri TradeVia haber akışı üzerinden takip edebilirsiniz. Yatırım kararlarınızı alırken doğru bilgiye en hızlı şekilde ulaşın.
-                </p>
-            </div>
-
-        </div>
-
-        <div style="margin-top:40px; text-align:center; padding-top:20px; border-top:1px solid rgba(255,255,255,0.05);">
-            <p style="font-size:11px; color:#475569; line-height:1.6; max-width:800px; margin:0 auto; text-align: justify;">
-                Bu uygulama (TradeVia) sadece bir takip, analiz ve simülasyon aracıdır. Burada yer alan veriler, grafikler ve analizler yatırım tavsiyesi değildir. Veriler kaynak sağlayıcılara bağlı olarak gecikmeli yansıyabilir.
-                Kullanıcıların yaptığı işlemlerden doğabilecek zararlardan TradeVia sorumlu tutulamaz. Uygulama, kullanıcı deneyimini iyileştirmek için yerel depolama (localStorage) teknolojisini kullanır.
-                Verileriniz sunucularımızda değil, kendi cihazınızda saklanır.
-            </p>
-                    
-            <div style="margin-top:20px; display:flex; justify-content:center; gap:20px; flex-wrap:wrap;">
-                <a href="gizlilik.html" target="_blank" style="color:#64748b; font-size:11px; text-decoration:none; font-weight:600; transition:0.2s;">Gizlilik Politikası</a>
-                <a href="kullanim-kosullari.html" target="_blank" style="color:#64748b; font-size:11px; text-decoration:none; font-weight:600; transition:0.2s;">Kullanım Koşulları</a>
-                <a href="iletisim.html" target="_blank" style="color:#64748b; font-size:11px; text-decoration:none; font-weight:600; transition:0.2s;">İletişim</a>
-            </div>
-
-            <div style="margin-top:15px; font-size:11px; color:#334155; font-weight:700;">
-                © 2026 TradeVia - Tüm Hakları Saklıdır
-            </div>
-        </div>
-
-            </div>
-        </div>
-
-    </div>
-</div>
 
 <div id="splash-screen">
     <div class="original-logo-container">
@@ -2194,14 +2100,11 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 
 <script>
         /* --- AYARLAR VE GLOBAL DEĞİŞKENLER --- */
-    // YENİ: CoinGecko Anahtarı Otomatik Tanımlı
-    // Anahtar artık config.js dosyasından geliyor
-const AUTO_CG_KEY = AppConfig.COINGECKO_KEY;
+  const AUTO_CG_KEY = "CG-G2hRKmRzcPTYJUA3L79dg8Ta";
 let coingeckoApiKey = AUTO_CG_KEY; 
 
 
-    
-    // Global değişkenlere ekle:
+  
 let notifySettings = JSON.parse(localStorage.getItem('tm_notify_settings')) || {
     price: true, trade: true, news: false, sound: true, vibrate: true
 };
@@ -2225,49 +2128,60 @@ let notifySettings = JSON.parse(localStorage.getItem('tm_notify_settings')) || {
     let currentRenderId = 0; 
     let liveUpdateInterval; 
 
-    /* --- BAŞLATMA VE AÇILIŞ EKRANI (HIZLI MOD) --- */
-    function initApp(){
-        document.getElementById('currSelect').value = appSettings.currency;
-        document.getElementById('langSelect').value = appSettings.lang;
-        document.getElementById('themeSelect').value = appSettings.theme || 'ocean';
-        document.getElementById('polyKey').value = polyApiKey;
+ /* --- BAŞLATMA VE AÇILIŞ EKRANI (DÜZELTİLMİŞ FİNAL) --- */
+function initApp(){
+    // Ayarları yükle
+    document.getElementById('currSelect').value = appSettings.currency;
+    document.getElementById('langSelect').value = appSettings.lang;
+    document.getElementById('themeSelect').value = appSettings.theme || 'ocean';
+    document.getElementById('polyKey').value = polyApiKey;
+    
+    applyTheme(appSettings.theme);
+    applyLang();
+    loadNotifyUI();
+    checkNotifyPermission();
+    updateBadge();
+    loadProfile();
+    checkPolyInit();
+    
+    // Cüzdanı hazırla (Ama göstermeyeceğiz)
+    renderPortfolioHTML(JSON.parse(localStorage.getItem('myPF_final')) || []);
+
+    fetchUsdRate().then(async ()=>{ 
+        await loadPF(true); 
+        takePortfolioSnapshot(); 
         
-        applyTheme(appSettings.theme);
-        applyLang();
-        loadNotifyUI();
-        checkNotifyPermission();
-        updateBadge();
-        loadProfile();
-        checkPolyInit();
+        // --- DEĞİŞİKLİK 1: BURADAKİ SATIRI SİLDİM ---
+        // (loadMarketCategory satırını kaldırdık çünkü aşağıda sayfayı açınca kendi yüklenecek)
         
+        updateWatchlist();
+        setTimeout(() => { if(document.getElementById('newsFeed') && document.getElementById('newsFeed').innerHTML==="") fetchNewsCustom(); }, 2500); 
+        startLiveUpdates();
+    });
 
-        renderPortfolioHTML(JSON.parse(localStorage.getItem('myPF_final')) || []);
+    setTimeout(() => { hideSplashScreen(); }, 1500); 
 
-                fetchUsdRate().then(async ()=>{ 
-            await loadPF(true); 
-            takePortfolioSnapshot(); 
-            // YENİ FONKSİYONU ÇAĞIRIYORUZ:
-            loadMarketCategory('kripto', document.querySelector('.m-tab-pro')); 
-            updateWatchlist();
-            setTimeout(() => { if(document.getElementById('newsFeed').innerHTML==="") fetchNewsCustom(); }, 2500); 
-            startLiveUpdates();
-        });
+    renderHistory();
+    setEntryCurrency('TRY'); 
 
+    // --- DEĞİŞİKLİK 2: AÇILIŞTA DİREKT PİYASA SAYFASINA GİT ---
+    // Bu kod çalıştığı an Piyasa butonuna basılmış gibi yapar ve listeyi doldurur.
+    setTimeout(() => {
+        const marketBtn = document.querySelectorAll('.nav-item')[1]; // 2. sıradaki buton (Piyasa)
+        if(marketBtn) switchPage('market', marketBtn);
+    }, 100); // 100ms gecikme ile DOM'un hazır olmasını garantiye alıyoruz
+}
 
-       setTimeout(() => { hideSplashScreen(); }, 3500); 
-
-
-        renderHistory();
-        setEntryCurrency('TRY'); 
+function hideSplashScreen() {
+    const splash = document.getElementById('splash-screen');
+    if(splash && !splash.classList.contains('hidden')) {
+        splash.classList.add('hidden');
+        setTimeout(() => { splash.remove(); }, 400); 
     }
+}
 
-    function hideSplashScreen() {
-        const splash = document.getElementById('splash-screen');
-        if(splash && !splash.classList.contains('hidden')) {
-            splash.classList.add('hidden');
-            setTimeout(() => { splash.remove(); }, 400); 
-        }
-    }
+    
+    
 
    /* --- GÜNCELLENMİŞ SAYFA GEÇİŞ FONKSİYONU --- */
 function switchPage(p, btn){ 
@@ -3578,21 +3492,24 @@ function sortMarketData(type, btn) {
     processAndRenderData();
 }
 
-/* --- MEVCUT fetchMarketData FONKSİYONUNU TAMAMEN BUNUNLA DEĞİŞTİRİN --- */
+/* --- DÜZELTİLMİŞ FETCH MARKET DATA --- */
 async function fetchMarketData() {
     const loader = document.getElementById('marketLoader');
     if(loader) loader.classList.add('active');
     isMarketLoading = true;
 
     try {
-        // --- SENARYO 1: KRİPTO (Aynı kalıyor) ---
+        // --- SENARYO 1: KRİPTO (COINGECKO) ---
         if(currentCategory === 'kripto') {
             if (coingeckoApiKey) {
-                const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${itemsPerPage}&page=${currentPage}&sparkline=false&x_cg_demo_api_key=${coingeckoApiKey}`;
+                // Sayfa başına 50 coin çekelim (Daha akıcı olur)
+                const fetchLimit = 50; 
+                const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${fetchLimit}&page=${currentPage}&sparkline=false&x_cg_demo_api_key=${coingeckoApiKey}`;
+                
                 const res = await fetch(url);
                 const data = await res.json();
                 
-                if(Array.isArray(data)) {
+                if(Array.isArray(data) && data.length > 0) {
                     const cgData = data.map(d => ({
                         symbol: d.symbol.toUpperCase(),
                         name: d.name,
@@ -3600,46 +3517,61 @@ async function fetchMarketData() {
                         change: d.price_change_percentage_24h,
                         vol: d.total_volume,
                         image: d.image,
-                        source: 'RANK #' + d.market_cap_rank
+                        source: 'RANK #' + d.market_cap_rank,
+                        id: d.id // ID bilgisini de saklayalım (Çakışma kontrolü için)
                     }));
-                    if(currentPage === 1) marketDataCache = cgData;
-                    else marketDataCache = [...marketDataCache, ...cgData];
+
+                    // --- KRİTİK DÜZELTME: DUPLICATE (TEKRAR) KONTROLÜ ---
+                    // Sadece marketDataCache içinde OLMAYAN yenileri al
+                    const uniqueNewItems = cgData.filter(newItem => 
+                        !marketDataCache.some(existing => existing.symbol === newItem.symbol)
+                    );
+
+                    if(currentPage === 1) {
+                        marketDataCache = uniqueNewItems;
+                    } else {
+                        marketDataCache = [...marketDataCache, ...uniqueNewItems];
+                    }
+
+                    // Sadece yeni gelenleri render et
+                    processAndRenderData(uniqueNewItems); 
+                } else {
+                    // Veri bittiyse loader'ı gizle
+                    isMarketLoading = false; 
+                    if(loader) loader.classList.remove('active');
+                    return;
                 }
             }
         } 
         
-        // --- SENARYO 2: HİSSE (BIST) (Aynı kalıyor) ---
+        // --- SENARYO 2: HİSSE (BIST) ---
         else if(currentCategory === 'hisse') {
-            marketDataCache = bistExtended.map(sym => ({
-                symbol: sym, price: 0, change: 0, vol: 0, source: 'BIST', image: null
-            }));
-            updateBistPrices(); // Arka planda fiyatları doldurur
-        } 
-        
-        // --- SENARYO 3: DÖVİZ (YENİ HIZLI MOTOR) ---
-        else if(currentCategory === 'doviz') {
-            // Sadece ilk sayfada çekiyoruz, pagination gerekmez
-            if(currentPage === 1) {
-                marketDataCache = await fetchFastForex();
+            if(currentPage === 1) { // Sadece ilk yüklemede oluştur
+                marketDataCache = bistExtended.map(sym => ({
+                    symbol: sym, price: 0, change: 0, vol: 0, source: 'BIST', image: null
+                }));
+                updateBistPrices();
+                processAndRenderData(marketDataCache); // Hepsini bas
             }
         } 
         
-        // --- SENARYO 4: ALTIN (YENİ HIZLI MOTOR) ---
-        else if(currentCategory === 'altin') {
-            // Sadece ilk sayfada çekiyoruz
+        // --- SENARYO 3 & 4: DÖVİZ & ALTIN ---
+        else if(currentCategory === 'doviz' || currentCategory === 'altin') {
             if(currentPage === 1) {
-                marketDataCache = await fetchFastGold();
+                if(currentCategory === 'doviz') marketDataCache = await fetchFastForex();
+                else marketDataCache = await fetchFastGold();
+                
+                processAndRenderData(marketDataCache);
             }
         }
 
-        processAndRenderData();
-
     } catch (error) {
         console.error("Veri hatası:", error);
+    } finally {
+        isMarketLoading = false;
         if(loader) loader.classList.remove('active');
     }
 }
-
 
 // 4. BIST ve Diğerleri İçin Fiyat Güncelleme (Arka Planda)
 async function updateBistPrices() {
@@ -3658,36 +3590,28 @@ async function updateBistPrices() {
     }
 }
 
-
-
-// 5. Veriyi İşle ve Ekrana Bas (Sıralama + Pagination)
-function processAndRenderData() {
-    // Sıralama Mantığı
-    if(currentSortType === 'vol') {
-        // Hacme göre (Kripto için quoteVolume, diğerleri için varsayılan sıra)
-        if(currentCategory === 'kripto') marketDataCache.sort((a,b) => b.vol - a.vol);
-    } else if(currentSortType === 'gainers') {
-        marketDataCache.sort((a,b) => b.change - a.change);
-    } else if(currentSortType === 'losers') {
-        marketDataCache.sort((a,b) => a.change - b.change);
-    }
-
-    // Listeyi Temizle (Eğer sayfa 1 ise)
+/* --- DÜZELTİLMİŞ RENDER SİSTEMİ --- */
+function processAndRenderData(itemsToRender = []) {
     const listEl = document.getElementById('infiniteMarketList');
-    if(currentPage === 1) listEl.innerHTML = '';
     
-    renderNextBatch();
-    isMarketLoading = false;
-    document.getElementById('marketLoader').classList.remove('active');
+    // Eğer Sayfa 1 ise veya itemsToRender boş gelirse (sıralama değişimi gibi) listeyi temizle
+    if(currentPage === 1 && itemsToRender.length === 0) {
+        listEl.innerHTML = '';
+        itemsToRender = marketDataCache; // Cache'deki her şeyi bas
+    }
+    
+    // Eğer itemsToRender parametresi dolu geldiyse (Sayfa 2, 3...) sadece onları bas
+    if(itemsToRender.length > 0) {
+        renderSpecificBatch(itemsToRender);
+    }
 }
 
-// 6. Sonraki Grubu Render Et (PREMIUM TASARIMLI GÜNCEL HALİ)
-/* --- GÜNCELLENMİŞ LOGO GÖSTERİMİ --- */
-function renderNextBatch() {
+// Yeni Render Fonksiyonu (Batch Rendering)
+function renderSpecificBatch(batch) {
     const listEl = document.getElementById('infiniteMarketList');
-    const start = (currentPage - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-    const batch = marketDataCache.slice(start, end);
+    
+    // Mevcut eleman sayısını al (Sıralama numarası vermek için)
+    let startIndex = listEl.children.length + 1;
 
     if(batch.length === 0 && currentPage === 1) {
         listEl.innerHTML = "<div style='text-align:center; padding:30px; color:var(--text-sub); opacity:0.6;'><i class='fas fa-search' style='font-size:24px; margin-bottom:10px;'></i><br>Veri bulunamadı.</div>";
@@ -3696,24 +3620,19 @@ function renderNextBatch() {
 
     let html = "";
     batch.forEach((item, idx) => {
-        let globalIdx = start + idx + 1;
-                let pStr = "--";
-        if (item.price > 0) {
-            // A) ALTIN KATEGORİSİ
+        let globalIdx = startIndex + idx;
+        let pStr = "--";
+        
+        if (item.price !== undefined && item.price !== null) {
             if (currentCategory === 'altin') {
-                // Sadece 'ONS' içerenler Dolar ($) olsun
-                if (item.symbol.includes('ONS')) {
-                     pStr = '$' + item.price.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-                } else {
-                     // Diğerleri (Gram, Çeyrek, Cumhuriyet) TL (₺) olsun
-                     pStr = '₺' + item.price.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-                }
+                if (item.symbol.includes('ONS')) pStr = '$' + item.price.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+                else pStr = '₺' + item.price.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
             } 
-            // B) KRİPTO -> HEP DOLAR
             else if (currentCategory === 'kripto') {
-                pStr = '$' + item.price.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+                // Kripto fiyat formatlaması (küçük coinler için hassas)
+                if(item.price < 1) pStr = '$' + item.price.toFixed(6);
+                else pStr = '$' + item.price.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
             } 
-            // C) DİĞERLERİ (HİSSE, DÖVİZ) -> HEP TL
             else {
                 pStr = '₺' + item.price.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
             }
@@ -3722,18 +3641,14 @@ function renderNextBatch() {
         let isUp = item.change >= 0;
         let cClass = isUp ? 'bg-up' : 'bg-down';
         let cIcon = isUp ? '<i class="fas fa-caret-up"></i>' : '<i class="fas fa-caret-down"></i>';
-        let cStr = item.change !== 0 ? `${cIcon}%${Math.abs(item.change).toFixed(2)}` : "--";
+        let cStr = item.change !== undefined ? `${cIcon}%${Math.abs(item.change).toFixed(2)}` : "--";
         
-        // --- LOGO AYARI ---
         let logo = "";
         if (item.image) {
-            // CoinGecko Resmi Varsa
             logo = `<div class="asset-logo-wrap" style="background:transparent; border:none; width:32px; height:32px;"><img src="${item.image}" class="asset-logo-img"></div>`;
         } else {
-            // Yoksa Eski Harf Logosu
             logo = getAssetLogoHtml(item.symbol);
         }
-        // ------------------
 
         let dName = item.symbol;
         if(dName === 'GC=F') dName = 'ONS ALTIN';
@@ -3744,12 +3659,13 @@ function renderNextBatch() {
         else if(globalIdx === 2) rankClass = 'rank-silver';
         else if(globalIdx === 3) rankClass = 'rank-bronze';
 
-        let volStr = item.source;
+        let volStr = item.source || '';
         if(currentCategory === 'kripto' && item.vol > 0) {
-            if(item.vol > 1000000) volStr = (item.vol/1000000).toFixed(1) + 'M Hacim';
-            else if(item.vol > 1000) volStr = (item.vol/1000).toFixed(1) + 'K Hacim';
+            if(item.vol > 1000000000) volStr = (item.vol/1000000000).toFixed(1) + 'Md Hacim';
+            else if(item.vol > 1000000) volStr = (item.vol/1000000).toFixed(1) + 'M Hacim';
         }
 
+        // Benzersiz ID oluştur (Tekrarı önlemek için sembolü kullan)
         let uniqueId = `m_item_${item.symbol.replace(/[^a-zA-Z0-9]/g, '')}`;
 
         html += `
@@ -3772,15 +3688,35 @@ function renderNextBatch() {
     listEl.insertAdjacentHTML('beforeend', html);
 }
 
-// 7. Scroll Event Listener (Listenin sonuna gelince tetiklenir)
-document.getElementById('infiniteMarketList').addEventListener('scroll', function() {
-    if(this.scrollTop + this.clientHeight >= this.scrollHeight - 50) {
-        if(!isMarketLoading && (currentPage * itemsPerPage < marketDataCache.length)) {
-            currentPage++;
-            renderNextBatch();
+/* --- DÜZELTİLMİŞ SCROLL LISTENER (3. ADIM - FİNAL) --- */
+// 1. Önce mevcut bir container varsa onu değişkene alalım, yoksa işlem yapmayalım.
+const existingListContainer = document.getElementById('infiniteMarketList');
+
+if (existingListContainer) {
+    // Eski listener'ları temizlemek için klonlama yöntemi
+    const newContainer = existingListContainer.cloneNode(true);
+    existingListContainer.parentNode.replaceChild(newContainer, existingListContainer);
+
+    // Yeni Scroll Listener'ı ekle
+    newContainer.addEventListener('scroll', function() {
+        // Listenin sonuna 150px kala tetikle
+        if (this.scrollTop + this.clientHeight >= this.scrollHeight - 150) {
+            
+            // Zaten yükleme yapılıyorsa dur
+            if (isMarketLoading) return;
+
+            // Sadece Kripto kategorisinde ve API Key varsa çalıştır
+            if (currentCategory === 'kripto' && coingeckoApiKey) {
+                isMarketLoading = true;
+                currentPage++; 
+                fetchMarketData(); 
+            }
         }
-    }
-});
+    });
+}
+
+
+
 
 /* --- GÜNCELLENMİŞ FORMAT PRICE FONKSİYONU --- */
 function formatPrice(p, cat) {
@@ -5246,8 +5182,9 @@ function proceedToNews() {
 /* --- GOOGLE DRIVE ENTEGRASYONU (GÜNCELLENMİŞ) --- */
 
 // 1. YAPILANDIRMA
-const CLIENT_ID = AppConfig.GOOGLE_CLIENT_ID;
-const API_KEY = AppConfig.GOOGLE_API_KEY;
+const CLIENT_ID = '188241284734-3tdriq9svbm1vh8acq2vqm80lieo5v7u.apps.googleusercontent.com';
+const API_KEY = 'AIzaSyCCxeYq1C4mnv-3CRvTDertau_Jlv11OaA';
+
 
 const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
@@ -5474,23 +5411,6 @@ async function downloadFromDrive() {
 }
 
 
-// --- LANDING PAGE YÖNETİMİ ---
-function enterApplication() {
-    // 1. Vitrin sayfasını yavaşça yok et
-    const landing = document.getElementById('landing-page-container');
-    landing.style.transition = "opacity 0.5s ease";
-    landing.style.opacity = "0";
-    
-    setTimeout(() => {
-        // 2. Vitrini tamamen kaldır
-        landing.style.display = "none";
-        
-        // 3. Asıl uygulamayı başlat (Splash Screen görünecek)
-        // Eğer initApp sayfa açılışında otomatik çalışıyorsa, onu buradan tekrar tetikleyebiliriz
-        // veya splash screen'i gizli başlatıp burada açabiliriz.
-        // Mevcut kodunda initApp() en sonda çalışıyor. Onu değiştireceğiz.
-    }, 500);
-}
 
 </script>
 </body>
