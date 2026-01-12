@@ -5,6 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
    <title>TradeVia (Live Edition)</title>
+   
+   <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b0f19">
+
+<link rel="icon" type="image/svg+xml" href="./icon.svg">
+<link rel="apple-touch-icon" href="./icon.png"> 
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -2334,7 +2340,17 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 
 
 <script>
+    /* --- PWA SERVICE WORKER KAYDI --- */
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('PWA Hazır: ', reg.scope))
+            .catch(err => console.log('PWA Hatası: ', err));
+    });
+}
+    
         /* --- AYARLAR VE GLOBAL DEĞİŞKENLER --- */
+        
   const AUTO_CG_KEY = "CG-G2hRKmRzcPTYJUA3L79dg8Ta";
 let coingeckoApiKey = AUTO_CG_KEY; 
 
