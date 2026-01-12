@@ -342,10 +342,61 @@
             filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.6)); /* NEON PARLAMA */
         }
 
+            /* --- GÜNCELLENMİŞ MODAL & AYARLAR STİLİ (TAŞMA KORUMALI) --- */
+        
+        .modal-overlay { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(0, 0, 0, 0.85); 
+            z-index: 200; 
+            
+            /* Merkezleme ve Dış Boşluk */
+            display: none; 
+            align-items: center !important; 
+            justify-content: center !important; 
+            
+            backdrop-filter: blur(5px); 
+            padding: 20px; /* Dış çerçeve güvenli alanı */
+        }
 
+        .modal { 
+            background: var(--bg-card); 
+            /* İç boşluğu artırdık, içerik kenara yapışmaz */
+            padding: 25px; 
+            
+            border-radius: 24px;
+            width: 100%; 
+            max-width: 360px; 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            color: white; 
+            
+            /* Ekranın tepesine/altına çok yapışmaması için %80 yaptık */
+            max-height: 80vh; 
+            
+            /* Kaydırma Ayarları */
+            overflow-y: auto; 
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            
+            /* SİHİRLİ KOD: Kaydırırken arka planın oynamasını engeller */
+            overscroll-behavior: contain; 
+            
+            /* Açılış Animasyonu */
+            animation: zoomInModal 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
-        .modal { background: var(--bg-card); padding: 20px; border-radius: 20px; width: 90%; max-width: 350px; border: 1px solid rgba(255,255,255,0.1); color: white; }
+        /* Scroll çubuğunu gizle ama kaydırmaya izin ver */
+        .modal::-webkit-scrollbar { display: none; }
+
+        @keyframes zoomInModal {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* --- DİĞER MEVCUT STİLLER (AYNEN KORUNDU) --- */
         .privacy-blur { filter: blur(8px); opacity: 0.5; transition: 0.3s; }
         .settings-tabs { display: flex; background: var(--bg-input); border-radius: 12px; padding: 4px; margin-bottom: 15px; }
         .s-tab { flex: 1; text-align: center; padding: 10px; font-size: 12px; font-weight: 700; color: var(--text-sub); border-radius: 8px; cursor: pointer; }
@@ -1246,6 +1297,8 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     margin: 0 8px;
     font-size: 10px;
 }
+
+
     </style>
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5912166843737955"
@@ -2043,60 +2096,91 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 </div>
 
 <div id="simModal" class="modal-overlay">
-    <div class="modal" style="max-width:360px;">
-        <h3 id="simAssetTitle" style="text-align:center; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px;">--</h3>
-        <div class="sim-tab-group"><div class="sim-tab active" onclick="switchSimTab('scenario', this)"><i class="fas fa-chart-bar"></i> Senaryo</div><div class="sim-tab" onclick="switchSimTab('avg', this)"><i class="fas fa-balance-scale"></i> Maliyet</div><div class="sim-tab" onclick="switchSimTab('realize', this)"><i class="fas fa-hand-holding-usd"></i> Satış</div></div>
+    <div class="modal" style="max-width:360px; padding-top: 15px;"> <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px;">
+            
+            <div onclick="closeModal('simModal')" style="cursor:pointer; width:30px; height:30px; display:flex; align-items:center; justify-content:flex-start; color:var(--text-sub);">
+                <i class="fas fa-times" style="font-size:20px;"></i>
+            </div>
+
+            <h3 id="simAssetTitle" style="margin:0; font-size:16px; font-weight:700; text-align:center; flex:1;">--</h3>
+
+            <div style="width:30px;"></div>
+        </div>
+        
+        <div class="sim-tab-group">
+            <div class="sim-tab active" onclick="switchSimTab('scenario', this)"><i class="fas fa-chart-bar"></i> Senaryo</div>
+            <div class="sim-tab" onclick="switchSimTab('avg', this)"><i class="fas fa-balance-scale"></i> Maliyet</div>
+            <div class="sim-tab" onclick="switchSimTab('holder', this)"><i class="fas fa-piggy-bank"></i> Holder</div>
+            <div class="sim-tab" onclick="switchSimTab('realize', this)"><i class="fas fa-hand-holding-usd"></i> Satış</div>
+        </div>
+
         <div id="sim-pane-scenario" class="sim-content-pane active">
-            <div style="margin-bottom:5px; font-size:11px; color:var(--text-sub);">Varsayım Fiyatı:</div><input type="number" id="simTargetPrice" class="modern-input" placeholder="Örn: 100.00" onkeyup="calcSimScenario()">
+            <div style="margin-bottom:5px; font-size:11px; color:var(--text-sub);">Varsayım Fiyatı:</div>
+            <input type="number" id="simTargetPrice" class="modern-input" placeholder="Örn: 100.00" onkeyup="calcSimScenario()">
             <div style="margin-bottom:5px; font-size:11px; color:var(--text-sub); margin-top:5px;">Veya Yüzde Değişim (%):</div>
-            <div class="input-row"><input type="number" id="simPercent" class="modern-input" placeholder="Örn: 10" onkeyup="calcSimScenarioPercent()"><button class="btn-main" style="padding:0;" onclick="calcSimScenarioPercent()">Hesapla</button></div>
-            <div id="simResScenario" class="sim-result-box" style="display:none;"><div class="sim-row"><span class="sim-lbl">Potansiyel Değer:</span><span id="resSimVal" style="font-weight:700;">--</span></div><div class="sim-row"><span class="sim-lbl">Fiyat Farkı:</span><span id="resSimDiff">--</span></div><div class="sim-row big"><span class="sim-lbl">Tahmini Kâr/Zarar:</span><span id="resSimPnL">--</span></div></div>
+            <div class="input-row">
+                <input type="number" id="simPercent" class="modern-input" placeholder="Örn: 10" onkeyup="calcSimScenarioPercent()">
+                <button class="btn-main" style="padding:0;" onclick="calcSimScenarioPercent()">Hesapla</button>
+            </div>
+            <div id="simResScenario" class="sim-result-box" style="display:none;">
+                <div class="sim-row"><span class="sim-lbl">Potansiyel Değer:</span><span id="resSimVal" style="font-weight:700;">--</span></div>
+                <div class="sim-row"><span class="sim-lbl">Fiyat Farkı:</span><span id="resSimDiff">--</span></div>
+                <div class="sim-row big"><span class="sim-lbl">Tahmini Kâr/Zarar:</span><span id="resSimPnL">--</span></div>
+            </div>
         </div>
+
         <div id="sim-pane-avg" class="sim-content-pane">
-            <div class="input-row"><div><div style="font-size:11px; color:var(--text-sub); margin-bottom:3px;">Alınacak Adet</div><input type="number" id="simAddAmt" class="modern-input" placeholder="Adet"></div><div><div style="font-size:11px; color:var(--text-sub); margin-bottom:3px;">Alım Fiyatı</div><input type="number" id="simAddPrice" class="modern-input" placeholder="Fiyat"></div></div>
+            <div class="input-row">
+                <div><div style="font-size:11px; color:var(--text-sub); margin-bottom:3px;">Alınacak Adet</div><input type="number" id="simAddAmt" class="modern-input" placeholder="Adet"></div>
+                <div><div style="font-size:11px; color:var(--text-sub); margin-bottom:3px;">Alım Fiyatı</div><input type="number" id="simAddPrice" class="modern-input" placeholder="Fiyat"></div>
+            </div>
             <button class="btn-main" onclick="calcSimAvg()">Yeni Ortalamayı Gör</button>
-            <div id="simResAvg" class="sim-result-box" style="display:none;"><div class="sim-row"><span class="sim-lbl">Eski Ortalama:</span><span id="resOldAvg">--</span></div><div class="sim-row big"><span class="sim-lbl">YENİ ORTALAMA:</span><span id="resNewAvg" style="color:var(--accent);">--</span></div><div class="sim-row"><span class="sim-lbl">Toplam Yeni Maliyet:</span><span id="resTotalCost">--</span></div></div>
+            <div id="simResAvg" class="sim-result-box" style="display:none;">
+                <div class="sim-row"><span class="sim-lbl">Eski Ortalama:</span><span id="resOldAvg">--</span></div>
+                <div class="sim-row big"><span class="sim-lbl">YENİ ORTALAMA:</span><span id="resNewAvg" style="color:var(--accent);">--</span></div>
+                <div class="sim-row"><span class="sim-lbl">Toplam Yeni Maliyet:</span><span id="resTotalCost">--</span></div>
+            </div>
         </div>
+
+        <div id="sim-pane-holder" class="sim-content-pane">
+            <div class="input-row">
+                <div>
+                    <div style="font-size:10px; color:var(--text-sub); margin-bottom:3px;">Vade (Yıl)</div>
+                    <input type="number" id="hYear" class="modern-input" placeholder="1" value="1">
+                </div>
+                <div>
+                    <div style="font-size:10px; color:var(--text-sub); margin-bottom:3px;">Beklenen Artış (%)</div>
+                    <input type="number" id="hReturn" class="modern-input" placeholder="Yıllık %">
+                </div>
+            </div>
+            <div style="margin-bottom:10px;">
+                <div style="font-size:10px; color:var(--text-sub); margin-bottom:3px;">Tahmini Yıllık Enflasyon (%)</div>
+                <input type="number" id="hInflation" class="modern-input" placeholder="Örn: 50" value="45">
+            </div>
+            <button class="btn-main" onclick="calcHolderAnalysis()">ANALİZ ET</button>
+            <div id="simResHolder" class="sim-result-box" style="display:none; margin-top:10px;"></div>
+        </div>
+
         <div id="sim-pane-realize" class="sim-content-pane">
             <div style="margin-bottom:5px; font-size:11px; color:var(--text-sub);">Satılacak Miktar (Adet):</div>
-            <div style="display:flex; gap:5px; margin-bottom:5px;"><input type="number" id="simSellAmt" class="modern-input" placeholder="Adet" style="margin:0;"><button class="btn-main btn-sec" style="width:auto; padding:0 15px;" onclick="fillSimSell(0.5)">%50</button><button class="btn-main btn-sec" style="width:auto; padding:0 15px;" onclick="fillSimSell(1)">Tümü</button></div>
-            <div style="margin-bottom:5px; font-size:11px; color:var(--text-sub);">Satış Fiyatı:</div><input type="number" id="simRealizePrice" class="modern-input" placeholder="Güncel Fiyat"><button class="btn-main" onclick="calcSimRealize()">Analiz Et</button>
-            <div id="simResRealize" class="sim-result-box" style="display:none;"><div class="sim-row big"><span class="sim-lbl">KASAYA GİRECEK:</span><span id="resCashIn" style="color:var(--success);">--</span></div><div class="sim-row"><span class="sim-lbl">Realize Edilen Kâr:</span><span id="resRealizedPnL">--</span></div><div class="sim-row"><span class="sim-lbl">Kalan Adet:</span><span id="resLeftAmt">--</span></div></div>
+            <div style="display:flex; gap:5px; margin-bottom:5px;">
+                <input type="number" id="simSellAmt" class="modern-input" placeholder="Adet" style="margin:0;">
+                <button class="btn-main btn-sec" style="width:auto; padding:0 15px;" onclick="fillSimSell(0.5)">%50</button>
+                <button class="btn-main btn-sec" style="width:auto; padding:0 15px;" onclick="fillSimSell(1)">Tümü</button>
+            </div>
+            <div style="margin-bottom:5px; font-size:11px; color:var(--text-sub);">Satış Fiyatı:</div>
+            <input type="number" id="simRealizePrice" class="modern-input" placeholder="Güncel Fiyat">
+            <button class="btn-main" onclick="calcSimRealize()">Analiz Et</button>
+            <div id="simResRealize" class="sim-result-box" style="display:none;">
+                <div class="sim-row big"><span class="sim-lbl">KASAYA GİRECEK:</span><span id="resCashIn" style="color:var(--success);">--</span></div>
+                <div class="sim-row"><span class="sim-lbl">Realize Edilen Kâr:</span><span id="resRealizedPnL">--</span></div>
+                <div class="sim-row"><span class="sim-lbl">Kalan Adet:</span><span id="resLeftAmt">--</span></div>
+            </div>
         </div>
-        <button class="btn-main btn-sec" style="margin-top:15px;" onclick="closeModal('simModal')">Kapat</button>
+
     </div>
 </div>
 
-<div id="cashModal" class="modal-overlay">
-    <div class="modal">
-        <h3 style="text-align:center; margin-bottom:15px;">Kasa İşlemi</h3>
-        <div style="display:flex; gap:10px; margin-bottom:15px;">
-            <div class="cash-modal-btn deposit active" onclick="setCashType('in', this)"><i class="fas fa-arrow-down"></i> GİRİŞ (Yatır)</div>
-            <div class="cash-modal-btn withdraw" onclick="setCashType('out', this)"><i class="fas fa-arrow-up"></i> ÇIKIŞ (Çek)</div>
-        </div>
-        <input type="hidden" id="cashTypeVal" value="in">
-        <div style="font-size:11px; color:var(--text-sub); margin-bottom:5px;">Miktar</div>
-        <input type="number" id="cashAmountInput" class="modern-input" placeholder="0.00">
-        <div style="font-size:11px; color:var(--text-sub); margin-bottom:5px; margin-top:5px;">Açıklama (Opsiyonel)</div>
-        <input type="text" id="cashDescInput" class="modern-input" placeholder="Örn: Maaş yatırma, Fatura ödeme...">
-        <button class="btn-main" style="margin-top:15px;" onclick="submitCashTransaction()">İŞLEMİ KAYDET</button>
-        <button class="btn-main btn-sec" style="margin-top:10px;" onclick="closeModal('cashModal')">İptal</button>
-    </div>
-</div>
-<div id="noCashModal" class="modal-overlay">
-    <div class="modal" style="text-align:center; max-width:300px;">
-        <div style="width:60px; height:60px; background:rgba(239, 68, 68, 0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 15px auto;">
-            <i class="fas fa-wallet" style="font-size:30px; color:var(--danger);"></i>
-        </div>
-        <h3 style="margin:0 0 10px 0; font-size:18px;">Yetersiz Bakiye!</h3>
-        <p style="font-size:13px; color:var(--text-sub); margin-bottom:20px; line-height:1.5;">
-            Bu işlemi gerçekleştirmek için kasanızda yeterli nakit bulunmuyor.
-        </p>
-        <div style="display:flex; gap:10px;">
-            <button class="btn-main btn-sec" onclick="closeModal('noCashModal')">Vazgeç</button>
-            <button class="btn-main" onclick="closeModal('noCashModal'); openCashModal()">Nakit Ekle</button>
-        </div>
-    </div>
 </div>
 
 <div id="marketDetailModal" class="modal-overlay" style="align-items: center; justify-content: center;">
@@ -2767,63 +2851,143 @@ function renderPortfolioHTML(as) {
         if(hero) { if(totalUnrealizedPnL >= 0) { hero.classList.remove('loss'); hero.classList.add('profit'); } else { hero.classList.remove('profit'); hero.classList.add('loss'); } }
         if(isPrivacyMode) document.getElementById('totalWallet').classList.add('privacy-blur'); else document.getElementById('totalWallet').classList.remove('privacy-blur');
     }
-    /* --- PRO MUHASEBE VE GEÇMİŞ SİSTEMİ (DÜZELTİLMİŞ) --- */
-    function renderHistory(){ 
-        let l = document.getElementById('historyListFull'); if(!l) return; l.innerHTML = ""; 
-        let globalSym = appSettings.currency==='TRY'?'₺':'$'; 
-        
-        let filteredHistory = tradeHistory.slice().reverse().filter(t => { 
-            if(currentHistoryFilter === 'all') return true;
-            if(currentHistoryFilter === 'NAKİT') return (t.type === 'YATIRMA' || t.type === 'ÇEKME');
-            return t.type === currentHistoryFilter; 
+ /* --- FINAL DÜZELTİLMİŞ GEÇMİŞ (ANA ŞERİT VAR, İÇİ SADE) --- */
+function renderHistory() {
+    try {
+        let l = document.getElementById('historyListFull');
+        if (!l) return;
+        l.innerHTML = "";
+
+        let globalSym = appSettings.currency === 'TRY' ? '₺' : '$';
+
+        // Filtreleme
+        let filteredHistory = tradeHistory.slice().reverse().filter(t => {
+            if (currentHistoryFilter === 'all') return true;
+            if (currentHistoryFilter === 'NAKİT') return (t.type === 'YATIRMA' || t.type === 'ÇEKME');
+            return t.type === currentHistoryFilter;
         });
 
-        let totalIn = 0; let totalOut = 0;
+        // Toplamlar
+        let totalIn = 0;
+        let totalOut = 0;
         tradeHistory.forEach(t => {
             let val = parseFloat(t.total);
-            let transCurr = t.curr || (t.isUsdBase ? 'USD' : 'TRY'); 
-            
-            if(appSettings.currency === 'TRY' && transCurr === 'USD') val = val * usdTryRate;
-            else if(appSettings.currency === 'USD' && transCurr === 'TRY') val = val / usdTryRate;
+            let transCurr = t.curr || (t.isUsdBase ? 'USD' : 'TRY');
 
-            if(t.type === 'YATIRMA' || t.type === 'SATIM' || t.type === 'TEMETTÜ') totalIn += val;
-            if(t.type === 'ÇEKME' || t.type === 'ALIM') totalOut += val;
+            if (appSettings.currency === 'TRY' && transCurr === 'USD') val = val * usdTryRate;
+            else if (appSettings.currency === 'USD' && transCurr === 'TRY') val = val / usdTryRate;
+
+            if (t.type === 'YATIRMA' || t.type === 'SATIM' || t.type === 'TEMETTÜ') totalIn += val;
+            if (t.type === 'ÇEKME' || t.type === 'ALIM') totalOut += val;
         });
 
-        document.getElementById('accTotalIn').innerText = globalSym + totalIn.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
-        document.getElementById('accTotalOut').innerText = globalSym + totalOut.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
-        let net = totalIn - totalOut;
-        let netEl = document.getElementById('accNetFlow');
-        netEl.innerText = (net>=0?'+':'') + globalSym + net.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
-        netEl.style.color = net >= 0 ? 'var(--success)' : 'var(--danger)';
+        // Kasa Özeti
+        let elIn = document.getElementById('accTotalIn');
+        let elOut = document.getElementById('accTotalOut');
+        let elNet = document.getElementById('accNetFlow');
+        
+        if(elIn) elIn.innerText = globalSym + totalIn.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        if(elOut) elOut.innerText = globalSym + totalOut.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        if(elNet) {
+            let net = totalIn - totalOut;
+            elNet.innerText = (net >= 0 ? '+' : '') + globalSym + net.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+            elNet.style.color = net >= 0 ? 'var(--success)' : 'var(--danger)';
+        }
 
-        if(filteredHistory.length === 0) { l.innerHTML = "<div style='text-align:center; padding:20px; color:var(--text-sub); opacity:0.6;'><i class='fas fa-receipt' style='font-size:24px; margin-bottom:10px;'></i><br>Kayıt Bulunamadı</div>"; return; } 
+        if (filteredHistory.length === 0) {
+            l.innerHTML = "<div style='text-align:center; padding:20px; color:var(--text-sub); opacity:0.6;'><i class='fas fa-receipt' style='font-size:24px; margin-bottom:10px;'></i><br>Kayıt Bulunamadı</div>";
+            return;
+        }
 
         let currentMonth = "";
-        filteredHistory.forEach(t => { 
-            let parts = t.date.split('.'); 
-            if(parts.length === 3) {
+
+        filteredHistory.forEach(t => {
+            // Ay Başlığı
+            let parts = t.date.split('.');
+            if (parts.length === 3) {
                 let monthNames = ["OCAK", "ŞUBAT", "MART", "NİSAN", "MAYIS", "HAZİRAN", "TEMMUZ", "AĞUSTOS", "EYLÜL", "EKİM", "KASIM", "ARALIK"];
-                let monthIndex = parseInt(parts[1]) - 1; let listMonth = monthNames[monthIndex] + " " + parts[2];
-                if(listMonth !== currentMonth) { l.innerHTML += `<div class="month-separator"><span>${listMonth}</span></div>`; currentMonth = listMonth; }
+                let monthIndex = parseInt(parts[1]) - 1;
+                let listMonth = monthNames[monthIndex] + " " + parts[2];
+                if (listMonth !== currentMonth) {
+                    l.innerHTML += `<div class="month-separator"><span>${listMonth}</span></div>`;
+                    currentMonth = listMonth;
+                }
             }
 
             let displayVal = parseFloat(t.total);
-            let transCurr = t.curr || (t.isUsdBase ? 'USD' : 'TRY'); 
-            if(appSettings.currency === 'TRY' && transCurr === 'USD') displayVal = displayVal * usdTryRate;
-            else if(appSettings.currency === 'USD' && transCurr === 'TRY') displayVal = displayVal / usdTryRate;
+            let transCurr = t.curr || (t.isUsdBase ? 'USD' : 'TRY');
+            if (appSettings.currency === 'TRY' && transCurr === 'USD') displayVal = displayVal * usdTryRate;
+            else if (appSettings.currency === 'USD' && transCurr === 'TRY') displayVal = displayVal / usdTryRate;
 
-            let icon = 'circle'; let cls = 'l-type-neutral'; let sign = ''; let color = 'white'; let desc = t.sym;
-            if(t.type==='ALIM') { icon='arrow-down'; cls='l-type-out'; color='var(--danger)'; desc=`${t.sym} Alımı`; }
-            else if(t.type==='SATIM') { icon='arrow-up'; cls='l-type-in'; color='var(--success)'; sign='+'; desc=`${t.sym} Satışı`; }
-            else if(t.type==='TEMETTÜ') { icon='gift'; cls='l-type-in'; color='var(--kap)'; sign='+'; desc=`${t.sym} Temettü`; }
-            else if(t.type==='YATIRMA') { icon='plus'; cls='l-type-in'; color='var(--success)'; sign='+'; desc = t.desc || 'Nakit Yatırma'; }
-            else if(t.type==='ÇEKME') { icon='minus'; cls='l-type-out'; color='var(--danger)'; sign='-'; desc = t.desc || 'Nakit Çekme'; }
-            l.innerHTML += `<div class="ledger-card ${cls}"><div class="lc-left"><div class="lc-icon"><i class="fas fa-${icon}"></i></div><div class="lc-info"><span class="lc-title">${desc}</span><span class="lc-date">${t.date} • ${t.time || ''}</span></div></div><div class="lc-right"><span class="lc-amount" style="color:${color}">${sign}${globalSym}${displayVal.toLocaleString(undefined, {minimumFractionDigits:2})}</span><span class="lc-badge">${t.type}</span></div></div>`; 
-        }); 
+            // --- ŞERİT VE İKON MANTIĞI (GERİ GELDİ) ---
+            let icon = 'circle';
+            let cls = 'l-type-neutral'; // Varsayılan
+            let sign = '';
+            let color = 'white';
+            let desc = t.sym;
+
+            if (t.type === 'ALIM') { icon = 'arrow-down'; cls = 'l-type-out'; color = 'var(--danger)'; desc = `${t.sym} Alımı`; } 
+            else if (t.type === 'SATIM') { icon = 'arrow-up'; cls = 'l-type-in'; color = 'var(--success)'; sign = '+'; desc = `${t.sym} Satışı`; } 
+            else if (t.type === 'TEMETTÜ') { icon = 'gift'; cls = 'l-type-in'; color = 'var(--kap)'; sign = '+'; desc = `${t.sym} Temettü`; } 
+            else if (t.type === 'YATIRMA') { icon = 'plus'; cls = 'l-type-in'; color = 'var(--success)'; sign = '+'; desc = t.desc || 'Nakit Yatırma'; } 
+            else if (t.type === 'ÇEKME') { icon = 'minus'; cls = 'l-type-out'; color = 'var(--danger)'; sign = '-'; desc = t.desc || 'Nakit Çekme'; }
+
+            // --- DETAY KARTI (İÇİ ŞERİTSİZ) ---
+            let detailCardHtml = "";
+
+            if (t.type === 'SATIM' && t.avgCost) {
+                let isProfit = t.pnl >= 0;
+                let profitColor = isProfit ? 'var(--success)' : 'var(--danger)';
+                let profitSign = isProfit ? '+' : '';
+                let cardBg = isProfit ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)';
+                let itemSym = transCurr === 'USD' ? '$' : '₺';
+
+                detailCardHtml = `
+                <div style="margin-top:10px; background:${cardBg}; border-radius:8px; padding:10px; font-size:11px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:6px; padding-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                        <span style="color:var(--text-sub);">Alış: <b style="color:white;">${itemSym}${parseFloat(t.avgCost).toFixed(2)}</b></span>
+                        <span style="color:var(--text-sub); opacity:0.5;"><i class="fas fa-arrow-right"></i></span>
+                        <span style="color:var(--text-sub);">Satış: <b style="color:white;">${itemSym}${parseFloat(t.price).toFixed(2)}</b></span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <span style="font-weight:700; color:var(--text-sub);">SONUÇ:</span>
+                        <span style="color:${profitColor}; font-weight:800; font-size:12px;">${profitSign}${itemSym}${parseFloat(t.pnl).toLocaleString(undefined, {minimumFractionDigits:2})} (%${parseFloat(t.plPercent).toFixed(2)})</span>
+                    </div>
+                    <div style="font-style:italic; opacity:0.8; margin-bottom:4px; line-height:1.3; color:var(--text-sub);">"${t.note || 'İşlem notu yok.'}"</div>
+                    <div style="font-size:9px; opacity:0.5;">(Kur: ${t.usdRateAtSell ? parseFloat(t.usdRateAtSell).toFixed(2) : '-'})</div>
+                </div>`;
+            }
+
+            // ANA HTML (ŞERİT SINIFI ${cls} EKLENDİ)
+            l.innerHTML += `
+            <div class="ledger-card ${cls}" style="flex-direction:column; align-items:stretch;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div class="lc-left">
+                        <div class="lc-icon"><i class="fas fa-${icon}"></i></div>
+                        <div class="lc-info">
+                            <span class="lc-title">${desc}</span>
+                            <span class="lc-date">${t.date} • ${t.time || ''}</span>
+                        </div>
+                    </div>
+                    <div class="lc-right">
+                        <span class="lc-amount" style="color:${color}">${sign}${globalSym}${displayVal.toLocaleString(undefined, {minimumFractionDigits:2})}</span>
+                        <span class="lc-badge">${t.type}</span>
+                    </div>
+                </div>
+                ${detailCardHtml}
+            </div>`;
+        });
+
+    } catch (err) {
+        console.error("Geçmiş yüklenirken hata:", err);
+        const splash = document.getElementById('splash-screen');
+        if(splash) splash.style.display = 'none';
     }
+}
 
-    function logHistory(type, s, a, p, desc='', curr = null, pnl = 0) { 
+
+    /* --- GÜNCELLENMİŞ KAYIT FONKSİYONU (KARNE DESTEKLİ) --- */
+function logHistory(type, s, a, p, desc='', curr = null, pnl = 0, details = {}) { 
     let d = new Date(); 
     let transactionCurrency = curr ? curr : appSettings.currency;
     
@@ -2837,7 +3001,13 @@ function renderPortfolioHTML(as) {
         total: a*p, 
         desc: desc, 
         curr: transactionCurrency,
-        pnl: pnl // ÖNEMLİ: Kâr/Zarar buraya kaydediliyor
+        pnl: pnl, // Net Kâr/Zarar
+        
+        // --- YENİ EKLENEN KARNE VERİLERİ ---
+        avgCost: details.avgCost || 0,          // Maliyetimiz neydi?
+        plPercent: details.plPercent || 0,      // Yüzde kaç kazandık?
+        usdRateAtSell: details.usdRateAtSell || 0, // Dolar kuru kaçtı?
+        note: details.note || ''                // İşlem notu
     }; 
     
     tradeHistory.push(t); 
@@ -2845,7 +3015,6 @@ function renderPortfolioHTML(as) {
     renderHistory(); 
 }
 
-    
     // --- NAKİT İŞLEMLERİ ---
     function modifyCash(m) { openCashModal(); }
     function openCashModal() { document.getElementById('cashModal').style.display = 'flex'; document.getElementById('cashAmountInput').value = ''; document.getElementById('cashDescInput').value = ''; }
@@ -3079,8 +3248,8 @@ async function addToPortfolio(){
     
     function calcSellPreview() { let i = document.getElementById('sellIdx').value; let as = JSON.parse(localStorage.getItem('myPF_final')); let asset = as[i]; let amt = parseFloat(document.getElementById('sellAmt').value) || 0; let price = parseFloat(document.getElementById('sellPrice').value) || 0; if(amt > 0 && price > 0) { let total = amt * price; let sym = exitCurrency === 'TRY' ? '₺' : '$'; let buyPriceNormalized = asset.buy; if(asset.origin === 'USD' && exitCurrency === 'TRY') buyPriceNormalized = asset.buy * usdTryRate; else if(asset.origin === 'TRY' && exitCurrency === 'USD') buyPriceNormalized = asset.buy / usdTryRate; let pnl = (price - buyPriceNormalized) * amt; document.getElementById('ssTotal').innerText = sym + total.toLocaleString(undefined, {minimumFractionDigits:2}); let pnlEl = document.getElementById('ssPnL'); pnlEl.innerText = (pnl >= 0 ? '+' : '') + sym + pnl.toLocaleString(undefined, {minimumFractionDigits:2}); pnlEl.style.color = pnl >= 0 ? 'var(--success)' : 'var(--danger)'; document.getElementById('sellSummaryBox').style.display = 'block'; } else { document.getElementById('sellSummaryBox').style.display = 'none'; } }
     
-    // --- DÜZELTİLMİŞ SATIŞ ONAYI ---
-    function confirmSell() { 
+    /* --- GÜNCELLENMİŞ SATIŞ ONAYI (ANALİZLİ) --- */
+function confirmSell() { 
     let i = document.getElementById('sellIdx').value; 
     let amt = parseFloat(document.getElementById('sellAmt').value); 
     let pr = parseFloat(document.getElementById('sellPrice').value); 
@@ -3094,29 +3263,55 @@ async function addToPortfolio(){
     let transactionCurrency = exitCurrency; 
     let totalSaleRaw = amt * pr;
     
-    // Alış Maliyetini Hesapla (Döviz dönüşümü yaparak)
+    // 1. Alış Maliyetini Hesapla (Döviz dönüşümü yaparak)
     let buyCostInTransCurr = ast.buy;
     if(ast.origin !== transactionCurrency) {
         if(transactionCurrency === 'TRY') buyCostInTransCurr = ast.buy * usdTryRate; 
         else buyCostInTransCurr = ast.buy / usdTryRate; 
     }
     
-    // BU İŞLEMDEN ELDE EDİLEN NET KÂR/ZARAR
+    // 2. NET KÂR/ZARAR HESABI (TL veya USD Bazında)
     let tradePnL = totalSaleRaw - (amt * buyCostInTransCurr);
 
-    // Kasaya Eklenecek Tutar (Dönüşümlü)
-    let amountToAddWallet = 0;
-    if(appSettings.currency === transactionCurrency) amountToAddWallet = totalSaleRaw;
-    else {
-        if(appSettings.currency === 'TRY' && transactionCurrency === 'USD') amountToAddWallet = totalSaleRaw * usdTryRate;
-        else if (appSettings.currency === 'USD' && transactionCurrency === 'TRY') amountToAddWallet = totalSaleRaw / usdTryRate;
+    // 3. YÜZDESEL PERFORMANS VE NOT OLUŞTURMA (YENİ KISIM)
+    let plPercent = 0;
+    if(buyCostInTransCurr > 0) {
+        plPercent = ((pr - buyCostInTransCurr) / buyCostInTransCurr) * 100;
     }
-    
-    // Realized PnL Globaline Ekle (Dönüşümlü)
+
+    let note = "";
+    if(tradePnL > 0) {
+        note = `Başarılı: Maliyetin (${buyCostInTransCurr.toFixed(2)}) üzerinden %${plPercent.toFixed(1)} primli satış.`;
+    } else if(tradePnL < 0) {
+        note = `Zarar Kes: Maliyetin (${buyCostInTransCurr.toFixed(2)}) altında, %${Math.abs(plPercent).toFixed(1)} kayıpla çıkış.`;
+    } else {
+        note = "Başabaş: Maliyetine çıkış yapıldı.";
+    }
+
+    // Karne Detay Paketi
+    let detailObj = {
+        avgCost: buyCostInTransCurr,
+        plPercent: plPercent,
+        usdRateAtSell: usdTryRate || 36.50,
+        note: note
+    };
+
+    // 4. KASAYA İŞLEME (Dönüşümlü)
+    let amountToAddWallet = 0;
     let profitToWallet = 0;
-    if(appSettings.currency === transactionCurrency) profitToWallet = tradePnL;
-    else if(appSettings.currency === 'TRY') profitToWallet = tradePnL * usdTryRate;
-    else profitToWallet = tradePnL / usdTryRate;
+
+    if(appSettings.currency === transactionCurrency) {
+        amountToAddWallet = totalSaleRaw;
+        profitToWallet = tradePnL;
+    } else {
+        if(appSettings.currency === 'TRY' && transactionCurrency === 'USD') {
+            amountToAddWallet = totalSaleRaw * usdTryRate;
+            profitToWallet = tradePnL * usdTryRate;
+        } else if (appSettings.currency === 'USD' && transactionCurrency === 'TRY') {
+            amountToAddWallet = totalSaleRaw / usdTryRate;
+            profitToWallet = tradePnL / usdTryRate;
+        }
+    }
 
     cashBalance += amountToAddWallet; 
     realizedPnL += profitToWallet; 
@@ -3124,15 +3319,17 @@ async function addToPortfolio(){
     localStorage.setItem('tm_cash_balance', cashBalance); 
     localStorage.setItem('tm_realized_pnl', realizedPnL); 
     
-    // GEÇMİŞE KAYDET (PnL İLE BERABER) - Burası Kritik
-    logHistory('SATIM', ast.name, amt, pr, '', transactionCurrency, tradePnL); 
+    // 5. GEÇMİŞE KAYDET (DETAYLARLA BİRLİKTE)
+    logHistory('SATIM', ast.name, amt, pr, '', transactionCurrency, tradePnL, detailObj); 
     
+    // Portföyden düş
     ast.amt -= amt; 
     if (ast.amt <= 0) as.splice(i, 1); 
     localStorage.setItem('myPF_final', JSON.stringify(as)); 
     
     addNotification('success', 'Satış Başarılı', `Tutar Cüzdana İşlendi.`); 
     document.getElementById('sellModal').style.display = 'none'; 
+    
     loadPF(true); 
     renderHistory(); 
     loadProfile(); 
@@ -5755,7 +5952,111 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
+/* --- FINAL HOLDER ANALİZİ (AÇIKLAYICI METİNLER GERİ GELDİ) --- */
+function calcHolderAnalysis() {
+    // 1. Verileri Al
+    let years = parseFloat(document.getElementById('hYear').value);
+    let annualReturn = parseFloat(document.getElementById('hReturn').value);
+    let annualInflation = parseFloat(document.getElementById('hInflation').value);
+    
+    if(!years || isNaN(annualReturn) || isNaN(annualInflation)) {
+        alert("Lütfen tüm alanları doldurunuz.");
+        return;
+    }
 
+    // Varlık Bilgisi
+    let as = JSON.parse(localStorage.getItem('myPF_final'));
+    let asset = as[currentSimAssetIndex];
+    
+    let totalCost = asset.buy * asset.amt;
+    let currentVal = (asset.curr || asset.buy) * asset.amt;
+    let sym = asset.origin === 'USD' ? '$' : '₺';
+
+    let startPnL = currentVal - totalCost;
+    let startPnLPercent = (startPnL / totalCost) * 100;
+
+    // 2. Hesaplamalar
+    let futureNominalValue = currentVal * Math.pow((1 + (annualReturn / 100)), years);
+    let inflationAdjustedCost = totalCost * Math.pow((1 + (annualInflation / 100)), years);
+    
+    let gap = futureNominalValue - inflationAdjustedCost;
+    let isProfitable = gap >= 0;
+    let gapPercent = (gap / inflationAdjustedCost) * 100;
+
+    // 3. UI Hazırlığı
+    let box = document.getElementById('simResHolder');
+    let verdictColor = isProfitable ? 'var(--success)' : 'var(--danger)';
+    let verdictIcon = isProfitable ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-times-circle"></i>';
+    let verdictText = isProfitable ? 'MANTIKLI (Kurtarıyor)' : 'MANTIKSIZ (Kurtarmıyor)';
+    
+    let verdictDesc = "";
+    if (startPnL < 0 && !isProfitable) {
+        verdictDesc = `Başlangıçtaki <b>%${Math.abs(startPnLPercent).toFixed(1)}</b> zararı ve enflasyonu kapatamıyor.`;
+    } else if (startPnL < 0 && isProfitable) {
+        verdictDesc = `<b>${years} yılda</b> hem zararı kapatıp hem enflasyonu yeniyor.`;
+    } else if (isProfitable) {
+        verdictDesc = `Yatırımın kârda ve enflasyonu eziyor.`;
+    } else {
+        verdictDesc = `Kârda olsan bile enflasyon daha hızlı koşuyor.`;
+    }
+
+    box.style.display = 'block';
+    box.className = 'sim-result-box ' + (isProfitable ? 'profit' : 'loss');
+
+    // 4. HTML ÇIKTISI (ORİJİNAL AÇIKLAYICI METİNLERLE)
+    let htmlContent = `
+        <div style="text-align:center; margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.1);">
+            <div style="font-size:14px; font-weight:800; color:${verdictColor}; letter-spacing:1px;">
+                ${verdictIcon} ${verdictText}
+            </div>
+            <div style="font-size:10px; color:var(--text-sub); margin-top:4px;">${verdictDesc}</div>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.05); border-radius:6px; padding:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-size:10px; color:var(--text-sub);">Şu Anki Durum:</div>
+            <div style="font-size:11px; font-weight:700; color:${startPnL >= 0 ? 'var(--success)' : 'var(--danger)'};">
+                ${startPnL >= 0 ? 'KÂRDA' : 'ZARARDA'} (%${startPnLPercent.toFixed(1)})
+            </div>
+        </div>
+
+        <div class="sim-row">
+            <span class="sim-lbl">Nominal Bakiye:</span>
+            <span style="font-weight:700;">${sym}${futureNominalValue.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+        </div>
+        <div style="font-size:9px; color:var(--text-sub); text-align:right; margin-bottom:8px;">
+            (Ekranda göreceğin rakam)
+        </div>
+
+        <div class="sim-row">
+            <span class="sim-lbl">Enflasyon Maliyeti:</span>
+            <span>${sym}${inflationAdjustedCost.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+        </div>
+        <div style="font-size:9px; color:var(--text-sub); text-align:right; margin-bottom:8px;">
+            (Paranın değerini koruması için olması gereken)
+        </div>
+
+        <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <div style="font-size: 10px; font-weight: 700; color: var(--text-sub); text-align: center; margin-bottom: 5px; text-transform: uppercase;">
+                ALIM GÜCÜ FARKI
+            </div>
+            <div style="background: rgba(0,0,0,0.2); border: 1px dashed ${verdictColor}; border-radius: 8px; padding: 10px; text-align: center;">
+                
+                <div style="font-size: 10px; color: var(--text-sub); margin-bottom: 2px;">(Nominal Bakiye - Enflasyon Maliyeti)</div>
+                
+                <div style="font-size: 16px; font-weight: 800; color: ${verdictColor}; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <span>${gap >= 0 ? '+' : ''}${sym}${gap.toLocaleString(undefined, {maximumFractionDigits: 0})}</span>
+                    <span style="font-size: 13px; opacity: 0.8;">(%${Math.abs(gapPercent).toFixed(1)})</span>
+                </div>
+                
+                <div style="font-size: 9px; color: var(--text-sub); margin-top: 4px;">
+                    ${gap >= 0 ? 'Reel Kazanç (Kâr)' : 'Reel Kayıp (Erime)'}
+                </div>
+            </div>
+        </div>
+    `;
+
+    box.innerHTML = htmlContent;
+}
 
 </script>
 </body>
