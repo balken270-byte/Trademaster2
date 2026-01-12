@@ -1216,7 +1216,36 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     -webkit-box-orient: vertical;
 }
 
+/* --- SPLASH SCREEN YASAL LİNKLER --- */
+.splash-legal-footer {
+    position: absolute;
+    bottom: 30px;        /* Ekranın en altından 30px yukarıda */
+    width: 100%;
+    text-align: center;
+    z-index: 2;
+    opacity: 0;          /* Başlangıçta gizli */
+    animation: fadeUpText 0.5s ease-out forwards 1s; /* Logo geldikten sonra belirsin */
+}
 
+.splash-legal-footer a {
+    color: rgba(255, 255, 255, 0.5); /* Hafif silik beyaz */
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 600;
+    transition: color 0.3s;
+    font-family: 'Inter', sans-serif;
+}
+
+.splash-legal-footer a:hover {
+    color: #ffffff;      /* Üzerine gelince parlasın */
+    text-decoration: underline;
+}
+
+.splash-legal-footer .sep {
+    color: rgba(255, 255, 255, 0.2);
+    margin: 0 8px;
+    font-size: 10px;
+}
     </style>
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5912166843737955"
@@ -1230,112 +1259,122 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
  
 
 <div id="splash-screen">
+    
     <div class="original-logo-container">
         <div class="original-logo-container" style="
-    display:flex; 
-    flex-direction:column; 
-    align-items:center; 
-    position:relative;
-    /* Logoyu vurgulamak için hafif karanlık bir halo efekti */
-    background: radial-gradient(circle at center, rgba(30, 58, 138, 0.2) 0%, rgba(0,0,0,0) 70%);
-    padding: 40px;
-    border-radius: 50%;
-">
+            display:flex; 
+            flex-direction:column; 
+            align-items:center; 
+            position:relative;
+            background: radial-gradient(circle at center, rgba(30, 58, 138, 0.2) 0%, rgba(0,0,0,0) 70%);
+            padding: 40px;
+            border-radius: 50%;
+        ">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="160" height="160">
-        <defs>
-            <linearGradient id="deepCoreGrad" x1="0" y1="240" x2="240" y2="0" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="#0f172a"/> <stop offset="50%" stop-color="#1e3a8a"/> <stop offset="100%" stop-color="#3b82f6"/> </linearGradient>
-            
-            <linearGradient id="activePathGrad" x1="0" y1="100" x2="240" y2="100" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="#3b82f6"/>
-                <stop offset="50%" stop-color="#06b6d4"/> <stop offset="100%" stop-color="#10b981"/> </linearGradient>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="160" height="160">
+                <defs>
+                    <linearGradient id="deepCoreGrad" x1="0" y1="240" x2="240" y2="0" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#0f172a"/> <stop offset="50%" stop-color="#1e3a8a"/> <stop offset="100%" stop-color="#3b82f6"/> 
+                    </linearGradient>
+                    
+                    <linearGradient id="activePathGrad" x1="0" y1="100" x2="240" y2="100" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#3b82f6"/>
+                        <stop offset="50%" stop-color="#06b6d4"/> <stop offset="100%" stop-color="#10b981"/> 
+                    </linearGradient>
 
-            <filter id="internalGlow" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
-                <feColorMatrix in="blur" type="matrix" values="
-                    1 0 0 0 0
-                    0 1 0 0 0
-                    0 0 1 0 0
-                    0 0 0 18 -7" result="goo" />
-                <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
-            </filter>
-            
-            <filter id="outerGlow" height="300%" width="300%" x="-75%" y="-75%">
-                <feMorphology operator="dilate" radius="2" in="SourceAlpha" result="thicken" />
-                <feGaussianBlur in="thicken" stdDeviation="8" result="blurred" />
-                <feFlood flood-color="rgba(59, 130, 246, 0.6)" result="glowColor" />
-                <feComposite in="glowColor" in2="blurred" operator="in" result="softGlow_colored" />
-                <feMerge>
-                    <feMergeNode in="softGlow_colored"/>
-                    <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-            </filter>
-        </defs>
+                    <filter id="internalGlow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+                        <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 18 -7" result="goo" />
+                        <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+                    </filter>
+                    
+                    <filter id="outerGlow" height="300%" width="300%" x="-75%" y="-75%">
+                        <feMorphology operator="dilate" radius="2" in="SourceAlpha" result="thicken" />
+                        <feGaussianBlur in="thicken" stdDeviation="8" result="blurred" />
+                        <feFlood flood-color="rgba(59, 130, 246, 0.6)" result="glowColor" />
+                        <feComposite in="glowColor" in2="blurred" operator="in" result="softGlow_colored" />
+                        <feMerge>
+                            <feMergeNode in="softGlow_colored"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                </defs>
 
-        <g opacity="0.2" stroke="#64748b" stroke-width="1" fill="none">
-             <path d="M40 200 L 90 150 L 200 180" />
-             <path d="M20 120 L 80 140 L 160 100" />
-             <circle cx="90" cy="150" r="3" fill="#64748b"/>
-             <circle cx="160" cy="100" r="3" fill="#64748b"/>
-        </g>
+                <g opacity="0.2" stroke="#64748b" stroke-width="1" fill="none">
+                    <path d="M40 200 L 90 150 L 200 180" />
+                    <path d="M20 120 L 80 140 L 160 100" />
+                    <circle cx="90" cy="150" r="3" fill="#64748b"/>
+                    <circle cx="160" cy="100" r="3" fill="#64748b"/>
+                </g>
 
-        <path d="M120 30 L 190 80 L 190 160 L 120 210 L 50 160 L 50 80 Z" 
-              fill="url(#deepCoreGrad)" stroke="rgba(59, 130, 246, 0.3)" stroke-width="2" opacity="0.9"/>
-        
-        <path d="M50 80 L 120 30 L 190 80" stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none"/>
+                <path d="M120 30 L 190 80 L 190 160 L 120 210 L 50 160 L 50 80 Z" 
+                    fill="url(#deepCoreGrad)" stroke="rgba(59, 130, 246, 0.3)" stroke-width="2" opacity="0.9"/>
+                
+                <path d="M50 80 L 120 30 L 190 80" stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none"/>
 
-        <g filter="url(#outerGlow)">
-             <path d="M75 150 L 110 170 L 150 140 L 150 70 L 185 40" 
-                   stroke="url(#activePathGrad)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-        </g>
+                <g filter="url(#outerGlow)">
+                    <path d="M75 150 L 110 170 L 150 140 L 150 70 L 185 40" 
+                        stroke="url(#activePathGrad)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                </g>
 
-        <circle cx="185" cy="40" r="6" fill="#ffffff" filter="url(#internalGlow)">
-            <animate attributeName="r" values="6;9;6" dur="2.5s" repeatCount="indefinite"/>
-            <animate attributeName="opacity" values="1;0.6;1" dur="2.5s" repeatCount="indefinite"/>
-        </circle>
-    </svg>
+                <circle cx="185" cy="40" r="6" fill="#ffffff" filter="url(#internalGlow)">
+                    <animate attributeName="r" values="6;9;6" dur="2.5s" repeatCount="indefinite"/>
+                    <animate attributeName="opacity" values="1;0.6;1" dur="2.5s" repeatCount="indefinite"/>
+                </circle>
+            </svg>
 
-    <div style="text-align:center; z-index:1; margin-top: 5px;">
-        <h1 style="
-            margin: 0;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-size: 38px; 
-            font-weight: 900; 
-            color: #ffffff; 
-            letter-spacing: -1px;
-            /* Yazıya da hafif bir parlama ve derinlik ekledik */
-            text-shadow: 0 4px 20px rgba(59, 130, 246, 0.5);
-        ">
-            TRADE<span style="
-                background: linear-gradient(to right, #60a5fa, #34d399); 
-                -webkit-background-clip: text; 
-                -webkit-text-fill-color: transparent;
-                font-weight: 900;
-            ">VIA</span>
-        </h1>
-        
-        <div style="
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 8px;
-        ">
-            <div style="width: 20px; height: 1px; background: rgba(148, 163, 184, 0.5);"></div>
-            <p style="
-                margin: 0;
-                font-family: 'Inter', sans-serif; 
-                font-size: 11px; 
-                font-weight: 600; 
-                color: #cbd5e1; 
-                letter-spacing: 3px; 
-                text-transform: uppercase;
-            ">
-                Gelişmiş Finans Terminali
-            </p>
-            <div style="width: 20px; height: 1px; background: rgba(148, 163, 184, 0.5);"></div>
+            <div style="text-align:center; z-index:1; margin-top: 5px;">
+                <h1 style="
+                    margin: 0;
+                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                    font-size: 38px; 
+                    font-weight: 900; 
+                    color: #ffffff; 
+                    letter-spacing: -1px;
+                    text-shadow: 0 4px 20px rgba(59, 130, 246, 0.5);
+                ">
+                    TRADE<span style="
+                        background: linear-gradient(to right, #60a5fa, #34d399); 
+                        -webkit-background-clip: text; 
+                        -webkit-text-fill-color: transparent;
+                        font-weight: 900;
+                    ">VIA</span>
+                </h1>
+                
+                <div style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                    margin-top: 8px;
+                ">
+                    <div style="width: 20px; height: 1px; background: rgba(148, 163, 184, 0.5);"></div>
+                    <p style="
+                        margin: 0;
+                        font-family: 'Inter', sans-serif; 
+                        font-size: 11px; 
+                        font-weight: 600; 
+                        color: #cbd5e1; 
+                        letter-spacing: 3px; 
+                        text-transform: uppercase;
+                    ">
+                        Gelişmiş Finans Terminali
+                    </p>
+                    <div style="width: 20px; height: 1px; background: rgba(148, 163, 184, 0.5);"></div>
+                </div>
+            </div>
         </div>
+    </div> <div class="splash-loader-bar"></div>
+
+    <div class="splash-legal-footer">
+        <a href="gizlilik.html" target="_blank">Gizlilik Politikası</a>
+        <span class="sep">•</span>
+        <a href="kullanim-kosullari.html" target="_blank">Yasal Uyarı</a>
+        <span class="sep">•</span>
+        <a href="iletisim.html" target="_blank">İletişim</a>
+    </div>
+
+        
     </div>
 
 </div>
@@ -1344,7 +1383,7 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     
 
 
-    <div class="splash-loader-bar"></div>
+    
 </div>
 
 <div class="top-bar">
@@ -3158,39 +3197,151 @@ function toggleAutoRefresh(btn) {
     }
 }
 
-/* --- ZENGİNLEŞTİRİLMİŞ KATEGORİ FİLTRESİ (GENİŞ ARAMA) --- */
+/* --- ZENGİNLEŞTİRİLMİŞ FİLTRE FONKSİYONU --- */
+/* --- GELİŞMİŞ GLOBAL ARAMA MOTORU (LİSTEDE YOKSA BİLE BULUR) --- */
+let globalSearchTimer;
+
+function filterUnifiedList(val) {
+    val = val.trim(); // Boşlukları temizle
+    const listContainer = document.getElementById('infiniteMarketList');
+    
+    // 1. ÖNCE MEVCUT LİSTEYİ FİLTRELE (HIZLI SONUÇ)
+    // Ekranda zaten varsa anında gösterelim
+    const items = listContainer.querySelectorAll('.infinite-item');
+    let visibleCount = 0;
+
+    // Önceki "Global Sonuç" kutusu varsa temizle
+    const oldGlobal = document.getElementById('global-search-result');
+    if (oldGlobal) oldGlobal.remove();
+
+    if (val.length === 0) {
+        // Arama kutusu boşsa her şeyi göster
+        items.forEach(item => item.style.display = 'flex');
+        return;
+    }
+
+    items.forEach(item => {
+        // Sembolü al (HTML içinden)
+        let symElement = item.querySelector('.ii-sym');
+        if (symElement) {
+            let text = symElement.innerText.toUpperCase();
+            if (text.includes(val.toUpperCase())) {
+                item.style.display = 'flex';
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
+            }
+        }
+    });
+
+    // 2. EĞER LİSTEDE YOKSA VEYA AZ SONUÇ VARSA -> GLOBAL ARA
+    // (CoinGecko veya Genel Sistemde Ara)
+    if (val.length > 2) {
+        
+        clearTimeout(globalSearchTimer);
+
+        // Kullanıcı yazmayı bitirince (0.5sn sonra) aramayı başlat
+        globalSearchTimer = setTimeout(async () => {
+            
+            // Eğer daha önce eklemediysek, listenin en altına "Global Sonuçlar" kutusu ekle
+            let globalBox = document.getElementById('global-search-result');
+            if (!globalBox) {
+                globalBox = document.createElement('div');
+                globalBox.id = 'global-search-result';
+                globalBox.style.padding = "10px";
+                globalBox.style.marginTop = "10px";
+                globalBox.innerHTML = `<div style="text-align:center; color:var(--text-sub); font-size:11px;"><i class="fas fa-circle-notch fa-spin"></i> Global Piyasalar Taranıyor: <b>${val}</b></div>`;
+                listContainer.appendChild(globalBox);
+            }
+
+            let foundAny = false;
+
+            // A) COINGECKO ARAMASI (Kripto Modundaysak)
+            if (currentCategory === 'kripto' && coingeckoApiKey) {
+                try {
+                    const url = `https://api.coingecko.com/api/v3/search?query=${val}&x_cg_demo_api_key=${coingeckoApiKey}`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    
+                    if (data.coins && data.coins.length > 0) {
+                        let html = `<div style="font-size:10px; font-weight:700; color:var(--accent); margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;">KRİPTO SONUÇLARI</div>`;
+                        
+                        // İlk 5 sonucu göster
+                        data.coins.slice(0, 5).forEach(coin => {
+                            html += `
+                            <div class="infinite-item" onclick="openCoinGeckoDetail('${coin.id}')" style="background:rgba(59, 130, 246, 0.1); border:1px solid rgba(59, 130, 246, 0.2);">
+                                <div class="ii-left">
+                                    <img src="${coin.thumb}" style="width:24px; height:24px; border-radius:50%; margin-right:10px;">
+                                    <div class="ii-info">
+                                        <span class="ii-sym">${coin.symbol}</span>
+                                        <span class="ii-vol">${coin.name}</span>
+                                    </div>
+                                </div>
+                                <div class="ii-right">
+                                    <span class="ii-price" style="font-size:10px; color:var(--text-sub);">Detay <i class="fas fa-chevron-right"></i></span>
+                                </div>
+                            </div>`;
+                        });
+                        globalBox.innerHTML = html;
+                        foundAny = true;
+                    }
+                } catch (e) { console.log("CG Search Error"); }
+            }
+
+            // B) MANUEL EŞLEŞTİRME (Hisse/Döviz veya CG Bulamazsa)
+            // Kullanıcıya "Bunu Görüntüle" seçeneği sunalım. 
+            // openMarketDetail fonksiyonu zaten Binance/Yahoo üzerinden bulmaya çalışacaktır.
+            if (!foundAny) {
+                globalBox.innerHTML = `
+                <div style="font-size:10px; font-weight:700; color:var(--gold); margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;">PİYASA ARAMASI</div>
+                <div class="infinite-item" onclick="openMarketDetail('${val.toUpperCase()}')" style="background:rgba(255,255,255,0.05);">
+                    <div class="ii-left">
+                        <div style="width:24px; height:24px; background:var(--bg-input); border-radius:6px; display:flex; align-items:center; justify-content:center; margin-right:10px; font-size:10px;">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div class="ii-info">
+                            <span class="ii-sym">${val.toUpperCase()}</span>
+                            <span class="ii-vol">Detaylı Görüntüle</span>
+                        </div>
+                    </div>
+                    <div class="ii-right">
+                        <span class="ii-price" style="font-size:10px; color:var(--accent);">Git <i class="fas fa-arrow-right"></i></span>
+                    </div>
+                </div>`;
+            }
+
+        }, 600); // 600ms bekle (Debounce)
+    }
+}
+
+
+
 function filterNews(topic, btn) {
-    // 1. Görsel Efekt (Tıklanan butonu aktif yap)
+    // 1. Görsel Efekt (Butonu aktif yap)
     document.querySelectorAll('.nf-chip').forEach(c => c.classList.remove('active'));
     btn.classList.add('active');
     
     // Arama kutusunu temizle
     document.getElementById('newsSearchInput').value = "";
     
-    // 2. Kategoriye Göre ZENGİN Arama Kelimeleri ( Sihir Burada! )
-    // NewsAPI'de "OR" operatörü "VEYA" anlamına gelir.
-    
+    // 2. Kategoriye Göre ZENGİN Arama Kelimeleri Belirle
     if (topic === 'GENEL') {
-        currentNewsQuery = "GENEL"; // Worker bunu özel olarak Manşet algılar
+        currentNewsQuery = "GENEL"; // Worker bunu Manşet olarak algılar
     } 
     else if (topic === 'EKONOMİ') {
-        // Sadece "Ekonomi" değil, parayla ilgili her şeyi getir
-        currentNewsQuery = "Ekonomi OR Finans OR Enflasyon OR Merkez Bankası OR Faiz Kararı OR Maliye Bakanlığı";
+        // Sadece "Ekonomi" değil, ilgili her şeyi getir
+        currentNewsQuery = "Ekonomi OR Finans OR Merkez Bankası OR Enflasyon";
     } 
     else if (topic === 'KRİPTO') {
-        // Kripto dünyasının en popüler terimlerini tarar
-        currentNewsQuery = "Bitcoin OR Kripto Para OR Ethereum OR Binance OR Blockchain OR Altcoin OR BTC";
+        currentNewsQuery = "Bitcoin OR Kripto Para OR Ethereum OR Altcoin OR Blockchain";
     } 
     else if (topic === 'BORSA') {
-        // Borsayla ilgili tüm anahtar kelimeler
-        currentNewsQuery = "Borsa İstanbul OR BIST100 OR Hisse Senedi OR KAP Haberleri OR Temettü OR Halka Arz";
+        currentNewsQuery = "Borsa İstanbul OR BIST100 OR Hisse Senedi OR KAP";
     } 
     else if (topic === 'EMTİA') {
-        // Altın, Döviz ve Petrol haberlerini buraya topladık
-        currentNewsQuery = "Altın Fiyatları OR Dolar Kuru OR Gram Altın OR Çeyrek Altın OR Petrol Fiyatları OR Gümüş";
+        currentNewsQuery = "Altın Fiyatları OR Dolar Kuru OR Gram Altın OR Petrol OR Döviz";
     } 
     else {
-        // Eğer arama kutusundan geldiyse direkt onu ara
         currentNewsQuery = topic;
     }
 
@@ -5561,6 +5712,48 @@ async function downloadFromDrive() {
         addNotification('danger', 'Hata', 'Veri indirilemedi.');
     }
 }
+
+/* --- HABER ARAMA MOTORU TAMİR KODU --- */
+
+// 1. Arama Fonksiyonunu Tanımlayalım
+function runNewsSearch() {
+    const input = document.getElementById('newsSearchInput');
+    const val = input.value.trim();
+    
+    // Boş veya çok kısaysa uyarı ver
+    if (val.length < 2) {
+        return addNotification('warn', 'Arama', 'Lütfen en az 2 karakter girin.');
+    }
+    
+    // Klavyeyi kapat (Mobilde rahatlık sağlar)
+    input.blur();
+
+    // Filtre butonlarındaki aktifliği kaldır (Çünkü özel arama yapıyoruz)
+    document.querySelectorAll('.nf-chip').forEach(c => c.classList.remove('active'));
+    
+    // Kullanıcıya bilgi ver
+    addNotification('info', 'Aranıyor', `${val} hakkında haberler getiriliyor...`);
+    
+    // Sayacı sıfırla ve motoru çalıştır
+    newsCountdown = 60; 
+    
+    // Cloudflare Worker'a sorguyu gönder
+    loadNews(val);
+}
+
+// 2. Enter Tuşu Desteğini Garantiye Alalım
+// Sayfa yüklendiğinde input'a olay dinleyicisi ekler
+document.addEventListener("DOMContentLoaded", function() {
+    const input = document.getElementById('newsSearchInput');
+    if(input) {
+        input.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault(); // Form göndermeyi engelle
+                runNewsSearch(); // Aramayı başlat
+            }
+        });
+    }
+});
 
 
 
