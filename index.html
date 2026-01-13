@@ -3572,97 +3572,130 @@ function runNewsSearch() {
     document.getElementById('newsSearchInput').blur();
 }
 
-/* --- GÜNCELLENMİŞ NEWSAPI (CLOUDFLARE ENTEGRE) MOTORU --- */
-async function loadNews(query = '', silent = false) {
+/* --- GOOGLE NEWS (RSS) - FİNAL SÜRÜM (ARAMA & SEMBOL DESTEKLİ) --- */
+
+// 1. Sayfa Yüklendiğinde
+document.addEventListener('DOMContentLoaded', () => {
+    // Başlangıçta genel ekonomi haberleri gelsin
+    loadNews('Ekonomi Finans Borsa');
+});
+
+// 2. Kategori Filtreleme Butonları İçin (Ekonomi, Kripto, Borsa...)
+function filterNews(topic, btn) {
+    // Görsel olarak butonu aktif yap
+    document.querySelectorAll('.nf-chip').forEach(c => c.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+
+    // Arama kutusunu temizle
+    document.getElementById('newsSearchInput').value = "";
+
+    // Konuya göre Google'da en iyi sonuç veren kelimeleri seç
+    let query = topic;
+    if(topic === 'GENEL') query = 'Ekonomi Finans Gündem';
+    if(topic === 'BORSA') query = 'Borsa İstanbul BIST100 Hisse';
+    if(topic === 'KRİPTO') query = 'Bitcoin Kripto Para Altcoin Blockchain';
+    if(topic === 'EMTİA') query = 'Altın Fiyatları Petrol Gümüş Döviz';
+
+    loadNews(query);
+}
+
+// 3. Arama Çubuğu Fonksiyonu (Sembol ve Kelime Arar)
+function runNewsSearch() {
+    const input = document.getElementById('newsSearchInput');
+    if (!input) return;
+
+    let val = input.value.trim();
+    
+    // Boşsa uyarı ver
+    if (val.length < 2) {
+        // Eğer bildirim fonksiyonun varsa kullan, yoksa alert
+        if(typeof addNotification === 'function') addNotification('warn', 'Arama', 'Lütfen aranacak kelimeyi girin.');
+        return;
+    }
+
+    // Mobilde klavyeyi kapat
+    input.blur();
+
+    // Filtre butonlarının seçimini kaldır (Özel arama yapıyoruz)
+    document.querySelectorAll('.nf-chip').forEach(c => c.classList.remove('active'));
+    
+    // Google News zaten sembolleri tanır (Örn: "ASELS" yazınca Aselsan haberleri gelir)
+    loadNews(val);
+}
+
+// 4. Ana Haber Çekme Motoru
+async function loadNews(query) {
     const container = document.getElementById('newsTimeline');
     if (!container) return;
-    
-    // 1. Yükleniyor Animasyonu
-    if (!silent) {
-        container.innerHTML = `
-            <div style="text-align:center; padding:50px; color:var(--text-sub);">
-                <i class="fas fa-satellite-dish fa-spin" style="font-size:24px; margin-bottom:10px;"></i><br>
-                Piyasalar Taranıyor...
-            </div>`;
-    }
-    
-    // 2. CLOUDFLARE WORKER ADRESİNİZ
-    const workerUrl = "https://muddy-sun-753f.balken270.workers.dev/"; 
-    
-    // Eğer 'query' boş gelirse Worker otomatik olarak (Altın, Borsa, Kripto vb.) karma sorguyu çalıştırır.
-    const apiUrl = `${workerUrl}?q=${encodeURIComponent(query)}`;
-    
+
+    // Yükleniyor Animasyonu
+    container.innerHTML = `
+        <div style="text-align:center; padding:50px; color:var(--text-sub);">
+            <i class="fas fa-circle-notch fa-spin" style="font-size:24px; margin-bottom:10px;"></i><br>
+            <strong>"${query}"</strong> Haberleri Taranıyor...
+        </div>`;
+
     try {
-        const res = await fetch(apiUrl);
-        const data = await res.json();
+        // Google RSS Linki (Son 24 saat, Türkçe, Türkiye)
+        // q={query} kısmı hem "Ekonomi" kelimesini hem de "BTC" gibi sembolleri arar.
+        const googleRssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}+when:1d&hl=tr-TR&gl=TR&ceid=TR:tr`;
         
-        // 3. Veri Kontrolü ve Listeleme
-        if (data.status === 'ok' && data.articles && data.articles.length > 0) {
+        // RSS'i JSON'a çeviren servis
+        const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(googleRssUrl)}`;
+
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        // İçeriği temizle
+        container.innerHTML = '';
+
+        if (data.status === 'ok' && data.items.length > 0) {
             let html = "";
             
-            // İlk 20 haberi al
-            data.articles.slice(0, 20).forEach((item, index) => {
-                // Tarihi formatla (Saat:Dakika)
-                const date = new Date(item.publishedAt);
+            // İlk 20 haberi listele
+            data.items.slice(0, 20).forEach((item, index) => {
+                
+                // Tarih formatı
+                const date = new Date(item.pubDate);
                 const timeStr = date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
                 
-                // Başlık ve Kaynak temizliği
-                let source = item.source.name || "Haber";
+                // Başlık temizliği (Sondaki kaynak ismini ayır)
                 let title = item.title;
+                let source = "Google News";
                 
-                // NewsAPI'nin bazen sona eklediği "- KaynakAdı" kısmını sil
-                if(title.includes(' - ')) {
+                if (title.includes(' - ')) {
                     const parts = title.split(' - ');
-                    if(parts.length > 1) {
-                        parts.pop(); 
-                        title = parts.join(' - ');
-                    }
-                }
-                
-                // Rozet (Badge) Mantığı
-                let badgeClass = "";
-                let sonDakikaLabel = "";
-                
-                // İlk haber Manşet, sonraki 4 haber Yeni
-                if (index === 0) {
-                    badgeClass = "hot"; 
-                    sonDakikaLabel = '<span style="color:var(--danger); background:rgba(239,68,68,0.15); padding:2px 6px; border-radius:4px; margin-left:8px; font-size:9px; font-weight:bold;">SON DAKİKA</span>';
-                } else if (index < 5) {
-                    badgeClass = "new"; 
+                    source = parts.pop(); 
+                    title = parts.join(' - ');
                 }
 
-                // Link güvenliği
-                const safeLink = item.url || "#";
-                
-                // Görsel Kontrolü (Resim yoksa ikon göster)
-                let imageHtml = '';
-                if (item.urlToImage) {
-                    // Resim yüklenemezse (onerror) placeholder ikona dönüşür
-                    imageHtml = `<img src="${item.urlToImage}" alt="Haber" onerror="this.style.display='none'; this.parentNode.innerHTML='<i class=\\'fas fa-newspaper nim-placeholder-icon\\'></i>'">`;
-                } else {
-                    imageHtml = `<i class="fas fa-newspaper nim-placeholder-icon"></i>`;
+                // Resim bulmaya çalış
+                let imgHtml = `<i class="fas fa-newspaper nim-placeholder-icon"></i>`; 
+                const imgMatch = item.description.match(/src="([^"]+)"/);
+                if (imgMatch) {
+                    imgHtml = `<img src="${imgMatch[1]}" alt="Haber" onerror="this.style.display='none'">`;
                 }
 
-                // HTML Şablonu
+                // İlk haber Manşet olsun
+                let badgeClass = (index === 0) ? "hot" : "";
+                let label = (index === 0) ? '<span style="color:var(--danger); background:rgba(239,68,68,0.15); padding:2px 6px; border-radius:4px; margin-left:8px; font-size:9px;">MANŞET</span>' : '';
+
                 html += `
                 <div class="news-item-modern ${badgeClass}">
                     <div class="nim-time">
-                        <i class="far fa-clock"></i> ${timeStr} ${sonDakikaLabel}
+                        <i class="far fa-clock"></i> ${timeStr} ${label}
                     </div>
                     
-                    <div class="nim-card" onclick="openNewsRedirect('${safeLink}')">
-                        
+                    <div class="nim-card" onclick="window.open('${item.link}', '_blank')">
                         <div class="nim-img-box">
-                            ${imageHtml}
+                            ${imgHtml}
                         </div>
-
                         <div class="nim-content">
                             <div class="nim-title">${title}</div>
                             <div class="nim-source">
-                                <i class="fas fa-newspaper" style="margin-right:4px;"></i> ${source}
+                                <i class="fas fa-rss" style="font-size:10px; margin-right:4px;"></i> ${source}
                             </div>
                         </div>
-
                     </div>
                 </div>`;
             });
@@ -3670,23 +3703,20 @@ async function loadNews(query = '', silent = false) {
             container.innerHTML = html;
             
         } else {
-            // Haber bulunamazsa
-            container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-sub);">Bu konuda güncel haber bulunamadı.</div>`;
-        }
-        
-    } catch (e) {
-        console.error("NewsAPI hatası:", e);
-        if (!silent) {
             container.innerHTML = `
-            <div style="text-align:center; color:var(--danger); padding:20px;">
-                Haber akışı güncellenemedi.<br>
-                <span style="font-size:12px; opacity:0.8; color:var(--text-sub);">Bağlantınızı kontrol edip tekrar deneyin.</span>
-            </div>`;
+                <div style="text-align:center; padding:30px; color:var(--text-sub);">
+                    "${query}" ile ilgili güncel haber bulunamadı.
+                </div>`;
         }
+
+    } catch (error) {
+        console.error('Haber Hatası:', error);
+        container.innerHTML = `
+            <div style="text-align:center; padding:30px; color:var(--danger);">
+                Haber kaynağına bağlanılamadı. İnternetinizi kontrol edin.
+            </div>`;
     }
 }
-
-
 
     function toggleTradeMenu() { const content = document.getElementById('tradeContent'); const chevron = document.getElementById('tradeChevron'); const card = document.getElementById('tradeCard'); if (content.classList.contains('collapsed')) { content.classList.remove('collapsed'); chevron.classList.add('rotated'); card.classList.add('open'); } else { content.classList.add('collapsed'); chevron.classList.remove('rotated'); card.classList.remove('open'); } }
     function toggleAssetDetails(id) { const content = document.getElementById('asset-content-' + id); const chevron = document.getElementById('asset-chevron-' + id); if (content.classList.contains('collapsed')) { content.classList.remove('collapsed'); chevron.classList.add('rotated'); } else { content.classList.add('collapsed'); chevron.classList.remove('rotated'); } }
