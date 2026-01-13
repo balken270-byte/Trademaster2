@@ -948,6 +948,37 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
+
+/* Segmented Control (iOS tarzı sekmeler) */
+.settings-tabs.segmented {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 4px;
+    display: flex;
+    gap: 5px;
+}
+.s-tab.seg-style {
+    flex: 1;
+    text-align: center;
+    padding: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-sub);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.s-tab.seg-style.active {
+    background: var(--bg-card);
+    color: white;
+    font-weight: 800;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+
+
 /* 3. MENÜ LİSTESİ (SORUNLU KISIM DÜZELTİLDİ) */
 .menu-list-wrapper {
     background: var(--bg-card);
@@ -1304,6 +1335,140 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     font-size: 10px;
 }
 
+/* --- YENİ LAB LİSTE TASARIMI --- */
+.lab-list-container {
+    max-height: 350px;
+    overflow-y: auto;
+    padding-right: 5px; /* Scrollbar için boşluk */
+}
+
+.lab-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    transition: transform 0.2s;
+}
+
+.lab-row:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.1);
+}
+
+.lab-col-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.lab-month-badge {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-sub);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: rgba(255,255,255,0.05);
+    padding: 3px 8px;
+    border-radius: 6px;
+    width: fit-content;
+}
+
+.lab-balance-val {
+    font-size: 15px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: 0.5px;
+}
+
+.lab-col-right {
+    text-align: right;
+}
+
+.lab-profit-lbl {
+    font-size: 9px;
+    color: var(--text-sub);
+    display: block;
+    margin-bottom: 2px;
+}
+
+.lab-profit-val {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--success);
+    text-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+}
+
+/* --- MUHASEBE & DENETİM TASARIMI --- */
+.accounting-hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.acc-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.acc-row:last-child { margin-bottom: 0; padding-bottom: 0; border: none; }
+
+.acc-stat-box { flex: 1; }
+.acc-stat-box.right { text-align: right; }
+
+.acc-val-lg { font-size: 24px; font-weight: 800; color: white; letter-spacing: -0.5px; }
+.acc-val-sm { font-size: 16px; font-weight: 700; color: white; }
+.acc-lbl-sub { font-size: 10px; color: var(--text-sub); text-transform: uppercase; font-weight: 700; }
+
+.trash-btn {
+    width: 100%;
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    border: 1px dashed rgba(239, 68, 68, 0.3);
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 15px;
+    transition: 0.2s;
+}
+.trash-btn:hover { background: rgba(239, 68, 68, 0.2); }
+
+/* Silinen Öğe Kartı */
+.deleted-item {
+    background: rgba(0,0,0,0.3);
+    border-left: 3px solid var(--text-sub);
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    opacity: 0.7;
+}
+.del-restore-btn {
+    background: var(--success);
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+}
 
     </style>
     
@@ -1626,11 +1791,19 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 </div>
 
     <div id="page-analysis" class="page">
-        <div style="margin-bottom: 20px;">
-            <h2 style="margin:0; font-size:22px; font-weight:800;">Performans Analizi</h2>
-            <span style="font-size:12px; color:var(--text-sub);">Portföy sağlığınızın detaylı röntgeni</span>
-        </div>
+    
+    <div style="margin-bottom: 20px;">
+        <h2 style="margin:0; font-size:22px; font-weight:800; background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Finansal Planlama</h2>
+        <span style="font-size:12px; color:var(--text-sub);">Gelecekteki Varlığınızı Bugünden Kurgulayın</span>
+    </div>
 
+    <div class="settings-tabs segmented" style="margin-bottom: 20px;">
+        <div class="s-tab seg-style active" onclick="switchAnTab('perf', this)">PERFORMANS</div>
+        <div class="s-tab seg-style" onclick="switchAnTab('vision', this)">HEDEFLERİM</div>
+        <div class="s-tab seg-style" onclick="switchAnTab('lab', this)">AR-GE (LAB)</div>
+    </div>
+
+    <div id="an-view-perf" class="an-view-section active">
         <div class="dashboard-container">
             
             <div class="dash-card full-width">
@@ -1731,6 +1904,169 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
             </div>
         </div> 
     </div>
+
+    <div id="an-view-vision" class="an-view-section" style="display:none;">
+        <div class="card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 78, 59, 0.2) 100%); border: 1px solid rgba(16, 185, 129, 0.3);">
+            <div class="lbl-sm" style="color:#6ee7b7;"><i class="fas fa-bullseye"></i> ANA HEDEFİM</div>
+            <div style="display:flex; align-items:flex-end; gap:5px; margin-bottom:10px;">
+                <input type="number" id="visionTarget" class="modern-input" style="font-size:24px; font-weight:800; background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.2); padding:0; height:auto; width:100%;" placeholder="Hedef (Örn: 1000000)" onchange="saveVisionData()">
+            </div>
+            <div style="font-size:11px; color:#d1fae5;">Ulaşmak istediğiniz toplam portföy büyüklüğü.</div>
+        </div>
+
+        <div class="card">
+            <div class="lbl-sm">PROJEKSİYON AYARLARI</div>
+            <div class="input-row">
+                <div>
+                    <span style="font-size:11px; color:var(--text-sub);">Aylık Kâr Hedefi (%)</span>
+                    <input type="number" id="visionRate" class="modern-input" value="5" onkeyup="calcVision()">
+                </div>
+                <div>
+                    <span style="font-size:11px; color:var(--text-sub);">Aylık Ek Yatırım (Nakit)</span>
+                    <input type="number" id="visionAdd" class="modern-input" value="1000" onkeyup="calcVision()">
+                </div>
+            </div>
+        </div>
+
+        <div class="dash-card full-width">
+            <div class="metric-title">GELECEK SİMÜLASYONU</div>
+            <div style="height: 250px; width: 100%;">
+                <canvas id="visionChart"></canvas>
+            </div>
+            <div id="visionResultText" style="margin-top:15px; text-align:center; font-size:12px; color:var(--text-sub); line-height:1.6;">
+                Veriler hesaplanıyor...
+            </div>
+        </div>
+    </div>
+<div id="an-view-lab" class="an-view-section" style="display:none;">
+    
+    <div style="display:flex; gap:10px; overflow-x:auto; margin-bottom:15px; padding-bottom:5px;">
+        <button class="chart-filter-btn active" onclick="switchLabTool('growth', this)">Büyüme</button>
+        <button class="chart-filter-btn" onclick="switchLabTool('risk', this)">Risk Hesabı</button>
+        <button class="chart-filter-btn" onclick="switchLabTool('avg', this)">Maliyet Düşür</button>
+    </div>
+
+    <div id="lab-tool-growth" class="lab-tool-container">
+        <div style="background:var(--bg-card); padding:20px; border-radius:16px; border:1px dashed var(--accent); margin-bottom:20px; text-align:center;">
+            <i class="fas fa-flask" style="font-size:32px; color:var(--accent); margin-bottom:10px;"></i>
+            <div style="font-weight:800; font-size:16px;">Strateji Test Laboratuvarı</div>
+            <div style="font-size:11px; color:var(--text-sub);">Bileşik getirinin gücünü test edin.</div>
+        </div>
+
+        <div class="card">
+            <div class="lbl-sm">DENEY PARAMETRELERİ</div>
+            <div class="input-row">
+                <div><span style="font-size:11px; color:var(--text-sub);">Başlangıç Sermayesi</span><input type="number" id="labStart" class="modern-input" placeholder="Örn: 10000"></div>
+                <div><span style="font-size:11px; color:var(--text-sub);">İşlem Başı Kâr Hedefi (%)</span><input type="number" id="labWinPct" class="modern-input" value="2"></div>
+            </div>
+            <div class="input-row">
+                <div><span style="font-size:11px; color:var(--text-sub);">Haftalık İşlem Sayısı</span><input type="number" id="labFreq" class="modern-input" value="2"></div>
+                <div><span style="font-size:11px; color:var(--text-sub);">Süre (Ay)</span><input type="number" id="labDuration" class="modern-input" value="12"></div>
+            </div>
+            <button class="btn-main" onclick="runLabTest()">DENEYİ BAŞLAT</button>
+        </div>
+
+        <div id="labResults" style="display:none;">
+            <div class="dash-card full-width" style="background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%); margin-bottom: 15px;">
+                <div class="metric-title">DENEY SONUCU</div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:10px;">
+                    <div><div style="font-size:10px; color:var(--text-sub);">BAŞLANGIÇ</div><div id="resLabStart" style="font-size:16px; font-weight:700; color:white;">--</div></div>
+                    <div style="text-align:right;"><div style="font-size:10px; color:var(--text-sub);">BİTİŞ (TAHMİNİ)</div><div id="resLabEnd" style="font-size:20px; font-weight:800; color:var(--success);">--</div></div>
+                </div>
+                <div style="margin-top:15px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1);">
+                    <span style="font-size:11px; color:var(--text-sub);">Toplam Büyüme:</span> <span id="resLabGrowth" style="font-weight:700; color:var(--accent);">--</span>
+                </div>
+            </div>
+            <div style="margin-bottom: 10px;"><div class="lbl-sm" style="margin-bottom: 10px;">AYLIK İLERLEME RAPORU</div><div id="labListContainer" class="lab-list-container"></div></div>
+        </div>
+    </div>
+
+    <div id="lab-tool-risk" class="lab-tool-container" style="display:none;">
+        <div class="card" style="border-left: 3px solid var(--danger);">
+            <div class="lbl-sm" style="color:var(--danger)">RİSK & POZİSYON YÖNETİMİ</div>
+            
+            <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; margin-bottom:15px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:10px; color:var(--text-sub); font-weight:700;">PORTFÖYDEN SEÇ</span>
+                    <button onclick="populateRiskAssets()" style="background:none; border:none; color:var(--accent); font-size:12px; cursor:pointer;">
+                        <i class="fas fa-sync-alt"></i> Yenile
+                    </button>
+                </div>
+                <select id="riskAssetSelect" class="modern-input" style="margin-top:5px; border-color:var(--accent);" onchange="fillRiskFromAsset()">
+                    <option value="-1">Manuel Giriş / Seçiniz</option>
+                </select>
+            </div>
+
+            <div class="input-row">
+                <div>
+                    <span style="font-size:11px; color:var(--text-sub);">Sermaye (Varlık Değeri)</span>
+                    <input type="number" id="riskBalance" class="modern-input" placeholder="Otomatik Çekilir">
+                </div>
+                <div>
+                    <span style="font-size:11px; color:var(--text-sub);">Risk İştahı (%)</span>
+                    <input type="number" id="riskPct" class="modern-input" value="1" placeholder="%1">
+                </div>
+            </div>
+            <div class="input-row">
+                <div>
+                    <span style="font-size:11px; color:var(--text-sub);">Giriş Fiyatı</span>
+                    <input type="number" id="riskEntry" class="modern-input" placeholder="0.00">
+                </div>
+                <div>
+                    <span style="font-size:11px; color:var(--text-sub);">Stop Fiyatı</span>
+                    <input type="number" id="riskStop" class="modern-input" placeholder="0.00">
+                </div>
+            </div>
+            <button class="btn-main" onclick="calcLabRisk()">POZİSYON HESAPLA</button>
+        </div>
+
+        <div id="riskResultBox" class="dash-card full-width" style="display:none; background: linear-gradient(145deg, #451a03 0%, #171717 100%); border:1px solid var(--danger);">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px; margin-bottom:10px;">
+                <div class="metric-title" style="color:var(--danger); margin:0;">İŞLEM PLANI</div>
+                <div style="font-size:10px; color:var(--text-sub);">STOP ZARARI: <span id="resRiskLoss" style="color:white; font-weight:800;">--</span></div>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                <div><div style="font-size:10px; color:var(--text-sub);">ALINACAK ADET</div><div id="resRiskQty" style="font-size:20px; font-weight:800; color:white;">--</div></div>
+                <div style="text-align:right;"><div style="font-size:10px; color:#f59e0b; font-weight:700;">GEREKEN NAKİT</div><div id="resPosSize" style="font-size:20px; font-weight:800; color:#f59e0b;">--</div></div>
+            </div>
+            <div id="riskWarning" style="margin-top:15px; font-size:11px; background:rgba(255,255,255,0.05); padding:8px; border-radius:6px; display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-wallet"></i> <span id="riskRatioText">--</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="lab-tool-avg" class="lab-tool-container" style="display:none;">
+        <div class="card" style="border-left: 3px solid var(--gold);">
+            <div class="lbl-sm" style="color:var(--gold)">MALİYET DÜŞÜRME SİMÜLATÖRÜ</div>
+            <p style="font-size:11px; color:var(--text-sub); margin-bottom:15px;">Terste kaldığınız işlem için yeni ortalama hesabı.</p>
+            <div class="input-row">
+                <div><span style="font-size:11px; color:var(--text-sub);">Eldeki Adet</span><input type="number" id="avgOldQty" class="modern-input"></div>
+                <div><span style="font-size:11px; color:var(--text-sub);">Eski Ortalama</span><input type="number" id="avgOldPrice" class="modern-input"></div>
+            </div>
+            <div class="input-row">
+                <div><span style="font-size:11px; color:var(--text-sub);">Yeni Alım Fiyatı</span><input type="number" id="avgNewPrice" class="modern-input" placeholder="Güncel Fiyat"></div>
+                <div><span style="font-size:11px; color:var(--text-sub);">Alınacak Yeni Adet</span><input type="number" id="avgNewQty" class="modern-input" placeholder="Kaç tane alacaksın?"></div>
+            </div>
+            <button class="btn-main" onclick="calcLabAvg()">YENİ ORTALAMAYI GÖR</button>
+        </div>
+        <div id="avgResultBox" class="dash-card full-width" style="display:none; background: linear-gradient(145deg, #0f172a 0%, #1e1b4b 100%); border:1px solid var(--accent);">
+            <div class="metric-title" style="color:var(--accent)">SONUÇLAR</div>
+            <div style="text-align:center; padding:15px 0;">
+                <div style="font-size:11px; color:var(--text-sub);">YENİ ORTALAMANIZ</div>
+                <div id="resAvgNew" style="font-size:32px; font-weight:800; color:white;">--</div>
+            </div>
+            <div style="display:flex; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
+                <div><span style="font-size:10px; color:var(--text-sub);">TOPLAM ADET</span><br><b id="resAvgTotalQty">--</b></div>
+                <div style="text-align:right;"><span style="font-size:10px; color:var(--text-sub);">TOPLAM MALİYET</span><br><b id="resAvgTotalCost">--</b></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+</div>
+
 
         <div id="page-settings" class="page" style="padding:0; background:var(--bg-body);">
     <div class="app-settings-container" style="padding: 20px;">
@@ -1927,26 +2263,54 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
             </div>
 
             <div id="set-history" class="settings-content" style="display:none;">
-                <div class="accounting-header">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div class="lc-title">KASA</div>
-                        <button class="tool-btn" onclick="openCashModal()" style="background:rgba(255,255,255,0.1); color:white; padding:5px 10px; border-radius:8px;">+ Ekle</button>
-                    </div>
-                    <div class="acc-grid">
-                        <div class="acc-item"><span class="acc-lbl">GİRİŞ</span><span class="acc-val" id="accTotalIn" style="color:var(--success)">0</span></div>
-                        <div class="acc-item"><span class="acc-lbl">ÇIKIŞ</span><span class="acc-val" id="accTotalOut" style="color:var(--danger)">0</span></div>
-                        <div class="acc-item acc-net"><span class="acc-lbl">NET</span><span class="acc-val" id="accNetFlow">0</span></div>
-                    </div>
-                </div>
-                <div class="hist-filter-scroll">
-                    <div class="h-filter-btn active" onclick="filterHistory('all', this)">Tümü</div>
-                    <div class="h-filter-btn" onclick="filterHistory('NAKİT', this)">Kasa</div>
-                    <div class="h-filter-btn" onclick="filterHistory('ALIM', this)">Alım</div>
-                    <div class="h-filter-btn" onclick="filterHistory('SATIM', this)">Satım</div>
-                </div>
-                <button class="btn-main btn-sec" style="margin-bottom:10px; border:1px dashed var(--text-sub);" onclick="openManualHistoryModal()">Manuel Ekle</button>
-                <div id="historyListFull"></div>
+    
+    <div class="accounting-hero">
+        <div class="acc-row">
+            <div class="acc-stat-box">
+                <div class="acc-lbl-sub">TOPLAM ÖZKAYNAK</div>
+                <div class="acc-val-lg" id="accTotalEquity">--</div>
             </div>
+            <div class="acc-stat-box right">
+                <div class="acc-lbl-sub">NET KÂR/ZARAR</div>
+                <div class="acc-val-lg" id="accNetPnl">--</div>
+            </div>
+        </div>
+        
+        <div class="acc-row">
+            <div class="acc-stat-box">
+                <div class="acc-lbl-sub" style="color:var(--text-sub)">YATIRIM SERMAYESİ</div>
+                <div class="acc-val-sm" id="accCapital">--</div>
+            </div>
+            <div class="acc-stat-box right">
+                <div class="acc-lbl-sub" style="color:var(--success)">ÇEKİLEN KÂR (MAAŞ)</div>
+                <div class="acc-val-sm" id="accDividend" style="color:var(--success)">--</div>
+            </div>
+        </div>
+
+        <button class="btn-main" style="margin-top:10px; background:linear-gradient(90deg, #10b981, #059669);" onclick="openSalaryModal()">
+            <i class="fas fa-hand-holding-usd"></i> KÂR DAĞITIMI YAP (MAAŞ ÖDE)
+        </button>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <span class="lbl-sm">DEFTER KAYITLARI</span>
+        <button class="tool-btn" onclick="openCashModal()" style="background:var(--bg-input); padding:5px 10px; border-radius:8px; color:white;">+ İşlem Ekle</button>
+    </div>
+
+    <div class="hist-filter-scroll">
+        <div class="h-filter-btn active" onclick="filterHistory('all', this)">Tümü</div>
+        <div class="h-filter-btn" onclick="filterHistory('NAKİT', this)">Kasa</div>
+        <div class="h-filter-btn" onclick="filterHistory('ALIM', this)">Alım</div>
+        <div class="h-filter-btn" onclick="filterHistory('SATIM', this)">Satım</div>
+        <div class="h-filter-btn" onclick="filterHistory('MAAŞ', this)">Maaş</div>
+    </div>
+
+    <div id="historyListFull"></div>
+
+    <button class="trash-btn" onclick="openTrashModal()">
+        <i class="fas fa-trash-restore"></i> SİLİNEN KAYITLAR (<span id="trashCount">0</span>)
+    </button>
+</div>
 
         </div>
 
@@ -2367,6 +2731,38 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 
         <button class="btn-main" onclick="submitCashTransaction()">İŞLEMİ ONAYLA</button>
         <button class="btn-main btn-sec" style="margin-top:10px;" onclick="document.getElementById('cashModal').style.display='none'">İptal</button>
+    </div>
+</div>
+
+<div id="salaryModal" class="modal-overlay">
+    <div class="modal">
+        <h3 style="text-align:center; color:var(--success); margin-bottom:10px;">Kâr Dağıtımı</h3>
+        <p style="font-size:11px; color:var(--text-sub); text-align:center; margin-bottom:20px;">
+            Şirketinizden (Portföyünüzden) kendinize maaş ödemesi yapın. Bu işlem, sermayenizi düşürmez, kâr hanesinden düşülür.
+        </p>
+        
+        <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-bottom:15px; text-align:center;">
+            <div style="font-size:10px; color:var(--text-sub);">Çekilebilir Kâr Tutarı</div>
+            <div id="salaryAvailable" style="font-size:18px; font-weight:800; color:white;">--</div>
+        </div>
+
+        <span style="font-size:11px; color:var(--text-sub);">Çekilecek Tutar</span>
+        <input type="number" id="salaryAmt" class="modern-input" placeholder="0.00">
+
+        <button class="btn-main" style="background:#10b981; margin-top:10px;" onclick="confirmSalary()">ONAYLA VE ÇEK</button>
+        <button class="btn-main btn-sec" style="margin-top:10px;" onclick="closeModal('salaryModal')">İptal</button>
+    </div>
+</div>
+
+<div id="trashModal" class="modal-overlay">
+    <div class="modal">
+        <h3 style="text-align:center; margin-bottom:15px;"><i class="fas fa-trash-restore"></i> Geri Dönüşüm</h3>
+        <div style="font-size:11px; color:var(--text-sub); margin-bottom:15px; text-align:center;">
+            Yanlışlıkla silinen kayıtlar burada tutulur. Sermaye tutarsızlığını önlemek için geri yükleyebilirsiniz.
+        </div>
+        <div id="trashList" style="max-height:300px; overflow-y:auto;">
+            </div>
+        <button class="btn-main btn-sec" style="margin-top:15px;" onclick="closeModal('trashModal')">Kapat</button>
     </div>
 </div>
 
@@ -2900,140 +3296,223 @@ function renderPortfolioHTML(as) {
         if(hero) { if(totalUnrealizedPnL >= 0) { hero.classList.remove('loss'); hero.classList.add('profit'); } else { hero.classList.remove('profit'); hero.classList.add('loss'); } }
         if(isPrivacyMode) document.getElementById('totalWallet').classList.add('privacy-blur'); else document.getElementById('totalWallet').classList.remove('privacy-blur');
     }
- /* --- FINAL DÜZELTİLMİŞ GEÇMİŞ (ANA ŞERİT VAR, İÇİ SADE) --- */
+/* --- YENİ MUHASEBE VE GÜVENLİ SİLME MOTORU (FİNAL - DETAY KARTLI) --- */
+
+// Global Değişken: Silinenleri hafızadan çek
+let deletedHistory = JSON.parse(localStorage.getItem('tm_deleted_history')) || [];
+
+/* 1. Gelişmiş Render History */
 function renderHistory() {
-    try {
-        let l = document.getElementById('historyListFull');
-        if (!l) return;
-        l.innerHTML = "";
+    let l = document.getElementById('historyListFull');
+    if (!l) return;
+    l.innerHTML = "";
 
-        let globalSym = appSettings.currency === 'TRY' ? '₺' : '$';
+    // Çöp Kutusu Sayacını Güncelle
+    let trashCountEl = document.getElementById('trashCount');
+    if(trashCountEl) trashCountEl.innerText = deletedHistory.length;
 
-        // Filtreleme
-        let filteredHistory = tradeHistory.slice().reverse().filter(t => {
-            if (currentHistoryFilter === 'all') return true;
-            if (currentHistoryFilter === 'NAKİT') return (t.type === 'YATIRMA' || t.type === 'ÇEKME');
-            return t.type === currentHistoryFilter;
-        });
+    let globalSym = appSettings.currency === 'TRY' ? '₺' : '$';
+    
+    // --- MUHASEBE HESAPLAMALARI ---
+    let totalInvested = 0; 
+    let totalRealizedProfit = 0; 
+    let totalSalaryPaid = 0; 
 
-        // Toplamlar
-        let totalIn = 0;
-        let totalOut = 0;
-        tradeHistory.forEach(t => {
-            let val = parseFloat(t.total);
-            let transCurr = t.curr || (t.isUsdBase ? 'USD' : 'TRY');
-
-            if (appSettings.currency === 'TRY' && transCurr === 'USD') val = val * usdTryRate;
-            else if (appSettings.currency === 'USD' && transCurr === 'TRY') val = val / usdTryRate;
-
-            if (t.type === 'YATIRMA' || t.type === 'SATIM' || t.type === 'TEMETTÜ') totalIn += val;
-            if (t.type === 'ÇEKME' || t.type === 'ALIM') totalOut += val;
-        });
-
-        // Kasa Özeti
-        let elIn = document.getElementById('accTotalIn');
-        let elOut = document.getElementById('accTotalOut');
-        let elNet = document.getElementById('accNetFlow');
+    tradeHistory.forEach(t => {
+        let val = parseFloat(t.total || 0);
+        let pnl = parseFloat(t.pnl || 0);
         
-        if(elIn) elIn.innerText = globalSym + totalIn.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
-        if(elOut) elOut.innerText = globalSym + totalOut.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
-        if(elNet) {
-            let net = totalIn - totalOut;
-            elNet.innerText = (net >= 0 ? '+' : '') + globalSym + net.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
-            elNet.style.color = net >= 0 ? 'var(--success)' : 'var(--danger)';
+        let transCurr = t.curr || appSettings.currency;
+        if (appSettings.currency === 'TRY' && transCurr === 'USD') { val *= usdTryRate; pnl *= usdTryRate; }
+        else if (appSettings.currency === 'USD' && transCurr === 'TRY') { val /= usdTryRate; pnl /= usdTryRate; }
+
+        if (t.type === 'YATIRMA') totalInvested += val;
+        else if (t.type === 'ÇEKME') totalInvested -= val;
+        else if (t.type === 'MAAŞ') totalSalaryPaid += val;
+        else if (t.type === 'SATIM') totalRealizedProfit += pnl;
+        else if (t.type === 'TEMETTÜ') totalRealizedProfit += val;
+    });
+
+    let currentPortfolioValue = 0;
+    let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
+    as.forEach(a => {
+        let p = a.curr || a.buy;
+        let v = (a.origin === 'USD' && appSettings.currency === 'TRY') ? (p * a.amt * usdTryRate) : 
+                (a.origin === 'TRY' && appSettings.currency === 'USD') ? ((p * a.amt) / usdTryRate) : (p * a.amt);
+        currentPortfolioValue += v;
+    });
+    
+    let totalEquity = cashBalance + currentPortfolioValue;
+    let netPnL = totalEquity - totalInvested;
+
+    let elEq = document.getElementById('accTotalEquity');
+    let elCap = document.getElementById('accCapital');
+    let elDiv = document.getElementById('accDividend');
+    let elNet = document.getElementById('accNetPnl');
+
+    if(elEq) elEq.innerText = globalSym + totalEquity.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
+    if(elCap) elCap.innerText = globalSym + totalInvested.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
+    if(elDiv) elDiv.innerText = globalSym + totalSalaryPaid.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
+    
+    if(elNet) {
+        elNet.innerText = (netPnL >= 0 ? '+' : '') + globalSym + netPnL.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
+        elNet.style.color = netPnL >= 0 ? 'var(--success)' : 'var(--danger)';
+    }
+
+    let withdrawableProfit = Math.max(0, totalRealizedProfit - totalSalaryPaid);
+    let elSalAvail = document.getElementById('salaryAvailable');
+    if(elSalAvail) elSalAvail.innerText = globalSym + withdrawableProfit.toLocaleString();
+
+    // --- LİSTELEME ---
+    let filteredHistory = tradeHistory.slice().reverse().filter(t => {
+        if (currentHistoryFilter === 'all') return true;
+        if (currentHistoryFilter === 'NAKİT') return (t.type === 'YATIRMA' || t.type === 'ÇEKME');
+        return t.type === currentHistoryFilter;
+    });
+
+    if (filteredHistory.length === 0) {
+        l.innerHTML = "<div style='text-align:center; padding:20px; color:var(--text-sub); opacity:0.6;'>Kayıt Yok</div>";
+        return;
+    }
+
+    filteredHistory.forEach((t) => {
+        let realIndex = tradeHistory.indexOf(t);
+        
+        let displayVal = parseFloat(t.total);
+        let transCurr = t.curr || appSettings.currency;
+        if (appSettings.currency === 'TRY' && transCurr === 'USD') displayVal *= usdTryRate;
+        else if (appSettings.currency === 'USD' && transCurr === 'TRY') displayVal /= usdTryRate;
+
+        let icon = 'circle'; let cls = 'l-type-neutral'; let sign = ''; let color = 'white'; let desc = t.sym;
+
+        if (t.type === 'ALIM') { icon = 'arrow-down'; cls = 'l-type-out'; color = 'var(--danger)'; desc = `${t.sym} Alımı`; } 
+        else if (t.type === 'SATIM') { icon = 'arrow-up'; cls = 'l-type-in'; color = 'var(--success)'; sign = '+'; desc = `${t.sym} Satışı`; } 
+        else if (t.type === 'MAAŞ') { icon = 'hand-holding-usd'; cls = 'l-type-out'; color = '#10b981'; sign = '-'; desc = 'Kâr Dağıtımı'; }
+        else if (t.type === 'YATIRMA') { icon = 'plus'; cls = 'l-type-in'; color = 'var(--success)'; sign = '+'; desc = t.desc || 'Sermaye Girişi'; } 
+        else if (t.type === 'ÇEKME') { icon = 'minus'; cls = 'l-type-out'; color = 'var(--danger)'; sign = '-'; desc = t.desc || 'Sermaye Çıkışı'; }
+
+        // --- DETAY KARTI GERİ GELDİ (DÜZELTME BURADA) ---
+        let detailCardHtml = "";
+        if (t.type === 'SATIM' && t.avgCost) {
+            let isProfit = t.pnl >= 0;
+            let profitColor = isProfit ? 'var(--success)' : 'var(--danger)';
+            let profitSign = isProfit ? '+' : '';
+            let cardBg = isProfit ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)';
+            let itemSym = transCurr === 'USD' ? '$' : '₺';
+
+            detailCardHtml = `
+            <div style="margin-top:10px; background:${cardBg}; border-radius:8px; padding:10px; font-size:11px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px; padding-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <span style="color:var(--text-sub);">Alış: <b style="color:white;">${itemSym}${parseFloat(t.avgCost).toFixed(2)}</b></span>
+                    <span style="color:var(--text-sub); opacity:0.5;"><i class="fas fa-arrow-right"></i></span>
+                    <span style="color:var(--text-sub);">Satış: <b style="color:white;">${itemSym}${parseFloat(t.price).toFixed(2)}</b></span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <span style="font-weight:700; color:var(--text-sub);">SONUÇ:</span>
+                    <span style="color:${profitColor}; font-weight:800; font-size:12px;">${profitSign}${itemSym}${parseFloat(t.pnl).toLocaleString(undefined, {minimumFractionDigits:2})} (%${parseFloat(t.plPercent).toFixed(2)})</span>
+                </div>
+                <div style="font-style:italic; opacity:0.8; margin-bottom:4px; line-height:1.3; color:var(--text-sub);">"${t.note || 'İşlem notu yok.'}"</div>
+            </div>`;
         }
 
-        if (filteredHistory.length === 0) {
-            l.innerHTML = "<div style='text-align:center; padding:20px; color:var(--text-sub); opacity:0.6;'><i class='fas fa-receipt' style='font-size:24px; margin-bottom:10px;'></i><br>Kayıt Bulunamadı</div>";
-            return;
-        }
-
-        let currentMonth = "";
-
-        filteredHistory.forEach(t => {
-            // Ay Başlığı
-            let parts = t.date.split('.');
-            if (parts.length === 3) {
-                let monthNames = ["OCAK", "ŞUBAT", "MART", "NİSAN", "MAYIS", "HAZİRAN", "TEMMUZ", "AĞUSTOS", "EYLÜL", "EKİM", "KASIM", "ARALIK"];
-                let monthIndex = parseInt(parts[1]) - 1;
-                let listMonth = monthNames[monthIndex] + " " + parts[2];
-                if (listMonth !== currentMonth) {
-                    l.innerHTML += `<div class="month-separator"><span>${listMonth}</span></div>`;
-                    currentMonth = listMonth;
-                }
-            }
-
-            let displayVal = parseFloat(t.total);
-            let transCurr = t.curr || (t.isUsdBase ? 'USD' : 'TRY');
-            if (appSettings.currency === 'TRY' && transCurr === 'USD') displayVal = displayVal * usdTryRate;
-            else if (appSettings.currency === 'USD' && transCurr === 'TRY') displayVal = displayVal / usdTryRate;
-
-            // --- ŞERİT VE İKON MANTIĞI (GERİ GELDİ) ---
-            let icon = 'circle';
-            let cls = 'l-type-neutral'; // Varsayılan
-            let sign = '';
-            let color = 'white';
-            let desc = t.sym;
-
-            if (t.type === 'ALIM') { icon = 'arrow-down'; cls = 'l-type-out'; color = 'var(--danger)'; desc = `${t.sym} Alımı`; } 
-            else if (t.type === 'SATIM') { icon = 'arrow-up'; cls = 'l-type-in'; color = 'var(--success)'; sign = '+'; desc = `${t.sym} Satışı`; } 
-            else if (t.type === 'TEMETTÜ') { icon = 'gift'; cls = 'l-type-in'; color = 'var(--kap)'; sign = '+'; desc = `${t.sym} Temettü`; } 
-            else if (t.type === 'YATIRMA') { icon = 'plus'; cls = 'l-type-in'; color = 'var(--success)'; sign = '+'; desc = t.desc || 'Nakit Yatırma'; } 
-            else if (t.type === 'ÇEKME') { icon = 'minus'; cls = 'l-type-out'; color = 'var(--danger)'; sign = '-'; desc = t.desc || 'Nakit Çekme'; }
-
-            // --- DETAY KARTI (İÇİ ŞERİTSİZ) ---
-            let detailCardHtml = "";
-
-            if (t.type === 'SATIM' && t.avgCost) {
-                let isProfit = t.pnl >= 0;
-                let profitColor = isProfit ? 'var(--success)' : 'var(--danger)';
-                let profitSign = isProfit ? '+' : '';
-                let cardBg = isProfit ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)';
-                let itemSym = transCurr === 'USD' ? '$' : '₺';
-
-                detailCardHtml = `
-                <div style="margin-top:10px; background:${cardBg}; border-radius:8px; padding:10px; font-size:11px;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:6px; padding-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.05);">
-                        <span style="color:var(--text-sub);">Alış: <b style="color:white;">${itemSym}${parseFloat(t.avgCost).toFixed(2)}</b></span>
-                        <span style="color:var(--text-sub); opacity:0.5;"><i class="fas fa-arrow-right"></i></span>
-                        <span style="color:var(--text-sub);">Satış: <b style="color:white;">${itemSym}${parseFloat(t.price).toFixed(2)}</b></span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                        <span style="font-weight:700; color:var(--text-sub);">SONUÇ:</span>
-                        <span style="color:${profitColor}; font-weight:800; font-size:12px;">${profitSign}${itemSym}${parseFloat(t.pnl).toLocaleString(undefined, {minimumFractionDigits:2})} (%${parseFloat(t.plPercent).toFixed(2)})</span>
-                    </div>
-                    <div style="font-style:italic; opacity:0.8; margin-bottom:4px; line-height:1.3; color:var(--text-sub);">"${t.note || 'İşlem notu yok.'}"</div>
-                    <div style="font-size:9px; opacity:0.5;">(Kur: ${t.usdRateAtSell ? parseFloat(t.usdRateAtSell).toFixed(2) : '-'})</div>
-                </div>`;
-            }
-
-            // ANA HTML (ŞERİT SINIFI ${cls} EKLENDİ)
-            l.innerHTML += `
-            <div class="ledger-card ${cls}" style="flex-direction:column; align-items:stretch;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div class="lc-left">
-                        <div class="lc-icon"><i class="fas fa-${icon}"></i></div>
-                        <div class="lc-info">
-                            <span class="lc-title">${desc}</span>
-                            <span class="lc-date">${t.date} • ${t.time || ''}</span>
-                        </div>
-                    </div>
-                    <div class="lc-right">
-                        <span class="lc-amount" style="color:${color}">${sign}${globalSym}${displayVal.toLocaleString(undefined, {minimumFractionDigits:2})}</span>
-                        <span class="lc-badge">${t.type}</span>
+        // Kart HTML
+        l.innerHTML += `
+        <div class="ledger-card ${cls}" style="flex-direction:column; align-items:stretch;">
+            <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                <div class="lc-left">
+                    <div class="lc-icon"><i class="fas fa-${icon}"></i></div>
+                    <div class="lc-info">
+                        <span class="lc-title">${desc}</span>
+                        <span class="lc-date">${t.date} • ${t.type}</span>
                     </div>
                 </div>
-                ${detailCardHtml}
-            </div>`;
-        });
-
-    } catch (err) {
-        console.error("Geçmiş yüklenirken hata:", err);
-        const splash = document.getElementById('splash-screen');
-        if(splash) splash.style.display = 'none';
-    }
+                <div class="lc-right">
+                    <span class="lc-amount" style="color:${color}">${sign}${globalSym}${displayVal.toLocaleString(undefined, {minimumFractionDigits:2})}</span>
+                    <button onclick="safeDeleteHistory(${realIndex})" style="background:none; border:none; color:var(--text-sub); margin-left:10px; cursor:pointer;"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+            ${detailCardHtml}
+        </div>`;
+    });
 }
 
+/* 2. Güvenli Silme (Safe Delete) */
+function safeDeleteHistory(index) {
+    if(index === -1) return;
+    let item = tradeHistory[index];
+    if(!confirm(`"${item.type}" işlemini silmek istediğinize emin misiniz?`)) return;
+
+    deletedHistory.push(item);
+    localStorage.setItem('tm_deleted_history', JSON.stringify(deletedHistory));
+
+    tradeHistory.splice(index, 1);
+    localStorage.setItem('tm_full_trade_history', JSON.stringify(tradeHistory));
+
+    addNotification('info', 'Arşivlendi', 'İşlem çöp kutusuna taşındı.');
+    renderHistory();
+}
+
+/* 3. Çöp Kutusunu Aç ve Yönet */
+function openTrashModal() {
+    let l = document.getElementById('trashList');
+    l.innerHTML = "";
+    
+    if(deletedHistory.length === 0) {
+        l.innerHTML = "<div style='text-align:center; padding:20px; color:var(--text-sub);'>Çöp kutusu boş.</div>";
+    } else {
+        deletedHistory.forEach((item, idx) => {
+            l.innerHTML += `
+            <div class="deleted-item">
+                <div>
+                    <div style="font-weight:700; font-size:12px; color:white;">${item.type} - ${item.sym || 'Nakit'}</div>
+                    <div style="font-size:10px; color:var(--text-sub);">${item.date} • ${item.total}</div>
+                </div>
+                <button class="del-restore-btn" onclick="restoreHistory(${idx})">GERİ YÜKLE</button>
+            </div>`;
+        });
+    }
+    openModal('trashModal');
+}
+
+function restoreHistory(idx) {
+    let item = deletedHistory[idx];
+    tradeHistory.push(item);
+    tradeHistory.sort((a, b) => new Date(convertToDate(a.date)) - new Date(convertToDate(b.date)));
+    deletedHistory.splice(idx, 1);
+    
+    localStorage.setItem('tm_deleted_history', JSON.stringify(deletedHistory));
+    localStorage.setItem('tm_full_trade_history', JSON.stringify(tradeHistory));
+    
+    addNotification('success', 'Geri Yüklendi', 'Kayıt deftere geri eklendi.');
+    openTrashModal();
+    renderHistory();
+}
+
+function convertToDate(dateStr) {
+    if(!dateStr) return new Date();
+    let parts = dateStr.split('.');
+    if(parts.length < 3) return new Date();
+    return new Date(parts[2], parts[1] - 1, parts[0]);
+}
+
+/* 4. Maaş Ödeme Fonksiyonu */
+function openSalaryModal() { openModal('salaryModal'); }
+
+function confirmSalary() {
+    let amt = parseFloat(document.getElementById('salaryAmt').value);
+    if(!amt || amt <= 0) return alert("Tutar giriniz.");
+    if(amt > cashBalance) return alert("Kasada bu kadar nakit yok!");
+
+    cashBalance -= amt;
+    localStorage.setItem('tm_cash_balance', cashBalance);
+
+    logHistory('MAAŞ', 'NAKİT', 1, amt, 'Kâr Dağıtımı', appSettings.currency);
+
+    addNotification('success', 'Ödeme Yapıldı', `Kendinize ${amt} ödeme yaptınız. Bereketli olsun!`);
+    closeModal('salaryModal');
+    renderHistory();
+    loadPF(false);
+}
 
     /* --- GÜNCELLENMİŞ KAYIT FONKSİYONU (KARNE DESTEKLİ) --- */
 function logHistory(type, s, a, p, desc='', curr = null, pnl = 0, details = {}) { 
@@ -6152,6 +6631,626 @@ function calcHolderAnalysis() {
     `;
 
     box.innerHTML = htmlContent;
+}
+
+/* --- ANALİZ SAYFASI SEKME YÖNETİMİ --- */
+function switchAnTab(tab, btn) {
+    // İçerikleri Gizle/Göster
+    document.querySelectorAll('.an-view-section').forEach(el => el.style.display = 'none');
+    document.getElementById('an-view-' + tab).style.display = 'block';
+    
+    // Buton Aktifliği
+    document.querySelectorAll('.s-tab').forEach(el => el.classList.remove('active'));
+    btn.classList.add('active');
+
+    // Sekmeye özel başlatıcılar
+    if(tab === 'vision') {
+        loadVisionData();
+        calcVision(); // Grafiği çiz
+    }
+    if(tab === 'lab') {
+        // Lab verilerini sıfırla veya mevcut sermayeyi doldur
+        let currentNet = parseFloat(document.getElementById('anNetWorth').innerText.replace(/[^0-9.-]+/g,"")) || 0;
+        if(currentNet > 0 && !document.getElementById('labStart').value) {
+            document.getElementById('labStart').value = currentNet;
+        }
+    }
+}
+
+/* --- ANALİZ SAYFASI SEKME YÖNETİMİ (GÜVENLİ VERSİYON) --- */
+function switchAnTab(tab, btn) {
+    // Tüm sekmeleri gizle
+    document.querySelectorAll('.an-view-section').forEach(el => el.style.display = 'none');
+    
+    // İstenen sekmeyi göster
+    const targetSection = document.getElementById('an-view-' + tab);
+    if(targetSection) targetSection.style.display = 'block';
+    
+    // Buton stillerini güncelle
+    document.querySelectorAll('.s-tab').forEach(el => el.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+
+    // ÖZEL DÜZELTME: Sekme görünür olduktan SONRA grafiği çiz
+    // Bu gecikme, elementin render edilmesini bekler
+    setTimeout(() => {
+        if(tab === 'vision') {
+            loadVisionData(); // Veriyi yükle
+            calcVision();     // Grafiği çiz (Artık element görünür)
+        }
+        if(tab === 'lab') {
+            // Lab verilerini hazırla
+            const netWorthEl = document.getElementById('anNetWorth');
+            if(netWorthEl) {
+                let currentNet = parseFloat(netWorthEl.innerText.replace(/[^0-9.-]+/g,"")) || 0;
+                const labStart = document.getElementById('labStart');
+                if(currentNet > 0 && labStart && !labStart.value) {
+                    labStart.value = currentNet;
+                }
+            }
+        }
+    }, 100);
+}
+
+/* --- HEDEFLERİM (VİZYON) MODÜLÜ --- */
+let visionChartInstance = null;
+
+function loadVisionData() {
+    let data = JSON.parse(localStorage.getItem('tm_vision_data')) || { target: 1000000, rate: 5, add: 1000 };
+    
+    const elTarget = document.getElementById('visionTarget');
+    const elRate = document.getElementById('visionRate');
+    const elAdd = document.getElementById('visionAdd');
+
+    if(elTarget) elTarget.value = data.target;
+    if(elRate) elRate.value = data.rate;
+    if(elAdd) elAdd.value = data.add;
+}
+
+function saveVisionData() {
+    const elTarget = document.getElementById('visionTarget');
+    const elRate = document.getElementById('visionRate');
+    const elAdd = document.getElementById('visionAdd');
+
+    if(!elTarget || !elRate || !elAdd) return;
+
+    let data = {
+        target: parseFloat(elTarget.value),
+        rate: parseFloat(elRate.value),
+        add: parseFloat(elAdd.value)
+    };
+    localStorage.setItem('tm_vision_data', JSON.stringify(data));
+    calcVision();
+}
+
+function calcVision() {
+    // HATA KORUMASI: Eğer 'visionChart' elementi sayfada yoksa veya gizliyse dur.
+    const canvas = document.getElementById('visionChart');
+    if(!canvas || canvas.offsetParent === null) return; 
+
+    // 1. Girdileri Al
+    let currentNetWorth = 0;
+    try {
+        const nwEl = document.getElementById('anNetWorth');
+        if(nwEl) currentNetWorth = parseFloat(nwEl.innerText.replace(/[^0-9.-]+/g,"")) || 0;
+    } catch(e) {}
+
+    const elTarget = document.getElementById('visionTarget');
+    const elRate = document.getElementById('visionRate');
+    const elAdd = document.getElementById('visionAdd');
+
+    let target = elTarget ? (parseFloat(elTarget.value) || 1000000) : 1000000;
+    let monthlyRate = elRate ? (parseFloat(elRate.value) || 5) : 5;
+    let monthlyAdd = elAdd ? (parseFloat(elAdd.value) || 0) : 0;
+
+    // 2. Projeksiyon Hesabı
+    let labels = [];
+    let dataPoints = [];
+    let balance = currentNetWorth;
+    let monthsToTarget = -1;
+
+    for(let i=0; i<=24; i++) {
+        labels.push(i === 0 ? 'Şimdi' : i + '. Ay');
+        dataPoints.push(balance);
+        
+        if(balance >= target && monthsToTarget === -1) {
+            monthsToTarget = i;
+        }
+
+        let profit = balance * (monthlyRate / 100);
+        balance = balance + profit + monthlyAdd;
+    }
+
+    // 3. Grafiği Çiz
+    const ctx = canvas.getContext('2d');
+    if(visionChartInstance) {
+        visionChartInstance.destroy();
+        visionChartInstance = null;
+    }
+
+    visionChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Projeksiyon',
+                data: dataPoints,
+                borderColor: '#10b981', 
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            },
+            {
+                label: 'Hedef Çizgisi',
+                data: Array(25).fill(target),
+                borderColor: '#f59e0b', 
+                borderDash: [5, 5],
+                borderWidth: 1,
+                pointRadius: 0,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { mode: 'index', intersect: false }
+            },
+            scales: {
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } },
+                x: { display: false } 
+            }
+        }
+    });
+
+    // 4. Metin Güncelleme
+    const resultDiv = document.getElementById('visionResultText');
+    if(resultDiv) {
+        if(monthsToTarget !== -1) {
+            resultDiv.innerHTML = `<b style="color:#10b981">Harika Gidiyorsunuz! 🚀</b><br>Mevcut tempoyla hedefinize yaklaşık <b>${monthsToTarget} ay</b> sonra ulaşacaksınız.`;
+        } else {
+            resultDiv.innerHTML = `Hedefe ulaşmak 24 aydan uzun sürecek.<br><b>Aylık kâr hedefini</b> veya <b>ek yatırımları</b> artırmayı deneyin.`;
+        }
+    }
+}
+
+/* --- AR-GE (LAB) FİNAL FONKSİYONLAR (GÜNCELLENDİ: AKILLI VARLIK SEÇİMİ) --- */
+
+// 1. ARAÇ GEÇİŞLERİ
+function switchLabTool(tool, btn) {
+    document.querySelectorAll('.lab-tool-container').forEach(el => el.style.display = 'none');
+    document.getElementById('lab-tool-' + tool).style.display = 'block';
+    
+    if(btn) {
+        const parent = btn.parentElement;
+        parent.querySelectorAll('.chart-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    // Risk aracına geçince listeyi hazırla
+    if(tool === 'risk') {
+        populateRiskAssets(); 
+        
+        // Eğer kutu boşsa varsayılan olarak Nakit Bakiyeyi yaz (Boşta duran para)
+        const inputBalance = document.getElementById('riskBalance');
+        let storedCash = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
+        
+        if(inputBalance && inputBalance.value === "") {
+            inputBalance.value = Math.floor(storedCash);
+            // Kullanıcı bilsin diye placeholder ekle
+            inputBalance.placeholder = "Nakit veya Varlık Değeri";
+        }
+    }
+}
+
+// 2. LİSTEYİ DOLDUR (SIRA NUMARASI İLE)
+function populateRiskAssets() {
+    const selectBox = document.getElementById('riskAssetSelect');
+    if(!selectBox) return;
+
+    let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
+    
+    // Önce temizle
+    selectBox.innerHTML = '<option value="-1">Manuel Giriş / Seçiniz</option>';
+    
+    if(as.length === 0) {
+        let opt = document.createElement("option");
+        opt.text = "(Portföy Boş)";
+        selectBox.add(opt);
+        return;
+    }
+
+    // Listeyi oluştur (Value olarak INDEX saklıyoruz ki tüm veriye ulaşalım)
+    as.forEach((asset, index) => {
+        let price = asset.curr || asset.buy;
+        let sym = asset.origin === 'USD' ? '$' : '₺';
+        
+        let option = document.createElement("option");
+        option.text = `${asset.name} (${asset.amt} Adet)`; // İsimde miktar görünsün
+        option.value = index; // ÖNEMLİ: Fiyat değil, sıra no saklıyoruz
+        selectBox.add(option);
+    });
+}
+
+// 3. SEÇİLEN VARLIĞIN VERİLERİNİ ÇEK (KRİTİK GÜNCELLEME)
+function fillRiskFromAsset() {
+    let idx = document.getElementById('riskAssetSelect').value;
+    
+    // Eğer "Seçiniz" veya manuel seçildiyse dur
+    if(idx == "-1") return;
+
+    let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
+    let asset = as[idx]; // Sıra numarasına göre varlığı bul
+
+    if(asset) {
+        // A) Gerekli Verileri Al
+        let price = asset.curr || asset.buy;
+        let amount = asset.amt;
+        
+        // B) Sadece Bu Varlığın Toplam Değerini Hesapla (Dönüştürerek)
+        let totalAssetValue = 0;
+        let currentUsd = (typeof usdTryRate !== 'undefined') ? usdTryRate : 36.50;
+        let myCurr = (typeof appSettings !== 'undefined') ? appSettings.currency : 'TRY';
+
+        // Kur dönüşümü (USD varlığı TL yap veya tam tersi)
+        if(myCurr === 'TRY') {
+            totalAssetValue = (asset.origin === 'USD') ? (price * amount * currentUsd) : (price * amount);
+        } else {
+            totalAssetValue = (asset.origin === 'TRY') ? ((price * amount) / currentUsd) : (price * amount);
+        }
+
+        // C) Kutuları Doldur
+        const balInput = document.getElementById('riskBalance');
+        const entryInput = document.getElementById('riskEntry');
+
+        if(balInput) {
+            balInput.value = totalAssetValue.toFixed(2); // Toplam Kasa = Bu Varlığın Değeri
+            flashInput(balInput);
+        }
+        
+        if(entryInput) {
+            entryInput.value = price.toFixed(2); // Güncel fiyat
+            flashInput(entryInput);
+        }
+    }
+}
+
+// Görsel Efekt Yardımcısı
+function flashInput(el) {
+    el.style.transition = "background 0.3s";
+    el.style.background = "rgba(16, 185, 129, 0.2)"; // Yeşil yan
+    setTimeout(() => { el.style.background = ""; }, 500);
+}
+
+// 4. Risk & Pozisyon Hesaplayıcı (Aynen Kalıyor)
+function calcLabRisk() {
+    let balance = parseFloat(document.getElementById('riskBalance').value);
+    let riskPct = parseFloat(document.getElementById('riskPct').value);
+    let entry = parseFloat(document.getElementById('riskEntry').value);
+    let stop = parseFloat(document.getElementById('riskStop').value);
+
+    if(isNaN(balance) || isNaN(riskPct) || isNaN(entry) || isNaN(stop)) return alert("Lütfen tüm alanları doldurun.");
+    
+    // Yön kontrolü (Opsiyonel, uyarısız da çalışabilir)
+    // if(stop >= entry) return alert("Stop fiyatı girişten düşük olmalıdır.");
+
+    let riskAmount = balance * (riskPct / 100);
+    let diffPerUnit = Math.abs(entry - stop); 
+    
+    if(diffPerUnit === 0) return alert("Giriş ve Stop aynı olamaz.");
+
+    let qty = riskAmount / diffPerUnit;
+    let totalPosSize = qty * entry;
+    
+    // Portföydeki oranı (Burada balance artık sadece o varlığın değeri olduğu için oran %100'ü geçebilir, bu normaldir)
+    // Eğer yeni işlemse nakite oranla, mevcut varlıksa varlığa oranla.
+    let portfolioImpact = (totalPosSize / balance) * 100;
+
+    let sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY') ? '₺' : '$';
+
+    document.getElementById('resRiskQty').innerText = qty.toLocaleString(undefined, {maximumFractionDigits:2});
+    document.getElementById('resRiskLoss').innerText = "-" + sym + riskAmount.toLocaleString(undefined, {maximumFractionDigits:2});
+    document.getElementById('resPosSize').innerText = sym + totalPosSize.toLocaleString(undefined, {maximumFractionDigits:2});
+    
+    let warnEl = document.getElementById('riskWarning');
+    let ratioText = document.getElementById('riskRatioText');
+    
+    if(ratioText) {
+        if(portfolioImpact > 100 && document.getElementById('riskAssetSelect').value == "-1") {
+            // Sadece yeni işlem (nakit) ise yetersiz bakiye uyarısı ver
+            warnEl.style.color = "var(--danger)";
+            warnEl.style.border = "1px solid var(--danger)";
+            ratioText.innerHTML = `<b>YETERSİZ BAKİYE:</b> %${portfolioImpact.toFixed(0)} gerekiyor.`;
+        } else {
+            // Mevcut varlık seçiliyse sadece bilgi ver
+            warnEl.style.color = "var(--text-sub)";
+            warnEl.style.border = "none";
+            ratioText.innerHTML = `Bu işlem sermayenin <b>%${portfolioImpact.toFixed(1)}</b> kadarını kapsar.`;
+        }
+    }
+    document.getElementById('riskResultBox').style.display = 'block';
+}
+
+// 5. Büyüme Simülatörü
+function runLabTest() {
+    const elStart = document.getElementById('labStart');
+    const elWin = document.getElementById('labWinPct');
+    const elFreq = document.getElementById('labFreq');
+    const elDur = document.getElementById('labDuration');
+
+    if(!elStart || !elWin || !elFreq || !elDur) return;
+
+    let start = parseFloat(elStart.value) || 1000;
+    let winPct = parseFloat(elWin.value) || 2; 
+    let freq = parseFloat(elFreq.value) || 1; 
+    let duration = parseFloat(elDur.value) || 12; 
+
+    let totalWeeks = duration * 4;
+    let balance = start;
+    let listHtml = ""; 
+    let sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY') ? '₺' : '$';
+
+    for(let i=1; i<=totalWeeks; i++) {
+        for(let j=0; j<freq; j++) { balance = balance * (1 + (winPct/100)); }
+        if(i % 4 === 0) {
+            let month = i / 4;
+            let profit = balance - start;
+            listHtml += `<div class="lab-row"><div class="lab-col-left"><span class="lab-month-badge">${month}. AY</span><span class="lab-balance-val">${sym}${balance.toLocaleString(undefined, {maximumFractionDigits:0})}</span></div><div class="lab-col-right"><span class="lab-profit-lbl">NET KÂR</span><span class="lab-profit-val">+${sym}${profit.toLocaleString(undefined, {maximumFractionDigits:0})}</span></div></div>`;
+        }
+    }
+
+    const resStart = document.getElementById('resLabStart');
+    const resEnd = document.getElementById('resLabEnd');
+    const resGrowth = document.getElementById('resLabGrowth');
+    const listContainer = document.getElementById('labListContainer');
+    const resBox = document.getElementById('labResults');
+
+    if(resStart) resStart.innerText = sym + start.toLocaleString();
+    if(resEnd) resEnd.innerText = sym + balance.toLocaleString(undefined, {maximumFractionDigits:0});
+    if(resGrowth) {
+        let growthPct = ((balance - start) / start) * 100;
+        resGrowth.innerText = `%${growthPct.toFixed(0)} Büyüme`;
+    }
+    if(listContainer) listContainer.innerHTML = listHtml;
+    
+    if(resBox) {
+        resBox.style.display = 'block';
+        setTimeout(() => { resBox.scrollIntoView({behavior: "smooth", block: "start"}); }, 100);
+    }
+}
+
+// 6. Maliyet Düşürme Hesaplayıcı
+function calcLabAvg() {
+    let oldQty = parseFloat(document.getElementById('avgOldQty').value);
+    let oldPrice = parseFloat(document.getElementById('avgOldPrice').value);
+    let newPrice = parseFloat(document.getElementById('avgNewPrice').value);
+    let newQty = parseFloat(document.getElementById('avgNewQty').value);
+
+    if(isNaN(oldQty) || isNaN(oldPrice) || isNaN(newPrice) || isNaN(newQty)) {
+        return alert("Lütfen tüm alanları doldurun.");
+    }
+
+    let oldTotal = oldQty * oldPrice;
+    let newTotal = newQty * newPrice;
+    let totalQty = oldQty + newQty;
+    let grandTotal = oldTotal + newTotal;
+    let newAvg = grandTotal / totalQty;
+
+    document.getElementById('resAvgNew').innerText = newAvg.toFixed(2);
+    document.getElementById('resAvgTotalQty').innerText = totalQty;
+    document.getElementById('resAvgTotalCost').innerText = grandTotal.toLocaleString(undefined, {maximumFractionDigits:2});
+    document.getElementById('avgResultBox').style.display = 'block';
+}
+
+/* =========================================
+   AR-GE (LAB) MODÜLÜ - TAMİR EDİLMİŞ SÜRÜM
+   (Bu kodu en alta ekleyin)
+   ========================================= */
+
+// 1. ARAÇ GEÇİŞLERİ VE BAKİYE ÇEKME
+function switchLabTool(tool, btn) {
+    // Tüm araç kutularını gizle
+    document.querySelectorAll('.lab-tool-container').forEach(el => el.style.display = 'none');
+    
+    // Seçilen aracı göster
+    const selectedTool = document.getElementById('lab-tool-' + tool);
+    if(selectedTool) selectedTool.style.display = 'block';
+    
+    // Buton renklerini ayarla
+    if(btn) {
+        const parent = btn.parentElement;
+        parent.querySelectorAll('.chart-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    // RİSK ARACINA GEÇİLDİYSE: Toplam Varlığı Otomatik Çek
+    if(tool === 'risk') {
+        const inputBalance = document.getElementById('riskBalance');
+        
+        // Ana ekrandaki 'Toplam Varlık' verisini almayı dene
+        let totalEquity = 0;
+        
+        // 1. Yöntem: LocalStorage'dan en garantili veriyi hesapla
+        try {
+            let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
+            let storedCash = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
+            let currentUsd = (typeof usdTryRate !== 'undefined') ? usdTryRate : 36.50;
+            let myCurr = (typeof appSettings !== 'undefined') ? appSettings.currency : 'TRY';
+            
+            let totalAssetVal = 0;
+            as.forEach(a => {
+                let p = a.curr || a.buy;
+                let v = 0;
+                if(myCurr === 'TRY') {
+                    v = (a.origin === 'USD') ? (p * a.amt * currentUsd) : (p * a.amt);
+                } else {
+                    v = (a.origin === 'TRY') ? ((p * a.amt) / currentUsd) : (p * a.amt);
+                }
+                totalAssetVal += v;
+            });
+            
+            totalEquity = totalAssetVal + storedCash;
+
+        } catch(e) {
+            console.log("Bakiye çekme hatası, manuel giriş gerekli.");
+        }
+
+        // Kutuyu doldur ve yeşil yakıp söndür
+        if(inputBalance && totalEquity > 0) {
+            inputBalance.value = Math.floor(totalEquity); 
+            inputBalance.style.transition = "background 0.3s";
+            inputBalance.style.background = "rgba(16, 185, 129, 0.2)";
+            setTimeout(() => { inputBalance.style.background = ""; }, 600);
+        }
+    }
+}
+
+// 2. RİSK HESAPLAMA MOTORU (DÜZELTİLDİ)
+function calcLabRisk() {
+    // Değerleri al
+    let balance = parseFloat(document.getElementById('riskBalance').value);
+    let riskPct = parseFloat(document.getElementById('riskPct').value);
+    let entry = parseFloat(document.getElementById('riskEntry').value);
+    let stop = parseFloat(document.getElementById('riskStop').value);
+
+    // Hata Kontrolü
+    if(isNaN(balance) || isNaN(riskPct) || isNaN(entry) || isNaN(stop)) {
+        addNotification('warn', 'Eksik Bilgi', 'Lütfen tüm sayısal alanları doldurun.');
+        return;
+    }
+    
+    if(stop >= entry) {
+        addNotification('danger', 'Mantık Hatası', 'Stop fiyatı, giriş fiyatından düşük olmalıdır (Long İşlem).');
+        return;
+    }
+
+    // --- MATEMATİK ---
+    
+    // 1. Göze alınan toplam zarar miktarı (Örn: 100.000 TL * %1 = 1.000 TL)
+    let riskAmount = balance * (riskPct / 100);
+
+    // 2. Bir adet hissede edilecek zarar (Örn: 10 TL Giriş - 9 TL Stop = 1 TL Zarar)
+    let lossPerUnit = entry - stop;
+
+    // 3. Kaç adet alınmalı? (1.000 TL Toplam Zarar / 1 TL Birim Zarar = 1000 Adet)
+    let quantity = riskAmount / lossPerUnit;
+
+    // 4. Bu işlem için kasadan çıkacak toplam para (Pozisyon Büyüklüğü)
+    let positionSize = quantity * entry;
+
+    // 5. Portföydeki oranı
+    let portfolioImpact = (positionSize / balance) * 100;
+
+    // --- SONUÇLARI YAZDIR ---
+    
+    let sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY') ? '₺' : '$';
+
+    // Sonuç kutularını doldur
+    document.getElementById('resRiskQty').innerText = quantity.toLocaleString(undefined, {maximumFractionDigits:2}) + " Adet";
+    document.getElementById('resRiskLoss').innerText = "-" + sym + riskAmount.toLocaleString(undefined, {maximumFractionDigits:2});
+    document.getElementById('resPosSize').innerText = sym + positionSize.toLocaleString(undefined, {maximumFractionDigits:2});
+    
+    // Uyarı Metni Ayarla
+    let warnEl = document.getElementById('riskWarning');
+    let ratioText = document.getElementById('riskRatioText');
+    
+    if(warnEl && ratioText) {
+        if(portfolioImpact > 100) {
+            warnEl.style.border = "1px solid var(--danger)";
+            warnEl.style.color = "var(--danger)";
+            ratioText.innerHTML = `<b>BAKİYE YETERSİZ!</b> Bu işlem kasanın %${portfolioImpact.toFixed(0)}'ini gerektiriyor.`;
+        } else {
+            warnEl.style.border = "1px solid rgba(255,255,255,0.1)";
+            warnEl.style.color = "var(--text-sub)";
+            ratioText.innerHTML = `Bu işlem için kasanızın <b>%${portfolioImpact.toFixed(1)}</b> kadarını (Nakit) bağlamanız gerekiyor.`;
+        }
+    }
+
+    // Sonuç kutusunu görünür yap
+    const resBox = document.getElementById('riskResultBox');
+    if(resBox) {
+        resBox.style.display = 'block';
+        // Sonuca doğru hafif kaydır
+        resBox.scrollIntoView({behavior: "smooth", block: "nearest"});
+    }
+}
+
+// 3. MALİYET DÜŞÜRME MOTORU
+function calcLabAvg() {
+    let oldQty = parseFloat(document.getElementById('avgOldQty').value);
+    let oldPrice = parseFloat(document.getElementById('avgOldPrice').value);
+    let newPrice = parseFloat(document.getElementById('avgNewPrice').value);
+    let newQty = parseFloat(document.getElementById('avgNewQty').value);
+
+    if(isNaN(oldQty) || isNaN(oldPrice) || isNaN(newPrice) || isNaN(newQty)) {
+        addNotification('warn', 'Eksik Bilgi', 'Tüm alanları doldurunuz.');
+        return;
+    }
+
+    let oldTotal = oldQty * oldPrice;
+    let newTotal = newQty * newPrice;
+    let totalQty = oldQty + newQty;
+    let grandTotal = oldTotal + newTotal;
+    let newAvg = grandTotal / totalQty;
+
+    document.getElementById('resAvgNew').innerText = newAvg.toFixed(2);
+    document.getElementById('resAvgTotalQty').innerText = totalQty;
+    document.getElementById('resAvgTotalCost').innerText = grandTotal.toLocaleString(undefined, {maximumFractionDigits:2});
+
+    const resBox = document.getElementById('avgResultBox');
+    if(resBox) {
+        resBox.style.display = 'block';
+        resBox.scrollIntoView({behavior: "smooth", block: "nearest"});
+    }
+}
+
+// 4. BÜYÜME SİMÜLATÖRÜ
+function runLabTest() {
+    let start = parseFloat(document.getElementById('labStart').value) || 1000;
+    let winPct = parseFloat(document.getElementById('labWinPct').value) || 2; 
+    let freq = parseFloat(document.getElementById('labFreq').value) || 1; 
+    let duration = parseFloat(document.getElementById('labDuration').value) || 12; 
+
+    let totalWeeks = duration * 4;
+    let balance = start;
+    let listHtml = ""; 
+    let sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY') ? '₺' : '$';
+
+    for(let i=1; i<=totalWeeks; i++) {
+        for(let j=0; j<freq; j++) { balance = balance * (1 + (winPct/100)); }
+        
+        if(i % 4 === 0) {
+            let month = i / 4;
+            let profit = balance - start;
+            listHtml += `
+                <div class="lab-row">
+                    <div class="lab-col-left">
+                        <span class="lab-month-badge">${month}. AY</span>
+                        <span class="lab-balance-val">${sym}${balance.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+                    </div>
+                    <div class="lab-col-right">
+                        <span class="lab-profit-lbl">NET KÂR</span>
+                        <span class="lab-profit-val">+${sym}${profit.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+                    </div>
+                </div>`;
+        }
+    }
+
+    document.getElementById('resLabStart').innerText = sym + start.toLocaleString();
+    document.getElementById('resLabEnd').innerText = sym + balance.toLocaleString(undefined, {maximumFractionDigits:0});
+    
+    let growthPct = ((balance - start) / start) * 100;
+    document.getElementById('resLabGrowth').innerText = `%${growthPct.toFixed(0)} Büyüme`;
+
+    const listContainer = document.getElementById('labListContainer');
+    if(listContainer) listContainer.innerHTML = listHtml;
+    
+    const resBox = document.getElementById('labResults');
+    if(resBox) {
+        resBox.style.display = 'block';
+        resBox.scrollIntoView({behavior: "smooth", block: "start"});
+    }
 }
 
 </script>
