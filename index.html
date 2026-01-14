@@ -1979,52 +1979,62 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     </div>
 
     <div id="an-view-vision" class="an-view-section" style="display:none;">
-        
-                <div style="margin-bottom: 20px;">
-            <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom:5px;">
-                <button onclick="editTargetGoal()" style="background:none; border:none; color:var(--text-sub); font-size:10px; cursor:pointer;">
-                    <i class="fas fa-edit"></i> Hedefi Düzenle
-                </button>
-            </div>
-
-            <div class="goal-strip-container" style="position: relative;">
-                <div id="dynamicGoalBar" class="goal-strip-fill gs-red" style="width: 0%;"></div>
-                
-                <div class="goal-text-overlay">
-                    <span id="goalCurrentText" style="color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">%0</span>
-                    <span id="goalTargetTextRight" style="color: #d8b4fe; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">HEDEF: --</span>
-                </div>
-            </div>
+    
+    <div style="margin-bottom: 20px;">
+        <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom:5px;">
+            <button onclick="editTargetGoal()" style="background:none; border:none; color:var(--text-sub); font-size:10px; cursor:pointer;">
+                <i class="fas fa-edit"></i> Hedefi Düzenle
+            </button>
         </div>
-
-        <div class="card">
-            <div class="lbl-sm">PROJEKSİYON AYARLARI</div>
-            <div class="input-row">
-                <div>
-                    <span style="font-size:11px; color:var(--text-sub);">Aylık Kâr Hedefi (%)</span>
-                    <input type="number" id="visionRate" class="modern-input" value="5" onkeyup="renderDailyChart()">
-                </div>
-                <div>
-                    <span style="font-size:11px; color:var(--text-sub);">Aylık Ek Yatırım (Nakit)</span>
-                    <input type="number" id="visionAdd" class="modern-input" value="1000" onkeyup="renderDailyChart()">
-                </div>
-            </div>
-        </div>
-
-        <div class="dash-card full-width">
-            <div class="metric-title">BÜYÜME GRAFİĞİ</div>
-            <div style="height: 220px; width: 100%;">
-                <canvas id="visionChart"></canvas>
-            </div>
-        </div>
-
-        <div style="margin-top:20px;">
-            <div class="lbl-sm">GÜNLÜK KAZANÇ RAPORU (CANLI)</div>
-            <div id="dailyLogList" class="daily-log-container">
-                <div style="text-align:center; padding:20px; color:var(--text-sub);">Veriler yükleniyor...</div>
+        <div class="goal-strip-container" style="position: relative;">
+            <div id="dynamicGoalBar" class="goal-strip-fill gs-red" style="width: 0%;"></div>
+            <div class="goal-text-overlay">
+                <span id="goalCurrentText" style="color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">%0</span>
+                <span id="goalTargetTextRight" style="color: #d8b4fe; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">HEDEF: --</span>
             </div>
         </div>
     </div>
+
+    <div class="card">
+        <div class="lbl-sm">SİMÜLASYON AYARLARI</div>
+        <div class="input-row">
+            <div>
+                <span style="font-size:11px; color:var(--text-sub);">Aylık Kâr Beklentisi (%)</span>
+                <input type="number" id="visionRate" class="modern-input" value="5" placeholder="Örn: 5">
+            </div>
+            <div>
+                <span style="font-size:11px; color:var(--text-sub);">Aylık Ek Yatırım (Nakit)</span>
+                <input type="number" id="visionAdd" class="modern-input" value="1000" placeholder="Örn: 1000">
+            </div>
+        </div>
+        
+        <button class="btn-main" style="margin-top:10px; background: linear-gradient(90deg, #8b5cf6, #d946ef);" onclick="manualUpdateVision()">
+            <i class="fas fa-calculator"></i> SİMÜLASYONU GÜNCELLE
+        </button>
+    </div>
+
+    <div class="dash-card full-width" style="padding-bottom: 10px;">
+        <div class="metric-title" style="display:flex; justify-content:space-between;">
+            <span>BÜYÜME GRAFİĞİ</span>
+            <div style="display:flex; gap:8px; font-size:9px;">
+                <span style="color:#d946ef;">● Tahmini</span>
+                <span style="color:#f97316;">● Anapara</span>
+            </div>
+        </div>
+        
+        <div style="position: relative; height: 250px; width: 100%;">
+            <canvas id="visionChart"></canvas>
+        </div>
+    </div>
+
+    <div style="margin-top:20px;">
+        <div class="lbl-sm">GÜNLÜK KAZANÇ RAPORU</div>
+        <div id="dailyLogList" class="daily-log-container">
+            <div style="text-align:center; padding:20px; color:var(--text-sub);">Veriler yükleniyor...</div>
+        </div>
+    </div>
+</div>
+
 
     <div id="an-view-lab" class="an-view-section" style="display:none;">
         
@@ -6801,129 +6811,254 @@ function switchAnTab(tab, btn) {
     }, 100); 
 }
 
-/* --- HEDEFLERİM (VİZYON) MODÜLÜ --- */
-let visionChartInstance = null;
+/* --- HEDEFLERİM (VİZYON) MODÜLÜ - (FİNAL TAMİR) --- */
 
+// 1. Grafik Nesnesini Güvenli Tanımla
+if (typeof window.visionChartInstance === 'undefined') {
+    window.visionChartInstance = null;
+}
+
+// YARDIMCI: Türkçe Sayı Düzeltici (50.000 -> 50000 / 50,5 -> 50.5)
+function parseTurkishInput(val) {
+    if (!val) return 0;
+    let str = val.toString();
+    // 1. Sadece nokta var (Örn: 50.000) -> Noktayı sil (Binlik)
+    if (str.includes('.') && !str.includes(',')) {
+        str = str.replace(/\./g, '');
+    }
+    // 2. Hem nokta hem virgül var (Örn: 50.000,50) -> Noktayı sil, virgülü nokta yap
+    else if (str.includes('.') && str.includes(',')) {
+        str = str.replace(/\./g, '').replace(',', '.');
+    }
+    // 3. Sadece virgül var -> Nokta yap
+    else {
+        str = str.replace(',', '.');
+    }
+    return parseFloat(str) || 0;
+}
+
+// 2. Ayarları Yükle
 function loadVisionData() {
-    let data = JSON.parse(localStorage.getItem('tm_vision_data')) || { target: 1000000, rate: 5, add: 1000 };
-    
-    const elTarget = document.getElementById('visionTarget');
-    const elRate = document.getElementById('visionRate');
-    const elAdd = document.getElementById('visionAdd');
-
-    if(elTarget) elTarget.value = data.target;
-    if(elRate) elRate.value = data.rate;
-    if(elAdd) elAdd.value = data.add;
-}
-
-function saveVisionData() {
-    const elTarget = document.getElementById('visionTarget');
-    const elRate = document.getElementById('visionRate');
-    const elAdd = document.getElementById('visionAdd');
-
-    if(!elTarget || !elRate || !elAdd) return;
-
-    let data = {
-        target: parseFloat(elTarget.value),
-        rate: parseFloat(elRate.value),
-        add: parseFloat(elAdd.value)
-    };
-    localStorage.setItem('tm_vision_data', JSON.stringify(data));
-    calcVision();
-}
-
-function calcVision() {
-    // HATA KORUMASI: Eğer 'visionChart' elementi sayfada yoksa veya gizliyse dur.
-    const canvas = document.getElementById('visionChart');
-    if(!canvas || canvas.offsetParent === null) return; 
-
-    // 1. Girdileri Al
-    let currentNetWorth = 0;
     try {
-        const nwEl = document.getElementById('anNetWorth');
-        if(nwEl) currentNetWorth = parseFloat(nwEl.innerText.replace(/[^0-9.-]+/g,"")) || 0;
-    } catch(e) {}
+        // İki anahtarı da kontrol et (Eski/Yeni uyumluluğu)
+        let data = JSON.parse(localStorage.getItem('tm_vision_settings')) || 
+                   JSON.parse(localStorage.getItem('tm_vision_data')) || 
+                   { rate: 5, add: 1000 };
+        
+        const elRate = document.getElementById('visionRate');
+        const elAdd = document.getElementById('visionAdd');
 
-    const elTarget = document.getElementById('visionTarget');
+        if(elRate) elRate.value = data.rate;
+        if(elAdd) elAdd.value = data.add;
+    } catch(e) { console.error(e); }
+}
+
+// 3. Buton Fonksiyonu (Hem kaydeder hem çizer)
+function manualUpdateVision() {
     const elRate = document.getElementById('visionRate');
     const elAdd = document.getElementById('visionAdd');
 
-    let target = elTarget ? (parseFloat(elTarget.value) || 1000000) : 1000000;
-    let monthlyRate = elRate ? (parseFloat(elRate.value) || 5) : 5;
-    let monthlyAdd = elAdd ? (parseFloat(elAdd.value) || 0) : 0;
+    if(!elRate || !elAdd) return;
 
-    // 2. Projeksiyon Hesabı
-    let labels = [];
-    let dataPoints = [];
-    let balance = currentNetWorth;
-    let monthsToTarget = -1;
+    // Türkçe karakter temizliği yaparak al
+    let rateVal = parseTurkishInput(elRate.value);
+    let addVal = parseTurkishInput(elAdd.value);
 
-    for(let i=0; i<=24; i++) {
-        labels.push(i === 0 ? 'Şimdi' : i + '. Ay');
-        dataPoints.push(balance);
+    // Ayarları kaydet (Standart anahtar: tm_vision_settings)
+    let data = { rate: rateVal, add: addVal };
+    localStorage.setItem('tm_vision_settings', JSON.stringify(data));
+
+    // Grafiği çiz
+    renderDailyChart(null, rateVal, addVal); 
+    
+    if(typeof addNotification === 'function') {
+        addNotification('success', 'Hesaplandı', `Eklenen: ${addVal.toLocaleString()} | Kâr: %${rateVal}`);
+    }
+}
+
+/* --- GÜNCELLENMİŞ VE AYRIŞTIRILMIŞ GRAFİK MOTORU --- */
+let dailyChartInstance = null;
+
+function renderDailyChart(logs, monthlyRate, monthlyAdd) {
+    const ctx = document.getElementById('visionChart');
+    if(!ctx) return; 
+
+    const context = ctx.getContext('2d');
+
+    // --- 1. Geçmiş Verileri Hazırla ---
+    if(!logs) logs = JSON.parse(localStorage.getItem('tm_daily_tracking')) || [];
+    let labels = logs.map(l => l.date.substring(0, 5));
+    let actualData = logs.map(l => l.val);
+
+    // --- 2. Parametreleri Al ---
+    if (monthlyRate === undefined || monthlyRate === null) {
+        const elRate = document.getElementById('visionRate');
+        monthlyRate = elRate ? parseTurkishInput(elRate.value) : 5;
+    }
+    if (monthlyAdd === undefined || monthlyAdd === null) {
+        const elAdd = document.getElementById('visionAdd');
+        monthlyAdd = elAdd ? parseTurkishInput(elAdd.value) : 1000;
+    }
+
+    // --- 3. Başlangıç Değerini Belirle ---
+    let startBalance = 0;
+    if (actualData.length > 0) {
+        startBalance = actualData[actualData.length - 1];
+    } else {
+        try {
+            const nwEl = document.getElementById('anNetWorth');
+            if(nwEl) startBalance = parseTurkishInput(nwEl.innerText.replace('₺', '').replace('$', ''));
+        } catch(e) {}
+        if(startBalance <= 0) startBalance = 1000; 
         
-        if(balance >= target && monthsToTarget === -1) {
-            monthsToTarget = i;
-        }
-
-        let profit = balance * (monthlyRate / 100);
-        balance = balance + profit + monthlyAdd;
+        labels.push("Bugün");
+        actualData.push(startBalance);
     }
 
-    // 3. Grafiği Çiz
-    const ctx = canvas.getContext('2d');
-    if(visionChartInstance) {
-        visionChartInstance.destroy();
-        visionChartInstance = null;
+    // --- 4. AYRIŞTIRILMIŞ HESAPLAMA (30 GÜNLÜK) ---
+    const dailyRate = monthlyRate / 30; 
+    const dailyAdd = monthlyAdd / 30;
+
+    let projectedData = []; // Mor Çizgi (Kâr + Anapara)
+    let principalData = []; // Turuncu Çizgi (Sadece Anapara + Ekleme)
+
+    let simBalance = startBalance;      // Bileşik faizli büyüyecek
+    let principalBalance = startBalance; // Sadece ekleme ile büyüyecek (Faizsiz)
+
+    for(let i=1; i<=30; i++) {
+        // A) Sadece Anapara Hesabı (Kârı katma, sadece ekleneni topla)
+        principalBalance = principalBalance + dailyAdd;
+
+        // B) Toplam Büyüme Hesabı (Kârı da ekle, eklemeyi de ekle)
+        simBalance = simBalance * (1 + (dailyRate/100)) + dailyAdd;
+        
+        projectedData.push(simBalance);
+        principalData.push(principalBalance);
+
+        if(i === 1) labels.push("Yarın");
+        else if(i % 5 === 0) labels.push("+" + i + " Gün");
+        else labels.push(""); 
     }
 
-    visionChartInstance = new Chart(ctx, {
+    // --- 5. Grafik Verilerini Birleştir ---
+    // Actual Data bittiği yerden diğerleri başlasın diye null ekliyoruz
+    let chartDataActual = [...actualData, ...Array(projectedData.length).fill(null)];
+    
+    // Tahmin çizgileri, son gerçek veriden başlayarak devam etsin
+    let chartDataProjected = [...Array(actualData.length-1).fill(null), actualData[actualData.length-1], ...projectedData];
+    let chartDataPrincipal = [...Array(actualData.length-1).fill(null), actualData[actualData.length-1], ...principalData];
+
+    let target = parseFloat(localStorage.getItem('tradevia_main_goal')) || 1000000;
+    let targetData = Array(labels.length).fill(target);
+
+    // --- 6. Çizim ---
+    if(dailyChartInstance) dailyChartInstance.destroy();
+
+    dailyChartInstance = new Chart(context, {
         type: 'line',
         data: {
             labels: labels,
-            datasets: [{
-                label: 'Projeksiyon',
-                data: dataPoints,
-                borderColor: '#10b981', 
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.4
-            },
-            {
-                label: 'Hedef Çizgisi',
-                data: Array(25).fill(target),
-                borderColor: '#f59e0b', 
-                borderDash: [5, 5],
-                borderWidth: 1,
-                pointRadius: 0,
-                fill: false
-            }]
+            datasets: [
+                {
+                    label: 'Mevcut Durum',
+                    data: chartDataActual,
+                    borderColor: '#3b82f6', // Mavi
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 3,
+                    pointRadius: 3,
+                    fill: true,
+                    order: 1
+                },
+                {
+                    label: 'Toplam Hedef (Kâr Dahil)',
+                    data: chartDataProjected,
+                    borderColor: '#d946ef', // Mor (En üstte)
+                    backgroundColor: 'rgba(217, 70, 239, 0.15)', // Mor Alan
+                    borderWidth: 3,
+                    pointRadius: 0,
+                    fill: true, // Altını boya
+                    tension: 0.4,
+                    order: 2
+                },
+                {
+                    label: 'Sadece Anapara (Kârsız)',
+                    data: chartDataPrincipal,
+                    borderColor: '#f97316', // Turuncu (Ortada)
+                    borderWidth: 2,
+                    borderDash: [5, 5], // Kesikli Çizgi
+                    pointRadius: 0,
+                    fill: false,
+                    tension: 0.1,
+                    order: 3
+                },
+                {
+                    label: 'Hedef',
+                    data: targetData,
+                    borderColor: '#10b981', // Yeşil
+                    borderWidth: 1,
+                    borderDash: [2, 2],
+                    pointRadius: 0,
+                    fill: false,
+                    order: 4
+                }
+            ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
             plugins: {
                 legend: { display: false },
-                tooltip: { mode: 'index', intersect: false }
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) label += ': ';
+                            if (context.parsed.y !== null) {
+                                label += context.parsed.y.toLocaleString('tr-TR', {maximumFractionDigits: 0});
+                            }
+                            return label;
+                        }
+                    }
+                }
             },
             scales: {
-                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } },
-                x: { display: false } 
+                x: { grid: { display: false }, ticks: { color: '#64748b', font:{size:9}, maxTicksLimit: 7 } },
+                y: { 
+                    grid: { color: 'rgba(255,255,255,0.05)' }, 
+                    ticks: { 
+                        color: '#64748b', 
+                        font:{size:10},
+                        callback: function(value) {
+                            if(value >= 1000000) return (value/1000000).toFixed(1) + 'M';
+                            if(value >= 1000) return (value/1000).toFixed(0) + 'k';
+                            return value;
+                        }
+                    } 
+                }
             }
         }
     });
-
-    // 4. Metin Güncelleme
-    const resultDiv = document.getElementById('visionResultText');
-    if(resultDiv) {
-        if(monthsToTarget !== -1) {
-            resultDiv.innerHTML = `<b style="color:#10b981">Harika Gidiyorsunuz! 🚀</b><br>Mevcut tempoyla hedefinize yaklaşık <b>${monthsToTarget} ay</b> sonra ulaşacaksınız.`;
-        } else {
-            resultDiv.innerHTML = `Hedefe ulaşmak 24 aydan uzun sürecek.<br><b>Aylık kâr hedefini</b> veya <b>ek yatırımları</b> artırmayı deneyin.`;
-        }
-    }
 }
+
+// 5. Uyumluluk (Eski isimler hata vermesin)
+window.calcVision = renderDailyChart;
+window.saveVisionData = manualUpdateVision;
+
+// 6. Başlatma
+document.addEventListener("DOMContentLoaded", function() {
+    loadVisionData();
+    // Sayfa tam oturunca grafiği çiz
+    setTimeout(() => {
+        let r = document.getElementById('visionRate') ? document.getElementById('visionRate').value : 5;
+        let a = document.getElementById('visionAdd') ? document.getElementById('visionAdd').value : 0;
+        renderDailyChart(null, parseTurkishInput(r), parseTurkishInput(a));
+    }, 1500);
+});
+
 
 /* --- AR-GE (LAB) FİNAL FONKSİYONLAR (GÜNCELLENDİ: AKILLI VARLIK SEÇİMİ) --- */
 
@@ -7297,81 +7432,35 @@ function renderDailyList(logs) {
 }
 
 
-// 5. Grafiği Çiz (Gerçekleşen + Tahmin)
-let dailyChartInstance = null;
 
-function renderDailyChart(logs) {
-    const ctx = document.getElementById('visionChart');
-    if(!ctx) return;
-    
-    if(!logs) logs = JSON.parse(localStorage.getItem('tm_daily_tracking')) || [];
+/* --- YENİ PROJEKSİYON BUTONU FONKSİYONU --- */
+function manualUpdateVision() {
+    // 1. Kutulardaki değerleri al
+    const rate = document.getElementById('visionRate').value;
+    const add = document.getElementById('visionAdd').value;
 
-    let labels = logs.map(l => l.date.substring(0, 5));
-    let actualData = logs.map(l => l.val);
-    let target = parseFloat(localStorage.getItem('tradevia_main_goal')) || 1000000;
-    
-    // Projeksiyon Hesaplama
-    let projectedData = [];
-    if(actualData.length > 0) {
-        let lastRealVal = actualData[actualData.length - 1]; 
-        let monthlyRate = parseFloat(document.getElementById('visionRate').value) || 5;
-        let dailyRate = monthlyRate / 30; 
-        
-        for(let i=0; i<10; i++) {
-            lastRealVal = lastRealVal * (1 + (dailyRate/100));
-            projectedData.push(lastRealVal);
-            if(i === 0) labels.push("Yarın");
-            else labels.push("+" + (i+1) + "G");
-        }
+    // 2. Hafızaya kaydet (Sayfayı yenileyince gitmesin)
+    const settings = { rate: rate, add: add };
+    localStorage.setItem('tm_vision_settings', JSON.stringify(settings));
+
+    // 3. Grafiği çizdir (Mevcut fonksiyonu çağırıyoruz)
+    if(typeof renderDailyChart === 'function') {
+        renderDailyChart();
+        addNotification('success', 'Güncellendi', 'Grafik yeni ayarlara göre çizildi.');
+    } else {
+        alert("Grafik fonksiyonu bulunamadı!");
     }
-
-    let chartDataActual = [...actualData, ...Array(projectedData.length).fill(null)];
-    let chartDataProjected = [...Array(actualData.length-1).fill(null), actualData[actualData.length-1], ...projectedData];
-
-    if(dailyChartInstance) dailyChartInstance.destroy();
-
-    dailyChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Gerçekleşen',
-                data: chartDataActual,
-                borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                borderWidth: 3,
-                tension: 0.3,
-                fill: true
-            },
-            {
-                label: 'Tahmini Rota',
-                data: chartDataProjected,
-                borderColor: '#a855f7',
-                borderDash: [5, 5],
-                borderWidth: 2,
-                tension: 0.3,
-                fill: false
-            },
-            {
-                label: 'Hedef',
-                data: Array(labels.length).fill(target),
-                borderColor: '#10b981',
-                borderWidth: 1,
-                pointRadius: 0,
-                fill: false
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: '#94a3b8', font: {size:10} } } },
-            scales: {
-                x: { grid: { display: false }, ticks: { color: '#64748b', font:{size:10} } },
-                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font:{size:10} } }
-            }
-        }
-    });
 }
+
+/* --- AYARLARI HATIRLAMASI İÇİN BUNU DA EKLE --- */
+// Sayfa açıldığında eski ayarları kutulara geri doldurur
+document.addEventListener("DOMContentLoaded", function() {
+    const saved = JSON.parse(localStorage.getItem('tm_vision_settings'));
+    if(saved) {
+        if(document.getElementById('visionRate')) document.getElementById('visionRate').value = saved.rate;
+        if(document.getElementById('visionAdd')) document.getElementById('visionAdd').value = saved.add;
+    }
+});
 
 </script>
 </body>
