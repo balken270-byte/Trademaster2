@@ -1469,6 +1469,62 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     font-weight: 700;
     cursor: pointer;
 }
+/* --- YENİ HEDEF BARI VE LİSTE STİLLERİ (FİNAL) --- */
+
+/* 1. İnce Barın Dış Çerçevesi */
+.goal-strip-container {
+    height: 24px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    margin-top: 5px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* 2. Barın İçindeki Renkli Dolgu */
+.goal-strip-fill {
+    height: 100%;
+    width: 0%; /* JS ile artacak */
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 10px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    transition: width 1s ease, background 1s ease;
+    white-space: nowrap;
+}
+
+/* 3. Renk Aşamaları (Kırmızı -> Sarı -> Yeşil) */
+.gs-red { background: linear-gradient(90deg, #7f1d1d, #ef4444); } 
+.gs-yellow { background: linear-gradient(90deg, #b45309, #f59e0b); } 
+.gs-green { background: linear-gradient(90deg, #065f46, #10b981); }
+
+/* 4. Günlük Kayıt Listesi Kutusu */
+.daily-log-container {
+    max-height: 200px;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.2);
+    border-radius: 12px;
+    padding: 5px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* 5. Listedeki Satırlar */
+.daily-log-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 11px;
+    transition: background 0.2s;
+}
+.daily-log-row:last-child { border-bottom: none; }
+.log-date { color: var(--text-sub); font-weight: 600; }
 
     </style>
     
@@ -1906,38 +1962,60 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     </div>
 
     <div id="an-view-vision" class="an-view-section" style="display:none;">
-        <div class="card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 78, 59, 0.2) 100%); border: 1px solid rgba(16, 185, 129, 0.3);">
-            <div class="lbl-sm" style="color:#6ee7b7;"><i class="fas fa-bullseye"></i> ANA HEDEFİM</div>
-            <div style="display:flex; align-items:flex-end; gap:5px; margin-bottom:10px;">
-                <input type="number" id="visionTarget" class="modern-input" style="font-size:24px; font-weight:800; background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.2); padding:0; height:auto; width:100%;" placeholder="Hedef (Örn: 1000000)" onchange="saveVisionData()">
-            </div>
-            <div style="font-size:11px; color:#d1fae5;">Ulaşmak istediğiniz toplam portföy büyüklüğü.</div>
+    
+    <div style="margin-bottom: 20px;">
+        <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom:5px;">
+            <button onclick="editTargetGoal()" style="background:none; border:none; color:var(--text-sub); font-size:10px; cursor:pointer;">
+                <i class="fas fa-edit"></i> Hedefi Düzenle
+            </button>
         </div>
 
-        <div class="card">
-            <div class="lbl-sm">PROJEKSİYON AYARLARI</div>
-            <div class="input-row">
-                <div>
-                    <span style="font-size:11px; color:var(--text-sub);">Aylık Kâr Hedefi (%)</span>
-                    <input type="number" id="visionRate" class="modern-input" value="5" onkeyup="calcVision()">
-                </div>
-                <div>
-                    <span style="font-size:11px; color:var(--text-sub);">Aylık Ek Yatırım (Nakit)</span>
-                    <input type="number" id="visionAdd" class="modern-input" value="1000" onkeyup="calcVision()">
-                </div>
+        <div class="goal-strip-container" style="position:relative;">
+            
+            <div id="dynamicGoalBar" class="goal-strip-fill gs-red" style="z-index:1; justify-content:flex-start; padding-left:10px;">
+                %0
             </div>
-        </div>
+            
+            <div id="goalTargetTextRight" style="position:absolute; right:10px; top:0; height:100%; display:flex; align-items:center; font-size:10px; font-weight:800; color:rgba(255,255,255,0.8); z-index:2; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">
+                HEDEF: --
+            </div>
 
-        <div class="dash-card full-width">
-            <div class="metric-title">GELECEK SİMÜLASYONU</div>
-            <div style="height: 250px; width: 100%;">
-                <canvas id="visionChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="lbl-sm">PROJEKSİYON AYARLARI</div>
+        <div class="input-row">
+            <div>
+                <span style="font-size:11px; color:var(--text-sub);">Aylık Kâr Hedefi (%)</span>
+                <input type="number" id="visionRate" class="modern-input" value="5" onkeyup="renderDailyChart()">
             </div>
-            <div id="visionResultText" style="margin-top:15px; text-align:center; font-size:12px; color:var(--text-sub); line-height:1.6;">
-                Veriler hesaplanıyor...
+            <div>
+                <span style="font-size:11px; color:var(--text-sub);">Aylık Ek Yatırım (Nakit)</span>
+                <input type="number" id="visionAdd" class="modern-input" value="1000" onkeyup="renderDailyChart()">
             </div>
         </div>
     </div>
+
+    <div class="dash-card full-width">
+        <div class="metric-title">BÜYÜME GRAFİĞİ</div>
+        <div style="height: 220px; width: 100%;">
+            <canvas id="visionChart"></canvas>
+        </div>
+    </div>
+
+    <div style="margin-top:20px;">
+        <div class="lbl-sm">GÜNLÜK KAZANÇ RAPORU (CANLI)</div>
+        <div id="dailyLogList" class="daily-log-container">
+            <div style="text-align:center; padding:20px; color:var(--text-sub);">Veriler yükleniyor...</div>
+        </div>
+    </div>
+
+</div>
+
+
+</div>
+
 <div id="an-view-lab" class="an-view-section" style="display:none;">
     
     <div style="display:flex; gap:10px; overflow-x:auto; margin-bottom:15px; padding-bottom:5px;">
@@ -6646,52 +6724,32 @@ function calcHolderAnalysis() {
     box.innerHTML = htmlContent;
 }
 
-/* --- ANALİZ SAYFASI SEKME YÖNETİMİ --- */
+/* --- ANALİZ SAYFASI SEKME YÖNETİMİ (FİNAL & DÜZELTİLMİŞ) --- */
 function switchAnTab(tab, btn) {
-    // İçerikleri Gizle/Göster
-    document.querySelectorAll('.an-view-section').forEach(el => el.style.display = 'none');
-    document.getElementById('an-view-' + tab).style.display = 'block';
-    
-    // Buton Aktifliği
-    document.querySelectorAll('.s-tab').forEach(el => el.classList.remove('active'));
-    btn.classList.add('active');
-
-    // Sekmeye özel başlatıcılar
-    if(tab === 'vision') {
-        loadVisionData();
-        calcVision(); // Grafiği çiz
-    }
-    if(tab === 'lab') {
-        // Lab verilerini sıfırla veya mevcut sermayeyi doldur
-        let currentNet = parseFloat(document.getElementById('anNetWorth').innerText.replace(/[^0-9.-]+/g,"")) || 0;
-        if(currentNet > 0 && !document.getElementById('labStart').value) {
-            document.getElementById('labStart').value = currentNet;
-        }
-    }
-}
-
-/* --- ANALİZ SAYFASI SEKME YÖNETİMİ (GÜVENLİ VERSİYON) --- */
-function switchAnTab(tab, btn) {
-    // Tüm sekmeleri gizle
+    // 1. Tüm sekmeleri gizle
     document.querySelectorAll('.an-view-section').forEach(el => el.style.display = 'none');
     
-    // İstenen sekmeyi göster
+    // 2. İstenen sekmeyi göster
     const targetSection = document.getElementById('an-view-' + tab);
     if(targetSection) targetSection.style.display = 'block';
     
-    // Buton stillerini güncelle
+    // 3. Buton stillerini güncelle (Aktif olanı boya)
     document.querySelectorAll('.s-tab').forEach(el => el.classList.remove('active'));
     if(btn) btn.classList.add('active');
 
-    // ÖZEL DÜZELTME: Sekme görünür olduktan SONRA grafiği çiz
-    // Bu gecikme, elementin render edilmesini bekler
+    // 4. Sekmeye Özel Fonksiyonları Çalıştır
     setTimeout(() => {
+        
+        // --- HEDEFLERİM (VISION) SEKMESİ ---
         if(tab === 'vision') {
-            loadVisionData(); // Veriyi yükle
-            calcVision();     // Grafiği çiz (Artık element görünür)
+            loadVisionData();      // 1. Projeksiyon ayarlarını (inputları) doldur
+            renderDailyChart();    // 2. Grafiği çiz (Gerçekleşen + Tahmin)
+            updateGoalVisuals();   // 3. Üstteki barı boya ve günlük listeyi oluştur
         }
+        
+        // --- LAB (AR-GE) SEKMESİ ---
         if(tab === 'lab') {
-            // Lab verilerini hazırla
+            // Lab sekmesi açılınca "Başlangıç Sermayesi" kutusunu otomatik doldur
             const netWorthEl = document.getElementById('anNetWorth');
             if(netWorthEl) {
                 let currentNet = parseFloat(netWorthEl.innerText.replace(/[^0-9.-]+/g,"")) || 0;
@@ -6701,7 +6759,39 @@ function switchAnTab(tab, btn) {
                 }
             }
         }
-    }, 100);
+
+    }, 50); // 50ms gecikme ile ekranın çizilmesini bekle (Daha sağlıklı çalışır)
+}
+
+/* --- ANALİZ SAYFASI SEKME YÖNETİMİ (GÜVENLİ VERSİYON) --- */
+function switchAnTab(tab, btn) {
+    // 1. Tüm sekmeleri gizle
+    document.querySelectorAll('.an-view-section').forEach(el => el.style.display = 'none');
+    
+    // 2. İstenen sekmeyi göster
+    const targetSection = document.getElementById('an-view-' + tab);
+    if(targetSection) targetSection.style.display = 'block';
+    
+    // 3. Buton stillerini güncelle
+    document.querySelectorAll('.s-tab').forEach(el => el.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+
+    // 4. Fonksiyonları Gecikmeli Başlat (Grafik çizimi için şart)
+    setTimeout(() => {
+        if(tab === 'vision') {
+            loadVisionData();      
+            renderDailyChart();    
+            updateGoalVisuals();   
+        }
+        if(tab === 'lab') {
+            const netWorthEl = document.getElementById('anNetWorth');
+            if(netWorthEl) {
+                let currentNet = parseFloat(netWorthEl.innerText.replace(/[^0-9.-]+/g,"")) || 0;
+                const labStart = document.getElementById('labStart');
+                if(currentNet > 0 && labStart && !labStart.value) labStart.value = currentNet;
+            }
+        }
+    }, 100); 
 }
 
 /* --- HEDEFLERİM (VİZYON) MODÜLÜ --- */
@@ -7075,6 +7165,199 @@ function calcLabAvg() {
     document.getElementById('resAvgTotalQty').innerText = totalQty;
     document.getElementById('resAvgTotalCost').innerText = sym + grandTotal.toLocaleString(undefined, {maximumFractionDigits:2});
     document.getElementById('avgResultBox').style.display = 'block';
+}
+
+/* --- YENİ DİNAMİK HEDEF VE GÜNLÜK TAKİP SİSTEMİ (FİNAL) --- */
+
+// 1. HEDEF BARI GÖRSELLEŞTİRME (YENİ - YAZI ALTTA VE SAĞDA)
+// 1. HEDEF BARI GÖRSELLEŞTİRME (YAZI BARIN İÇİNDE SAĞDA)
+function updateGoalVisuals() {
+    let target = parseFloat(localStorage.getItem('tradevia_main_goal')) || 1000000;
+    
+    // Toplam Varlığı Hesapla
+    let totalBalance = 0;
+    let pf = JSON.parse(localStorage.getItem('myPF_final')) || [];
+    let currentUsd = (typeof usdTryRate !== 'undefined') ? usdTryRate : 36.50; 
+    let appCurr = (typeof appSettings !== 'undefined') ? appSettings.currency : 'TRY';
+    let cash = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
+
+    pf.forEach(item => {
+        let p = item.curr || item.buy;
+        if(appCurr === 'TRY') totalBalance += (item.origin === 'USD') ? (p * item.amt * currentUsd) : (p * item.amt);
+        else totalBalance += (item.origin === 'TRY') ? ((p * item.amt) / currentUsd) : (p * item.amt);
+    });
+    totalBalance += cash;
+
+    // Yüzde Hesapla
+    let pct = Math.min(100, Math.max(0, (totalBalance / target) * 100));
+    let sym = appCurr === 'TRY' ? '₺' : '$';
+
+    // Bar Elemanlarını Seç
+    const bar = document.getElementById('dynamicGoalBar');
+    const targetTextEl = document.getElementById('goalTargetTextRight');
+    
+    if(bar && targetTextEl) {
+        // 1. Bar Genişliği
+        bar.style.width = pct + "%";
+        
+        // 2. Sol Taraf (Hareketli Kısım): Yüzde ve Mevcut Para
+        bar.innerText = `%${pct.toFixed(1)} (${sym}${totalBalance.toLocaleString(undefined, {maximumFractionDigits:0})})`;
+        
+        // 3. Sağ Taraf (Sabit Kısım): Hedef Tutar
+        targetTextEl.innerText = `HEDEF: ${sym}${target.toLocaleString()}`;
+
+        // 4. Renk Değişimi
+        bar.className = 'goal-strip-fill'; 
+        if(pct < 33) bar.classList.add('gs-red');
+        else if(pct < 66) bar.classList.add('gs-yellow');
+        else bar.classList.add('gs-green');
+    }
+    
+    checkAndLogDaily(totalBalance); 
+}
+
+// 2. Hedef Düzenleme
+function editTargetGoal() {
+    let current = localStorage.getItem('tradevia_main_goal') || 1000000;
+    let val = prompt("Yeni Hedef Tutarınız:", current);
+    if(val && !isNaN(val)) {
+        localStorage.setItem('tradevia_main_goal', val);
+        updateGoalVisuals();
+        renderDailyChart(); 
+    }
+}
+
+// 3. Günlük Kayıt Sistemi (Canlı Takip)
+function checkAndLogDaily(currentTotal) {
+    let logs = JSON.parse(localStorage.getItem('tm_daily_tracking')) || [];
+    let today = new Date().toLocaleDateString('tr-TR');
+    
+    let lastLog = logs.length > 0 ? logs[logs.length - 1] : null;
+    
+    if (!lastLog || lastLog.date !== today) {
+        logs.push({ date: today, val: currentTotal });
+        if(logs.length > 30) logs.shift();
+    } else {
+        lastLog.val = currentTotal;
+    }
+    
+    localStorage.setItem('tm_daily_tracking', JSON.stringify(logs));
+    
+    renderDailyList(logs);
+    renderDailyChart(logs);
+}
+
+// 4. Liste Fonksiyonu (SADECE KÂR/ZARAR YAZAR)
+function renderDailyList(logs) {
+    const list = document.getElementById('dailyLogList');
+    if(!list) return;
+    
+    let html = "";
+    let sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY') ? '₺' : '$';
+
+    for (let i = logs.length - 1; i >= 0; i--) {
+        let currentLog = logs[i];
+        let prevLog = (i > 0) ? logs[i-1] : null; 
+        
+        let resultHtml = "";
+        
+        if(prevLog) {
+            let diff = currentLog.val - prevLog.val;
+            let color = diff >= 0 ? '#10b981' : '#ef4444'; 
+            let sign = diff >= 0 ? '+' : '';
+            
+            // Sadece "+5.000 ₺" şeklinde yazar
+            resultHtml = `<span style="color:${color}; font-weight:800; font-size:13px;">${sign}${sym}${diff.toLocaleString(undefined, {maximumFractionDigits:0})}</span>`;
+        } else {
+            resultHtml = `<span style="color:var(--text-sub); font-size:11px; opacity:0.7;">(Takip Başladı)</span>`;
+        }
+
+        html += `
+        <div class="daily-log-row">
+            <span class="log-date">${currentLog.date}</span>
+            ${resultHtml}
+        </div>`;
+    }
+    
+    if(html === "") html = "<div style='text-align:center; padding:15px; color:var(--text-sub); font-size:11px;'>Henüz kayıt yok.</div>";
+    list.innerHTML = html;
+}
+
+
+// 5. Grafiği Çiz (Gerçekleşen + Tahmin)
+let dailyChartInstance = null;
+
+function renderDailyChart(logs) {
+    const ctx = document.getElementById('visionChart');
+    if(!ctx) return;
+    
+    if(!logs) logs = JSON.parse(localStorage.getItem('tm_daily_tracking')) || [];
+
+    let labels = logs.map(l => l.date.substring(0, 5));
+    let actualData = logs.map(l => l.val);
+    let target = parseFloat(localStorage.getItem('tradevia_main_goal')) || 1000000;
+    
+    // Projeksiyon Hesaplama
+    let projectedData = [];
+    if(actualData.length > 0) {
+        let lastRealVal = actualData[actualData.length - 1]; 
+        let monthlyRate = parseFloat(document.getElementById('visionRate').value) || 5;
+        let dailyRate = monthlyRate / 30; 
+        
+        for(let i=0; i<10; i++) {
+            lastRealVal = lastRealVal * (1 + (dailyRate/100));
+            projectedData.push(lastRealVal);
+            if(i === 0) labels.push("Yarın");
+            else labels.push("+" + (i+1) + "G");
+        }
+    }
+
+    let chartDataActual = [...actualData, ...Array(projectedData.length).fill(null)];
+    let chartDataProjected = [...Array(actualData.length-1).fill(null), actualData[actualData.length-1], ...projectedData];
+
+    if(dailyChartInstance) dailyChartInstance.destroy();
+
+    dailyChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Gerçekleşen',
+                data: chartDataActual,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                borderWidth: 3,
+                tension: 0.3,
+                fill: true
+            },
+            {
+                label: 'Tahmini Rota',
+                data: chartDataProjected,
+                borderColor: '#a855f7',
+                borderDash: [5, 5],
+                borderWidth: 2,
+                tension: 0.3,
+                fill: false
+            },
+            {
+                label: 'Hedef',
+                data: Array(labels.length).fill(target),
+                borderColor: '#10b981',
+                borderWidth: 1,
+                pointRadius: 0,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#94a3b8', font: {size:10} } } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#64748b', font:{size:10} } },
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font:{size:10} } }
+            }
+        }
+    });
 }
 
 </script>
