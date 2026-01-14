@@ -2770,33 +2770,25 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 
 
 <script>
-/* --- GÜVENLİ PWA KAYDI (OTOMATİK YENİLEME KAPALI) --- */
+/* --- PWA İPTAL VE TEMİZLİK KODU --- */
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-            .then(reg => {
-                console.log('PWA Başarıyla Kaydedildi:', reg.scope);
-                
-                // Güncelleme kontrolü (Sadece bilgi verir, yenilemez)
-                reg.onupdatefound = () => {
-                    const installingWorker = reg.installing;
-                    installingWorker.onstatechange = () => {
-                        if (installingWorker.state === 'installed') {
-                            if (navigator.serviceWorker.controller) {
-                                console.log('Yeni içerik mevcut, lütfen sayfayı yenileyin.');
-                            } else {
-                                console.log('İçerik önbelleğe alındı, çevrimdışı kullanıma hazır.');
-                            }
-                        }
-                    };
-                };
-            })
-            .catch(err => {
-                console.log('PWA Kaydı Başarısız:', err);
+    // Mevcut tüm Service Worker'ları bul ve hepsini sil (unregister)
+    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for(let registration of registrations) {
+            registration.unregister().then(function(boolean) {
+                console.log('Eski Service Worker silindi: ' + boolean);
             });
+        }
+    });
+
+    // Önbellekleri (Cache) temizle
+    caches.keys().then(function(names) {
+        for (let name of names) {
+            caches.delete(name);
+        }
     });
 }
-
+</script>
 
     
         /* --- AYARLAR VE GLOBAL DEĞİŞKENLER --- */
