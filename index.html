@@ -7395,29 +7395,37 @@ function checkAndLogDaily(currentTotal) {
     renderDailyChart(logs);
 }
 
-// 4. Liste Fonksiyonu (SADECE KÂR/ZARAR YAZAR)
+// 4. Liste Fonksiyonu (SADECE GÜNLÜK KÂR/ZARAR FARKI)
 function renderDailyList(logs) {
     const list = document.getElementById('dailyLogList');
     if(!list) return;
     
     let html = "";
+    // Para birimi simgesi
     let sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY') ? '₺' : '$';
 
+    // Döngüyü tersten kuruyoruz (En yeni tarih en üstte olsun)
     for (let i = logs.length - 1; i >= 0; i--) {
         let currentLog = logs[i];
+        
+        // Bir önceki günü bul (Eğer i=0 ise yani ilk kayıtsa öncesi yoktur)
         let prevLog = (i > 0) ? logs[i-1] : null; 
         
         let resultHtml = "";
         
         if(prevLog) {
+            // BUGÜNKÜ TOPLAM - DÜNKÜ TOPLAM = GÜNLÜK FARK (KÂR/ZARAR)
             let diff = currentLog.val - prevLog.val;
-            let color = diff >= 0 ? '#10b981' : '#ef4444'; 
-            let sign = diff >= 0 ? '+' : '';
             
-            // Sadece "+5.000 ₺" şeklinde yazar
+            // Renk ve İşaret Ayarı
+            let color = diff >= 0 ? '#10b981' : '#ef4444'; // Yeşil veya Kırmızı
+            let sign = diff > 0 ? '+' : ''; // Pozitifse + koy, negatifse zaten eksi çıkar
+            
+            // Ekrana SADECE aradaki farkı basıyoruz (Toplam bakiye görünmez)
             resultHtml = `<span style="color:${color}; font-weight:800; font-size:13px;">${sign}${sym}${diff.toLocaleString(undefined, {maximumFractionDigits:0})}</span>`;
         } else {
-            resultHtml = `<span style="color:var(--text-sub); font-size:11px; opacity:0.7;">(Takip Başladı)</span>`;
+            // İlk kayıt ise kıyaslanacak bir dün olmadığı için nötr bırakıyoruz
+            resultHtml = `<span style="color:var(--text-sub); font-size:11px; opacity:0.7;">(Başlangıç)</span>`;
         }
 
         html += `
@@ -7430,8 +7438,6 @@ function renderDailyList(logs) {
     if(html === "") html = "<div style='text-align:center; padding:15px; color:var(--text-sub); font-size:11px;'>Henüz kayıt yok.</div>";
     list.innerHTML = html;
 }
-
-
 
 /* --- YENİ PROJEKSİYON BUTONU FONKSİYONU --- */
 function manualUpdateVision() {
@@ -7461,6 +7467,8 @@ document.addEventListener("DOMContentLoaded", function() {
         if(document.getElementById('visionAdd')) document.getElementById('visionAdd').value = saved.add;
     }
 });
+
+
 
 </script>
 </body>
