@@ -6885,8 +6885,11 @@ function populateRiskAssets() {
         selectBox.add(option);
     });
 }
+// ============================================================
+// --- 3. BÖLÜM: LAB ARAÇLARI (RİSK, BÜYÜME, ORTALAMA) ---
+// ============================================================
 
-// 3. SEÇİLEN VARLIĞIN VERİLERİNİ ÇEK (KRİTİK GÜNCELLEME)
+// 1. RİSK ANALİZİ İÇİN VARLIK VERİLERİNİ ÇEK (DÜZELTİLMİŞ & KUR ÇEVİRİLİ)
 function fillRiskFromAsset() {
     let idx = document.getElementById('riskAssetSelect').value;
     
@@ -6894,36 +6897,53 @@ function fillRiskFromAsset() {
     if(idx == "-1") return;
 
     let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
-    let asset = as[idx]; // Sıra numarasına göre varlığı bul
+    let asset = as[idx]; // Seçilen varlık
 
     if(asset) {
-        // A) Gerekli Verileri Al
-        let price = asset.curr || asset.buy;
+        // A) Varlığın Orijinal Verilerini Al
+        let rawPrice = asset.curr || asset.buy; 
         let amount = asset.amt;
         
-        // B) Sadece Bu Varlığın Toplam Değerini Hesapla (Dönüştürerek)
-        let totalAssetValue = 0;
+        // B) Kur Bilgilerini Al
         let currentUsd = (typeof usdTryRate !== 'undefined') ? usdTryRate : 36.50;
         let myCurr = (typeof appSettings !== 'undefined') ? appSettings.currency : 'TRY';
 
-        // Kur dönüşümü (USD varlığı TL yap veya tam tersi)
+        // C) DÖNÜŞÜM HESAPLAMALARI (HEM TOPLAM DEĞER HEM BİRİM FİYAT İÇİN)
+        let totalValConverted = 0;
+        let unitPriceConverted = 0;
+
         if(myCurr === 'TRY') {
-            totalAssetValue = (asset.origin === 'USD') ? (price * amount * currentUsd) : (price * amount);
+            // Uygulama TL modundaysa
+            if(asset.origin === 'USD') {
+                totalValConverted = rawPrice * amount * currentUsd; // Toplam ($ -> TL)
+                unitPriceConverted = rawPrice * currentUsd;         // Birim Fiyat ($ -> TL) [KRİTİK DÜZELTME]
+            } else {
+                totalValConverted = rawPrice * amount;
+                unitPriceConverted = rawPrice;
+            }
         } else {
-            totalAssetValue = (asset.origin === 'TRY') ? ((price * amount) / currentUsd) : (price * amount);
+            // Uygulama USD modundaysa
+            if(asset.origin === 'TRY') {
+                totalValConverted = (rawPrice * amount) / currentUsd; // Toplam (TL -> $)
+                unitPriceConverted = rawPrice / currentUsd;           // Birim Fiyat (TL -> $) [KRİTİK DÜZELTME]
+            } else {
+                totalValConverted = rawPrice * amount;
+                unitPriceConverted = rawPrice;
+            }
         }
 
-        // C) Kutuları Doldur
+        // D) Kutuları Doldur
         const balInput = document.getElementById('riskBalance');
         const entryInput = document.getElementById('riskEntry');
 
         if(balInput) {
-            balInput.value = totalAssetValue.toFixed(2); // Toplam Kasa = Bu Varlığın Değeri
+            balInput.value = totalValConverted.toFixed(2); 
             flashInput(balInput);
         }
         
         if(entryInput) {
-            entryInput.value = price.toFixed(2); // Güncel fiyat
+            // Artık birim fiyat da dönüşmüş olarak geliyor
+            entryInput.value = unitPriceConverted.toFixed(2); 
             flashInput(entryInput);
         }
     }
@@ -6932,11 +6952,11 @@ function fillRiskFromAsset() {
 // Görsel Efekt Yardımcısı
 function flashInput(el) {
     el.style.transition = "background 0.3s";
-    el.style.background = "rgba(16, 185, 129, 0.2)"; // Yeşil yan
+    el.style.background = "rgba(16, 185, 129, 0.2)"; // Yeşil yanıp sönme
     setTimeout(() => { el.style.background = ""; }, 500);
 }
 
-// 4. Risk & Pozisyon Hesaplayıcı (Aynen Kalıyor)
+// 2. POZİSYON BÜYÜKLÜĞÜ VE RİSK HESAPLAYICI (STABİL)
 function calcLabRisk() {
     let balance = parseFloat(document.getElementById('riskBalance').value);
     let riskPct = parseFloat(document.getElementById('riskPct').value);
@@ -6945,21 +6965,18 @@ function calcLabRisk() {
 
     if(isNaN(balance) || isNaN(riskPct) || isNaN(entry) || isNaN(stop)) return alert("Lütfen tüm alanları doldurun.");
     
-    // Yön kontrolü (Opsiyonel, uyarısız da çalışabilir)
-    // if(stop >= entry) return alert("Stop fiyatı girişten düşük olmalıdır.");
-
     let riskAmount = balance * (riskPct / 100);
     let diffPerUnit = Math.abs(entry - stop); 
     
-    if(diffPerUnit === 0) return alert("Giriş ve Stop aynı olamaz.");
+    if(diffPerUnit === 0) return alert("Giriş ve Stop fiyatı aynı olamaz.");
 
     let qty = riskAmount / diffPerUnit;
     let totalPosSize = qty * entry;
     
-    // Portföydeki oranı (Burada balance artık sadece o varlığın değeri olduğu için oran %100'ü geçebilir, bu normaldir)
-    // Eğer yeni işlemse nakite oranla, mevcut varlıksa varlığa oranla.
+    // Portföydeki oranı
     let portfolioImpact = (totalPosSize / balance) * 100;
 
+    // Para birimi simgesini ayarlardan çek
     let sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY') ? '₺' : '$';
 
     document.getElementById('resRiskQty').innerText = qty.toLocaleString(undefined, {maximumFractionDigits:2});
@@ -6970,13 +6987,15 @@ function calcLabRisk() {
     let ratioText = document.getElementById('riskRatioText');
     
     if(ratioText) {
-        if(portfolioImpact > 100 && document.getElementById('riskAssetSelect').value == "-1") {
-            // Sadece yeni işlem (nakit) ise yetersiz bakiye uyarısı ver
+        let isManual = document.getElementById('riskAssetSelect') && document.getElementById('riskAssetSelect').value == "-1";
+        
+        if(portfolioImpact > 100 && isManual) {
+            // Sadece manuel girişte ve para yetmiyorsa uyar
             warnEl.style.color = "var(--danger)";
             warnEl.style.border = "1px solid var(--danger)";
             ratioText.innerHTML = `<b>YETERSİZ BAKİYE:</b> %${portfolioImpact.toFixed(0)} gerekiyor.`;
         } else {
-            // Mevcut varlık seçiliyse sadece bilgi ver
+            // Portföyden seçildiyse sadece bilgi ver
             warnEl.style.color = "var(--text-sub)";
             warnEl.style.border = "none";
             ratioText.innerHTML = `Bu işlem sermayenin <b>%${portfolioImpact.toFixed(1)}</b> kadarını kapsar.`;
@@ -6985,7 +7004,7 @@ function calcLabRisk() {
     document.getElementById('riskResultBox').style.display = 'block';
 }
 
-// 5. Büyüme Simülatörü
+// 3. BİLEŞİK GETİRİ SİMÜLATÖRÜ (STABİL)
 function runLabTest() {
     const elStart = document.getElementById('labStart');
     const elWin = document.getElementById('labWinPct');
@@ -7033,7 +7052,7 @@ function runLabTest() {
     }
 }
 
-// 6. Maliyet Düşürme Hesaplayıcı
+// 4. MALİYET DÜŞÜRME HESAPLAYICI (STABİL)
 function calcLabAvg() {
     let oldQty = parseFloat(document.getElementById('avgOldQty').value);
     let oldPrice = parseFloat(document.getElementById('avgOldPrice').value);
@@ -7050,9 +7069,11 @@ function calcLabAvg() {
     let grandTotal = oldTotal + newTotal;
     let newAvg = grandTotal / totalQty;
 
-    document.getElementById('resAvgNew').innerText = newAvg.toFixed(2);
+    let sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY') ? '₺' : '$';
+
+    document.getElementById('resAvgNew').innerText = sym + newAvg.toFixed(2);
     document.getElementById('resAvgTotalQty').innerText = totalQty;
-    document.getElementById('resAvgTotalCost').innerText = grandTotal.toLocaleString(undefined, {maximumFractionDigits:2});
+    document.getElementById('resAvgTotalCost').innerText = sym + grandTotal.toLocaleString(undefined, {maximumFractionDigits:2});
     document.getElementById('avgResultBox').style.display = 'block';
 }
 
