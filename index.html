@@ -2042,6 +2042,8 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
             <button class="chart-filter-btn active" onclick="switchLabTool('growth', this)">Büyüme</button>
             <button class="chart-filter-btn" onclick="switchLabTool('risk', this)">Risk Hesabı</button>
             <button class="chart-filter-btn" onclick="switchLabTool('avg', this)">Maliyet Düşür</button>
+            <button class="chart-filter-btn" onclick="switchLabTool('chaos', this)">Stres Testi</button>
+
         </div>
 
         <div id="lab-tool-growth" class="lab-tool-container">
@@ -2159,6 +2161,53 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
                 </div>
             </div>
         </div>
+        <div id="lab-tool-chaos" class="lab-tool-container" style="display:none;">
+
+<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+        <div style="width:40px; height:40px; background:rgba(239, 68, 68, 0.2); border-radius:10px; display:flex; align-items:center; justify-content:center;">
+            <i class="fas fa-radiation" style="color:#ef4444; font-size:20px;"></i>
+        </div>
+        <div>
+            <div style="font-weight:800; font-size:16px; color:white;">KAOS ODASI</div>
+            <div style="font-size:10px; color:var(--text-sub);">Portföyün krizlere ne kadar dayanıklı?</div>
+        </div>
+    </div>
+
+    <div class="card" style="background: linear-gradient(145deg, #2a0a0a 0%, #1a0505 100%); border: 1px solid #450a0a;">
+        <div class="lbl-sm" style="color:#fca5a5;">SENARYO SEÇ</div>
+        
+        <select id="chaosScenario" class="modern-input" style="background:rgba(0,0,0,0.3); border-color:#7f1d1d; color:#fecaca;" onchange="runChaosSimulation()">
+            <option value="0">Senaryo Seçiniz...</option>
+            <option value="crypto_winter">🥶 Kripto Kışı (Bitcoin -%60)</option>
+            <option value="market_crash">📉 Küresel Borsa Çöküşü (-%35)</option>
+            <option value="currency_shock">🚀 Kur Şoku (Dolar +%40)</option>
+            <option value="gold_rush">⚱️ Güvenli Liman (Altın +%25)</option>
+            <option value="black_monday">💀 Kara Pazartesi (Her Şey -%20)</option>
+        </select>
+
+        <div id="chaosResult" style="display:none; margin-top:15px; animation: fadeIn 0.5s;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                <span style="font-size:11px; color:#fca5a5;">Senaryo Sonrası Tahmini Bakiye</span>
+            </div>
+            
+            <div style="font-size:24px; font-weight:800; color:white;" id="chaosBalance">--</div>
+            
+            <div class="goal-strip-container" style="background:rgba(0,0,0,0.5); margin-top:5px; height:30px;">
+                <div id="chaosBar" class="goal-strip-fill" style="width: 100%; background:var(--text-sub);"></div>
+                <div class="goal-text-overlay">
+                    <span id="chaosChangeText" style="color:white; text-shadow:0 1px 2px black;">--</span>
+                </div>
+            </div>
+
+            <div style="margin-top:15px; font-size:11px; line-height:1.4; color:#d1d5db; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px;">
+                <i class="fas fa-info-circle" style="color:#fca5a5;"></i> 
+                <span id="chaosAdvice">--</span>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
 
     </div>
 
@@ -7439,6 +7488,7 @@ function renderDailyList(logs) {
     list.innerHTML = html;
 }
 
+
 /* --- YENİ PROJEKSİYON BUTONU FONKSİYONU --- */
 function manualUpdateVision() {
     // 1. Kutulardaki değerleri al
@@ -7468,6 +7518,98 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
+/* --- KAOS SİMÜLASYON MOTORU --- */
+function runChaosSimulation() {
+    let scenario = document.getElementById('chaosScenario').value;
+    if(scenario === "0") {
+        document.getElementById('chaosResult').style.display = 'none';
+        return;
+    }
+
+    // 1. Mevcut Portföyü Çek
+    let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
+    let cash = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
+    
+    // Anlık Kurları Al (Global değişkenlerden)
+    let currentUsd = (typeof usdTryRate !== 'undefined') ? usdTryRate : 36.50;
+    let appCurr = (typeof appSettings !== 'undefined') ? appSettings.currency : 'TRY';
+    let sym = appCurr === 'TRY' ? '₺' : '$';
+
+    // 2. Senaryo Etkileri (Çarpanlar)
+    // 1.0 = Değişim yok, 0.5 = %50 düşüş, 1.5 = %50 artış
+    const impacts = {
+        'crypto_winter': { crypto: 0.40, bist: 0.90, gold: 1.00, forex: 1.00, cash: 1.00 }, // Kripto %60 erir
+        'market_crash':  { crypto: 0.70, bist: 0.65, gold: 1.10, forex: 1.05, cash: 1.00 }, // Borsa %35 çöküş, Altın artar
+        'currency_shock':{ crypto: 1.40, bist: 1.20, gold: 1.40, forex: 1.40, cash: 1.00 }, // Dolar bazlı her şey artar (TL kullanıcısı için)
+        'gold_rush':     { crypto: 0.90, bist: 0.90, gold: 1.25, forex: 1.00, cash: 1.00 }, // Altın rallisi
+        'black_monday':  { crypto: 0.80, bist: 0.80, gold: 0.80, forex: 0.80, cash: 1.00 }  // Nakit hariç her şey düşer
+    };
+
+    let selectedImpact = impacts[scenario];
+    let currentTotal = 0;
+    let simulatedTotal = 0;
+
+    // 3. Hesaplama Döngüsü
+    as.forEach(asset => {
+        // Varlığın şu anki değerini hesapla
+        let price = asset.curr || asset.buy;
+        let val = 0;
+
+        if(appCurr === 'TRY') {
+            val = (asset.origin === 'USD') ? (price * asset.amt * currentUsd) : (price * asset.amt);
+        } else {
+            val = (asset.origin === 'TRY') ? ((price * asset.amt) / currentUsd) : (price * asset.amt);
+        }
+        
+        currentTotal += val;
+
+        // Varlığın Türünü Bul (Senaryo için)
+        let tagData = getAssetTag(asset.name); // Mevcut fonksiyonunu kullanıyoruz
+        let type = 'bist'; // Varsayılan
+        
+        if(tagData.t === 'KRİPTO') type = 'crypto';
+        else if(tagData.t === 'EMTİA') type = 'gold';
+        else if(tagData.t === 'DÖVİZ') type = 'forex';
+        
+        // Simüle edilmiş değer
+        let multiplier = selectedImpact[type];
+        simulatedTotal += val * multiplier;
+    });
+
+    // Nakit Etkisi
+    currentTotal += cash;
+    simulatedTotal += cash * selectedImpact.cash; // Genelde nakit sabittir ama enflasyon senaryosu eklenebilir
+
+    // 4. Sonuçları Göster
+    let diff = simulatedTotal - currentTotal;
+    let diffPercent = (currentTotal > 0) ? (diff / currentTotal) * 100 : 0;
+    
+    // UI Güncelleme
+    document.getElementById('chaosBalance').innerText = sym + simulatedTotal.toLocaleString(undefined, {maximumFractionDigits:0});
+    
+    const bar = document.getElementById('chaosBar');
+    const txt = document.getElementById('chaosChangeText');
+    const advice = document.getElementById('chaosAdvice');
+
+    if(diff >= 0) {
+        bar.style.width = "100%";
+        bar.style.background = "#10b981"; // Yeşil
+        txt.innerText = `Dayanıklı: +${sym}${diff.toLocaleString(undefined, {maximumFractionDigits:0})} (+%${diffPercent.toFixed(1)})`;
+        advice.innerHTML = "Portföyün bu senaryodan <b>kârlı</b> çıkıyor. Kriz fırsata dönüşebilir.";
+    } else {
+        // Zarar barı hesapla (Görsel olarak %100'den düşür)
+        let width = Math.max(10, 100 - Math.abs(diffPercent)); 
+        bar.style.width = width + "%";
+        bar.style.background = "#ef4444"; // Kırmızı
+        txt.innerText = `Erime: ${diffPercent.toFixed(1)}% (${sym}${Math.abs(diff).toLocaleString(undefined, {maximumFractionDigits:0})})`;
+        
+        // Dinamik Tavsiye
+        if(Math.abs(diffPercent) > 30) advice.innerHTML = "<b>KRİTİK RİSK!</b> Bu senaryo gerçekleşirse varlıkların ciddi erir. Nakit veya Altın oranını artırmayı düşün.";
+        else advice.innerHTML = "Portföyün darbe alıyor ama hayatta kalır. Risk dağılımını gözden geçir.";
+    }
+
+    document.getElementById('chaosResult').style.display = 'block';
+}
 
 
 </script>
