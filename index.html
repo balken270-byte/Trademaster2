@@ -1961,191 +1961,284 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
         </div> 
     </div>
 
+        <div id="an-view-perf" class="an-view-section active">
+        <div class="dashboard-container">
+            
+            <div class="dash-card full-width">
+                <div class="metric-title">
+                    <i class="fas fa-wallet"></i> TOPLAM NET VARLIK
+                </div>
+                <div class="metric-value" id="anNetWorth">--</div>
+                <div class="metric-sub" id="anNetWorthSub">
+                    <span id="anPnlPill">--</span> <span style="color:var(--text-sub)">Toplam Kâr/Zarar</span>
+                </div>
+            </div>
+
+            <div class="dash-card">
+                <div class="metric-title">BAŞARI ORANI</div>
+                <div class="win-rate-container">
+                    <canvas id="winRateChart"></canvas>
+                    <div class="win-rate-text">
+                        <span class="wr-val" id="winRateVal">%--</span>
+                        <span class="wr-lbl">Win Rate</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dash-card">
+                <div class="metric-title">NAKİT ORANI</div>
+                <div style="display:flex; flex-direction:column; height:100%; justify-content:center;">
+                    <div class="metric-value" id="anCashRatioVal" style="font-size:20px;">--</div>
+                    <div class="goal-wrapper" style="margin-top:5px;">
+                        <div id="cashRatioBar" class="goal-fill" style="width:0%"></div>
+                    </div>
+                    <div style="font-size:10px; color:var(--text-sub); margin-top:5px;">Kasada: <span id="anCashRaw">--</span></div>
+                </div>
+            </div>
+
+            <div class="dash-card full-width" style="background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%); border: 1px solid rgba(255,255,255,0.05);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <div class="metric-title" style="margin:0;"><i class="fas fa-graduation-cap" style="color:var(--gold)"></i> TRADER KARNESİ</div>
+                    <div id="scoreBadge" style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:800; color:var(--text-sub);">VERİ YOK</div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:10px; text-align:center;">
+                        <div style="font-size:9px; color:var(--text-sub); font-weight:700;">KÂR FAKTÖRÜ</div>
+                        <div id="pfScore" style="font-size:18px; font-weight:800; margin-top:2px;">--</div>
+                        <div id="pfDesc" style="font-size:9px; opacity:0.6;">Bekleniyor</div>
+                    </div>
+
+                    <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:10px; text-align:center;">
+                        <div style="font-size:9px; color:var(--text-sub); font-weight:700;">İŞLEM BEKLENTİSİ</div>
+                        <div id="expScore" style="font-size:18px; font-weight:800; margin-top:2px;">--</div>
+                        <div id="expDesc" style="font-size:9px; opacity:0.6;">Bekleniyor</div>
+                    </div>
+                    
+                    <div style="grid-column: span 2; background:rgba(255,255,255,0.03); padding:10px 15px; border-radius:10px; display:flex; justify-content:space-between; align-items:center;">
+                        <div style="text-align:left;">
+                            <div style="font-size:9px; color:var(--success); font-weight:700;">ORT. KAZANÇ</div>
+                            <div id="avgWinVal" style="font-size:14px; font-weight:800;">--</div>
+                        </div>
+                        <div style="height:25px; width:1px; background:rgba(255,255,255,0.1);"></div>
+                        <div style="text-align:right;">
+                            <div style="font-size:9px; color:var(--danger); font-weight:700;">ORT. KAYIP</div>
+                            <div id="avgLossVal" style="font-size:14px; font-weight:800;">--</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="font-size:9px; color:var(--text-sub); text-align:center; font-style:italic; margin-top:10px;">
+                    * Geçmiş satış işlemleriniz üzerinden hesaplanır.
+                </div>
+            </div>
+
+            <div class="dash-card full-width">
+                <div class="chart-header">
+                    <div class="metric-title"><i class="fas fa-chart-line"></i> PORTFÖY BÜYÜMESİ</div>
+                    <div style="display:flex; gap:5px;">
+                        <button class="chart-filter-btn active" onclick="updateGrowthChart(7)">7G</button>
+                        <button class="chart-filter-btn" onclick="updateGrowthChart(30)">30G</button>
+                    </div>
+                </div>
+                <div style="height: 220px; width: 100%;">
+                    <canvas id="realGrowthChart"></canvas>
+                </div>
+                <div style="font-size:10px; color:var(--text-sub); text-align:center; margin-top:10px;">
+                    <i class="fas fa-info-circle"></i> Grafik, her gün sisteme giriş yaptığınızda otomatik kaydedilir.
+                </div>
+            </div>
+
+            <div class="dash-card full-width">
+                <div class="metric-title">EN ÇOK KAZANDIRANLAR</div>
+                <div id="topPerformersList"></div>
+            </div>
+
+            <div class="dash-card full-width">
+                <div class="metric-title">VARLIK DAĞILIMI</div>
+                <div style="height: 200px; display:flex; justify-content:center;">
+                    <canvas id="newAllocationChart"></canvas>
+                </div>
+            </div>
+        </div> 
+    </div>
+
     <div id="an-view-vision" class="an-view-section" style="display:none;">
-    
-    <div style="margin-bottom: 20px;">
-        <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom:5px;">
-            <button onclick="editTargetGoal()" style="background:none; border:none; color:var(--text-sub); font-size:10px; cursor:pointer;">
-                <i class="fas fa-edit"></i> Hedefi Düzenle
-            </button>
-        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom:5px;">
+                <button onclick="editTargetGoal()" style="background:none; border:none; color:var(--text-sub); font-size:10px; cursor:pointer;">
+                    <i class="fas fa-edit"></i> Hedefi Düzenle
+                </button>
+            </div>
 
-        <div class="goal-strip-container" style="position:relative;">
-            
-            <div id="dynamicGoalBar" class="goal-strip-fill gs-red" style="z-index:1; justify-content:flex-start; padding-left:10px;">
-                %0
+            <div class="goal-strip-container">
+                <div id="dynamicGoalBar" class="goal-strip-fill gs-red" style="z-index:1; position:relative;">
+                    %0
+                </div>
             </div>
             
-            <div id="goalTargetTextRight" style="position:absolute; right:10px; top:0; height:100%; display:flex; align-items:center; font-size:10px; font-weight:800; color:rgba(255,255,255,0.8); z-index:2; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">
-                HEDEF: --
+            <div style="display:flex; justify-content:flex-end; margin-top:5px;">
+                <span id="targetTextDisplay" style="font-size:11px; font-weight:700; color:#a855f7;">Hedef: --</span>
             </div>
-
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="lbl-sm">PROJEKSİYON AYARLARI</div>
-        <div class="input-row">
-            <div>
-                <span style="font-size:11px; color:var(--text-sub);">Aylık Kâr Hedefi (%)</span>
-                <input type="number" id="visionRate" class="modern-input" value="5" onkeyup="renderDailyChart()">
-            </div>
-            <div>
-                <span style="font-size:11px; color:var(--text-sub);">Aylık Ek Yatırım (Nakit)</span>
-                <input type="number" id="visionAdd" class="modern-input" value="1000" onkeyup="renderDailyChart()">
-            </div>
-        </div>
-    </div>
-
-    <div class="dash-card full-width">
-        <div class="metric-title">BÜYÜME GRAFİĞİ</div>
-        <div style="height: 220px; width: 100%;">
-            <canvas id="visionChart"></canvas>
-        </div>
-    </div>
-
-    <div style="margin-top:20px;">
-        <div class="lbl-sm">GÜNLÜK KAZANÇ RAPORU (CANLI)</div>
-        <div id="dailyLogList" class="daily-log-container">
-            <div style="text-align:center; padding:20px; color:var(--text-sub);">Veriler yükleniyor...</div>
-        </div>
-    </div>
-
-</div>
-
-
-</div>
-
-<div id="an-view-lab" class="an-view-section" style="display:none;">
-    
-    <div style="display:flex; gap:10px; overflow-x:auto; margin-bottom:15px; padding-bottom:5px;">
-        <button class="chart-filter-btn active" onclick="switchLabTool('growth', this)">Büyüme</button>
-        <button class="chart-filter-btn" onclick="switchLabTool('risk', this)">Risk Hesabı</button>
-        <button class="chart-filter-btn" onclick="switchLabTool('avg', this)">Maliyet Düşür</button>
-    </div>
-
-    <div id="lab-tool-growth" class="lab-tool-container">
-        <div style="background:var(--bg-card); padding:20px; border-radius:16px; border:1px dashed var(--accent); margin-bottom:20px; text-align:center;">
-            <i class="fas fa-flask" style="font-size:32px; color:var(--accent); margin-bottom:10px;"></i>
-            <div style="font-weight:800; font-size:16px;">Strateji Test Laboratuvarı</div>
-            <div style="font-size:11px; color:var(--text-sub);">Bileşik getirinin gücünü test edin.</div>
         </div>
 
         <div class="card">
-            <div class="lbl-sm">DENEY PARAMETRELERİ</div>
+            <div class="lbl-sm">PROJEKSİYON AYARLARI</div>
             <div class="input-row">
-                <div><span style="font-size:11px; color:var(--text-sub);">Başlangıç Sermayesi</span><input type="number" id="labStart" class="modern-input" placeholder="Örn: 10000"></div>
-                <div><span style="font-size:11px; color:var(--text-sub);">İşlem Başı Kâr Hedefi (%)</span><input type="number" id="labWinPct" class="modern-input" value="2"></div>
+                <div>
+                    <span style="font-size:11px; color:var(--text-sub);">Aylık Kâr Hedefi (%)</span>
+                    <input type="number" id="visionRate" class="modern-input" value="5" onkeyup="renderDailyChart()">
+                </div>
+                <div>
+                    <span style="font-size:11px; color:var(--text-sub);">Aylık Ek Yatırım (Nakit)</span>
+                    <input type="number" id="visionAdd" class="modern-input" value="1000" onkeyup="renderDailyChart()">
+                </div>
             </div>
-            <div class="input-row">
-                <div><span style="font-size:11px; color:var(--text-sub);">Haftalık İşlem Sayısı</span><input type="number" id="labFreq" class="modern-input" value="2"></div>
-                <div><span style="font-size:11px; color:var(--text-sub);">Süre (Ay)</span><input type="number" id="labDuration" class="modern-input" value="12"></div>
-            </div>
-            <button class="btn-main" onclick="runLabTest()">DENEYİ BAŞLAT</button>
         </div>
 
-        <div id="labResults" style="display:none;">
-            <div class="dash-card full-width" style="background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%); margin-bottom: 15px;">
-                <div class="metric-title">DENEY SONUCU</div>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:10px;">
-                    <div><div style="font-size:10px; color:var(--text-sub);">BAŞLANGIÇ</div><div id="resLabStart" style="font-size:16px; font-weight:700; color:white;">--</div></div>
-                    <div style="text-align:right;"><div style="font-size:10px; color:var(--text-sub);">BİTİŞ (TAHMİNİ)</div><div id="resLabEnd" style="font-size:20px; font-weight:800; color:var(--success);">--</div></div>
-                </div>
-                <div style="margin-top:15px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1);">
-                    <span style="font-size:11px; color:var(--text-sub);">Toplam Büyüme:</span> <span id="resLabGrowth" style="font-weight:700; color:var(--accent);">--</span>
-                </div>
+        <div class="dash-card full-width">
+            <div class="metric-title">BÜYÜME GRAFİĞİ</div>
+            <div style="height: 220px; width: 100%;">
+                <canvas id="visionChart"></canvas>
             </div>
-            <div style="margin-bottom: 10px;"><div class="lbl-sm" style="margin-bottom: 10px;">AYLIK İLERLEME RAPORU</div><div id="labListContainer" class="lab-list-container"></div></div>
-        </div>
-    </div>
-
-    <div id="lab-tool-risk" class="lab-tool-container" style="display:none;">
-        <div class="card" style="border-left: 3px solid var(--danger);">
-            <div class="lbl-sm" style="color:var(--danger)">RİSK & POZİSYON YÖNETİMİ</div>
-            
-            <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; margin-bottom:15px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:10px; color:var(--text-sub); font-weight:700;">PORTFÖYDEN SEÇ</span>
-                    <button onclick="populateRiskAssets()" style="background:none; border:none; color:var(--accent); font-size:12px; cursor:pointer;">
-                        <i class="fas fa-sync-alt"></i> Yenile
-                    </button>
-                </div>
-                <select id="riskAssetSelect" class="modern-input" style="margin-top:5px; border-color:var(--accent);" onchange="fillRiskFromAsset()">
-                    <option value="-1">Manuel Giriş / Seçiniz</option>
-                </select>
-            </div>
-
-            <div class="input-row">
-                <div>
-                    <span style="font-size:11px; color:var(--text-sub);">Sermaye (Varlık Değeri)</span>
-                    <input type="number" id="riskBalance" class="modern-input" placeholder="Otomatik Çekilir">
-                </div>
-                <div>
-                    <span style="font-size:11px; color:var(--text-sub);">Risk İştahı (%)</span>
-                    <input type="number" id="riskPct" class="modern-input" value="1" placeholder="%1">
-                </div>
-            </div>
-            <div class="input-row">
-                <div>
-                    <span style="font-size:11px; color:var(--text-sub);">Giriş Fiyatı</span>
-                    <input type="number" id="riskEntry" class="modern-input" placeholder="0.00">
-                </div>
-                <div>
-                    <span style="font-size:11px; color:var(--text-sub);">Stop Fiyatı</span>
-                    <input type="number" id="riskStop" class="modern-input" placeholder="0.00">
-                </div>
-            </div>
-            <button class="btn-main" onclick="calcLabRisk()">POZİSYON HESAPLA</button>
         </div>
 
-        <div id="riskResultBox" class="dash-card full-width" style="display:none; background: linear-gradient(145deg, #451a03 0%, #171717 100%); border:1px solid var(--danger);">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px; margin-bottom:10px;">
-                <div class="metric-title" style="color:var(--danger); margin:0;">İŞLEM PLANI</div>
-                <div style="font-size:10px; color:var(--text-sub);">STOP ZARARI: <span id="resRiskLoss" style="color:white; font-weight:800;">--</span></div>
-            </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-                <div><div style="font-size:10px; color:var(--text-sub);">ALINACAK ADET</div><div id="resRiskQty" style="font-size:20px; font-weight:800; color:white;">--</div></div>
-                <div style="text-align:right;"><div style="font-size:10px; color:#f59e0b; font-weight:700;">GEREKEN NAKİT</div><div id="resPosSize" style="font-size:20px; font-weight:800; color:#f59e0b;">--</div></div>
-            </div>
-            <div id="riskWarning" style="margin-top:15px; font-size:11px; background:rgba(255,255,255,0.05); padding:8px; border-radius:6px; display:flex; align-items:center; gap:8px;">
-                <i class="fas fa-wallet"></i> <span id="riskRatioText">--</span>
+        <div style="margin-top:20px;">
+            <div class="lbl-sm">GÜNLÜK KAZANÇ RAPORU (CANLI)</div>
+            <div id="dailyLogList" class="daily-log-container">
+                <div style="text-align:center; padding:20px; color:var(--text-sub);">Veriler yükleniyor...</div>
             </div>
         </div>
     </div>
 
-    <div id="lab-tool-avg" class="lab-tool-container" style="display:none;">
-        <div class="card" style="border-left: 3px solid var(--gold);">
-            <div class="lbl-sm" style="color:var(--gold)">MALİYET DÜŞÜRME SİMÜLATÖRÜ</div>
-            <p style="font-size:11px; color:var(--text-sub); margin-bottom:15px;">Terste kaldığınız işlem için yeni ortalama hesabı.</p>
-            <div class="input-row">
-                <div><span style="font-size:11px; color:var(--text-sub);">Eldeki Adet</span><input type="number" id="avgOldQty" class="modern-input"></div>
-                <div><span style="font-size:11px; color:var(--text-sub);">Eski Ortalama</span><input type="number" id="avgOldPrice" class="modern-input"></div>
-            </div>
-            <div class="input-row">
-                <div><span style="font-size:11px; color:var(--text-sub);">Yeni Alım Fiyatı</span><input type="number" id="avgNewPrice" class="modern-input" placeholder="Güncel Fiyat"></div>
-                <div><span style="font-size:11px; color:var(--text-sub);">Alınacak Yeni Adet</span><input type="number" id="avgNewQty" class="modern-input" placeholder="Kaç tane alacaksın?"></div>
-            </div>
-            <button class="btn-main" onclick="calcLabAvg()">YENİ ORTALAMAYI GÖR</button>
+    <div id="an-view-lab" class="an-view-section" style="display:none;">
+        
+        <div style="display:flex; gap:10px; overflow-x:auto; margin-bottom:15px; padding-bottom:5px;">
+            <button class="chart-filter-btn active" onclick="switchLabTool('growth', this)">Büyüme</button>
+            <button class="chart-filter-btn" onclick="switchLabTool('risk', this)">Risk Hesabı</button>
+            <button class="chart-filter-btn" onclick="switchLabTool('avg', this)">Maliyet Düşür</button>
         </div>
-        <div id="avgResultBox" class="dash-card full-width" style="display:none; background: linear-gradient(145deg, #0f172a 0%, #1e1b4b 100%); border:1px solid var(--accent);">
-            <div class="metric-title" style="color:var(--accent)">SONUÇLAR</div>
-            <div style="text-align:center; padding:15px 0;">
-                <div style="font-size:11px; color:var(--text-sub);">YENİ ORTALAMANIZ</div>
-                <div id="resAvgNew" style="font-size:32px; font-weight:800; color:white;">--</div>
+
+        <div id="lab-tool-growth" class="lab-tool-container">
+            <div style="background:var(--bg-card); padding:20px; border-radius:16px; border:1px dashed var(--accent); margin-bottom:20px; text-align:center;">
+                <i class="fas fa-flask" style="font-size:32px; color:var(--accent); margin-bottom:10px;"></i>
+                <div style="font-weight:800; font-size:16px;">Strateji Test Laboratuvarı</div>
+                <div style="font-size:11px; color:var(--text-sub);">Bileşik getirinin gücünü test edin.</div>
             </div>
-            <div style="display:flex; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
-                <div><span style="font-size:10px; color:var(--text-sub);">TOPLAM ADET</span><br><b id="resAvgTotalQty">--</b></div>
-                <div style="text-align:right;"><span style="font-size:10px; color:var(--text-sub);">TOPLAM MALİYET</span><br><b id="resAvgTotalCost">--</b></div>
+
+            <div class="card">
+                <div class="lbl-sm">DENEY PARAMETRELERİ</div>
+                <div class="input-row">
+                    <div><span style="font-size:11px; color:var(--text-sub);">Başlangıç Sermayesi</span><input type="number" id="labStart" class="modern-input" placeholder="Örn: 10000"></div>
+                    <div><span style="font-size:11px; color:var(--text-sub);">İşlem Başı Kâr Hedefi (%)</span><input type="number" id="labWinPct" class="modern-input" value="2"></div>
+                </div>
+                <div class="input-row">
+                    <div><span style="font-size:11px; color:var(--text-sub);">Haftalık İşlem Sayısı</span><input type="number" id="labFreq" class="modern-input" value="2"></div>
+                    <div><span style="font-size:11px; color:var(--text-sub);">Süre (Ay)</span><input type="number" id="labDuration" class="modern-input" value="12"></div>
+                </div>
+                <button class="btn-main" onclick="runLabTest()">DENEYİ BAŞLAT</button>
+            </div>
+
+            <div id="labResults" style="display:none;">
+                <div class="dash-card full-width" style="background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%); margin-bottom: 15px;">
+                    <div class="metric-title">DENEY SONUCU</div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:10px;">
+                        <div><div style="font-size:10px; color:var(--text-sub);">BAŞLANGIÇ</div><div id="resLabStart" style="font-size:16px; font-weight:700; color:white;">--</div></div>
+                        <div style="text-align:right;"><div style="font-size:10px; color:var(--text-sub);">BİTİŞ (TAHMİNİ)</div><div id="resLabEnd" style="font-size:20px; font-weight:800; color:var(--success);">--</div></div>
+                    </div>
+                    <div style="margin-top:15px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1);">
+                        <span style="font-size:11px; color:var(--text-sub);">Toplam Büyüme:</span> <span id="resLabGrowth" style="font-weight:700; color:var(--accent);">--</span>
+                    </div>
+                </div>
+                <div style="margin-bottom: 10px;"><div class="lbl-sm" style="margin-bottom: 10px;">AYLIK İLERLEME RAPORU</div><div id="labListContainer" class="lab-list-container"></div></div>
             </div>
         </div>
+
+        <div id="lab-tool-risk" class="lab-tool-container" style="display:none;">
+            <div class="card" style="border-left: 3px solid var(--danger);">
+                <div class="lbl-sm" style="color:var(--danger)">RİSK & POZİSYON YÖNETİMİ</div>
+                
+                <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; margin-bottom:15px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:10px; color:var(--text-sub); font-weight:700;">PORTFÖYDEN SEÇ</span>
+                        <button onclick="populateRiskAssets()" style="background:none; border:none; color:var(--accent); font-size:12px; cursor:pointer;">
+                            <i class="fas fa-sync-alt"></i> Yenile
+                        </button>
+                    </div>
+                    <select id="riskAssetSelect" class="modern-input" style="margin-top:5px; border-color:var(--accent);" onchange="fillRiskFromAsset()">
+                        <option value="-1">Manuel Giriş / Seçiniz</option>
+                    </select>
+                </div>
+
+                <div class="input-row">
+                    <div>
+                        <span style="font-size:11px; color:var(--text-sub);">Sermaye (Varlık Değeri)</span>
+                        <input type="number" id="riskBalance" class="modern-input" placeholder="Otomatik Çekilir">
+                    </div>
+                    <div>
+                        <span style="font-size:11px; color:var(--text-sub);">Risk İştahı (%)</span>
+                        <input type="number" id="riskPct" class="modern-input" value="1" placeholder="%1">
+                    </div>
+                </div>
+                <div class="input-row">
+                    <div>
+                        <span style="font-size:11px; color:var(--text-sub);">Giriş Fiyatı</span>
+                        <input type="number" id="riskEntry" class="modern-input" placeholder="0.00">
+                    </div>
+                    <div>
+                        <span style="font-size:11px; color:var(--text-sub);">Stop Fiyatı</span>
+                        <input type="number" id="riskStop" class="modern-input" placeholder="0.00">
+                    </div>
+                </div>
+                <button class="btn-main" onclick="calcLabRisk()">POZİSYON HESAPLA</button>
+            </div>
+
+            <div id="riskResultBox" class="dash-card full-width" style="display:none; background: linear-gradient(145deg, #451a03 0%, #171717 100%); border:1px solid var(--danger);">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px; margin-bottom:10px;">
+                    <div class="metric-title" style="color:var(--danger); margin:0;">İŞLEM PLANI</div>
+                    <div style="font-size:10px; color:var(--text-sub);">STOP ZARARI: <span id="resRiskLoss" style="color:white; font-weight:800;">--</span></div>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                    <div><div style="font-size:10px; color:var(--text-sub);">ALINACAK ADET</div><div id="resRiskQty" style="font-size:20px; font-weight:800; color:white;">--</div></div>
+                    <div style="text-align:right;"><div style="font-size:10px; color:#f59e0b; font-weight:700;">GEREKEN NAKİT</div><div id="resPosSize" style="font-size:20px; font-weight:800; color:#f59e0b;">--</div></div>
+                </div>
+                <div id="riskWarning" style="margin-top:15px; font-size:11px; background:rgba(255,255,255,0.05); padding:8px; border-radius:6px; display:flex; align-items:center; gap:8px;">
+                    <i class="fas fa-wallet"></i> <span id="riskRatioText">--</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="lab-tool-avg" class="lab-tool-container" style="display:none;">
+            <div class="card" style="border-left: 3px solid var(--gold);">
+                <div class="lbl-sm" style="color:var(--gold)">MALİYET DÜŞÜRME SİMÜLATÖRÜ</div>
+                <p style="font-size:11px; color:var(--text-sub); margin-bottom:15px;">Terste kaldığınız işlem için yeni ortalama hesabı.</p>
+                <div class="input-row">
+                    <div><span style="font-size:11px; color:var(--text-sub);">Eldeki Adet</span><input type="number" id="avgOldQty" class="modern-input"></div>
+                    <div><span style="font-size:11px; color:var(--text-sub);">Eski Ortalama</span><input type="number" id="avgOldPrice" class="modern-input"></div>
+                </div>
+                <div class="input-row">
+                    <div><span style="font-size:11px; color:var(--text-sub);">Yeni Alım Fiyatı</span><input type="number" id="avgNewPrice" class="modern-input" placeholder="Güncel Fiyat"></div>
+                    <div><span style="font-size:11px; color:var(--text-sub);">Alınacak Yeni Adet</span><input type="number" id="avgNewQty" class="modern-input" placeholder="Kaç tane alacaksın?"></div>
+                </div>
+                <button class="btn-main" onclick="calcLabAvg()">YENİ ORTALAMAYI GÖR</button>
+            </div>
+            <div id="avgResultBox" class="dash-card full-width" style="display:none; background: linear-gradient(145deg, #0f172a 0%, #1e1b4b 100%); border:1px solid var(--accent);">
+                <div class="metric-title" style="color:var(--accent)">SONUÇLAR</div>
+                <div style="text-align:center; padding:15px 0;">
+                    <div style="font-size:11px; color:var(--text-sub);">YENİ ORTALAMANIZ</div>
+                    <div id="resAvgNew" style="font-size:32px; font-weight:800; color:white;">--</div>
+                </div>
+                <div style="display:flex; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
+                    <div><span style="font-size:10px; color:var(--text-sub);">TOPLAM ADET</span><br><b id="resAvgTotalQty">--</b></div>
+                    <div style="text-align:right;"><span style="font-size:10px; color:var(--text-sub);">TOPLAM MALİYET</span><br><b id="resAvgTotalCost">--</b></div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
 </div>
-
-
-            
-</div>
-
 
         <div id="page-settings" class="page" style="padding:0; background:var(--bg-body);">
     <div class="app-settings-container" style="padding: 20px;">
