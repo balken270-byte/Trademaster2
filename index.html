@@ -1525,6 +1525,22 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 }
 .daily-log-row:last-child { border-bottom: none; }
 .log-date { color: var(--text-sub); font-weight: 600; }
+/* Hedef Barı Yazı Katmanı */
+.goal-text-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: space-between; /* Yazıları iki uca yasla */
+    align-items: center;
+    padding: 0 10px;
+    font-size: 10px;
+    font-weight: 800;
+    z-index: 5; /* Barın üstünde dursun */
+    pointer-events: none; /* Tıklamayı engellemesin */
+}
 
     </style>
     
@@ -1859,108 +1875,7 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
         <div class="s-tab seg-style" onclick="switchAnTab('lab', this)">AR-GE (LAB)</div>
     </div>
 
-    <div id="an-view-perf" class="an-view-section active">
-        <div class="dashboard-container">
-            
-            <div class="dash-card full-width">
-                <div class="metric-title">
-                    <i class="fas fa-wallet"></i> TOPLAM NET VARLIK
-                </div>
-                <div class="metric-value" id="anNetWorth">--</div>
-                <div class="metric-sub" id="anNetWorthSub">
-                    <span id="anPnlPill">--</span> <span style="color:var(--text-sub)">Toplam Kâr/Zarar</span>
-                </div>
-            </div>
-
-            <div class="dash-card">
-                <div class="metric-title">BAŞARI ORANI</div>
-                <div class="win-rate-container">
-                    <canvas id="winRateChart"></canvas>
-                    <div class="win-rate-text">
-                        <span class="wr-val" id="winRateVal">%--</span>
-                        <span class="wr-lbl">Win Rate</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="dash-card">
-                <div class="metric-title">NAKİT ORANI</div>
-                <div style="display:flex; flex-direction:column; height:100%; justify-content:center;">
-                    <div class="metric-value" id="anCashRatioVal" style="font-size:20px;">--</div>
-                    <div class="goal-wrapper" style="margin-top:5px;">
-                        <div id="cashRatioBar" class="goal-fill" style="width:0%"></div>
-                    </div>
-                    <div style="font-size:10px; color:var(--text-sub); margin-top:5px;">Kasada: <span id="anCashRaw">--</span></div>
-                </div>
-            </div>
-
-            <div class="dash-card full-width" style="background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%); border: 1px solid rgba(255,255,255,0.05);">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <div class="metric-title" style="margin:0;"><i class="fas fa-graduation-cap" style="color:var(--gold)"></i> TRADER KARNESİ</div>
-                    <div id="scoreBadge" style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:800; color:var(--text-sub);">VERİ YOK</div>
-                </div>
-
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                    <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:10px; text-align:center;">
-                        <div style="font-size:9px; color:var(--text-sub); font-weight:700;">KÂR FAKTÖRÜ</div>
-                        <div id="pfScore" style="font-size:18px; font-weight:800; margin-top:2px;">--</div>
-                        <div id="pfDesc" style="font-size:9px; opacity:0.6;">Bekleniyor</div>
-                    </div>
-
-                    <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:10px; text-align:center;">
-                        <div style="font-size:9px; color:var(--text-sub); font-weight:700;">İŞLEM BEKLENTİSİ</div>
-                        <div id="expScore" style="font-size:18px; font-weight:800; margin-top:2px;">--</div>
-                        <div id="expDesc" style="font-size:9px; opacity:0.6;">Bekleniyor</div>
-                    </div>
-                    
-                    <div style="grid-column: span 2; background:rgba(255,255,255,0.03); padding:10px 15px; border-radius:10px; display:flex; justify-content:space-between; align-items:center;">
-                        <div style="text-align:left;">
-                            <div style="font-size:9px; color:var(--success); font-weight:700;">ORT. KAZANÇ</div>
-                            <div id="avgWinVal" style="font-size:14px; font-weight:800;">--</div>
-                        </div>
-                        <div style="height:25px; width:1px; background:rgba(255,255,255,0.1);"></div>
-                        <div style="text-align:right;">
-                            <div style="font-size:9px; color:var(--danger); font-weight:700;">ORT. KAYIP</div>
-                            <div id="avgLossVal" style="font-size:14px; font-weight:800;">--</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div style="font-size:9px; color:var(--text-sub); text-align:center; font-style:italic; margin-top:10px;">
-                    * Geçmiş satış işlemleriniz üzerinden hesaplanır.
-                </div>
-            </div>
-
-            <div class="dash-card full-width">
-                <div class="chart-header">
-                    <div class="metric-title"><i class="fas fa-chart-line"></i> PORTFÖY BÜYÜMESİ</div>
-                    <div style="display:flex; gap:5px;">
-                        <button class="chart-filter-btn active" onclick="updateGrowthChart(7)">7G</button>
-                        <button class="chart-filter-btn" onclick="updateGrowthChart(30)">30G</button>
-                    </div>
-                </div>
-                <div style="height: 220px; width: 100%;">
-                    <canvas id="realGrowthChart"></canvas>
-                </div>
-                <div style="font-size:10px; color:var(--text-sub); text-align:center; margin-top:10px;">
-                    <i class="fas fa-info-circle"></i> Grafik, her gün sisteme giriş yaptığınızda otomatik kaydedilir.
-                </div>
-            </div>
-
-            <div class="dash-card full-width">
-                <div class="metric-title">EN ÇOK KAZANDIRANLAR</div>
-                <div id="topPerformersList"></div>
-            </div>
-
-            <div class="dash-card full-width">
-                <div class="metric-title">VARLIK DAĞILIMI</div>
-                <div style="height: 200px; display:flex; justify-content:center;">
-                    <canvas id="newAllocationChart"></canvas>
-                </div>
-            </div>
-        </div> 
-    </div>
-
+    
         <div id="an-view-perf" class="an-view-section active">
         <div class="dashboard-container">
             
@@ -2065,21 +1980,20 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 
     <div id="an-view-vision" class="an-view-section" style="display:none;">
         
-        <div style="margin-bottom: 20px;">
+                <div style="margin-bottom: 20px;">
             <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom:5px;">
                 <button onclick="editTargetGoal()" style="background:none; border:none; color:var(--text-sub); font-size:10px; cursor:pointer;">
                     <i class="fas fa-edit"></i> Hedefi Düzenle
                 </button>
             </div>
 
-            <div class="goal-strip-container">
-                <div id="dynamicGoalBar" class="goal-strip-fill gs-red" style="z-index:1; position:relative;">
-                    %0
+            <div class="goal-strip-container" style="position: relative;">
+                <div id="dynamicGoalBar" class="goal-strip-fill gs-red" style="width: 0%;"></div>
+                
+                <div class="goal-text-overlay">
+                    <span id="goalCurrentText" style="color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">%0</span>
+                    <span id="goalTargetTextRight" style="color: #d8b4fe; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">HEDEF: --</span>
                 </div>
-            </div>
-            
-            <div style="display:flex; justify-content:flex-end; margin-top:5px;">
-                <span id="targetTextDisplay" style="font-size:11px; font-weight:700; color:#a855f7;">Hedef: --</span>
             </div>
         </div>
 
@@ -7262,12 +7176,10 @@ function calcLabAvg() {
 
 /* --- YENİ DİNAMİK HEDEF VE GÜNLÜK TAKİP SİSTEMİ (FİNAL) --- */
 
-// 1. HEDEF BARI GÖRSELLEŞTİRME (YENİ - YAZI ALTTA VE SAĞDA)
-// 1. HEDEF BARI GÖRSELLEŞTİRME (YAZI BARIN İÇİNDE SAĞDA)
 function updateGoalVisuals() {
     let target = parseFloat(localStorage.getItem('tradevia_main_goal')) || 1000000;
     
-    // Toplam Varlığı Hesapla
+    // Toplam Varlığı Hesapla (Nakit + Portföy)
     let totalBalance = 0;
     let pf = JSON.parse(localStorage.getItem('myPF_final')) || [];
     let currentUsd = (typeof usdTryRate !== 'undefined') ? usdTryRate : 36.50; 
@@ -7276,8 +7188,11 @@ function updateGoalVisuals() {
 
     pf.forEach(item => {
         let p = item.curr || item.buy;
-        if(appCurr === 'TRY') totalBalance += (item.origin === 'USD') ? (p * item.amt * currentUsd) : (p * item.amt);
-        else totalBalance += (item.origin === 'TRY') ? ((p * item.amt) / currentUsd) : (p * item.amt);
+        if(appCurr === 'TRY') {
+            totalBalance += (item.origin === 'USD') ? (p * item.amt * currentUsd) : (p * item.amt);
+        } else {
+            totalBalance += (item.origin === 'TRY') ? ((p * item.amt) / currentUsd) : (p * item.amt);
+        }
     });
     totalBalance += cash;
 
@@ -7285,28 +7200,33 @@ function updateGoalVisuals() {
     let pct = Math.min(100, Math.max(0, (totalBalance / target) * 100));
     let sym = appCurr === 'TRY' ? '₺' : '$';
 
-    // Bar Elemanlarını Seç
+    // HTML Elementlerini Seç
     const bar = document.getElementById('dynamicGoalBar');
+    const currentTextEl = document.getElementById('goalCurrentText');
     const targetTextEl = document.getElementById('goalTargetTextRight');
     
-    if(bar && targetTextEl) {
-        // 1. Bar Genişliği
+    // Bar ve Yazıları Güncelle
+    if(bar && targetTextEl && currentTextEl) {
+        // Genişlik
         bar.style.width = pct + "%";
         
-        // 2. Sol Taraf (Hareketli Kısım): Yüzde ve Mevcut Para
-        bar.innerText = `%${pct.toFixed(1)} (${sym}${totalBalance.toLocaleString(undefined, {maximumFractionDigits:0})})`;
-        
-        // 3. Sağ Taraf (Sabit Kısım): Hedef Tutar
-        targetTextEl.innerText = `HEDEF: ${sym}${target.toLocaleString()}`;
-
-        // 4. Renk Değişimi
+        // Renk
         bar.className = 'goal-strip-fill'; 
         if(pct < 33) bar.classList.add('gs-red');
         else if(pct < 66) bar.classList.add('gs-yellow');
         else bar.classList.add('gs-green');
+
+        // Sol Yazı: % ve Mevcut Tutar
+        currentTextEl.innerText = `%${pct.toFixed(1)} (${sym}${totalBalance.toLocaleString(undefined, {maximumFractionDigits:0})})`;
+        
+        // Sağ Yazı: Hedef Tutarı
+        targetTextEl.innerText = `HEDEF: ${sym}${target.toLocaleString(undefined, {maximumFractionDigits:0})}`;
     }
     
-    checkAndLogDaily(totalBalance); 
+    // Günlük kayıt sistemini tetikle (Grafik için)
+    if(typeof checkAndLogDaily === 'function') {
+        checkAndLogDaily(totalBalance); 
+    }
 }
 
 // 2. Hedef Düzenleme
