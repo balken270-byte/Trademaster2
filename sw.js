@@ -1,69 +1,70 @@
-const CACHE_NAME = 'tradevia-v2'; // Versiyonu değiştirdik ki eskisi silinsin
+// sw.js dosyasının içeriği:
 
-// Sadece en kritik dosyaları listeliyoruz.
-// İkonlarda hata varsa bile uygulama çalışsın diye onları "try-catch" ile alacağız.
-const CORE_ASSETS = [
+// HER GÜNCELLEMEDE BURAYI DEĞİŞTİR: v1 -> v2 -> v3
+const CACHE_NAME = 'tradevia-v2'; 
+
+const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  './icon.svg',
+  // Buraya diğer statik dosyalarını (css, js, resimler) ekleyebilirsin
 ];
 
-// 1. KURULUM (INSTALL)
+// 1. KURULUM (Install)
 self.addEventListener('install', (event) => {
-  console.log('[Service Worker] Kuruluyor...');
+  // Yeni SW kurulurken eskisini bekleme, hemen devreye gir
+  self.skipWaiting();
+  
   event.waitUntil(
-    caches.open(CACHE_NAME).then(async (cache) => {
-      
-      // Önce kritik dosyaları ekle (Bunlar zorunlu)
-      try {
-        await cache.addAll(CORE_ASSETS);
-        console.log('[Service Worker] Kritik dosyalar önbelleklendi.');
-      } catch (error) {
-        console.error('[Service Worker] Kritik dosya hatası:', error);
-      }
-
-      // Şimdi ikonları EKLEMEYİ DENE (Hata verirse işlemi durdurma!)
-      const optionalAssets = ['./icon.svg', './icon.png'];
-      for (const asset of optionalAssets) {
-        try {
-          await cache.add(asset);
-        } catch (err) {
-          console.warn(`[UYARI] ${asset} dosyası bulunamadı, önbelleğe alınmadı. (Ama sorun değil)`);
-        }
-      }
-      
-      return self.skipWaiting();
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS_TO_CACHE);
     })
   );
 });
 
-// 2. AKTİFLEŞTİRME (ACTIVATE)
+// 2. AKTİFLEŞTİRME (Activate) - Eski Cache'leri Sil
 self.addEventListener('activate', (event) => {
-  console.log('[Service Worker] Aktifleşti.');
+  // Yeni SW aktif olduğunda sayfayı hemen kontrolüne al
+  event.waitUntil(clients.claim());
+
   event.waitUntil(
-    caches.keys().then((keyList) => {
+    caches.keys().then((cacheNames) => {
       return Promise.all(
-        keyList.map((key) => {
-          if (key !== CACHE_NAME) {
-            console.log('[Service Worker] Eski önbellek silindi:', key);
-            return caches.delete(key);
+        cacheNames.map((cache) => {
+          // Eğer cache ismi bizim şu anki versiyonumuz değilse sil
+          if (cache !== CACHE_NAME) {
+            console.log('Eski cache temizleniyor:', cache);
+            return caches.delete(cache);
           }
         })
       );
     })
   );
-  return self.clients.claim();
 });
 
-// 3. İSTEK YAKALAMA (FETCH)
+// 3. İSTEKLERİ YAKALAMA (Fetch) - Network First (Önce İnternet) Stratejisi
+// Bu strateji HTML dosyaları için interneti zorlar, böylece güncellemeler hemen görünür.
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      // Önbellekte varsa ver, yoksa internetten çek
-      return response || fetch(event.request).catch(() => {
-        // İnternet de yoksa ve önbellekte de yoksa...
-        console.log('[Service Worker] İnternet yok ve dosya önbellekte değil:', event.request.url);
-      });
-    })
+    fetch(event.request)
+      .then((response) => {
+        // İnternetten başarılı yanıt geldiyse, cache'i güncelle ve yanıtı döndür
+        if (!response || response.status !== 200 || response.type !== 'basic') {
+          return response;
+        }
+        
+        // Yanıtı klonla çünkü hem tarayıcıya hem cache'e gidecek
+        const responseToCache = response.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseToCache);
+        });
+
+        return response;
+      })
+      .catch(() => {
+        // İnternet yoksa cache'den döndür
+        return caches.match(event.request);
+      })
   );
 });
