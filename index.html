@@ -1562,6 +1562,34 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     pointer-events: none; /* Tıklamayı engellemesin */
 }
 
+/* PSİKOLOJİ SEKMESİ STİLLERİ */
+.regret-item {
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 8px;
+    border: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.regret-item.missed { border-left: 3px solid var(--danger); } /* Kaçan Fırsat (Kırmızı) */
+.regret-item.saved { border-left: 3px solid var(--success); }  /* İyi ki satmışsın (Yeşil) */
+
+.ri-left { display: flex; flex-direction: column; }
+.ri-sym { font-weight: 800; font-size: 13px; color: white; }
+.ri-date { font-size: 10px; color: var(--text-sub); }
+
+.ri-right { text-align: right; }
+.ri-val { font-weight: 800; font-size: 13px; }
+.ri-badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700; display: inline-block; margin-top: 2px; }
+
+.missed .ri-val { color: var(--danger); }
+.missed .ri-badge { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+
+.saved .ri-val { color: var(--success); }
+.saved .ri-badge { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+
     </style>
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5912166843737955"
@@ -1891,8 +1919,11 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 
     <div class="settings-tabs segmented" style="margin-bottom: 20px;">
         <div class="s-tab seg-style active" onclick="switchAnTab('perf', this)">PERFORMANS</div>
+        
         <div class="s-tab seg-style" onclick="switchAnTab('vision', this)">HEDEFLERİM</div>
-        <div class="s-tab seg-style" onclick="switchAnTab('lab', this)">AR-GE (LAB)</div>
+        <div class="s-tab seg-style" onclick="switchAnTab('psycho', this)">PSİKOLOJİ</div>
+
+        <div class="s-tab seg-style" onclick="switchAnTab('lab', this)">AR-GE</div>
     </div>
 
     
@@ -2119,11 +2150,11 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
         
         <select id="chaosScenario" class="modern-input" style="background:rgba(0,0,0,0.3); border-color:#7f1d1d; color:#fecaca;" onchange="runChaosSimulation()">
             <option value="0">Senaryo Seçiniz...</option>
-            <option value="crypto_winter">🥶 Kripto Kışı (Bitcoin -%60)</option>
-            <option value="market_crash">📉 Küresel Borsa Çöküşü (-%35)</option>
-            <option value="currency_shock">🚀 Kur Şoku (Dolar +%40)</option>
-            <option value="gold_rush">⚱️ Güvenli Liman (Altın +%25)</option>
-            <option value="black_monday">💀 Kara Pazartesi (Her Şey -%20)</option>
+            <option value="crypto_winter"> Kripto Kışı (Bitcoin -%60)</option>
+            <option value="market_crash"> Küresel Borsa Çöküşü (-%35)</option>
+            <option value="currency_shock">Kur Şoku (Dolar +%40)</option>
+            <option value="gold_rush"> Güvenli Liman (Altın +%25)</option>
+            <option value="black_monday"> Kara Pazartesi (Her Şey -%20)</option>
         </select>
 
         <div id="chaosResult" style="display:none; margin-top:15px; animation: fadeIn 0.5s;">
@@ -2224,12 +2255,75 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
                 </div>
             </div>
         </div>
-        <div id="lab-tool-chaos" class="lab-tool-container" style="display:none;">
-
+                <div id="lab-tool-chaos" class="lab-tool-container" style="display:none;">
+            </div>
+    </div> <div id="an-view-psycho" class="an-view-section" style="display:none;">
+    
+        <div class="dash-card full-width" style="background: linear-gradient(135deg, #312e81 0%, #1e1b4b 100%); border: 1px solid #4338ca; margin-bottom: 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                    <div class="metric-title" style="color:#a5b4fc;"><i class="fas fa-brain"></i> DUYGUSAL KONTROL SKORU</div>
+                    <div class="metric-value" id="psyScore">--</div>
+                    <div class="metric-sub" id="psyStatus">Analiz Ediliyor...</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:32px;" id="psyEmoji">😐</div>
+                </div>
+            </div>
+            <div class="goal-wrapper" style="margin-top:15px; background:rgba(0,0,0,0.3);">
+                <div id="psyScoreBar" class="goal-fill" style="width:50%; background: linear-gradient(90deg, #ef4444, #eab308, #10b981);"></div>
             </div>
         </div>
-    </div>
-</div>
+
+        <div class="card" style="border-left: 3px solid var(--accent);">
+            <div class="lbl-sm" style="color:var(--accent)">REGRET MINIMIZER (PİŞMANLIK ANALİZİ)</div>
+            <p style="font-size:11px; color:var(--text-sub); margin-bottom:15px;">
+                "Keşke satmasaydım" dediğiniz veya "İyi ki satmışım" dediğiniz işlemlerin bugünkü değeri.
+            </p>
+            
+            <div id="regretList" style="max-height: 300px; overflow-y: auto;">
+                <div style="text-align:center; color:var(--text-sub); font-size:11px;">Satış geçmişi taranıyor...</div>
+            </div>
+        </div>
+
+        <div class="dashboard-container" style="margin-top:15px;">
+            
+            <div class="dash-card">
+                <div class="metric-title" style="color:#f87171;">PANİK SATIŞLARI</div>
+                <div style="text-align:center; padding:10px 0;">
+                    <i class="fas fa-running" style="font-size:24px; color:#ef4444; margin-bottom:5px;"></i>
+                    <div class="metric-value" id="panicCount" style="font-size:20px;">0</div>
+                    <div class="metric-sub">Adet Tespit Edildi</div>
+                </div>
+            </div>
+
+            <div class="dash-card">
+                <div class="metric-title" style="color:#fbbf24;">FOMO ALIMLARI</div>
+                <div style="text-align:center; padding:10px 0;">
+                    <i class="fas fa-rocket" style="font-size:24px; color:#f59e0b; margin-bottom:5px;"></i>
+                    <div class="metric-value" id="fomoCount" style="font-size:20px;">0</div>
+                    <div class="metric-sub">Tepe Fiyattan Giriş</div>
+                </div>
+            </div>
+
+                    <div class="dash-card full-width" style="max-height: 400px; display:flex; flex-direction:column;">
+            <div class="metric-title" style="margin-bottom:10px;">
+                <i class="fas fa-hourglass-half"></i> VARLIK BAZLI SABIR ANALİZİ
+            </div>
+            
+            <div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid rgba(255,255,255,0.1); font-size:9px; color:var(--text-sub); font-weight:700;">
+                <span>VARLIK / İŞLEM</span>
+                <span>SÜRE / TİP</span>
+            </div>
+
+            <div id="holdListDetailed" style="overflow-y: auto; flex:1; padding-top:5px;">
+                <div style="text-align:center; padding:15px; color:var(--text-sub); font-size:11px;">Veri hazırlanıyor...</div>
+            </div>
+        </div>
+
+    </div> <div style="height: 100px; width: 100%; clear: both;"></div>
+
+</div> 
 
 
     </div>
@@ -6813,46 +6907,7 @@ function calcHolderAnalysis() {
     box.innerHTML = htmlContent;
 }
 
-/* --- ANALİZ SAYFASI SEKME YÖNETİMİ (FİNAL & DÜZELTİLMİŞ) --- */
-function switchAnTab(tab, btn) {
-    // 1. Tüm sekmeleri gizle
-    document.querySelectorAll('.an-view-section').forEach(el => el.style.display = 'none');
-    
-    // 2. İstenen sekmeyi göster
-    const targetSection = document.getElementById('an-view-' + tab);
-    if(targetSection) targetSection.style.display = 'block';
-    
-    // 3. Buton stillerini güncelle (Aktif olanı boya)
-    document.querySelectorAll('.s-tab').forEach(el => el.classList.remove('active'));
-    if(btn) btn.classList.add('active');
-
-    // 4. Sekmeye Özel Fonksiyonları Çalıştır
-    setTimeout(() => {
-        
-        // --- HEDEFLERİM (VISION) SEKMESİ ---
-        if(tab === 'vision') {
-            loadVisionData();      // 1. Projeksiyon ayarlarını (inputları) doldur
-            renderDailyChart();    // 2. Grafiği çiz (Gerçekleşen + Tahmin)
-            updateGoalVisuals();   // 3. Üstteki barı boya ve günlük listeyi oluştur
-        }
-        
-        // --- LAB (AR-GE) SEKMESİ ---
-        if(tab === 'lab') {
-            // Lab sekmesi açılınca "Başlangıç Sermayesi" kutusunu otomatik doldur
-            const netWorthEl = document.getElementById('anNetWorth');
-            if(netWorthEl) {
-                let currentNet = parseFloat(netWorthEl.innerText.replace(/[^0-9.-]+/g,"")) || 0;
-                const labStart = document.getElementById('labStart');
-                if(currentNet > 0 && labStart && !labStart.value) {
-                    labStart.value = currentNet;
-                }
-            }
-        }
-
-    }, 50); // 50ms gecikme ile ekranın çizilmesini bekle (Daha sağlıklı çalışır)
-}
-
-/* --- ANALİZ SAYFASI SEKME YÖNETİMİ (GÜVENLİ VERSİYON) --- */
+/* --- ANALİZ SAYFASI SEKME YÖNETİMİ (GÜNCELLENMİŞ) --- */
 function switchAnTab(tab, btn) {
     // 1. Tüm sekmeleri gizle
     document.querySelectorAll('.an-view-section').forEach(el => el.style.display = 'none');
@@ -6865,8 +6920,11 @@ function switchAnTab(tab, btn) {
     document.querySelectorAll('.s-tab').forEach(el => el.classList.remove('active'));
     if(btn) btn.classList.add('active');
 
-    // 4. Fonksiyonları Gecikmeli Başlat (Grafik çizimi için şart)
+    // 4. Fonksiyonları Gecikmeli Başlat
     setTimeout(() => {
+        // EĞER KULLANICI BAŞKA SEKMEYE GEÇTİYSE İŞLEM YAPMA (HATAYI ÖNLER)
+        if(document.getElementById('an-view-' + tab).style.display === 'none') return;
+
         if(tab === 'vision') {
             loadVisionData();      
             renderDailyChart();    
@@ -6880,6 +6938,13 @@ function switchAnTab(tab, btn) {
                 if(currentNet > 0 && labStart && !labStart.value) labStart.value = currentNet;
             }
         }
+        
+        // ---> GÜVENLİ ÇAĞRI <---
+        if(tab === 'psycho') {
+            calcPsychoAnalysis();
+        }
+        // -----------------------
+
     }, 100); 
 }
 
@@ -7634,6 +7699,185 @@ function runChaosSimulation() {
     document.getElementById('chaosResult').style.display = 'block';
 }
 
+/* --- GÜNCELLENMİŞ PSİKOLOJİ ANALİZİ (DETAYLI HOLD LİSTESİ) --- */
+let isPsychoAnalyzing = false;
+
+async function calcPsychoAnalysis() {
+    if(isPsychoAnalyzing) return;
+    isPsychoAnalyzing = true;
+
+    try {
+        let history = JSON.parse(localStorage.getItem('tm_full_trade_history')) || [];
+        
+        // İşlemleri tarihe göre eskiden yeniye sıralayalım ki mantık doğru çalışsın
+        history.sort((a, b) => {
+            let da = convertToDate(a.date);
+            let db = convertToDate(b.date);
+            return da - db;
+        });
+
+        // Satışları ve Alımları ayıralım
+        let sales = history.filter(t => t.type === 'SATIM');
+        
+        // DOM Elementleri
+        const regretListEl = document.getElementById('regretList');
+        const holdListEl = document.getElementById('holdListDetailed'); // YENİ LİSTE
+
+        if(regretListEl) regretListEl.innerHTML = '<div style="text-align:center; padding:10px;"><i class="fas fa-circle-notch fa-spin"></i> Analiz ediliyor...</div>';
+        
+        let regretHTML = "";
+        let holdHTML = ""; // Sabır listesi için HTML
+        let panicSales = 0;
+        let fomoBuys = 0;
+        
+        // --- 1. REGRET & PANİK ANALİZİ (Son 10 Satış) ---
+        // (Performans için sondan başla)
+        let recentSales = [...sales].reverse().slice(0, 10);
+        
+        for (let t of recentSales) {
+             if(document.getElementById('an-view-psycho').style.display === 'none') break;
+
+             // Fiyat çekme işlemleri (Mevcut kodunuzdaki gibi)
+             let currentData = { price: 0 };
+             try { currentData = await getPrice(t.sym); } catch(e){}
+             
+             let currentPrice = currentData.price;
+             let sym = appSettings.currency === 'TRY' ? '₺' : '$';
+
+             if (currentPrice > 0) {
+                let soldTotal = t.total ? parseFloat(t.total) : (parseFloat(t.price) * t.qty);
+                let currentTotalIfHeld = t.qty * currentPrice;
+                let diff = currentTotalIfHeld - soldTotal;
+
+                if (diff > 0) {
+                    let status = (t.pnl && parseFloat(t.pnl) > 0) ? "Erken Çıkış" : "Kaçan Fırsat";
+                    regretHTML += `
+                    <div class="regret-item missed">
+                        <div class="ri-left"><span class="ri-sym">${t.sym}</span><span class="ri-date">Satış: ${parseFloat(t.price).toFixed(2)} | Şu An: ${currentPrice.toFixed(2)}</span></div>
+                        <div class="ri-right"><span class="ri-val">-${sym}${Math.abs(diff).toLocaleString(undefined, {maximumFractionDigits:0})}</span><span class="ri-badge">${status}</span></div>
+                    </div>`;
+                } else {
+                    regretHTML += `
+                    <div class="regret-item saved">
+                        <div class="ri-left"><span class="ri-sym">${t.sym}</span><span class="ri-date">Satış: ${parseFloat(t.price).toFixed(2)} | Şu An: ${currentPrice.toFixed(2)}</span></div>
+                        <div class="ri-right"><span class="ri-val">+${sym}${Math.abs(diff).toLocaleString(undefined, {maximumFractionDigits:0})}</span><span class="ri-badge">Zarardan Kurtuluş</span></div>
+                    </div>`;
+                }
+
+                // Panik Analizi
+                let cost = parseFloat(t.avgCost) || 0;
+                if(cost > 0) {
+                    let lossPct = ((parseFloat(t.price) - cost) / cost) * 100;
+                    if(lossPct < -5 && currentPrice > parseFloat(t.price)) panicSales++;
+                }
+             }
+        }
+        if(regretListEl) regretListEl.innerHTML = regretHTML || "<div style='text-align:center; font-size:11px; color:var(--text-sub); padding:10px;'>Veri yok.</div>";
+
+        // --- 2. FOMO ANALİZİ ---
+        // (Kodun bu kısmı aynı kalıyor)
+        let buys = history.filter(t => t.type === 'ALIM');
+        for (let b of buys) {
+            let bDate = convertToDate(b.date);
+            // Bu alımdan önceki en yakın satışı bul
+            let prevSell = sales.find(s => s.sym === b.sym && convertToDate(s.date) < bDate);
+            // Çok basit mantık: Eğer sattığından %15 pahalıya geri aldıysa
+            if(prevSell && parseFloat(b.price) > parseFloat(prevSell.price) * 1.15) {
+                fomoBuys++;
+            }
+        }
+
+        // --- 3. DETAYLI SABIR (HOLD) ANALİZİ - (YENİ KISIM) ---
+        // Satışları ters çevir (En yeniden en eskiye)
+        let reversedSales = [...sales].reverse();
+        let totalHoldScore = 0;
+        let holdCount = 0;
+
+        for (let s of reversedSales) {
+            let sellDate = convertToDate(s.date);
+            
+            // Bu satışa ait EN YAKIN GEÇMİŞ ALIMI bul (Aynı sembol)
+            // Satış tarihinden küçük olan alımları filtrele, tarihe göre sırala (en yeni en sonda), sonuncusunu al.
+            let relatedBuys = history.filter(h => h.type === 'ALIM' && h.sym === s.sym && convertToDate(h.date) <= sellDate);
+            
+            if(relatedBuys.length > 0) {
+                // Dizinin son elemanı, satışa en yakın olan alımdır
+                let matchingBuy = relatedBuys[relatedBuys.length - 1]; 
+                
+                let buyDate = convertToDate(matchingBuy.date);
+                let diffTime = Math.abs(sellDate - buyDate);
+                let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                
+                // Eğer aynı gün alıp sattıysa 0 gün çıkar, onu "Gün İçi" yapalım
+                let dayText = diffDays === 0 ? "Gün İçi (Scalp)" : diffDays + " Gün";
+                
+                // Renk ve Rozet Mantığı
+                let badgeClass = "rank-bronze"; // Varsayılan kısa vade
+                let badgeText = "KISA VADE";
+                let barColor = "#ef4444"; // Kırmızı
+                
+                if(diffDays > 365) { 
+                    badgeClass = "rank-gold"; badgeText = "HODL (UZUN)"; barColor = "#10b981"; // Yeşil
+                } else if (diffDays > 30) {
+                    badgeClass = "rank-silver"; badgeText = "ORTA VADE"; barColor = "#f59e0b"; // Sarı
+                }
+
+                // HTML Satırı Oluştur
+                holdHTML += `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        ${getAssetLogoHtml(s.sym)}
+                        <div>
+                            <div style="font-weight:800; font-size:13px; color:white;">${s.sym}</div>
+                            <div style="font-size:10px; color:var(--text-sub);">Satış: ${s.date}</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-weight:800; font-size:14px; color:${barColor};">${dayText}</div>
+                        <span style="font-size:9px; padding:2px 6px; background:rgba(255,255,255,0.05); border-radius:4px; margin-top:2px; display:inline-block;">${badgeText}</span>
+                    </div>
+                </div>`;
+                
+                totalHoldScore += diffDays;
+                holdCount++;
+            }
+        }
+
+        if(holdListEl) holdListEl.innerHTML = holdHTML || "<div style='text-align:center; padding:20px; color:var(--text-sub);'>Henüz tamamlanmış (satılmış) işlem yok.</div>";
+
+        // --- 4. SKORLAMA VE GÖSTERGELER ---
+        if(document.getElementById('panicCount')) document.getElementById('panicCount').innerText = panicSales;
+        if(document.getElementById('fomoCount')) document.getElementById('fomoCount').innerText = fomoBuys;
+
+        // Genel Skor Hesabı (100 üzerinden)
+        let score = 100;
+        score -= (panicSales * 15);
+        score -= (fomoBuys * 10);
+        
+        // Çok fazla kısa vade işlem varsa puan kır (Opsiyonel)
+        let avgDays = holdCount > 0 ? (totalHoldScore / holdCount) : 0;
+        if(holdCount > 5 && avgDays < 5) score -= 10; 
+
+        if(score < 0) score = 0;
+
+        if(document.getElementById('psyScore')) {
+            document.getElementById('psyScore').innerText = score;
+            document.getElementById('psyScoreBar').style.width = score + "%";
+            
+            let statusEl = document.getElementById('psyStatus');
+            let emojiEl = document.getElementById('psyEmoji');
+            
+            if(score >= 80) { statusEl.innerText = "Çelik Gibi Sinirler"; statusEl.style.color = "#10b981"; emojiEl.innerText = "🧘‍♂️"; }
+            else if (score >= 50) { statusEl.innerText = "Duygusal Kararlar"; statusEl.style.color = "#f59e0b"; emojiEl.innerText = "🤔"; }
+            else { statusEl.innerText = "Yüksek Stres / Panik"; statusEl.style.color = "#ef4444"; emojiEl.innerText = "🤯"; }
+        }
+
+    } catch (e) {
+        console.error("Analiz Hatası:", e);
+    } finally {
+        isPsychoAnalyzing = false;
+    }
+}
 
 </script>
 </body>
