@@ -4050,93 +4050,104 @@ async function addToPortfolio(){
     
     function calcSellPreview() { let i = document.getElementById('sellIdx').value; let as = JSON.parse(localStorage.getItem('myPF_final')); let asset = as[i]; let amt = parseFloat(document.getElementById('sellAmt').value) || 0; let price = parseFloat(document.getElementById('sellPrice').value) || 0; if(amt > 0 && price > 0) { let total = amt * price; let sym = exitCurrency === 'TRY' ? '₺' : '$'; let buyPriceNormalized = asset.buy; if(asset.origin === 'USD' && exitCurrency === 'TRY') buyPriceNormalized = asset.buy * usdTryRate; else if(asset.origin === 'TRY' && exitCurrency === 'USD') buyPriceNormalized = asset.buy / usdTryRate; let pnl = (price - buyPriceNormalized) * amt; document.getElementById('ssTotal').innerText = sym + total.toLocaleString(undefined, {minimumFractionDigits:2}); let pnlEl = document.getElementById('ssPnL'); pnlEl.innerText = (pnl >= 0 ? '+' : '') + sym + pnl.toLocaleString(undefined, {minimumFractionDigits:2}); pnlEl.style.color = pnl >= 0 ? 'var(--success)' : 'var(--danger)'; document.getElementById('sellSummaryBox').style.display = 'block'; } else { document.getElementById('sellSummaryBox').style.display = 'none'; } }
     
-    /* --- GÜNCELLENMİŞ SATIŞ ONAYI (ANALİZLİ) --- */
+/* --- DÜZELTİLMİŞ VE GARANTİLİ SATIŞ ONAYI --- */
 function confirmSell() { 
     let i = document.getElementById('sellIdx').value; 
+    
+    // Girdileri Sayıya Çevir (Hata payını sıfırla)
     let amt = parseFloat(document.getElementById('sellAmt').value); 
     let pr = parseFloat(document.getElementById('sellPrice').value); 
     
     if (!amt || !pr) return addNotification('warn', 'Eksik Bilgi', 'Miktar ve fiyat giriniz.'); 
     
-    let as = JSON.parse(localStorage.getItem('myPF_final')); 
+    let as = JSON.parse(localStorage.getItem('myPF_final')) || []; 
     let ast = as[i]; 
+    
+    if (!ast) return addNotification('danger', 'Hata', 'Varlık bulunamadı.');
     if (amt > ast.amt) return addNotification('danger', 'Hata', 'Sahip olduğunuzdan fazlasını satamazsınız.'); 
 
+    // Satışın yapıldığı para birimi (USD mi TL mi?)
     let transactionCurrency = exitCurrency; 
-    let totalSaleRaw = amt * pr;
+    let globalUsdRate = (typeof usdTryRate !== 'undefined' && usdTryRate > 0) ? usdTryRate : 36.50;
+
+    // --- 1. MALİYET HESABI (CRITICAL FIX) ---
+    // Varlığın alış maliyetini, satış yaptığımız para birimine çevirelim
+    let buyCostPerUnit = parseFloat(ast.buy); // Varlığın orijinal alış fiyatı
     
-    // 1. Alış Maliyetini Hesapla (Döviz dönüşümü yaparak)
-    let buyCostInTransCurr = ast.buy;
-    if(ast.origin !== transactionCurrency) {
-        if(transactionCurrency === 'TRY') buyCostInTransCurr = ast.buy * usdTryRate; 
-        else buyCostInTransCurr = ast.buy / usdTryRate; 
+    // Eğer varlık USD ise ama biz TL satıyorsak -> Maliyeti TL'ye çevir
+    if(ast.origin === 'USD' && transactionCurrency === 'TRY') {
+        buyCostPerUnit = buyCostPerUnit * globalUsdRate;
+    }
+    // Eğer varlık TL ise ama biz USD satıyorsak -> Maliyeti USD'ye çevir
+    else if(ast.origin === 'TRY' && transactionCurrency === 'USD') {
+        buyCostPerUnit = buyCostPerUnit / globalUsdRate;
     }
     
-    // 2. NET KÂR/ZARAR HESABI (TL veya USD Bazında)
-    let tradePnL = totalSaleRaw - (amt * buyCostInTransCurr);
+    // --- 2. KÂR/ZARAR HESABI ---
+    let totalSaleRevenue = amt * pr;               // Kasaya Girecek Para
+    let totalCostBasis = amt * buyCostPerUnit;     // Bu malın bize maliyeti
+    let tradePnL = totalSaleRevenue - totalCostBasis; // NET KÂR
 
-    // 3. YÜZDESEL PERFORMANS VE NOT OLUŞTURMA (YENİ KISIM)
+    // --- 3. DETAYLARI OLUŞTUR (Analiz Sayfası İçin) ---
     let plPercent = 0;
-    if(buyCostInTransCurr > 0) {
-        plPercent = ((pr - buyCostInTransCurr) / buyCostInTransCurr) * 100;
+    if(buyCostPerUnit > 0) {
+        plPercent = ((pr - buyCostPerUnit) / buyCostPerUnit) * 100;
     }
 
     let note = "";
-    if(tradePnL > 0) {
-        note = `Başarılı: Maliyetin (${buyCostInTransCurr.toFixed(2)}) üzerinden %${plPercent.toFixed(1)} primli satış.`;
-    } else if(tradePnL < 0) {
-        note = `Zarar Kes: Maliyetin (${buyCostInTransCurr.toFixed(2)}) altında, %${Math.abs(plPercent).toFixed(1)} kayıpla çıkış.`;
-    } else {
-        note = "Başabaş: Maliyetine çıkış yapıldı.";
-    }
+    if(tradePnL > 0) note = `Kâr: %${plPercent.toFixed(2)}`;
+    else if(tradePnL < 0) note = `Zarar: %${plPercent.toFixed(2)}`;
+    else note = "Başabaş İşlem";
 
-    // Karne Detay Paketi
     let detailObj = {
-        avgCost: buyCostInTransCurr,
+        avgCost: buyCostPerUnit, // Dönüştürülmüş maliyet
         plPercent: plPercent,
-        usdRateAtSell: usdTryRate || 36.50,
+        usdRateAtSell: globalUsdRate,
         note: note
     };
 
-    // 4. KASAYA İŞLEME (Dönüşümlü)
-    let amountToAddWallet = 0;
-    let profitToWallet = 0;
+    // --- 4. KASAYA İŞLEME (Dönüşümlü) ---
+    // Kasaya her zaman uygulamanın ana para birimi (appSettings.currency) cinsinden eklenir
+    let cashToAdd = 0;
+    let profitToAdd = 0;
 
     if(appSettings.currency === transactionCurrency) {
-        amountToAddWallet = totalSaleRaw;
-        profitToWallet = tradePnL;
+        cashToAdd = totalSaleRevenue;
+        profitToAdd = tradePnL;
     } else {
+        // Eğer uygulama TL ise ama işlem USD ise -> TL'ye çevirip kasaya koy
         if(appSettings.currency === 'TRY' && transactionCurrency === 'USD') {
-            amountToAddWallet = totalSaleRaw * usdTryRate;
-            profitToWallet = tradePnL * usdTryRate;
-        } else if (appSettings.currency === 'USD' && transactionCurrency === 'TRY') {
-            amountToAddWallet = totalSaleRaw / usdTryRate;
-            profitToWallet = tradePnL / usdTryRate;
+            cashToAdd = totalSaleRevenue * globalUsdRate;
+            profitToAdd = tradePnL * globalUsdRate;
+        } 
+        // Eğer uygulama USD ise ama işlem TRY ise -> USD'ye çevirip kasaya koy
+        else if(appSettings.currency === 'USD' && transactionCurrency === 'TRY') {
+            cashToAdd = totalSaleRevenue / globalUsdRate;
+            profitToAdd = tradePnL / globalUsdRate;
         }
     }
 
-    cashBalance += amountToAddWallet; 
-    realizedPnL += profitToWallet; 
+    cashBalance += cashToAdd; 
+    realizedPnL += profitToAdd; 
     
     localStorage.setItem('tm_cash_balance', cashBalance); 
     localStorage.setItem('tm_realized_pnl', realizedPnL); 
     
-    // 5. GEÇMİŞE KAYDET (DETAYLARLA BİRLİKTE)
+    // 5. GEÇMİŞE KAYDET
     logHistory('SATIM', ast.name, amt, pr, '', transactionCurrency, tradePnL, detailObj); 
     
-    // Portföyden düş
+    // Portföyden Düş
     ast.amt -= amt; 
-    if (ast.amt <= 0) as.splice(i, 1); 
+    if (ast.amt <= 0) as.splice(i, 1); // Hepsi satıldıysa listeden sil
     localStorage.setItem('myPF_final', JSON.stringify(as)); 
     
-    addNotification('success', 'Satış Başarılı', `Tutar Cüzdana İşlendi.`); 
+    addNotification('success', 'Satış Başarılı', `Kâr/Zarar: ${tradePnL.toFixed(2)} ${transactionCurrency === 'USD' ? '$' : '₺'}`); 
     document.getElementById('sellModal').style.display = 'none'; 
     
     loadPF(true); 
     renderHistory(); 
     loadProfile(); 
 }
-
 
     function openSimulator(idx) { currentSimAssetIndex = idx; let as = JSON.parse(localStorage.getItem('myPF_final')) || []; let asset = as[idx]; if(!asset) return; document.getElementById('simAssetTitle').innerText = `${asset.name} Simülatörü`; let currentPrice = asset.curr || asset.buy; document.getElementById('simTargetPrice').value = currentPrice.toFixed(2); document.getElementById('simAddPrice').value = currentPrice.toFixed(2); document.getElementById('simRealizePrice').value = currentPrice.toFixed(2); document.querySelectorAll('.sim-result-box').forEach(x => x.style.display = 'none'); document.getElementById('simPercent').value = ""; document.getElementById('simAddAmt').value = ""; document.getElementById('simSellAmt').value = ""; switchSimTab('scenario', document.querySelectorAll('.sim-tab')[0]); document.getElementById('simModal').style.display = 'flex'; }
     function switchSimTab(tabName, btn) { document.querySelectorAll('.sim-content-pane').forEach(p => p.classList.remove('active')); document.getElementById('sim-pane-' + tabName).classList.add('active'); document.querySelectorAll('.sim-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); }
@@ -7699,7 +7710,8 @@ function runChaosSimulation() {
     document.getElementById('chaosResult').style.display = 'block';
 }
 
-/* --- GÜNCELLENMİŞ PSİKOLOJİ ANALİZİ (DETAYLI HOLD LİSTESİ) --- */
+
+/* --- GÜNCELLENMİŞ PSİKOLOJİ ANALİZİ (FİNAL: KÂR/ZARAR ETİKETLİ) --- */
 let isPsychoAnalyzing = false;
 
 async function calcPsychoAnalysis() {
@@ -7709,120 +7721,141 @@ async function calcPsychoAnalysis() {
     try {
         let history = JSON.parse(localStorage.getItem('tm_full_trade_history')) || [];
         
-        // İşlemleri tarihe göre eskiden yeniye sıralayalım ki mantık doğru çalışsın
+        // Tarihe göre sırala
         history.sort((a, b) => {
             let da = convertToDate(a.date);
             let db = convertToDate(b.date);
             return da - db;
         });
 
-        // Satışları ve Alımları ayıralım
         let sales = history.filter(t => t.type === 'SATIM');
         
-        // DOM Elementleri
         const regretListEl = document.getElementById('regretList');
-        const holdListEl = document.getElementById('holdListDetailed'); // YENİ LİSTE
+        const holdListEl = document.getElementById('holdListDetailed');
 
         if(regretListEl) regretListEl.innerHTML = '<div style="text-align:center; padding:10px;"><i class="fas fa-circle-notch fa-spin"></i> Analiz ediliyor...</div>';
         
         let regretHTML = "";
-        let holdHTML = ""; // Sabır listesi için HTML
+        let holdHTML = "";
         let panicSales = 0;
         let fomoBuys = 0;
         
-        // --- 1. REGRET & PANİK ANALİZİ (Son 10 Satış) ---
-        // (Performans için sondan başla)
+        // --- 1. REGRET & PANİK & KÂR ANALİZİ ---
         let recentSales = [...sales].reverse().slice(0, 10);
+        let currentUsdRate = (typeof usdTryRate !== 'undefined') ? usdTryRate : 36.50;
         
         for (let t of recentSales) {
              if(document.getElementById('an-view-psycho').style.display === 'none') break;
 
-             // Fiyat çekme işlemleri (Mevcut kodunuzdaki gibi)
              let currentData = { price: 0 };
              try { currentData = await getPrice(t.sym); } catch(e){}
              
              let currentPrice = currentData.price;
-             let sym = appSettings.currency === 'TRY' ? '₺' : '$';
+             let appSym = appSettings.currency === 'TRY' ? '₺' : '$';
 
              if (currentPrice > 0) {
-                let soldTotal = t.total ? parseFloat(t.total) : (parseFloat(t.price) * t.qty);
+                let soldPrice = parseFloat(t.price);
+                let soldTotal = t.total ? parseFloat(t.total) : (soldPrice * t.qty);
                 let currentTotalIfHeld = t.qty * currentPrice;
+                
+                // 1. PİŞMANLIK FARKI (Current - Sold)
                 let diff = currentTotalIfHeld - soldTotal;
 
+                // Para birimi dönüşümü (Pişmanlık hesabı için)
+                let transCurr = t.curr || 'TRY'; 
+                if (appSettings.currency === 'TRY' && transCurr === 'USD') diff *= currentUsdRate;
+                else if (appSettings.currency === 'USD' && transCurr === 'TRY') diff /= currentUsdRate;
+
+                // 2. GERÇEKLEŞEN KÂR (Sold - Buy)
+                let realizedPnL = t.pnl ? parseFloat(t.pnl) : 0;
+                // Kârı da uygulama para birimine çevir
+                if (appSettings.currency === 'TRY' && transCurr === 'USD') realizedPnL *= currentUsdRate;
+                else if (appSettings.currency === 'USD' && transCurr === 'TRY') realizedPnL /= currentUsdRate;
+
+                // --- DÜZELTME BURADA: "KÂR" veya "ZARAR" YAZISI ---
+                let pnlColor = realizedPnL >= 0 ? '#4ade80' : '#f87171'; // Yeşil veya Kırmızı
+                let pnlLabel = realizedPnL >= 0 ? 'Kâr' : 'Zarar';       // Kelime Seçimi
+                let pnlSign = realizedPnL >= 0 ? '+' : '-';              // İşaret Seçimi
+
+                let pnlText = `<span style="color:${pnlColor}; font-weight:700; font-size:10px;">(${pnlLabel}: ${pnlSign}${appSym}${Math.abs(realizedPnL).toLocaleString(undefined, {maximumFractionDigits:0})})</span>`;
+
+                // Kart Yapısı
                 if (diff > 0) {
-                    let status = (t.pnl && parseFloat(t.pnl) > 0) ? "Erken Çıkış" : "Kaçan Fırsat";
+                    // Fiyat Artmış -> Kaçan Fırsat
+                    let status = realizedPnL > 0 ? "Erken Çıkış" : "Kaçan Fırsat";
+                    
                     regretHTML += `
                     <div class="regret-item missed">
-                        <div class="ri-left"><span class="ri-sym">${t.sym}</span><span class="ri-date">Satış: ${parseFloat(t.price).toFixed(2)} | Şu An: ${currentPrice.toFixed(2)}</span></div>
-                        <div class="ri-right"><span class="ri-val">-${sym}${Math.abs(diff).toLocaleString(undefined, {maximumFractionDigits:0})}</span><span class="ri-badge">${status}</span></div>
+                        <div class="ri-left">
+                            <span class="ri-sym">${t.sym} ${pnlText}</span>
+                            <span class="ri-date">Satış: ${soldPrice.toFixed(2)} | Şu An: ${currentPrice.toFixed(2)}</span>
+                        </div>
+                        <div class="ri-right">
+                            <span class="ri-val" style="color:var(--danger)">-${appSym}${Math.abs(diff).toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+                            <span class="ri-badge">${status}</span>
+                        </div>
                     </div>`;
                 } else {
+                    // Fiyat Düşmüş veya Aynı -> İyi ki Satmışsın / Nötr
+                    let statusText = diff === 0 ? "Nötr" : "Zarardan Kurtuluş";
+                    let valColor = diff === 0 ? "var(--text-sub)" : "var(--success)";
+                    
                     regretHTML += `
                     <div class="regret-item saved">
-                        <div class="ri-left"><span class="ri-sym">${t.sym}</span><span class="ri-date">Satış: ${parseFloat(t.price).toFixed(2)} | Şu An: ${currentPrice.toFixed(2)}</span></div>
-                        <div class="ri-right"><span class="ri-val">+${sym}${Math.abs(diff).toLocaleString(undefined, {maximumFractionDigits:0})}</span><span class="ri-badge">Zarardan Kurtuluş</span></div>
+                        <div class="ri-left">
+                            <span class="ri-sym">${t.sym} ${pnlText}</span>
+                            <span class="ri-date">Satış: ${soldPrice.toFixed(2)} | Şu An: ${currentPrice.toFixed(2)}</span>
+                        </div>
+                        <div class="ri-right">
+                            <span class="ri-val" style="color:${valColor}">+${appSym}${Math.abs(diff).toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+                            <span class="ri-badge" style="background:rgba(16, 185, 129, 0.15); color:${valColor}">${statusText}</span>
+                        </div>
                     </div>`;
                 }
 
                 // Panik Analizi
                 let cost = parseFloat(t.avgCost) || 0;
                 if(cost > 0) {
-                    let lossPct = ((parseFloat(t.price) - cost) / cost) * 100;
-                    if(lossPct < -5 && currentPrice > parseFloat(t.price)) panicSales++;
+                    let lossPct = ((soldPrice - cost) / cost) * 100;
+                    if(lossPct < -5 && currentPrice > soldPrice) panicSales++;
                 }
              }
         }
         if(regretListEl) regretListEl.innerHTML = regretHTML || "<div style='text-align:center; font-size:11px; color:var(--text-sub); padding:10px;'>Veri yok.</div>";
 
         // --- 2. FOMO ANALİZİ ---
-        // (Kodun bu kısmı aynı kalıyor)
         let buys = history.filter(t => t.type === 'ALIM');
         for (let b of buys) {
             let bDate = convertToDate(b.date);
-            // Bu alımdan önceki en yakın satışı bul
             let prevSell = sales.find(s => s.sym === b.sym && convertToDate(s.date) < bDate);
-            // Çok basit mantık: Eğer sattığından %15 pahalıya geri aldıysa
             if(prevSell && parseFloat(b.price) > parseFloat(prevSell.price) * 1.15) {
                 fomoBuys++;
             }
         }
 
-        // --- 3. DETAYLI SABIR (HOLD) ANALİZİ - (YENİ KISIM) ---
-        // Satışları ters çevir (En yeniden en eskiye)
+        // --- 3. DETAYLI SABIR (HOLD) ANALİZİ ---
         let reversedSales = [...sales].reverse();
         let totalHoldScore = 0;
         let holdCount = 0;
 
         for (let s of reversedSales) {
             let sellDate = convertToDate(s.date);
-            
-            // Bu satışa ait EN YAKIN GEÇMİŞ ALIMI bul (Aynı sembol)
-            // Satış tarihinden küçük olan alımları filtrele, tarihe göre sırala (en yeni en sonda), sonuncusunu al.
             let relatedBuys = history.filter(h => h.type === 'ALIM' && h.sym === s.sym && convertToDate(h.date) <= sellDate);
             
             if(relatedBuys.length > 0) {
-                // Dizinin son elemanı, satışa en yakın olan alımdır
                 let matchingBuy = relatedBuys[relatedBuys.length - 1]; 
-                
                 let buyDate = convertToDate(matchingBuy.date);
                 let diffTime = Math.abs(sellDate - buyDate);
                 let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
                 
-                // Eğer aynı gün alıp sattıysa 0 gün çıkar, onu "Gün İçi" yapalım
                 let dayText = diffDays === 0 ? "Gün İçi (Scalp)" : diffDays + " Gün";
-                
-                // Renk ve Rozet Mantığı
-                let badgeClass = "rank-bronze"; // Varsayılan kısa vade
+                let badgeClass = "rank-bronze"; 
                 let badgeText = "KISA VADE";
-                let barColor = "#ef4444"; // Kırmızı
+                let barColor = "#ef4444"; 
                 
-                if(diffDays > 365) { 
-                    badgeClass = "rank-gold"; badgeText = "HODL (UZUN)"; barColor = "#10b981"; // Yeşil
-                } else if (diffDays > 30) {
-                    badgeClass = "rank-silver"; badgeText = "ORTA VADE"; barColor = "#f59e0b"; // Sarı
-                }
+                if(diffDays > 365) { badgeClass = "rank-gold"; badgeText = "HODL (UZUN)"; barColor = "#10b981"; } 
+                else if (diffDays > 30) { badgeClass = "rank-silver"; badgeText = "ORTA VADE"; barColor = "#f59e0b"; }
 
-                // HTML Satırı Oluştur
                 holdHTML += `
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid rgba(255,255,255,0.05);">
                     <div style="display:flex; align-items:center; gap:10px;">
@@ -7843,27 +7876,22 @@ async function calcPsychoAnalysis() {
             }
         }
 
-        if(holdListEl) holdListEl.innerHTML = holdHTML || "<div style='text-align:center; padding:20px; color:var(--text-sub);'>Henüz tamamlanmış (satılmış) işlem yok.</div>";
+        if(holdListEl) holdListEl.innerHTML = holdHTML || "<div style='text-align:center; padding:20px; color:var(--text-sub);'>Henüz tamamlanmış işlem yok.</div>";
 
         // --- 4. SKORLAMA VE GÖSTERGELER ---
         if(document.getElementById('panicCount')) document.getElementById('panicCount').innerText = panicSales;
         if(document.getElementById('fomoCount')) document.getElementById('fomoCount').innerText = fomoBuys;
 
-        // Genel Skor Hesabı (100 üzerinden)
         let score = 100;
         score -= (panicSales * 15);
         score -= (fomoBuys * 10);
-        
-        // Çok fazla kısa vade işlem varsa puan kır (Opsiyonel)
         let avgDays = holdCount > 0 ? (totalHoldScore / holdCount) : 0;
         if(holdCount > 5 && avgDays < 5) score -= 10; 
-
         if(score < 0) score = 0;
 
         if(document.getElementById('psyScore')) {
             document.getElementById('psyScore').innerText = score;
             document.getElementById('psyScoreBar').style.width = score + "%";
-            
             let statusEl = document.getElementById('psyStatus');
             let emojiEl = document.getElementById('psyEmoji');
             
