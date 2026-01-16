@@ -3095,6 +3095,51 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 
 
 <script>
+    
+    // 1. Sağ Tık Engelleme
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+    });
+
+    // 2. Geliştirici Araçları Kısayollarını Engelleme (F12, Ctrl+Shift+I, Ctrl+U vb.)
+    document.onkeydown = function(e) {
+        if (event.keyCode == 123) { // F12
+            return false;
+        }
+        if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { // Ctrl+Shift+I
+            return false;
+        }
+        if (e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { // Ctrl+Shift+C
+            return false;
+        }
+        if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { // Ctrl+Shift+J
+            return false;
+        }
+        if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { // Ctrl+U (Kaynak Görüntüle)
+            return false;
+        }
+    }
+
+    // 3. Konsol Açıldığında Sayfayı Zorlaştırma (Debugger Tuzağı)
+    // Konsol açılırsa tarayıcı sürekli duraklatılır ve kod akışı kesilir.
+    setInterval(function() {
+        const startTime = performance.now();
+        debugger; // Burası konsol açıksa çalışmayı durdurur
+        const endTime = performance.now();
+        
+        // Eğer debugger'da çok vakit geçtiyse konsol açık demektir, sayfayı temizle veya yönlendir
+        if (endTime - startTime > 100) {
+            document.body.innerHTML = "Lütfen Geliştirici Araçlarını Kapatın!";
+            window.location.reload(); 
+        }
+    }, 1000);
+
+    // 4. Konsol Loglarını Temizleme (Console.log'ları siler)
+    console.log = function() {};
+    console.warn = function() {};
+    console.error = function() {};
+
+
 /* --- PWA İPTAL VE TEMİZLİK KODU --- */
 if ('serviceWorker' in navigator) {
     // Mevcut tüm Service Worker'ları bul ve hepsini sil (unregister)
