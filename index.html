@@ -8050,74 +8050,101 @@ async function tryBinance(symbol) {
     processAndRenderCompact(prices, mcaps, volumes);
 }
 
-// 4. İŞLEME VE GÖRÜNTÜLEME MOTORU (Zeka Burada)
+// 4. İŞLEME VE GÖRÜNTÜLEME MOTORU (HACİM + RİSK + ANOMALİ UYARISI)
 function processAndRenderCompact(priceData, mcapData, volData) {
     const tableBody = document.getElementById('statTableBody');
     const projList = document.getElementById('projectionList');
     
-    // Uygulama Ayarlarını Kontrol Et (TL mi USD mi?)
     let isTR = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY');
     let currencyRate = (typeof usdTryRate !== 'undefined') ? usdTryRate : 36.50;
     let sym = isTR ? '₺' : '$';
 
     let yearlyStats = {};
-    
-    // A) Yıllık Gruplama
+    let dailyChanges = []; // Anlık sapmaları yakalamak için
+
+    // --- A) VERİ İŞLEME VE ANOMALİ TESPİTİ ---
     for(let i=0; i<priceData.length; i++) {
         let timestamp = priceData[i][0];
-        let priceUSD = priceData[i][1]; // Veri her zaman USD gelir
+        let priceUSD = priceData[i][1]; 
         let mcapUSD = (mcapData && mcapData[i]) ? mcapData[i][1] : 0;
         let volUSD = (volData && volData[i]) ? volData[i][1] : 0;
         
+        // Günlük değişim hesapla (Sapma analizi için)
+        if(i > 0) {
+            let prevPrice = priceData[i-1][1];
+            let dailyChange = ((priceUSD - prevPrice) / prevPrice) * 100;
+            dailyChanges.push(dailyChange);
+        }
+
         let year = new Date(timestamp).getFullYear();
 
         if(!yearlyStats[year]) {
-            yearlyStats[year] = { close: priceUSD, high: priceUSD, low: priceUSD, mcap: mcapUSD, vol: volUSD, lastDate: timestamp };
+            yearlyStats[year] = { 
+                close: priceUSD, high: priceUSD, low: priceUSD, 
+                mcap: mcapUSD, vol: volUSD, volCount: 1, lastDate: timestamp 
+            };
         } else {
             if(priceUSD > yearlyStats[year].high) yearlyStats[year].high = priceUSD;
             if(priceUSD < yearlyStats[year].low) yearlyStats[year].low = priceUSD;
             
+            yearlyStats[year].vol += volUSD;
+            yearlyStats[year].volCount++;
+
             if(timestamp > yearlyStats[year].lastDate) {
                 yearlyStats[year].close = priceUSD;
                 yearlyStats[year].mcap = mcapUSD;
-                yearlyStats[year].vol = volUSD; 
                 yearlyStats[year].lastDate = timestamp;
             }
         }
     }
 
+    // --- SAPMA (ANOMALİ) HESAPLAMASI ---
+    // Standart Sapma: Fiyatın "norm"dan ne kadar saptığını bulur.
+    let mean = dailyChanges.reduce((a,b)=>a+b, 0) / dailyChanges.length;
+    let variance = dailyChanges.reduce((a,b)=>a + Math.pow(b-mean, 2), 0) / dailyChanges.length;
+    let stdDev = Math.sqrt(variance); // Standart Sapma Değeri
+
+    // Anomali Sınırları (2 Sigma Kuralı: %95 ihtimalle fiyat bu aralıkta kalmalı)
+    let shockThreshold = stdDev * 2; 
+    
+    // Geçmişte kaç kez "Şok" yaşanmış?
+    let crashEvents = dailyChanges.filter(c => c < -shockThreshold).length;
+    let pumpEvents = dailyChanges.filter(c => c > shockThreshold).length;
+    let riskLabel = "Düşük";
+    let riskColor = "#10b981";
+
+    if(stdDev > 5) { riskLabel = "Aşırı Yüksek"; riskColor = "#ef4444"; }
+    else if(stdDev > 3) { riskLabel = "Yüksek"; riskColor = "#f59e0b"; }
+    else if(stdDev > 1.5) { riskLabel = "Orta"; riskColor = "#3b82f6"; }
+
+    // --- B) TABLO ÇİZİMİ ---
     let years = Object.keys(yearlyStats).sort((a,b) => b-a);
     let html = "";
-    let volatilityFactors = [];
+    let pullbacks = []; 
+    let volumeTrend = [];
 
-    // B) Tabloyu Çiz (Görüntü için TL çevirimi burada yapılır)
     for (let i = 0; i < years.length - 1; i++) {
         let y = years[i];
         let yPrev = years[i+1];
         let curr = yearlyStats[y];
         let prev = yearlyStats[yPrev];
         
+        let avgVol = curr.vol / curr.volCount;
+        curr.avgVol = avgVol; 
+        volumeTrend.push(avgVol);
+
         let changePct = ((curr.close - prev.close) / prev.close) * 100;
-        let rangePct = ((curr.high - curr.low) / curr.low) * 100;
-        volatilityFactors.push(rangePct);
+        let yearlyDrawdown = ((curr.high - curr.low) / curr.high); 
+        pullbacks.push(yearlyDrawdown);
 
         let inf = statCpiData[y] || 2.5;
-        let realReturn = changePct - inf; // Enflasyon hesabı Dolar bazlı yapılır
+        let realReturn = changePct - inf;
 
-        // --- GÖRÜNTÜ İÇİN PARA BİRİMİ ÇEVİRİMİ ---
         let displayClose = isTR ? curr.close * currencyRate : curr.close;
         let displayHigh = isTR ? curr.high * currencyRate : curr.high;
         let displayLow = isTR ? curr.low * currencyRate : curr.low;
-        let displayMcap = isTR ? curr.mcap * currencyRate : curr.mcap;
-        let displayVol = isTR ? curr.vol * currencyRate : curr.vol;
-
-        // Milyar/Milyon Formatı
-        let mcapStr = "-";
-        if(displayMcap > 0) mcapStr = (displayMcap > 1e9) ? (displayMcap/1e9).toFixed(1)+"Mr" : (displayMcap/1e6).toFixed(1)+"Mn";
-
-        let volStr = "-";
-        if(displayVol > 0) volStr = (displayVol > 1e9) ? (displayVol/1e9).toFixed(1)+"Mr" : (displayVol/1e6).toFixed(1)+"Mn";
-
+        let mcapStr = (curr.mcap > 1e9) ? (curr.mcap/1e9).toFixed(1)+"Mr" : (curr.mcap/1e6).toFixed(1)+"Mn";
+        let volStr = (avgVol > 1e9) ? (avgVol/1e9).toFixed(1)+"Mr" : (avgVol/1e6).toFixed(1)+"Mn";
         let realColor = realReturn >= 0 ? '#10b981' : '#ef4444';
         
         html += `
@@ -8133,60 +8160,88 @@ function processAndRenderCompact(priceData, mcapData, volData) {
     }
     tableBody.innerHTML = html;
 
-    // C) GELECEK TAHMİNİ (MOTOR KISMI - DOLAR İLE ÇALIŞIR)
-    let lastData = yearlyStats[years[0]]; // En son veri (USD)
-    let firstData = yearlyStats[years[years.length-1]]; // En eski veri (USD)
+    // --- C) GELECEK TAHMİNİ (MOTOR) ---
+    let lastData = yearlyStats[years[0]]; 
+    let firstData = yearlyStats[years[years.length-1]]; 
     let totalYears = years.length;
     
-    // 1. CAGR Hesabı (Dolar üzerinden)
+    let avgPullback = 0.20; 
+    if(pullbacks.length > 0) avgPullback = pullbacks.reduce((a, b) => a + b, 0) / pullbacks.length;
+    if(avgPullback > 0.60) avgPullback = 0.60; 
+
     let cagr = 5; 
     if(firstData && lastData && firstData.close > 0) {
         cagr = (Math.pow((lastData.close / firstData.close), (1 / totalYears)) - 1) * 100;
     }
 
-    // 2. FREN MEKANİZMASI (DOLAR EŞİKLERİ İLE)
-    // 500 Milyar Dolar = Dev Şirket
-    if(lastData.mcap > 500000000000) cagr *= 0.60; // %40 Yavaşlat
-    else if(lastData.mcap > 50000000000) cagr *= 0.80; // %20 Yavaşlat
+    let volumeSentiment = 1.0; 
+    let sentimentLabel = "Nötr";
+    if(volumeTrend.length >= 3) {
+        let recentVol = (volumeTrend[0] + volumeTrend[1]) / 2; 
+        let pastVol = 0;
+        for(let k=2; k<volumeTrend.length; k++) pastVol += volumeTrend[k];
+        pastVol = pastVol / (volumeTrend.length - 2); 
 
-    // Mantık Sınırı
+        if(pastVol > 0) {
+            let ratio = recentVol / pastVol;
+            if(ratio > 1.5) { volumeSentiment = 1.15; sentimentLabel = "Hacim İlgisi Yüksek"; }
+            else if(ratio < 0.5) { volumeSentiment = 0.85; sentimentLabel = "İlgi Kaybı / Hacim Düşük"; }
+            else if(ratio >= 0.8 && ratio <= 1.2) { volumeSentiment = 1.05; sentimentLabel = "İstikrarlı / Toplama"; }
+        }
+    }
+
+    if(lastData.mcap > 500000000000) cagr *= 0.60; 
+    else if(lastData.mcap > 50000000000) cagr *= 0.80; 
+    
+    cagr = cagr * volumeSentiment;
     if(cagr > 80) cagr = 60 + (cagr - 60) * 0.1; 
     if(cagr < 5) cagr = 5; 
 
     let avgGrowth = cagr;
 
-    // Bant Genişliği
-    let avgVol = 20;
-    if(volatilityFactors.length > 0) avgVol = volatilityFactors.reduce((a,b) => a+b, 0) / volatilityFactors.length;
-    let bandWidth = avgVol / 2.5; 
+    // --- D) UI BİLGİ KUTULARI (EXTRA UYARI) ---
+    // Anomali ve Risk Bilgisini Liste Başına Basıyoruz
+    let warningHtml = `
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
+        <div style="background:rgba(255,255,255,0.05); padding:8px; border-radius:8px; text-align:center;">
+            <div style="font-size:9px; color:var(--text-sub);">HACİM ANALİZİ</div>
+            <div style="font-size:11px; font-weight:700; color:${volumeSentiment > 1 ? '#10b981' : (volumeSentiment < 1 ? '#ef4444' : '#f59e0b')}">${sentimentLabel}</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.05); padding:8px; border-radius:8px; text-align:center;">
+            <div style="font-size:9px; color:var(--text-sub);">ANLIK SAPMA RİSKİ</div>
+            <div style="font-size:11px; font-weight:700; color:${riskColor};">${riskLabel} (σ:${stdDev.toFixed(1)})</div>
+        </div>
+    </div>
+    
+    <div style="background:rgba(239,68,68,0.1); border:1px dashed rgba(239,68,68,0.3); padding:8px; border-radius:8px; font-size:10px; color:#fca5a5; margin-bottom:10px; line-height:1.4;">
+        <i class="fas fa-exclamation-circle"></i> <b>Sapma Uyarısı:</b> Geçmişte ${crashEvents} kez ani çöküş, ${pumpEvents} kez ani fırlama (Anomali) yaşanmış. Tahminlerde bu sapmaları dikkate alınız.
+    </div>
+    `;
 
-    // D) ÇİZİM (Sonucu TL'ye çevirip göster)
+    projList.innerHTML = warningHtml;
+
+    // --- E) PROJEKSİYON DÖNGÜSÜ ---
     let basePriceUSD = lastData.close;
     let currentYear = new Date().getFullYear();
     let projHTML = "";
 
     for(let j=1; j<=5; j++) {
         let fYear = currentYear + j;
-        
-        // Yorgunluk (Decay)
         let decay = 1 - (j * 0.10); 
         if(decay < 0.4) decay = 0.4; 
 
         let yearlyGrowth = avgGrowth * decay;
-        
-        // Gelecek fiyatı hesapla (USD)
         basePriceUSD = basePriceUSD * (1 + (yearlyGrowth/100));
         
-        let highPriceUSD = basePriceUSD * (1 + (bandWidth/100));
-        let lowPriceUSD = basePriceUSD * (1 - (bandWidth/100));
+        let highPriceUSD = basePriceUSD * (1 + avgPullback/1.5);
+        let lowPriceUSD = basePriceUSD * (1 - avgPullback);
 
-        // EKRANA BASARKEN TL'YE ÇEVİR
         let displayBase = isTR ? basePriceUSD * currencyRate : basePriceUSD;
         let displayHigh = isTR ? highPriceUSD * currencyRate : highPriceUSD;
         let displayLow = isTR ? lowPriceUSD * currencyRate : lowPriceUSD;
 
         projHTML += `
-        <div style="background:rgba(255,255,255,0.03); padding:8px; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
+        <div style="background:rgba(255,255,255,0.03); padding:8px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
             <div style="display:flex; align-items:center; gap:8px;">
                 <div style="font-weight:700; color:#60a5fa; font-size:12px;">${fYear}</div>
                 <div style="font-size:9px; color:#94a3b8;">
@@ -8200,7 +8255,7 @@ function processAndRenderCompact(priceData, mcapData, volData) {
             </div>
         </div>`;
     }
-    projList.innerHTML = projHTML;
+    projList.insertAdjacentHTML('beforeend', projHTML);
 }
 
 </script>
