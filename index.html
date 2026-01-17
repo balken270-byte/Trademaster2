@@ -2,6 +2,12 @@
 <html lang="tr">
 <head>
     
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
    <title>TradeVia (Live Edition)</title>
@@ -3095,6 +3101,35 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 
 
 <script>
+    /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
+(function() {
+    // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
+    const CURRENT_VERSION = "2.0"; 
+
+    const savedVersion = localStorage.getItem('TradeVia_Version');
+
+    if (savedVersion !== CURRENT_VERSION) {
+        console.log("Yeni sürüm (" + CURRENT_VERSION + ") tespit edildi. Sistem güncelleniyor...");
+
+        // 1. Sadece Versiyon Numarasını Güncelle (Diğer verilere dokunma!)
+        localStorage.setItem('TradeVia_Version', CURRENT_VERSION);
+
+        // 2. Service Worker (PWA) Varsa Önbelleğini Temizle
+        // (Bu sadece eski kod dosyalarını siler, portföy verisini silmez)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+        }
+
+        // 3. Sayfayı Sunucudan Taze Şekilde Yeniden Yükle
+        // (Cache'deki eski HTML/JS'yi yok sayar)
+        window.location.reload(true);
+    }
+})();
+
     
     // 1. Sağ Tık Engelleme
     document.addEventListener('contextmenu', function(e) {
