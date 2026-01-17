@@ -1595,6 +1595,97 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 
 .saved .ri-val { color: var(--success); }
 .saved .ri-badge { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+/* --- YENİ PSİKOLOJİ MERKEZİ TASARIMI --- */
+.psycho-hub-container {
+    background: linear-gradient(145deg, rgba(20, 30, 48, 0.9), rgba(36, 59, 85, 0.9));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 0;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    position: relative;
+}
+
+/* Başlık Alanı */
+.psycho-header {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.psycho-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.psycho-title i { color: #8b5cf6; text-shadow: 0 0 10px rgba(139, 92, 246, 0.5); }
+
+/* Sekme (Tab) Butonları */
+.psycho-tabs {
+    display: flex;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 5px;
+}
+
+.p-tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 12px;
+    color: #94a3b8;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 2px solid transparent;
+}
+
+.p-tab-btn:hover { color: #fff; background: rgba(255,255,255,0.02); }
+
+.p-tab-btn.active {
+    color: #38bdf8;
+    border-bottom: 2px solid #38bdf8;
+    background: linear-gradient(to top, rgba(56, 189, 248, 0.1), transparent);
+}
+
+/* İçerik Alanı */
+.psycho-content-area {
+    padding: 20px;
+    min-height: 200px;
+}
+
+.psycho-view { display: none; animation: fadeIn 0.4s ease; }
+.psycho-view.active { display: block; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Özel Kartlar (İçerik içi) */
+.stat-card-modern {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 3px solid #64748b;
+}
+
+.stat-card-modern.success { border-left-color: #10b981; }
+.stat-card-modern.danger { border-left-color: #ef4444; }
+.stat-card-modern.warning { border-left-color: #f59e0b; }
+
+.sc-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+.sc-value { font-size: 15px; font-weight: 700; color: #f1f5f9; margin-top: 2px; }
+.sc-sub { font-size: 10px; color: #64748b; }
 
     </style>
     
@@ -2329,69 +2420,57 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 
     </div> <div id="an-view-psycho" class="an-view-section" style="display:none;">
     
-        <div class="dash-card full-width" style="background: linear-gradient(135deg, #312e81 0%, #1e1b4b 100%); border: 1px solid #4338ca; margin-bottom: 20px;">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                <div>
-                    <div class="metric-title" style="color:#a5b4fc;"><i class="fas fa-brain"></i> DUYGUSAL KONTROL SKORU</div>
-                    <div class="metric-value" id="psyScore">--</div>
-                    <div class="metric-sub" id="psyStatus">Analiz Ediliyor...</div>
-                </div>
-                <div style="text-align:right;">
-                    <div style="font-size:32px;" id="psyEmoji">😐</div>
-                </div>
+    <div class="psycho-hub-container">
+        
+        <div class="psycho-header">
+            <div class="psycho-title">
+                <i class="fas fa-brain"></i>
+                YATIRIMCI ZEKA MERKEZİ
             </div>
-            <div class="goal-wrapper" style="margin-top:15px; background:rgba(0,0,0,0.3);">
-                <div id="psyScoreBar" class="goal-fill" style="width:50%; background: linear-gradient(90deg, #ef4444, #eab308, #10b981);"></div>
-            </div>
+            <div style="font-size: 11px; color: #64748b;">AI Powered Logic</div>
         </div>
 
-        <div class="card" style="border-left: 3px solid var(--accent);">
-            <div class="lbl-sm" style="color:var(--accent)">REGRET MINIMIZER (PİŞMANLIK ANALİZİ)</div>
-            <p style="font-size:11px; color:var(--text-sub); margin-bottom:15px;">
-                "Keşke satmasaydım" dediğiniz veya "İyi ki satmışım" dediğiniz işlemlerin bugünkü değeri.
-            </p>
-            
-            <div id="regretList" style="max-height: 300px; overflow-y: auto;">
-                <div style="text-align:center; color:var(--text-sub); font-size:11px;">Satış geçmişi taranıyor...</div>
-            </div>
+        <div class="psycho-tabs">
+            <button class="p-tab-btn active" onclick="switchPsychoTab('tab-karne')">
+    <i class="fa-solid fa-brain"></i> Zeka
+</button>
+
+            </button>
+            <button class="p-tab-btn" onclick="switchPsychoTab('tab-regret')">
+                <i class="fa-solid fa-ghost"></i> Pişmanlık
+            </button>
+            <button class="p-tab-btn" onclick="switchPsychoTab('tab-fomo')">
+                <i class="fa-solid fa-fire"></i> FOMO
+            </button>
         </div>
 
-        <div class="dashboard-container" style="margin-top:15px;">
+        <div class="psycho-content-area">
             
-            <div class="dash-card">
-                <div class="metric-title" style="color:#f87171;">PANİK SATIŞLARI</div>
-                <div style="text-align:center; padding:10px 0;">
-                    <i class="fas fa-running" style="font-size:24px; color:#ef4444; margin-bottom:5px;"></i>
-                    <div class="metric-value" id="panicCount" style="font-size:20px;">0</div>
-                    <div class="metric-sub">Adet Tespit Edildi</div>
+            <div id="tab-karne" class="psycho-view active">
+                <div id="inject-winrate-modern">
+                    <div style="text-align:center; color:#64748b; padding:20px;">
+                        <i class="fas fa-circle-notch fa-spin"></i> Veri toplanıyor...
+                    </div>
                 </div>
             </div>
 
-            <div class="dash-card">
-                <div class="metric-title" style="color:#fbbf24;">FOMO ALIMLARI</div>
-                <div style="text-align:center; padding:10px 0;">
-                    <i class="fas fa-rocket" style="font-size:24px; color:#f59e0b; margin-bottom:5px;"></i>
-                    <div class="metric-value" id="fomoCount" style="font-size:20px;">0</div>
-                    <div class="metric-sub">Tepe Fiyattan Giriş</div>
+            <div id="tab-regret" class="psycho-view">
+                <div style="margin-bottom:15px; font-size:12px; color:#94a3b8; background:rgba(255,255,255,0.05); padding:10px; border-radius:8px;">
+                    <i class="fa-solid fa-circle-info"></i> "Keşke satmasaydım" veya "İyi ki satmışım" dediğiniz işlemlerin analizi.
                 </div>
+                <div id="inject-regret-modern">
+                     </div>
             </div>
 
-                    <div class="dash-card full-width" style="max-height: 400px; display:flex; flex-direction:column;">
-            <div class="metric-title" style="margin-bottom:10px;">
-                <i class="fas fa-hourglass-half"></i> VARLIK BAZLI SABIR ANALİZİ
-            </div>
-            
-            <div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid rgba(255,255,255,0.1); font-size:9px; color:var(--text-sub); font-weight:700;">
-                <span>VARLIK / İŞLEM</span>
-                <span>SÜRE / TİP</span>
+            <div id="tab-fomo" class="psycho-view">
+                <div id="inject-fomo-modern">
+                     </div>
             </div>
 
-            <div id="holdListDetailed" style="overflow-y: auto; flex:1; padding-top:5px;">
-                <div style="text-align:center; padding:15px; color:var(--text-sub); font-size:11px;">Veri hazırlanıyor...</div>
-            </div>
         </div>
+    </div>
 
-    </div> <div style="height: 100px; width: 100%; clear: both;"></div>
+    <div style="height: 100px; width: 100%; clear: both;"></div>
 
 </div> 
 
@@ -3104,7 +3183,7 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "2.1"; 
+    const CURRENT_VERSION = "2.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -3378,7 +3457,7 @@ function switchPage(p, btn){
             localStorage.setItem('myPF_final', JSON.stringify(as));
             updateHeaderTotals(totalPortfolioValue, totalPortfolioPnL, chartData);
             checkAllAlarms();
-        }, 5000); 
+        }, 60000); 
     }
     /* --- PORTFÖY VE FİYAT FONKSİYONLARI --- */
    /* --- FİYAT MOTORU (ÖNCELİK: COINGECKO API & ALTIN) --- */
@@ -7854,202 +7933,295 @@ function runChaosSimulation() {
     document.getElementById('chaosResult').style.display = 'block';
 }
 
+// --- PSİKOLOJİ ANALİZ MOTORU (İZOLE VE GÜVENLİ) ---
+// --- EKSİK OLAN SEKME DEĞİŞTİRME FONKSİYONU ---
+function switchPsychoTab(tabName) {
+    // 1. Tüm içerik alanlarını gizle
+    document.querySelectorAll('.psycho-view').forEach(el => el.classList.remove('active'));
+    
+    // 2. Tıklanan hedef alanı göster
+    const target = document.getElementById(tabName);
+    if(target) target.classList.add('active');
 
-/* --- GÜNCELLENMİŞ PSİKOLOJİ ANALİZİ (FİNAL: KÂR/ZARAR ETİKETLİ) --- */
-let isPsychoAnalyzing = false;
-
-async function calcPsychoAnalysis() {
-    if(isPsychoAnalyzing) return;
-    isPsychoAnalyzing = true;
-
-    try {
-        let history = JSON.parse(localStorage.getItem('tm_full_trade_history')) || [];
-        
-        // Tarihe göre sırala
-        history.sort((a, b) => {
-            let da = convertToDate(a.date);
-            let db = convertToDate(b.date);
-            return da - db;
-        });
-
-        let sales = history.filter(t => t.type === 'SATIM');
-        
-        const regretListEl = document.getElementById('regretList');
-        const holdListEl = document.getElementById('holdListDetailed');
-
-        if(regretListEl) regretListEl.innerHTML = '<div style="text-align:center; padding:10px;"><i class="fas fa-circle-notch fa-spin"></i> Analiz ediliyor...</div>';
-        
-        let regretHTML = "";
-        let holdHTML = "";
-        let panicSales = 0;
-        let fomoBuys = 0;
-        
-        // --- 1. REGRET & PANİK & KÂR ANALİZİ ---
-        let recentSales = [...sales].reverse().slice(0, 10);
-        let currentUsdRate = (typeof usdTryRate !== 'undefined') ? usdTryRate : 36.50;
-        
-        for (let t of recentSales) {
-             if(document.getElementById('an-view-psycho').style.display === 'none') break;
-
-             let currentData = { price: 0 };
-             try { currentData = await getPrice(t.sym); } catch(e){}
-             
-             let currentPrice = currentData.price;
-             let appSym = appSettings.currency === 'TRY' ? '₺' : '$';
-
-             if (currentPrice > 0) {
-                let soldPrice = parseFloat(t.price);
-                let soldTotal = t.total ? parseFloat(t.total) : (soldPrice * t.qty);
-                let currentTotalIfHeld = t.qty * currentPrice;
-                
-                // 1. PİŞMANLIK FARKI (Current - Sold)
-                let diff = currentTotalIfHeld - soldTotal;
-
-                // Para birimi dönüşümü (Pişmanlık hesabı için)
-                let transCurr = t.curr || 'TRY'; 
-                if (appSettings.currency === 'TRY' && transCurr === 'USD') diff *= currentUsdRate;
-                else if (appSettings.currency === 'USD' && transCurr === 'TRY') diff /= currentUsdRate;
-
-                // 2. GERÇEKLEŞEN KÂR (Sold - Buy)
-                let realizedPnL = t.pnl ? parseFloat(t.pnl) : 0;
-                // Kârı da uygulama para birimine çevir
-                if (appSettings.currency === 'TRY' && transCurr === 'USD') realizedPnL *= currentUsdRate;
-                else if (appSettings.currency === 'USD' && transCurr === 'TRY') realizedPnL /= currentUsdRate;
-
-                // --- DÜZELTME BURADA: "KÂR" veya "ZARAR" YAZISI ---
-                let pnlColor = realizedPnL >= 0 ? '#4ade80' : '#f87171'; // Yeşil veya Kırmızı
-                let pnlLabel = realizedPnL >= 0 ? 'Kâr' : 'Zarar';       // Kelime Seçimi
-                let pnlSign = realizedPnL >= 0 ? '+' : '-';              // İşaret Seçimi
-
-                let pnlText = `<span style="color:${pnlColor}; font-weight:700; font-size:10px;">(${pnlLabel}: ${pnlSign}${appSym}${Math.abs(realizedPnL).toLocaleString(undefined, {maximumFractionDigits:0})})</span>`;
-
-                // Kart Yapısı
-                if (diff > 0) {
-                    // Fiyat Artmış -> Kaçan Fırsat
-                    let status = realizedPnL > 0 ? "Erken Çıkış" : "Kaçan Fırsat";
-                    
-                    regretHTML += `
-                    <div class="regret-item missed">
-                        <div class="ri-left">
-                            <span class="ri-sym">${t.sym} ${pnlText}</span>
-                            <span class="ri-date">Satış: ${soldPrice.toFixed(2)} | Şu An: ${currentPrice.toFixed(2)}</span>
-                        </div>
-                        <div class="ri-right">
-                            <span class="ri-val" style="color:var(--danger)">-${appSym}${Math.abs(diff).toLocaleString(undefined, {maximumFractionDigits:0})}</span>
-                            <span class="ri-badge">${status}</span>
-                        </div>
-                    </div>`;
-                } else {
-                    // Fiyat Düşmüş veya Aynı -> İyi ki Satmışsın / Nötr
-                    let statusText = diff === 0 ? "Nötr" : "Zarardan Kurtuluş";
-                    let valColor = diff === 0 ? "var(--text-sub)" : "var(--success)";
-                    
-                    regretHTML += `
-                    <div class="regret-item saved">
-                        <div class="ri-left">
-                            <span class="ri-sym">${t.sym} ${pnlText}</span>
-                            <span class="ri-date">Satış: ${soldPrice.toFixed(2)} | Şu An: ${currentPrice.toFixed(2)}</span>
-                        </div>
-                        <div class="ri-right">
-                            <span class="ri-val" style="color:${valColor}">+${appSym}${Math.abs(diff).toLocaleString(undefined, {maximumFractionDigits:0})}</span>
-                            <span class="ri-badge" style="background:rgba(16, 185, 129, 0.15); color:${valColor}">${statusText}</span>
-                        </div>
-                    </div>`;
-                }
-
-                // Panik Analizi
-                let cost = parseFloat(t.avgCost) || 0;
-                if(cost > 0) {
-                    let lossPct = ((soldPrice - cost) / cost) * 100;
-                    if(lossPct < -5 && currentPrice > soldPrice) panicSales++;
-                }
-             }
-        }
-        if(regretListEl) regretListEl.innerHTML = regretHTML || "<div style='text-align:center; font-size:11px; color:var(--text-sub); padding:10px;'>Veri yok.</div>";
-
-        // --- 2. FOMO ANALİZİ ---
-        let buys = history.filter(t => t.type === 'ALIM');
-        for (let b of buys) {
-            let bDate = convertToDate(b.date);
-            let prevSell = sales.find(s => s.sym === b.sym && convertToDate(s.date) < bDate);
-            if(prevSell && parseFloat(b.price) > parseFloat(prevSell.price) * 1.15) {
-                fomoBuys++;
-            }
-        }
-
-        // --- 3. DETAYLI SABIR (HOLD) ANALİZİ ---
-        let reversedSales = [...sales].reverse();
-        let totalHoldScore = 0;
-        let holdCount = 0;
-
-        for (let s of reversedSales) {
-            let sellDate = convertToDate(s.date);
-            let relatedBuys = history.filter(h => h.type === 'ALIM' && h.sym === s.sym && convertToDate(h.date) <= sellDate);
-            
-            if(relatedBuys.length > 0) {
-                let matchingBuy = relatedBuys[relatedBuys.length - 1]; 
-                let buyDate = convertToDate(matchingBuy.date);
-                let diffTime = Math.abs(sellDate - buyDate);
-                let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-                
-                let dayText = diffDays === 0 ? "Gün İçi (Scalp)" : diffDays + " Gün";
-                let badgeClass = "rank-bronze"; 
-                let badgeText = "KISA VADE";
-                let barColor = "#ef4444"; 
-                
-                if(diffDays > 365) { badgeClass = "rank-gold"; badgeText = "HODL (UZUN)"; barColor = "#10b981"; } 
-                else if (diffDays > 30) { badgeClass = "rank-silver"; badgeText = "ORTA VADE"; barColor = "#f59e0b"; }
-
-                holdHTML += `
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid rgba(255,255,255,0.05);">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        ${getAssetLogoHtml(s.sym)}
-                        <div>
-                            <div style="font-weight:800; font-size:13px; color:white;">${s.sym}</div>
-                            <div style="font-size:10px; color:var(--text-sub);">Satış: ${s.date}</div>
-                        </div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div style="font-weight:800; font-size:14px; color:${barColor};">${dayText}</div>
-                        <span style="font-size:9px; padding:2px 6px; background:rgba(255,255,255,0.05); border-radius:4px; margin-top:2px; display:inline-block;">${badgeText}</span>
-                    </div>
-                </div>`;
-                
-                totalHoldScore += diffDays;
-                holdCount++;
-            }
-        }
-
-        if(holdListEl) holdListEl.innerHTML = holdHTML || "<div style='text-align:center; padding:20px; color:var(--text-sub);'>Henüz tamamlanmış işlem yok.</div>";
-
-        // --- 4. SKORLAMA VE GÖSTERGELER ---
-        if(document.getElementById('panicCount')) document.getElementById('panicCount').innerText = panicSales;
-        if(document.getElementById('fomoCount')) document.getElementById('fomoCount').innerText = fomoBuys;
-
-        let score = 100;
-        score -= (panicSales * 15);
-        score -= (fomoBuys * 10);
-        let avgDays = holdCount > 0 ? (totalHoldScore / holdCount) : 0;
-        if(holdCount > 5 && avgDays < 5) score -= 10; 
-        if(score < 0) score = 0;
-
-        if(document.getElementById('psyScore')) {
-            document.getElementById('psyScore').innerText = score;
-            document.getElementById('psyScoreBar').style.width = score + "%";
-            let statusEl = document.getElementById('psyStatus');
-            let emojiEl = document.getElementById('psyEmoji');
-            
-            if(score >= 80) { statusEl.innerText = "Çelik Gibi Sinirler"; statusEl.style.color = "#10b981"; emojiEl.innerText = "🧘‍♂️"; }
-            else if (score >= 50) { statusEl.innerText = "Duygusal Kararlar"; statusEl.style.color = "#f59e0b"; emojiEl.innerText = "🤔"; }
-            else { statusEl.innerText = "Yüksek Stres / Panik"; statusEl.style.color = "#ef4444"; emojiEl.innerText = "🤯"; }
-        }
-
-    } catch (e) {
-        console.error("Analiz Hatası:", e);
-    } finally {
-        isPsychoAnalyzing = false;
+    // 3. Tüm butonların aktiflik rengini kaldır
+    document.querySelectorAll('.p-tab-btn').forEach(btn => btn.classList.remove('active'));
+    
+    // 4. Tıklanan butonu aktif yap (renklendir)
+    if(event && event.currentTarget) {
+        event.currentTarget.classList.add('active');
     }
 }
+
+async function calcPsychoAnalysis() {
+    
+    // 1. VERİ ÇEKME
+    let history = JSON.parse(localStorage.getItem('tm_full_trade_history')) || [];
+    
+    // Veri yoksa uyar ve çık
+    if(history.length === 0) {
+        const emptyMsg = '<div style="text-align:center; padding:20px; color:#64748b;">Henüz işlem geçmişi yok.</div>';
+        if(document.getElementById('inject-winrate-modern')) document.getElementById('inject-winrate-modern').innerHTML = emptyMsg;
+        return;
+    }
+
+    // Tarih Sıralaması (Eskiden Yeniye)
+    history.sort((a, b) => convertDate(a.date) - convertDate(b.date));
+
+    let sales = history.filter(t => t.type === 'SATIM');
+    let buys = history.filter(t => t.type === 'ALIM');
+
+    // ========================================================================
+    // BÖLÜM 1: KARNE (TRADER SKORU) - (Bu kısım zaten çalışıyordu)
+    // ========================================================================
+    try {
+        let winCount = 0, totalPnL = 0;
+        sales.forEach(t => {
+            let pnl = parseFloat(t.pnl || 0);
+            if(pnl > 0) winCount++;
+            totalPnL += pnl;
+        });
+
+        let winRate = sales.length > 0 ? ((winCount / sales.length) * 100).toFixed(1) : 0;
+        let score = 50 + (parseFloat(winRate) - 50);
+        if(sales.length > 10) score += 5;
+        if(totalPnL > 0) score += 10;
+        score = Math.max(0, Math.min(100, score));
+
+        let scoreColor = score >= 70 ? '#10b981' : (score >= 40 ? '#f59e0b' : '#ef4444');
+        let scoreText = score >= 70 ? 'Güçlü Psikoloji' : (score >= 40 ? 'Dengeli' : 'Duygusal');
+
+        let htmlKarne = `
+            <div style="display:flex; align-items:center; gap:20px; margin-bottom:20px; background:rgba(255,255,255,0.02); padding:15px; border-radius:12px;">
+                <div style="width:70px; height:70px; border-radius:50%; border:4px solid ${scoreColor}; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:800; color:#fff; box-shadow:0 0 20px ${scoreColor}40;">
+                    ${Math.floor(score)}
+                </div>
+                <div>
+                    <div style="color:${scoreColor}; font-weight:700; font-size:18px;">${scoreText}</div>
+                    <div style="color:#94a3b8; font-size:11px;">Duygusal Skor</div>
+                </div>
+            </div>
+            <div class="stat-card-modern success">
+                <div><div class="sc-label">BAŞARI ORANI</div><div class="sc-value">%${winRate}</div><div class="sc-sub">${winCount}/${sales.length} Başarılı İşlem</div></div>
+                <i class="fa-solid fa-crosshairs" style="color:#10b981; font-size:24px;"></i>
+            </div>
+            <div class="stat-card-modern warning">
+                <div><div class="sc-label">REALİZE KÂR</div><div class="sc-value" style="color:${totalPnL>=0?'#10b981':'#ef4444'}">${totalPnL.toLocaleString()}</div></div>
+                <i class="fa-solid fa-coins" style="color:#f59e0b; font-size:24px;"></i>
+            </div>`;
+        
+        if(document.getElementById('inject-winrate-modern')) 
+            document.getElementById('inject-winrate-modern').innerHTML = htmlKarne;
+
+    } catch(e) { console.log("Karne hatası:", e); }
+
+
+    // ========================================================================
+    // BÖLÜM 2: PİŞMANLIK (REGRET) - (Eski Kod Aynen Korundu)
+    // ========================================================================
+    try {
+        let regretHTML = "";
+        let recentSales = [...sales].reverse().slice(0, 10);
+        
+        for(let t of recentSales) {
+            let currentPrice = 0;
+            try { 
+                // Fiyat çekme fonksiyonu varsa kullan, yoksa geç
+                if(typeof getPrice === 'function') {
+                    let res = await getPrice(t.sym); 
+                    currentPrice = res.price; 
+                }
+            } catch(e){}
+            
+            if(currentPrice > 0) {
+                let soldPrice = parseFloat(t.price);
+                let missedProfit = (currentPrice - soldPrice) * t.qty;
+                let isRegret = missedProfit > 0;
+                
+                let color = isRegret ? 'danger' : 'success';
+                let icon = isRegret ? 'fa-face-frown' : 'fa-face-smile-beam';
+                let title = isRegret ? 'ERKEN ÇIKIŞ' : 'İYİ Kİ SATMIŞSIN';
+                let symSign = t.curr === 'USD' ? '$' : '₺';
+
+                regretHTML += `
+                <div class="stat-card-modern ${color}">
+                    <div style="width:100%">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                            <span style="font-weight:700; color:#fff;">${t.sym}</span>
+                            <span style="font-size:9px; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px;">${title}</span>
+                        </div>
+                        <div class="sc-value" style="font-size:13px;">${isRegret?'-':'+'}${symSign}${Math.abs(missedProfit).toLocaleString()} Fark</div>
+                        <div class="sc-sub">Satış: ${soldPrice} -> Güncel: ${currentPrice}</div>
+                    </div>
+                    <i class="fa-regular ${icon}" style="font-size:20px; margin-left:10px;"></i>
+                </div>`;
+            }
+        }
+        
+        if(document.getElementById('inject-regret-modern')) 
+            document.getElementById('inject-regret-modern').innerHTML = regretHTML || '<div style="text-align:center; padding:15px; color:#64748b;">Piyasa verisi bekleniyor veya geçmiş satış yok.</div>';
+
+    } catch(e) { console.log("Pişmanlık hatası:", e); }
+
+
+    // ========================================================================
+    // BÖLÜM 3: FOMO, PANİK VE SABIR (HOLD) - (Burada Birleştirdik)
+    // ========================================================================
+    try {
+        // --- A) FOMO ve PANİK Hesaplama ---
+        let panicCount = 0;
+        let fomoCount = 0;
+        let recentSalesFomo = [...sales].reverse().slice(0, 10);
+
+        // Panik: Zararına satış var mı?
+        for(let t of recentSalesFomo) {
+            if(parseFloat(t.pnl) < 0) panicCount++; 
+        }
+
+        // FOMO: Sattığını daha pahalıya geri aldın mı?
+        for(let b of buys) {
+            let prevSell = sales.find(s => s.sym === b.sym && convertDate(s.date) < convertDate(b.date));
+            if(prevSell) {
+                if(parseFloat(b.price) > parseFloat(prevSell.price) * 1.10) fomoCount++;
+            }
+        }
+
+        // --- B) YENİ DETAYLI HOLD SİSTEMİ ---
+        let avgHold = 0;
+        window.psychoHoldings = {}; // Global erişim
+
+        let holdTotalDays = 0;
+        let holdCount = 0;
+        let safeSales = [...sales].reverse();
+
+        for (let s of safeSales) {
+            let relatedBuy = buys.find(b => b.sym === s.sym);
+            if (relatedBuy && s.date && relatedBuy.date) {
+                let d1 = convertDate(relatedBuy.date);
+                let d2 = convertDate(s.date);
+                if(d1 && d2) {
+                    let diffTime = Math.abs(d2 - d1);
+                    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    if(diffDays >= 0 && diffDays < 10000) {
+                        holdTotalDays += diffDays;
+                        holdCount++;
+                        if(!window.psychoHoldings[s.sym]) window.psychoHoldings[s.sym] = [];
+                        window.psychoHoldings[s.sym].push({
+                            days: diffDays, buyDate: relatedBuy.date, sellDate: s.date,
+                            pnl: parseFloat(s.pnl || 0), curr: s.curr || 'TRY'
+                        });
+                    }
+                }
+            }
+        }
+        if (holdCount > 0) avgHold = Math.round(holdTotalDays / holdCount);
+
+        // --- C) Hold Listesi HTML'i ---
+        let holdListHTML = "";
+        let sortedAssets = Object.keys(window.psychoHoldings).map(sym => {
+            let recs = window.psychoHoldings[sym];
+            let avg = recs.reduce((a, b) => a + b.days, 0) / recs.length;
+            return { sym: sym, avg: Math.round(avg), count: recs.length };
+        }).sort((a, b) => b.avg - a.avg);
+
+        if(sortedAssets.length > 0) {
+            holdListHTML = `<div style="margin-top:10px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
+                <div style="font-size:9px; color:var(--text-sub); margin-bottom:5px;">DETAY İÇİN VARLIĞA TIKLA 👇</div>`;
+            sortedAssets.slice(0, 5).forEach((item, index) => {
+                let badgeColor = item.avg > 30 ? '#10b981' : (item.avg > 7 ? '#3b82f6' : '#f59e0b');
+                holdListHTML += `
+                <div onclick="openHoldDetail('${item.sym}')" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:11px; background:rgba(255,255,255,0.03); padding:8px; border-radius:8px; cursor:pointer; transition:0.2s;">
+                    <div style="display:flex; gap:8px;"><span style="color:#64748b; font-weight:700;">#${index+1}</span><span style="color:white; font-weight:600;">${item.sym}</span></div>
+                    <div style="display:flex; gap:6px;"><span style="color:#64748b; font-size:9px;">(${item.count} İşlem)</span><span style="background:${badgeColor}20; color:${badgeColor}; padding:2px 6px; border-radius:4px; font-weight:700;">Ort. ${item.avg} Gün</span></div>
+                </div>`;
+            });
+            holdListHTML += `</div>`;
+        } else {
+            holdListHTML = `<div style="text-align:center; color:#64748b; font-size:10px; margin-top:10px;">Veri yok.</div>`;
+        }
+
+        // --- D) FOMO Sekmesi HTML Birleştirme ---
+        let htmlFomo = `
+            <div class="stat-card-modern" style="border-left-color:${panicCount>0?'#ef4444':'#8b5cf6'}">
+                <div><div class="sc-label">PANİK SATIŞ</div><div class="sc-value">${panicCount} İşlem</div><div class="sc-sub">Zararına çıkışlar.</div></div>
+                <i class="fa-solid fa-person-falling-burst" style="color:${panicCount>0?'#ef4444':'#8b5cf6'}; font-size:22px;"></i>
+            </div>
+            <div class="stat-card-modern" style="border-left-color:${fomoCount>0?'#f59e0b':'#ec4899'}">
+                <div><div class="sc-label">FOMO GİRİŞİ</div><div class="sc-value">${fomoCount} İşlem</div><div class="sc-sub">Pahalı geri alımlar.</div></div>
+                <i class="fa-solid fa-rocket" style="color:${fomoCount>0?'#f59e0b':'#ec4899'}; font-size:22px;"></i>
+            </div>
+            <div class="stat-card-modern" style="border-left-color:#3b82f6; display:block;">
+                <div style="display:flex; justify-content:space-between;">
+                    <div><div class="sc-label">GENEL SABIR ORT.</div><div class="sc-value">${avgHold} Gün</div></div>
+                    <i class="fa-solid fa-hourglass-half" style="color:#3b82f6; font-size:22px;"></i>
+                </div>
+                ${holdListHTML}
+            </div>`;
+
+        if(document.getElementById('inject-fomo-modern')) 
+            document.getElementById('inject-fomo-modern').innerHTML = htmlFomo;
+
+    } catch(e) { console.log("FOMO/Hold hatası:", e); }
+}
+
+// Yardımcı Fonksiyon (Tarih Çevirici)
+function convertDate(str) {
+    if(!str || typeof str !== 'string' || !str.includes('.')) return null;
+    let p = str.split('.');
+    if(p.length !== 3) return null;
+    return new Date(p[2], p[1]-1, p[0]);
+}
+
+/* --- DETAY PENCERESİ VE FONKSİYONU --- */
+
+// 1. Modalı HTML'e ekle (Eğer yoksa)
+if (!document.getElementById('holdDetailModal')) {
+    let m = document.createElement('div');
+    m.id = 'holdDetailModal';
+    m.className = 'modal-overlay';
+    m.innerHTML = `
+        <div class="modal" style="max-height:60vh; overflow-y:auto;">
+            <h3 id="hdTitle" style="text-align:center; color:white; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px;">Detay</h3>
+            <div id="hdList" style="display:flex; flex-direction:column; gap:8px;"></div>
+            <button class="btn-main btn-sec" style="margin-top:15px;" onclick="document.getElementById('holdDetailModal').style.display='none'">Kapat</button>
+        </div>`;
+    document.body.appendChild(m);
+}
+
+// 2. Detay Açma Fonksiyonu
+window.openHoldDetail = function(sym) {
+    let records = window.psychoHoldings[sym];
+    if(!records) return;
+
+    document.getElementById('hdTitle').innerText = `${sym} - Geçmiş Hareketler`;
+    let l = document.getElementById('hdList');
+    l.innerHTML = "";
+
+    // Tarihe göre sırala (Yeniden eskiye)
+    records.sort((a, b) => convertDate(b.sellDate) - convertDate(a.sellDate));
+
+    records.forEach(r => {
+        let color = r.days > 30 ? '#10b981' : (r.days > 7 ? '#3b82f6' : '#f59e0b');
+        let pnlColor = r.pnl >= 0 ? '#10b981' : '#ef4444';
+        let symSign = r.curr === 'USD' ? '$' : '₺';
+        
+        let html = `
+        <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; border-left:3px solid ${color};">
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                <span style="font-size:12px; font-weight:800; color:${color};">${r.days} GÜN TUTULDU</span>
+                <span style="font-size:11px; font-weight:700; color:${pnlColor};">${r.pnl >= 0 ? '+' : ''}${r.pnl.toLocaleString()} ${symSign}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-sub);">
+                <span>Alış: ${r.buyDate}</span>
+                <span><i class="fas fa-arrow-right"></i></span>
+                <span>Satış: ${r.sellDate}</span>
+            </div>
+        </div>`;
+        l.insertAdjacentHTML('beforeend', html);
+    });
+
+    document.getElementById('holdDetailModal').style.display = 'flex';
+}
+
 /* --- ZAMAN MAKİNESİ FİNAL MOTORU (AUTO-CURRENCY) --- */
 
 // ABD Enflasyon Verisi (Motor Dolar çalıştığı için ABD verisi şart)
