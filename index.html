@@ -3377,7 +3377,7 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "2.5"; 
+    const CURRENT_VERSION = "2.6"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -7756,34 +7756,28 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 /* ==========================================================================
-   AR-GE (LAB) MASTER MODÜLÜ - (Final & Hatasız Sürüm)
-   İçerik: Strateji Testi, Risk Hesabı, Akıllı Maliyet, Kayıt Sistemi
+   AR-GE (LAB) MASTER MODÜLÜ - (FİNAL SÜRÜM)
+   Özellikler:
+   1. Otomatik Kur Çevirici (USD varlıkları TL modunda TL gösterir)
+   2. Mantıksız Hedef Kontrolü (Fiyatın altına hedef koymayı engeller)
+   3. Akıllı Kayıt Sistemi (Stratejileri hafızada tutar)
    ========================================================================== */
 
 let currentSelectedAssetSym = ""; 
 
-// 1. ANA GEÇİŞ FONKSİYONU (ROUTER)
+// 1. ANA GEÇİŞ FONKSİYONU
 function switchLabTool(tool, btn) {
-    // Tüm araç kutularını gizle
     document.querySelectorAll('.lab-tool-container').forEach(el => el.style.display = 'none');
-    
-    // Seçilen aracı göster
     const targetTool = document.getElementById('lab-tool-' + tool);
     if(targetTool) targetTool.style.display = 'block';
     
-    // Buton aktiflik durumunu güncelle
     if(btn) {
         const parent = btn.parentElement;
         parent.querySelectorAll('.chart-filter-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
     }
 
-    // A) Büyüme Testi
-    if(tool === 'growth') {
-        // Özel bir hazırlık gerekirse buraya
-    }
-
-    // B) Risk Aracına Geçildiyse
+    // A) Risk Aracı
     if(tool === 'risk') {
         populateRiskAssets(); 
         const inputBalance = document.getElementById('riskBalance');
@@ -7794,87 +7788,106 @@ function switchLabTool(tool, btn) {
         }
     }
 
-    // C) Maliyet Aracına Geçildiyse
+    // B) Maliyet Düşürme Aracı
     if(tool === 'avg') {
-        populateAdvAvgAssets(); // Varlık listesini doldur
-        if(typeof renderSavedStrategies === 'function') renderSavedStrategies(); // Kayıtları getir
+        populateAdvAvgAssets(); 
+        if(typeof renderSavedStrategies === 'function') renderSavedStrategies();
     }
 }
 
+
 /* --------------------------------------------------------------------------
-   MODÜL 1: BÜYÜME TESTİ (Growth)
+   BÖLÜM 2: KAYIT VE ARŞİV SİSTEMİ
    -------------------------------------------------------------------------- */
-function runLabTest() {
-    const elStart = document.getElementById('labStart');
-    const elWin = document.getElementById('labWinPct');
-    const elFreq = document.getElementById('labFreq');
-    const elDur = document.getElementById('labDuration');
 
-    if(!elStart || !elWin || !elFreq || !elDur) return;
+function saveCurrentScenario() {
+    let idx = document.getElementById('advAvgSelect').value;
+    let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
+    let assetName = (idx != "-1" && as[idx]) ? as[idx].name : "Manuel Varlık";
 
-    let start = parseFloat(elStart.value) || 1000;
-    let winPct = parseFloat(elWin.value) || 2; 
-    let freq = parseFloat(elFreq.value) || 1; 
-    let duration = parseFloat(elDur.value) || 12; 
-
-    let totalWeeks = duration * 4;
-    let balance = start;
-    let listHtml = ""; 
-    let sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY') ? '₺' : '$';
-
-    for(let i=1; i<=totalWeeks; i++) {
-        for(let j=0; j<freq; j++) { balance = balance * (1 + (winPct/100)); }
-        if(i % 4 === 0) {
-            let month = i / 4;
-            let profit = balance - start;
-            listHtml += `<div class="lab-row"><div class="lab-col-left"><span class="lab-month-badge">${month}. AY</span><span class="lab-balance-val">${sym}${balance.toLocaleString(undefined, {maximumFractionDigits:0})}</span></div><div class="lab-col-right"><span class="lab-profit-lbl">NET KÂR</span><span class="lab-profit-val">+${sym}${profit.toLocaleString(undefined, {maximumFractionDigits:0})}</span></div></div>`;
-        }
-    }
-
-    const resStart = document.getElementById('resLabStart');
-    const resEnd = document.getElementById('resLabEnd');
-    const resGrowth = document.getElementById('resLabGrowth');
-    const listContainer = document.getElementById('labListContainer');
-    const resBox = document.getElementById('labResults');
-
-    if(resStart) resStart.innerText = sym + start.toLocaleString();
-    if(resEnd) resEnd.innerText = sym + balance.toLocaleString(undefined, {maximumFractionDigits:0});
-    if(resGrowth) {
-        let growthPct = ((balance - start) / start) * 100;
-        resGrowth.innerText = `%${growthPct.toFixed(0)} Büyüme`;
-    }
-    if(listContainer) listContainer.innerHTML = listHtml;
+    let newAvg = document.getElementById('aaResAvg').innerText;
+    let budget = document.getElementById('aaBudget').value;
+    let target = document.getElementById('aaTarget').value;
+    let qty = document.getElementById('aaResQty').innerText;
     
-    if(resBox) {
-        resBox.style.display = 'block';
-        setTimeout(() => { resBox.scrollIntoView({behavior: "smooth", block: "start"}); }, 100);
+    let mode = document.getElementById('avg-mode-budget').style.display !== 'none' ? 'Bütçe' : 'Hedef';
+    let mainVal = (mode === 'Bütçe') ? budget : target;
+
+    if(newAvg === "--") return addNotification('warn', 'Hata', 'Önce bir hesaplama yapmalısın.');
+
+    let strategy = {
+        id: Date.now(), 
+        date: new Date().toLocaleDateString('tr-TR'),
+        sym: assetName,
+        mode: mode,
+        val: mainVal,
+        result: newAvg,
+        qty: qty
+    };
+
+    let saved = JSON.parse(localStorage.getItem('tm_saved_strategies')) || [];
+    saved.push(strategy);
+    localStorage.setItem('tm_saved_strategies', JSON.stringify(saved));
+
+    addNotification('success', 'Kaydedildi', 'Strateji hafızaya alındı.');
+    renderSavedStrategies(); 
+}
+
+function renderSavedStrategies() {
+    let saved = JSON.parse(localStorage.getItem('tm_saved_strategies')) || [];
+    let container = document.getElementById('savedStrategiesList');
+    if(!container) return;
+
+    if(saved.length === 0) {
+        container.innerHTML = "<div style='text-align:center; font-size:10px; color:var(--text-sub); opacity:0.5; padding:10px;'>Henüz kayıtlı plan yok.</div>";
+        return;
     }
+
+    let html = "";
+    saved.reverse().forEach(item => {
+        let icon = item.mode === 'Bütçe' ? 'fa-wallet' : 'fa-crosshairs';
+        let color = item.mode === 'Bütçe' ? '#3b82f6' : '#ef4444';
+        
+        html += `
+        <div style="background:rgba(255,255,255,0.03); border-radius:8px; padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; border-left:3px solid ${color};">
+            <div>
+                <div style="font-size:12px; font-weight:700; color:white;">${item.sym} <span style="font-size:9px; color:var(--text-sub); font-weight:400;">(${item.date})</span></div>
+                <div style="font-size:10px; color:var(--text-sub); margin-top:2px;">
+                    <i class="fas ${icon}" style="color:${color}; margin-right:3px;"></i> 
+                    ${item.mode}: <b>${parseFloat(item.val).toLocaleString()}</b> -> Hedef Ort: <b style="color:#fff;">${item.result}</b>
+                </div>
+            </div>
+            <button onclick="deleteStrategy(${item.id})" style="background:none; border:none; color:var(--text-sub); cursor:pointer; padding:5px;">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>`;
+    });
+
+    container.innerHTML = html;
+}
+
+function deleteStrategy(id) {
+    if(!confirm("Bu planı silmek istiyor musun?")) return;
+    let saved = JSON.parse(localStorage.getItem('tm_saved_strategies')) || [];
+    let newSaved = saved.filter(x => x.id !== id);
+    localStorage.setItem('tm_saved_strategies', JSON.stringify(newSaved));
+    renderSavedStrategies();
 }
 
 /* --------------------------------------------------------------------------
-   MODÜL 2: RİSK YÖNETİMİ
+   BÖLÜM 3: RİSK ARACI YARDIMCI (ESKİ KODUN DEVAMI)
    -------------------------------------------------------------------------- */
 function populateRiskAssets() {
     const selectBox = document.getElementById('riskAssetSelect');
     if(!selectBox) return;
-
     let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
     selectBox.innerHTML = '<option value="-1">Manuel Giriş / Seçiniz</option>';
-    
-    if(as.length === 0) {
-        let opt = document.createElement("option");
-        opt.text = "(Portföy Boş)";
-        selectBox.add(opt);
-        return;
-    }
-
+    if(as.length === 0) { selectBox.add(new Option("(Portföy Boş)", "-1")); return; }
     as.forEach((asset, index) => {
-        let option = document.createElement("option");
-        option.text = `${asset.name} (${asset.amt} Adet)`;
-        option.value = index; 
-        selectBox.add(option);
+        selectBox.add(new Option(`${asset.name} (${asset.amt} Adet)`, index));
     });
 }
+
 
 function fillRiskFromAsset() {
     let idx = document.getElementById('riskAssetSelect').value;
@@ -7959,21 +7972,29 @@ function calcLabRisk() {
 }
 
 /* --------------------------------------------------------------------------
-   MODÜL 3: AKILLI MALİYET SİHİRBAZI & STRATEJİ (AVG)
+   BÖLÜM 1: AKILLI MALİYET SİHİRBAZI (AVG) - KUR KORUMALI (FİNAL)
    -------------------------------------------------------------------------- */
 
+// 1. LİSTEYİ DOLDUR (ORİJİNAL PARA BİRİMİ İLE)
 function populateAdvAvgAssets() {
     const select = document.getElementById('advAvgSelect');
     if(!select) return;
     select.innerHTML = '<option value="-1">Manuel Giriş Yap</option>';
+    
     let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
+    
     as.forEach((a, i) => {
-        select.innerHTML += `<option value="${i}">${a.name} (Maliyet: ${a.buy.toFixed(2)})</option>`;
+        // Varlığın orijinal para birimi neyse onu göster (TL ise ₺, USD ise $)
+        let sym = a.origin === 'USD' ? '$' : '₺';
+        select.innerHTML += `<option value="${i}">${a.name} (Maliyet: ${sym}${a.buy.toFixed(2)})</option>`;
     });
 }
 
+// 2. SEÇİLEN VARLIĞI DOLDUR (ÇEVİRİ YAPMADAN HAM FİYAT)
 function fillAdvAvgData() {
     let idx = document.getElementById('advAvgSelect').value;
+    
+    // Temizle
     if(idx == "-1") {
         document.getElementById('aaOldQty').value = "";
         document.getElementById('aaOldPrice').value = "";
@@ -7981,13 +8002,22 @@ function fillAdvAvgData() {
         currentSelectedAssetSym = "";
         return;
     }
+    
     let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
     let asset = as[idx];
+    
     if(asset) {
+        // BURASI KRİTİK: Varlığın kendi birimindeki fiyatını alıyoruz (Çevirmeden)
+        let rawBuy = asset.buy; 
+        let rawCurr = asset.curr && asset.curr > 0 ? asset.curr : asset.buy;
+
         document.getElementById('aaOldQty').value = asset.amt;
-        document.getElementById('aaOldPrice').value = asset.buy;
-        document.getElementById('aaCurPrice').value = asset.curr && asset.curr > 0 ? asset.curr : asset.buy;
-        currentSelectedAssetSym = asset.sym;
+        document.getElementById('aaOldPrice').value = rawBuy.toFixed(2);
+        document.getElementById('aaCurPrice').value = rawCurr.toFixed(2);
+        
+        currentSelectedAssetSym = asset.name;
+
+        // Inputları parlat
         if(typeof flashInput === 'function') {
             flashInput(document.getElementById('aaOldQty'));
             flashInput(document.getElementById('aaOldPrice'));
@@ -7995,6 +8025,7 @@ function fillAdvAvgData() {
     }
 }
 
+// 3. SLIDER SENKRONİZASYONU (Aynen Kalabilir)
 function syncBudgetSlider(source) {
     const slider = document.getElementById('aaBudgetSlider');
     const input = document.getElementById('aaBudget');
@@ -8008,11 +8039,14 @@ function syncBudgetSlider(source) {
         slider.value = val;
     }
     
-    let sym = appSettings.currency === 'TRY' ? '₺' : '$';
+    // Slider her zaman "Cüzdan Para Birimi" (Genelde TL) gösterir
+    let sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY') ? '₺' : '$';
     display.innerText = sym + parseFloat(slider.value).toLocaleString();
+    
     calcAdvAvg('budget');
 }
 
+// 4. MOD DEĞİŞTİRME
 function switchAvgMode(mode, btn) {
     document.getElementById('avg-mode-budget').style.display = 'none';
     document.getElementById('avg-mode-target').style.display = 'none';
@@ -8026,197 +8060,181 @@ function switchAvgMode(mode, btn) {
     document.getElementById('aaRiskAlert').style.display = 'none';
 }
 
+// 5. PORTFÖY DEĞERİ (Risk Hesabı İçin)
 function calculateTotalPortfolioValue() {
     let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
     let total = 0;
+    
+    let currentUsd = (typeof usdTryRate !== 'undefined') ? usdTryRate : 36.50;
+    let appCurr = (typeof appSettings !== 'undefined') ? appSettings.currency : 'TRY';
+
     as.forEach(a => {
-        let price = a.curr && a.curr > 0 ? a.curr : a.buy;
-        total += (a.amt * price);
+        let price = a.curr || a.buy;
+        let val = 0;
+        // Toplam portföy değeri için mecburen APP para birimine çeviriyoruz
+        if(appCurr === 'TRY') {
+            val = (a.origin === 'USD') ? (price * a.amt * currentUsd) : (price * a.amt);
+        } else {
+            val = (a.origin === 'TRY') ? ((price * a.amt) / currentUsd) : (price * a.amt);
+        }
+        total += val;
     });
-    return total + (parseFloat(cashBalance) || 0); 
+    return total + (parseFloat(localStorage.getItem('tm_cash_balance')) || 0); 
 }
 
-// 8. ANA HESAPLAMA MOTORU (DÜZELTİLMİŞ)
+// 6. ANA HESAPLAMA MOTORU (DOLAR/TL AYRIMI YAPAN FİNAL VERSİYON)
 function calcAdvAvg(mode) {
+    // Girdileri al
     let oldQty = parseFloat(document.getElementById('aaOldQty').value);
     let oldPrice = parseFloat(document.getElementById('aaOldPrice').value);
     let curPrice = parseFloat(document.getElementById('aaCurPrice').value);
 
-    // Veri yoksa uyar
+    // Seçili varlığın orijinal para birimini bul
+    let idx = document.getElementById('advAvgSelect').value;
+    let assetOrigin = 'TRY'; // Varsayılan
+    if(idx != "-1") {
+        let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
+        if(as[idx]) assetOrigin = as[idx].origin;
+    }
+
+    // Uygulamanın kullandığı para birimi
+    let appCurr = (typeof appSettings !== 'undefined') ? appSettings.currency : 'TRY';
+    let currentUsd = (typeof usdTryRate !== 'undefined') ? usdTryRate : 36.50;
+
+    // Veri yoksa çık
     if(!oldQty || !oldPrice || !curPrice) {
-        if(mode === 'target') addNotification('warn', 'Eksik Veri', 'Lütfen önce listeden bir varlık seçin.');
+        if(mode === 'target' && typeof addNotification === 'function') addNotification('warn', 'Eksik Veri', 'Lütfen önce listeden bir varlık seçin.');
         return;
     }
 
     let qtyToBuy = 0, costToBuy = 0, newAvg = 0;
+    let costToBuyInWalletCurrency = 0; // Cüzdandan düşecek tutar (TL ise TL)
 
-    // --- MOD A: BÜTÇE ---
+    // --- MOD A: BÜTÇE İLE (Param Kadar) ---
     if(mode === 'budget') {
-        let budget = parseFloat(document.getElementById('aaBudget').value);
-        if(!budget || budget <= 0) {
+        let budgetInput = parseFloat(document.getElementById('aaBudget').value);
+        if(!budgetInput || budgetInput <= 0) {
              document.getElementById('aaResultBox').style.display = 'none';
              document.getElementById('aaRiskAlert').style.display = 'none';
              return;
         }
-        qtyToBuy = budget / curPrice;
-        costToBuy = budget;
+
+        // KRİTİK NOKTA: Bütçe "Cüzdan Para Birimi" (TL) cinsinden girilir.
+        // Ama hisse Dolar ise, bu bütçeyi Dolara çevirmeliyiz.
+        let effectiveBudget = budgetInput;
+
+        if(appCurr === 'TRY' && assetOrigin === 'USD') {
+            effectiveBudget = budgetInput / currentUsd; // TL Bütçeyi Dolara çevir
+        } else if(appCurr === 'USD' && assetOrigin === 'TRY') {
+            effectiveBudget = budgetInput * currentUsd; // USD Bütçeyi TL'ye çevir
+        }
+
+        qtyToBuy = effectiveBudget / curPrice; // Adet = Dolar Bütçe / Dolar Fiyat
+        costToBuy = effectiveBudget;           // Maliyet (Varlık biriminden)
+        costToBuyInWalletCurrency = budgetInput; // Maliyet (Cüzdan biriminden)
+
         newAvg = ((oldQty * oldPrice) + costToBuy) / (oldQty + qtyToBuy);
     }
-    // --- MOD B: HEDEF (DÜZELTİLDİ) ---
+    
+    // --- MOD B: HEDEF İLE (Ortalamam şu olsun) ---
     else if(mode === 'target') {
         let target = parseFloat(document.getElementById('aaTarget').value);
         if(!target) return;
 
-        // 1. Matematiksel İmkansızlık Kontrolü
-        // Yeni ortalama ASLA şu anki piyasa fiyatından daha iyi olamaz.
-        // Örnek: Maliyet 100, Fiyat 50 ise -> Yeni ortalama 50 ile 100 arasında olmak ZORUNDADIR.
-        // 40 Hedeflenemez.
-        
-        let isImpossible = false;
-        let msg = "";
-
-        // Düşüş trendindeysek (Maliyet > Fiyat)
-        if (oldPrice > curPrice) {
-            if (target <= curPrice) {
-                isImpossible = true;
-                msg = `Hedefiniz (${target}), şu anki fiyattan (${curPrice}) düşük olamaz.`;
-            } else if (target >= oldPrice) {
-                isImpossible = true;
-                msg = `Hedefiniz, zaten mevcut maliyetinizden (${oldPrice}) yüksek.`;
-            }
-        } 
-        // Yükseliş trendindeysek (Maliyet < Fiyat)
-        else {
-            if (target >= curPrice) {
-                isImpossible = true;
-                msg = `Hedefiniz, şu anki fiyattan (${curPrice}) yüksek olamaz.`;
-            } else if (target <= oldPrice) {
-                isImpossible = true;
-                msg = `Hedefiniz, zaten mevcut maliyetinizden (${oldPrice}) düşük.`;
-            }
-        }
-
-        if (isImpossible) {
-            addNotification('danger', 'Matematiksel Hata', msg);
+        // İmkansız hedef kontrolü...
+        if ((oldPrice > curPrice && target <= curPrice) || (oldPrice < curPrice && target >= curPrice)) {
             document.getElementById('aaResultBox').style.display = 'none';
+            if(typeof addNotification === 'function') addNotification('danger', 'Hata', 'Bu hedef matematiksel olarak imkansız.');
             return;
         }
         
-        // Formül: Hedef Ortalama için gereken adet
         qtyToBuy = oldQty * (oldPrice - target) / (target - curPrice);
         
-        // Negatif çıktıysa (Yine de bir kaçak varsa) engelle
-        if(qtyToBuy < 0) { 
-            addNotification('warn', 'Hesaplanamadı', 'Girdiğiniz hedef mantıklı aralıkta değil.');
+        if(qtyToBuy <= 0) { 
             document.getElementById('aaResultBox').style.display = 'none'; 
             return; 
         }
         
-        costToBuy = qtyToBuy * curPrice;
+        costToBuy = qtyToBuy * curPrice; // Bu maliyet varlık birimindedir ($)
         newAvg = target;
-    }
 
-    // --- RİSK ANALİZİ ---
-    document.getElementById('aaRiskAlert').style.display = 'none';
-    if(mode === 'budget') {
-        let totalPFValue = calculateTotalPortfolioValue();
-        let newAssetTotalValue = (oldQty * curPrice) + costToBuy;
-        let concentrationRatio = (newAssetTotalValue / totalPFValue) * 100;
-
-        if(concentrationRatio > 40 && totalPFValue > 0) {
-             document.getElementById('aaRiskMsg').innerHTML = `Dikkat! Bu eklemeyi yaparsan, portföyünün <b>%${concentrationRatio.toFixed(1)}</b> kısmı sadece bu varlıktan oluşacak. <br>Bu riskli bir konsantrasyon olabilir. Bütçeyi bölmeyi düşünebilirsin.`;
-             document.getElementById('aaRiskAlert').style.display = 'flex';
+        // Cüzdandan ne kadar TL çıkacak?
+        if(appCurr === 'TRY' && assetOrigin === 'USD') {
+            costToBuyInWalletCurrency = costToBuy * currentUsd;
+        } else if(appCurr === 'USD' && assetOrigin === 'TRY') {
+            costToBuyInWalletCurrency = costToBuy / currentUsd;
+        } else {
+            costToBuyInWalletCurrency = costToBuy;
         }
     }
 
-    // --- SONUÇLARI GÖSTER ---
-    let sym = appSettings.currency === 'TRY' ? '₺' : '$';
+    // --- RİSK UYARISI ---
+    document.getElementById('aaRiskAlert').style.display = 'none';
+    if(mode === 'budget') {
+        let totalPFValue = calculateTotalPortfolioValue();
+        let newAssetTotalValueVal = 0;
+        
+        let totalValueInAssetCurr = (oldQty + qtyToBuy) * curPrice;
+        if(appCurr === 'TRY' && assetOrigin === 'USD') newAssetTotalValueVal = totalValueInAssetCurr * currentUsd;
+        else if(appCurr === 'USD' && assetOrigin === 'TRY') newAssetTotalValueVal = totalValueInAssetCurr / currentUsd;
+        else newAssetTotalValueVal = totalValueInAssetCurr;
+
+        if(totalPFValue > 0) {
+            let concentrationRatio = (newAssetTotalValueVal / totalPFValue) * 100;
+            if(concentrationRatio > 40) {
+                 document.getElementById('aaRiskMsg').innerHTML = `Dikkat! Bu eklemeyi yaparsan, portföyünün <b>%${concentrationRatio.toFixed(1)}</b> kısmı sadece bu varlıktan oluşacak.`;
+                 document.getElementById('aaRiskAlert').style.display = 'flex';
+            }
+        }
+    }
+
+    // --- SONUÇLARI GÖSTER (SİMGE DÜZELTMESİ) ---
+    
+    // 1. Yeni Ortalama -> Varlığın Kendi Biriminde ($)
+    let resultSym = assetOrigin === 'USD' ? '$' : '₺'; 
+    
+    // 2. Gereken Nakit -> Cüzdan Biriminde (₺)
+    let walletSym = appCurr === 'TRY' ? '₺' : '$';     
+
     let grandTotal = (oldQty * oldPrice) + costToBuy;
     let avgDropPct = ((oldPrice - newAvg) / oldPrice) * 100;
-    let breakEvenRise = ((newAvg - curPrice) / curPrice) * 100;
-
-    document.getElementById('aaResAvg').innerText = sym + newAvg.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-    document.getElementById('aaResOldAvg').innerText = oldPrice.toFixed(2);
-    document.getElementById('aaResDiff').innerText = `-%${Math.abs(avgDropPct).toFixed(1)} İyileşme`; // Mutlak değer al, negatif görünmesin
-    document.getElementById('aaResQty').innerText = "+" + qtyToBuy.toLocaleString(undefined, {maximumFractionDigits:4});
-    document.getElementById('aaResCost').innerText = sym + costToBuy.toLocaleString(undefined, {maximumFractionDigits:2});
-    document.getElementById('aaResTotal').innerText = sym + grandTotal.toLocaleString(undefined, {maximumFractionDigits:2});
-
-    let badge = document.getElementById('aaSavingBadge');
-    let isAffordable = costToBuy <= (parseFloat(cashBalance) || 0);
     
-    // Bakiye kontrol metni
-    if(isAffordable) {
-        badge.innerText = "BAKİYE UYGUN";
+    document.getElementById('aaResAvg').innerText = resultSym + newAvg.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:4});
+    document.getElementById('aaResOldAvg').innerText = oldPrice.toFixed(2);
+    document.getElementById('aaResDiff').innerText = `-%${Math.abs(avgDropPct).toFixed(2)} İyileşme`;
+    document.getElementById('aaResQty').innerText = "+" + qtyToBuy.toLocaleString(undefined, {maximumFractionDigits:4});
+    
+    // GEREKEN NAKİT (Cüzdan Simgesiyle - Önemli!)
+    document.getElementById('aaResCost').innerText = walletSym + costToBuyInWalletCurrency.toLocaleString(undefined, {maximumFractionDigits:2});
+    
+    // Yeni Toplam Maliyet (Varlık Simgesiyle)
+    document.getElementById('aaResTotal').innerText = resultSym + grandTotal.toLocaleString(undefined, {maximumFractionDigits:2});
+
+    // Bakiye Kontrolü
+    let badge = document.getElementById('aaSavingBadge');
+    let cash = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
+    
+    if(costToBuyInWalletCurrency <= cash) {
+        badge.innerText = `BAKİYE UYGUN`;
         badge.style.color = "#10b981";
         badge.style.background = "rgba(16,185,129,0.1)";
     } else {
-        badge.innerText = `YETERSİZ BAKİYE (Eksik: ${sym}${(costToBuy - cashBalance).toLocaleString()})`;
+        let missing = costToBuyInWalletCurrency - cash;
+        badge.innerText = `EKSİK: ${walletSym}${missing.toLocaleString(undefined, {maximumFractionDigits:0})}`;
         badge.style.color = "#ef4444";
         badge.style.background = "rgba(239,68,68,0.1)";
     }
 
-    document.getElementById('aaBreakEvenMsg').innerHTML = `
-        <i class="fas fa-info-circle"></i> Bu hamle sonrası kâra geçmek için fiyatın sadece 
-        <b style="color:#60a5fa;">%${breakEvenRise.toFixed(2)}</b> yükselmesi yetecek.
-        <span style="opacity:0.7;">(Eskiden: %${((oldPrice - curPrice)/curPrice*100).toFixed(2)})</span>
-    `;
-
     document.getElementById('aaResultBox').style.display = 'block';
 
     if(mode === 'budget') {
-        generateDCAStrategy(costToBuy, curPrice, oldQty, oldPrice, sym);
+        generateDCAStrategy(costToBuy, curPrice, oldQty, oldPrice, resultSym);
         document.getElementById('aaStrategyBox').style.display = 'block';
     } else {
         document.getElementById('aaStrategyBox').style.display = 'none';
     }
 }
 
-function generateDCAStrategy(totalBudget, curPrice, oldQty, oldPrice, symSign) {
-    const container = document.getElementById('strategyStepsContainer');
-    container.innerHTML = '';
-
-    let budget1 = totalBudget * 0.30;
-    let budget2 = totalBudget * 0.30;
-    let budget3 = totalBudget * 0.40;
-
-    let price1 = curPrice;
-    let price2 = curPrice * 0.95;
-    let price3 = curPrice * 0.90; 
-
-    let qty1 = budget1 / price1;
-    let avg1 = ((oldQty * oldPrice) + budget1) / (oldQty + qty1);
-
-    let qty2 = budget2 / price2;
-    let totalQty2 = oldQty + qty1 + qty2;
-    let totalCost2 = (oldQty * oldPrice) + budget1 + budget2;
-    let avg2 = totalCost2 / totalQty2;
-
-    let qty3 = budget3 / price3;
-    let totalQty3 = totalQty2 + qty3;
-    let totalCost3 = totalCost2 + budget3;
-    let avg3 = totalCost3 / totalQty3;
-
-    container.innerHTML += createStrategyCard(1, "Hemen Alım (%30)", price1, avg1, budget1, symSign, "#3b82f6");
-    container.innerHTML += createStrategyCard(2, "Fiyat %5 Düşerse (%30)", price2, avg2, budget2, symSign, "#f59e0b");
-    container.innerHTML += createStrategyCard(3, "Sniper Girişi (-%10) (%40)", price3, avg3, budget3, symSign, "#10b981");
-}
-
-function createStrategyCard(step, title, entryPrice, newAvg, cost, sym, color) {
-    return `
-    <div class="strategy-step-card" style="border-left-color:${color};">
-        <div>
-            <span class="step-badge" style="color:${color}; background:${color}20;">ADIM ${step}</span>
-            <span style="font-weight:700; color:white;">${title}</span>
-            <div style="color:var(--text-sub); margin-top:4px;">Giriş Fiyatı: ${entryPrice.toFixed(2)}</div>
-        </div>
-        <div style="text-align:right;">
-            <div style="font-size:9px; color:var(--text-sub);">Yeni Ortalama</div>
-            <div style="font-weight:800; font-size:16px; color:${color};">${sym}${newAvg.toFixed(2)}</div>
-            <div style="font-size:9px; color:var(--text-sub);">Maliyet: ${sym}${cost.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
-        </div>
-    </div>`;
-}
 
 /* --------------------------------------------------------------------------
    MODÜL 4: STRATEJİ KAYIT SİSTEMİ
