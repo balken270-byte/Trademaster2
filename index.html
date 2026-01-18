@@ -2469,7 +2469,8 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
             </div>
             
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:5px;">
-                <input type="range" id="aaBudgetSlider" min="0" max="50000" step="100" value="0" class="modern-range" oninput="syncBudgetSlider('slider')">
+                <input type="range" id="aaBudgetSlider" min="0" max="1000000" step="100" value="0" class="modern-range" oninput="syncBudgetSlider('slider')">
+                
                 <input type="number" id="aaBudget" class="modern-input" style="width:120px; text-align:right; font-weight:bold; color:#93c5fd;" placeholder="Tutar" onkeyup="syncBudgetSlider('input')">
             </div>
             <div style="display:flex; justify-content:space-between; font-size:9px; color:var(--text-sub); margin-bottom:15px;">
@@ -3377,7 +3378,7 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "2.6"; 
+    const CURRENT_VERSION = "2.7"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -7757,11 +7758,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 /* ==========================================================================
    AR-GE (LAB) MASTER MODÜLÜ - (FİNAL SÜRÜM)
-   Özellikler:
-   1. Otomatik Kur Çevirici (USD varlıkları TL modunda TL gösterir)
-   2. Mantıksız Hedef Kontrolü (Fiyatın altına hedef koymayı engeller)
-   3. Akıllı Kayıt Sistemi (Stratejileri hafızada tutar)
-   ========================================================================== */
+    ========================================================================== */
 
 let currentSelectedAssetSym = ""; 
 
@@ -8046,7 +8043,7 @@ function syncBudgetSlider(source) {
     calcAdvAvg('budget');
 }
 
-// 4. MOD DEĞİŞTİRME
+// MOD DEĞİŞTİRME FONKSİYONU (GÜNCELLENMİŞ)
 function switchAvgMode(mode, btn) {
     document.getElementById('avg-mode-budget').style.display = 'none';
     document.getElementById('avg-mode-target').style.display = 'none';
@@ -8058,6 +8055,20 @@ function switchAvgMode(mode, btn) {
     
     document.getElementById('aaResultBox').style.display = 'none';
     document.getElementById('aaRiskAlert').style.display = 'none';
+
+    // KASA BAKİYESİNE GÖRE SLIDER'I GÜNCELLE
+    if(mode === 'budget') {
+        const cashBalance = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
+        const slider = document.getElementById('aaBudgetSlider');
+        
+        // Slider'ın maksimumunu kasa bakiyesine ayarla (minimum 50.000 kalsın ki boşsa da kalsın)
+        slider.max = Math.max(cashBalance, 50000);
+        
+        // Eğer kasa bakiyesi 0 ise kullanıcıyı bilgilendir
+        if(cashBalance <= 0) {
+            document.getElementById('sliderValDisplay').innerText = "Kasa Boş!";
+        }
+    }
 }
 
 // 5. PORTFÖY DEĞERİ (Risk Hesabı İçin)
@@ -8081,6 +8092,7 @@ function calculateTotalPortfolioValue() {
     });
     return total + (parseFloat(localStorage.getItem('tm_cash_balance')) || 0); 
 }
+
 
 // 6. ANA HESAPLAMA MOTORU (DOLAR/TL AYRIMI YAPAN FİNAL VERSİYON)
 function calcAdvAvg(mode) {
@@ -8236,8 +8248,55 @@ function calcAdvAvg(mode) {
 }
 
 
+// 9. KADEMELİ STRATEJİ ÜRETİCİ
+function generateDCAStrategy(totalBudget, curPrice, oldQty, oldPrice, symSign) {
+    const container = document.getElementById('strategyStepsContainer');
+    container.innerHTML = '';
+
+    let budget1 = totalBudget * 0.30;
+    let budget2 = totalBudget * 0.30;
+    let budget3 = totalBudget * 0.40;
+
+    let price1 = curPrice;
+    let price2 = curPrice * 0.95;
+    let price3 = curPrice * 0.90; 
+
+    let qty1 = budget1 / price1;
+    let avg1 = ((oldQty * oldPrice) + budget1) / (oldQty + qty1);
+
+    let qty2 = budget2 / price2;
+    let totalQty2 = oldQty + qty1 + qty2;
+    let totalCost2 = (oldQty * oldPrice) + budget1 + budget2;
+    let avg2 = totalCost2 / totalQty2;
+
+    let qty3 = budget3 / price3;
+    let totalQty3 = totalQty2 + qty3;
+    let totalCost3 = totalCost2 + budget3;
+    let avg3 = totalCost3 / totalQty3;
+
+    container.innerHTML += createStrategyCard(1, "Hemen Alım (%30)", price1, avg1, budget1, symSign, "#3b82f6");
+    container.innerHTML += createStrategyCard(2, "Fiyat %5 Düşerse (%30)", price2, avg2, budget2, symSign, "#f59e0b");
+    container.innerHTML += createStrategyCard(3, "Sniper Girişi (-%10) (%40)", price3, avg3, budget3, symSign, "#10b981");
+}
+
+function createStrategyCard(step, title, entryPrice, newAvg, cost, sym, color) {
+    return `
+    <div class="strategy-step-card" style="border-left-color:${color};">
+        <div>
+            <span class="step-badge" style="color:${color}; background:${color}20;">ADIM ${step}</span>
+            <span style="font-weight:700; color:white;">${title}</span>
+            <div style="color:var(--text-sub); margin-top:4px;">Giriş Fiyatı: ${entryPrice.toFixed(2)}</div>
+        </div>
+        <div style="text-align:right;">
+            <div style="font-size:9px; color:var(--text-sub);">Yeni Ortalama</div>
+            <div style="font-weight:800; font-size:16px; color:${color};">${sym}${newAvg.toFixed(2)}</div>
+            <div style="font-size:9px; color:var(--text-sub);">Maliyet: ${sym}${cost.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+        </div>
+    </div>`;
+}
+
 /* --------------------------------------------------------------------------
-   MODÜL 4: STRATEJİ KAYIT SİSTEMİ
+   MODÜL 4: STRATEJİ KAYIT VE YÖNETİM SİSTEMİ
    -------------------------------------------------------------------------- */
 
 function saveCurrentScenario() {
