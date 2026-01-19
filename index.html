@@ -2283,6 +2283,9 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
             <button class="chart-filter-btn" onclick="switchLabTool('time', this)" style="border:1px solid #8b5cf6; color:#a78bfa;">
     Zaman Makinesi
 </button>
+<button class="chart-filter-btn" onclick="switchLabTool('pos', this)">
+    <i class="fa-solid fa-shield-halved"></i> Risk Sihirbazı
+</button>
 
         </div>
 
@@ -2569,9 +2572,18 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
                 </div>
                 <div>
                     <div style="font-size:16px; font-weight:800; color:white;">ZAMAN MAKİNESİ</div>
+                    
                     <div style="font-size:11px; color:#94a3b8;">Geçmiş Veri & Gelecek Simülasyonu</div>
                 </div>
             </div>
+
+<div style="margin-bottom:10px;">
+    <div style="font-size:10px; color:var(--text-sub); margin-bottom:5px; font-weight:700;">HIZLI ANALİZ (PORTFÖYDEN SEÇ)</div>
+    <select id="timeMachineSelect" class="modern-input" style="border-color:#8b5cf6;" onchange="fillTimeMachineSymbol()">
+        <option value="-1">Manuel Yazacağım</option>
+        </select>
+</div>
+
 
             <div style="display:flex; gap:10px;">
                 <input type="text" id="statSymbol" class="modern-input" placeholder="Örn: BTC, ETH..." style="text-transform:uppercase; font-weight:700; letter-spacing:1px;">
@@ -2614,11 +2626,77 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
             </div>
         </div>
         
-                    <div style="margin-top:10px; font-size:9px; color:var(--text-sub); text-align:center; padding:0 20px;">
-                Yasal Uyarı: Bu tablo bir yatırım tavsiyesi değildir. Geçmiş performans geleceği garanti etmez.
+                    
+            <div style="margin-top:10px; font-size:9px; color:var(--text-sub); text-align:center; padding:0 20px;">
+        Yasal Uyarı: Bu tablo bir yatırım tavsiyesi değildir. Geçmiş performans geleceği garanti etmez.
+    </div>
+</div> </div> <div id="lab-tool-pos" class="lab-tool-container" style="display:none; animation: fadeIn 0.4s ease;">
+    
+    <div style="background: linear-gradient(135deg, #10b98115, #10b98105); border:1px solid #10b98130; border-radius:12px; padding:15px; margin-bottom:15px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:36px; height:36px; background:rgba(16, 185, 129, 0.2); border-radius:8px; display:flex; align-items:center; justify-content:center; color:#10b981;">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <div>
+                <div style="font-size:16px; font-weight:800; color:white;">RİSK SİHİRBAZI</div>
+                <div style="font-size:11px; color:#94a3b8;">Yapay zeka destekli kasa ve risk yönetimi.</div>
             </div>
         </div>
-    </div> </div> <div id="an-view-psycho" class="an-view-section" style="display:none;">
+    </div>
+
+    <div id="dnaCard" style="background:#1e293b; border-radius:12px; padding:15px; margin-bottom:15px; border-left:4px solid #94a3b8; display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+            <span style="font-size:10px; color:#94a3b8; font-weight:700;">SİSTEMİN SENİN HAKKINDAKİ GÖRÜŞÜ</span>
+            <span id="dnaType" style="font-size:11px; font-weight:800; padding:2px 8px; border-radius:4px; background:#334155;">ANALİZ EDİLİYOR...</span>
+        </div>
+        <div id="dnaMsg" style="font-size:12px; color:#cbd5e1; line-height:1.4;">Veriler yükleniyor...</div>
+    </div>
+
+    <div class="card" style="border:1px solid rgba(255,255,255,0.05);">
+        <div style="margin-bottom:15px;">
+            <div style="font-size:10px; color:var(--text-sub); margin-bottom:5px; font-weight:700;">TOPLAM KASA (SERMAYE)</div>
+            <div style="display:flex; gap:10px;">
+                <input type="number" id="posBalance" class="modern-input" placeholder="Toplam paranız (TL/$)" onkeyup="calcPositionSize()">
+                <button onclick="fillPosBalance()" class="action-btn" style="width:auto; background:#334155;"><i class="fas fa-wallet"></i></button>
+            </div>
+        </div>
+        <div style="display:flex; gap:10px; margin-bottom:5px;">
+            <div style="flex:1;">
+                <div style="font-size:10px; color:var(--text-sub); margin-bottom:5px; font-weight:700;">RİSK (%)</div>
+                <select id="posRiskPct" class="modern-input" onchange="calcPositionSize()" style="font-weight:700;">
+                    <option value="1">%1 (Profesyonel)</option>
+                    <option value="2" selected>%2 (Standart)</option>
+                    <option value="3">%3 (Agresif)</option>
+                    <option value="5">%5 (Kumarbaz)</option>
+                </select>
+            </div>
+            <div style="flex:1;">
+                 <div style="font-size:10px; color:var(--text-sub); margin-bottom:5px; font-weight:700;">STOP UZAKLIĞI (%)</div>
+                 <input type="number" id="posStopDist" class="modern-input" placeholder="% Örn: 5" value="5" onkeyup="calcPositionSize()">
+            </div>
+        </div>
+    </div>
+
+    <div style="background:linear-gradient(145deg, #1e293b 0%, #0f172a 100%); border-radius:12px; padding:15px; border:1px solid rgba(255,255,255,0.05); margin-top:10px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span style="font-size:12px; color:#94a3b8;">Güvenli İşlem Büyüklüğü:</span>
+            <span id="posResultSize" style="font-size:16px; font-weight:800; color:#fff;">0 ₺</span>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+            <span style="font-size:12px; color:#94a3b8;">Maksimum Kayıp Riski:</span>
+            <span id="posResultRisk" style="font-size:14px; font-weight:700; color:#ef4444;">0 ₺</span>
+        </div>
+        <div style="margin-top:15px; font-size:10px; color:#10b981; font-style:italic; background:rgba(16, 185, 129, 0.1); padding:8px; border-radius:6px;">
+            <i class="fas fa-check-circle"></i> Psikolojini bozmamak için işleme bu tutarla girmelisin.
+                            </div> 
+
+                </div> 
+
+            </div> 
+
+        </div>
+
+    <div id="an-view-psycho" class="an-view-section" style="display:none;">
         
     
     <div class="psycho-hub-container">
@@ -2917,6 +2995,7 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
         <i class="fas fa-trash-restore"></i> SİLİNEN KAYITLAR (<span id="trashCount">0</span>)
     </button>
 </div>
+
 
         </div>
 
@@ -3378,7 +3457,7 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "2.8"; 
+    const CURRENT_VERSION = "2.9"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -4054,30 +4133,38 @@ function renderPortfolioHTML(as) {
 // Global Değişken: Silinenleri hafızadan çek
 let deletedHistory = JSON.parse(localStorage.getItem('tm_deleted_history')) || [];
 
-/* 1. Gelişmiş Render History */
+/* --- GÜNCELLENMİŞ VE HATA KORUMALI GEÇMİŞ LİSTELEME --- */
 function renderHistory() {
     let l = document.getElementById('historyListFull');
     if (!l) return;
     l.innerHTML = "";
 
-    // Çöp Kutusu Sayacını Güncelle
+    // Çöp Kutusu Sayacını Güncelle (Hata vermemesi için kontrol ekledim)
     let trashCountEl = document.getElementById('trashCount');
+    let deletedHistory = JSON.parse(localStorage.getItem('tm_deleted_history')) || [];
     if(trashCountEl) trashCountEl.innerText = deletedHistory.length;
 
-    let globalSym = appSettings.currency === 'TRY' ? '₺' : '$';
+    let globalSym = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY') ? '₺' : '$';
+    let currentUsd = (typeof usdTryRate !== 'undefined' && usdTryRate > 0) ? usdTryRate : 36.50;
     
     // --- MUHASEBE HESAPLAMALARI ---
     let totalInvested = 0; 
     let totalRealizedProfit = 0; 
     let totalSalaryPaid = 0; 
+    
+    // Geçmiş veriyi güvenli çek
+    let historyData = JSON.parse(localStorage.getItem('tm_full_trade_history')) || [];
 
-    tradeHistory.forEach(t => {
-        let val = parseFloat(t.total || 0);
-        let pnl = parseFloat(t.pnl || 0);
+    historyData.forEach(t => {
+        // HATA ÖNLEYİCİ: Sayı değilse 0 kabul et (NaN Hatasını Çözer)
+        let val = parseFloat(t.total) || 0;
+        let pnl = parseFloat(t.pnl) || 0;
         
-        let transCurr = t.curr || appSettings.currency;
-        if (appSettings.currency === 'TRY' && transCurr === 'USD') { val *= usdTryRate; pnl *= usdTryRate; }
-        else if (appSettings.currency === 'USD' && transCurr === 'TRY') { val /= usdTryRate; pnl /= usdTryRate; }
+        let transCurr = t.curr || 'TRY'; // Para birimi yoksa TRY varsay
+        
+        // Kur Dönüşümü (Otomatik)
+        if (appSettings.currency === 'TRY' && transCurr === 'USD') { val *= currentUsd; pnl *= currentUsd; }
+        else if (appSettings.currency === 'USD' && transCurr === 'TRY') { val /= currentUsd; pnl /= currentUsd; }
 
         if (t.type === 'YATIRMA') totalInvested += val;
         else if (t.type === 'ÇEKME') totalInvested -= val;
@@ -4086,27 +4173,38 @@ function renderHistory() {
         else if (t.type === 'TEMETTÜ') totalRealizedProfit += val;
     });
 
+    // Anlık Portföy Değeri
     let currentPortfolioValue = 0;
     let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
     as.forEach(a => {
-        let p = a.curr || a.buy;
-        let v = (a.origin === 'USD' && appSettings.currency === 'TRY') ? (p * a.amt * usdTryRate) : 
-                (a.origin === 'TRY' && appSettings.currency === 'USD') ? ((p * a.amt) / usdTryRate) : (p * a.amt);
+        let p = a.curr || a.buy || 0;
+        let v = 0;
+        if(appSettings.currency === 'TRY') {
+             v = (a.origin === 'USD') ? (p * a.amt * currentUsd) : (p * a.amt);
+        } else {
+             v = (a.origin === 'TRY') ? ((p * a.amt) / currentUsd) : (p * a.amt);
+        }
         currentPortfolioValue += v;
     });
     
-    let totalEquity = cashBalance + currentPortfolioValue;
+    let cash = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
+    let totalEquity = cash + currentPortfolioValue;
     let netPnL = totalEquity - totalInvested;
 
-    let elEq = document.getElementById('accTotalEquity');
-    let elCap = document.getElementById('accCapital');
-    let elDiv = document.getElementById('accDividend');
-    let elNet = document.getElementById('accNetPnl');
+    // --- EKRANA YAZDIR (Muhasebe Özeti) ---
+    const setTxt = (id, val, color) => {
+        let el = document.getElementById(id);
+        if(el) {
+            el.innerText = globalSym + val.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
+            if(color) el.style.color = color;
+        }
+    };
 
-    if(elEq) elEq.innerText = globalSym + totalEquity.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
-    if(elCap) elCap.innerText = globalSym + totalInvested.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
-    if(elDiv) elDiv.innerText = globalSym + totalSalaryPaid.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
+    setTxt('accTotalEquity', totalEquity);
+    setTxt('accCapital', totalInvested);
+    setTxt('accDividend', totalSalaryPaid);
     
+    let elNet = document.getElementById('accNetPnl');
     if(elNet) {
         elNet.innerText = (netPnL >= 0 ? '+' : '') + globalSym + netPnL.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
         elNet.style.color = netPnL >= 0 ? 'var(--success)' : 'var(--danger)';
@@ -4116,8 +4214,11 @@ function renderHistory() {
     let elSalAvail = document.getElementById('salaryAvailable');
     if(elSalAvail) elSalAvail.innerText = globalSym + withdrawableProfit.toLocaleString();
 
-    // --- LİSTELEME ---
-    let filteredHistory = tradeHistory.slice().reverse().filter(t => {
+    // --- LİSTELEME (FİLTRELEME) ---
+    // Eğer currentHistoryFilter tanımlı değilse 'all' yap
+    if(typeof currentHistoryFilter === 'undefined') currentHistoryFilter = 'all';
+
+    let filteredHistory = historyData.slice().reverse().filter(t => {
         if (currentHistoryFilter === 'all') return true;
         if (currentHistoryFilter === 'NAKİT') return (t.type === 'YATIRMA' || t.type === 'ÇEKME');
         return t.type === currentHistoryFilter;
@@ -4129,12 +4230,14 @@ function renderHistory() {
     }
 
     filteredHistory.forEach((t) => {
-        let realIndex = tradeHistory.indexOf(t);
+        let realIndex = historyData.indexOf(t);
         
-        let displayVal = parseFloat(t.total);
+        // Değer hesaplama (Hata önleyici ile)
+        let displayVal = parseFloat(t.total) || 0;
         let transCurr = t.curr || appSettings.currency;
-        if (appSettings.currency === 'TRY' && transCurr === 'USD') displayVal *= usdTryRate;
-        else if (appSettings.currency === 'USD' && transCurr === 'TRY') displayVal /= usdTryRate;
+        
+        if (appSettings.currency === 'TRY' && transCurr === 'USD') displayVal *= currentUsd;
+        else if (appSettings.currency === 'USD' && transCurr === 'TRY') displayVal /= currentUsd;
 
         let icon = 'circle'; let cls = 'l-type-neutral'; let sign = ''; let color = 'white'; let desc = t.sym;
 
@@ -4143,32 +4246,38 @@ function renderHistory() {
         else if (t.type === 'MAAŞ') { icon = 'hand-holding-usd'; cls = 'l-type-out'; color = '#10b981'; sign = '-'; desc = 'Kâr Dağıtımı'; }
         else if (t.type === 'YATIRMA') { icon = 'plus'; cls = 'l-type-in'; color = 'var(--success)'; sign = '+'; desc = t.desc || 'Sermaye Girişi'; } 
         else if (t.type === 'ÇEKME') { icon = 'minus'; cls = 'l-type-out'; color = 'var(--danger)'; sign = '-'; desc = t.desc || 'Sermaye Çıkışı'; }
+        else if (t.type === 'TEMETTÜ') { icon = 'gift'; cls = 'l-type-in'; color = 'var(--gold)'; sign = '+'; desc = 'Temettü / Ek Gelir'; }
 
-        // --- DETAY KARTI GERİ GELDİ (DÜZELTME BURADA) ---
+        // Kartın Altındaki Detay (Varsa)
         let detailCardHtml = "";
-        if (t.type === 'SATIM' && t.avgCost) {
-            let isProfit = t.pnl >= 0;
-            let profitColor = isProfit ? 'var(--success)' : 'var(--danger)';
-            let profitSign = isProfit ? '+' : '';
-            let cardBg = isProfit ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)';
+        if (t.type === 'SATIM') {
+            let myAvg = parseFloat(t.avgCost) || 0;
+            let mySellP = parseFloat(t.price) || 0;
+            let myPnL = parseFloat(t.pnl) || 0;
+            let myPct = parseFloat(t.plPercent) || 0;
             let itemSym = transCurr === 'USD' ? '$' : '₺';
+            
+            // Sadece veri varsa detayı göster
+            if(myAvg > 0) {
+                let isProfit = myPnL >= 0;
+                let profitColor = isProfit ? 'var(--success)' : 'var(--danger)';
+                let cardBg = isProfit ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)';
 
-            detailCardHtml = `
-            <div style="margin-top:10px; background:${cardBg}; border-radius:8px; padding:10px; font-size:11px;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:6px; padding-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.05);">
-                    <span style="color:var(--text-sub);">Alış: <b style="color:white;">${itemSym}${parseFloat(t.avgCost).toFixed(2)}</b></span>
-                    <span style="color:var(--text-sub); opacity:0.5;"><i class="fas fa-arrow-right"></i></span>
-                    <span style="color:var(--text-sub);">Satış: <b style="color:white;">${itemSym}${parseFloat(t.price).toFixed(2)}</b></span>
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                    <span style="font-weight:700; color:var(--text-sub);">SONUÇ:</span>
-                    <span style="color:${profitColor}; font-weight:800; font-size:12px;">${profitSign}${itemSym}${parseFloat(t.pnl).toLocaleString(undefined, {minimumFractionDigits:2})} (%${parseFloat(t.plPercent).toFixed(2)})</span>
-                </div>
-                <div style="font-style:italic; opacity:0.8; margin-bottom:4px; line-height:1.3; color:var(--text-sub);">"${t.note || 'İşlem notu yok.'}"</div>
-            </div>`;
+                detailCardHtml = `
+                <div style="margin-top:10px; background:${cardBg}; border-radius:8px; padding:10px; font-size:11px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:4px;">
+                         <span style="color:var(--text-sub)">Alış: ${itemSym}${myAvg.toFixed(2)}</span>
+                         <span style="color:var(--text-sub)">Satış: ${itemSym}${mySellP.toFixed(2)}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-weight:700;">
+                        <span style="color:var(--text-sub)">SONUÇ:</span>
+                        <span style="color:${profitColor}">${myPnL>=0?'+':''}${itemSym}${myPnL.toLocaleString()} (%${myPct.toFixed(2)})</span>
+                    </div>
+                </div>`;
+            }
         }
 
-        // Kart HTML
+        // HTML'i ekle
         l.innerHTML += `
         <div class="ledger-card ${cls}" style="flex-direction:column; align-items:stretch;">
             <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
@@ -7762,19 +7871,52 @@ document.addEventListener("DOMContentLoaded", function() {
 
 let currentSelectedAssetSym = ""; 
 
-// 1. ANA GEÇİŞ FONKSİYONU
+// --- ZAMAN MAKİNESİ YARDIMCI FONKSİYONLARI (YENİ) ---
+
+// 1. Listeyi Doldur: Cüzdandaki varlıkları <select> içine ekler
+function populateTimeMachineAssets() {
+    const select = document.getElementById('timeMachineSelect');
+    if(!select) return; // Eğer element yoksa hata vermesin diye
+    
+    // Önce listeyi temizle ve varsayılanı ekle
+    select.innerHTML = '<option value="-1">Manuel Yazacağım</option>';
+    
+    // LocalStorage'dan portföyü çek
+    let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
+    
+    // Her varlığı listeye ekle
+    as.forEach((a) => {
+        select.innerHTML += `<option value="${a.name}">${a.name}</option>`;
+    });
+}
+
+// 2. Seçileni Inputa Yaz: Listeden seçileni text kutusuna kopyalar
+function fillTimeMachineSymbol() {
+    let val = document.getElementById('timeMachineSelect').value;
+    // Eğer "Manuel" seçili değilse kutuyu doldur
+    if(val !== "-1") {
+        document.getElementById('statSymbol').value = val; 
+    }
+}
+
+// --- ANA GEÇİŞ FONKSİYONU (GÜNCELLENMİŞ VE DÜZELTİLMİŞ HALİ) ---
+
 function switchLabTool(tool, btn) {
+    // Önce tüm araçları gizle
     document.querySelectorAll('.lab-tool-container').forEach(el => el.style.display = 'none');
+    
+    // Seçilen aracı bul ve göster
     const targetTool = document.getElementById('lab-tool-' + tool);
     if(targetTool) targetTool.style.display = 'block';
     
+    // Üst menü butonunun rengini (aktifliğini) ayarla
     if(btn) {
         const parent = btn.parentElement;
         parent.querySelectorAll('.chart-filter-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
     }
 
-    // A) Risk Aracı
+    // A) Risk Aracı Mantığı
     if(tool === 'risk') {
         populateRiskAssets(); 
         const inputBalance = document.getElementById('riskBalance');
@@ -7785,13 +7927,83 @@ function switchLabTool(tool, btn) {
         }
     }
 
-    // B) Maliyet Düşürme Aracı
+    // B) Maliyet Düşürme Aracı Mantığı
     if(tool === 'avg') {
         populateAdvAvgAssets(); 
         if(typeof renderSavedStrategies === 'function') renderSavedStrategies();
     }
+
+    // C) Zaman Makinesi Mantığı
+    if(tool === 'time') {
+        if(typeof populateTimeMachineAssets === 'function') populateTimeMachineAssets();
+    }
+
+    // D) RİSK SİHİRBAZI (YENİ EKLENEN KISIM)
+    if(tool === 'pos') {
+        fillPosBalance(); // <-- Sihirbazı çalıştıran tetikleyici burada olmalı!
+    }
 }
 
+// --- RİSK SİHİRBAZI FONKSİYONLARI (BU KISIM EKSİKTİ) ---
+
+// 1. Bakiyeyi Çek ve Analizi Başlat
+function fillPosBalance() {
+    // Bakiyeyi al
+    let storedCash = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
+    
+    // Eğer nakit 0 ise toplam portföy değerini bulmaya çalış
+    if(storedCash === 0) {
+         let saved = JSON.parse(localStorage.getItem('myPF_final')) || [];
+         // Basitçe: Miktar * Alış Fiyatı (veya güncel fiyat)
+         let totalVal = saved.reduce((acc, item) => acc + (item.amt * (item.curr || item.buy)), 0);
+         storedCash = totalVal;
+    }
+    document.getElementById('posBalance').value = Math.floor(storedCash);
+
+    // --- DNA ANALİZİ VE UI GÜNCELLEME  ---
+    if(typeof analyzeTraderDNA === 'function') {
+        let dna = analyzeTraderDNA(tradeHistory, storedCash);
+
+        let card = document.getElementById('dnaCard');
+        if(card) {
+            card.style.display = 'block';
+            card.style.borderLeftColor = dna.color;
+
+            let badge = document.getElementById('dnaType');
+            badge.innerText = dna.type;
+            badge.style.backgroundColor = dna.color + "30"; 
+            badge.style.color = dna.color;
+
+            document.getElementById('dnaMsg').innerText = dna.msg;
+
+            // Önerilen Riski Otomatik Seç
+            document.getElementById('posRiskPct').value = dna.riskAdvice;
+        }
+    }
+
+    // İlk hesaplamayı yap
+    calcPositionSize();
+}
+
+// 2. Hesaplama Motoru
+function calcPositionSize() {
+    let balance = parseFloat(document.getElementById('posBalance').value) || 0;
+    let riskPct = parseFloat(document.getElementById('posRiskPct').value) || 2;
+    let stopDist = parseFloat(document.getElementById('posStopDist').value) || 5;
+
+    if(balance <= 0 || stopDist <= 0) return;
+
+    // Matematik: (Kasa * Risk%) / (Stop Uzaklığı%)
+    let riskAmount = balance * (riskPct / 100);
+    let positionSize = riskAmount / (stopDist / 100);
+
+    // İşlem büyüklüğü kasadan büyük olamaz
+    if(positionSize > balance) positionSize = balance;
+
+    // Ekrana Yazdır
+    document.getElementById('posResultSize').innerText = positionSize.toLocaleString('tr-TR', {maximumFractionDigits: 0}) + " ₺";
+    document.getElementById('posResultRisk').innerText = "-" + riskAmount.toLocaleString('tr-TR', {maximumFractionDigits: 0}) + " ₺";
+}
 
 /* --------------------------------------------------------------------------
    BÖLÜM 2: KAYIT VE ARŞİV SİSTEMİ
@@ -9286,6 +9498,123 @@ function runLabTest() {
                 </div>
             </div>`;
     });
+}
+
+/**
+ * GELİŞMİŞ TRADER DNA ANALİZİ v2.0
+ * --------------------------------
+ * Kullanıcının sadece cüzdanını değil, psikolojisini de analiz eder.
+ * @param {Array} history - Geçmiş işlemler listesi (Tarih sıralı: En yeni en başta)
+ * @param {Number} currentBalance - Anlık güncel bakiye
+ */
+function analyzeTraderDNA(history, currentBalance) {
+    // 1. VERİ KONTROLÜ
+    if (!history || history.length < 5) {
+        return {
+            type: " Hayalet (Veri Yok)",
+            color: "#9ca3af", // Gri
+            riskAdvice: 2, 
+            msg: "Seni henüz tanımıyorum. Standart prosedür uyguluyorum."
+        };
+    }
+
+    const lastTx = history[0]; // En son yapılan işlem
+    const now = new Date().getTime(); // Şu anki zaman
+    const timeDiff = now - lastTx.closeTime; // Son işlemden bu yana geçen süre (ms)
+    
+    // İşlem istatistiklerini hazırla
+    const wins = history.filter(t => t.pnl > 0);
+    const losses = history.filter(t => t.pnl < 0);
+    const winRate = (wins.length / history.length) * 100;
+    
+    // Ortalama Kazanç ve Kayıp Hesapla (Paper Hands analizi için)
+    const avgWin = wins.length ? wins.reduce((a, t) => a + t.pnl, 0) / wins.length : 0;
+    const avgLoss = losses.length ? Math.abs(losses.reduce((a, t) => a + t.pnl, 0) / losses.length) : 0;
+
+    // Ortalama Pozisyon Büyüklüğü (All-In analizi için)
+    const avgSize = history.reduce((a, t) => a + (t.amount || 0), 0) / history.length;
+
+    // Ortalama İşlem Süresi (Sabır analizi için)
+    const avgDuration = history.reduce((a, t) => a + (t.closeTime - t.openTime), 0) / history.length;
+
+
+    // --- [KRİTİK PSİKOLOJİ KONTROLLERİ] ---
+
+    // 1. İNTİKAM TİCARETİ (REVENGE TRADING)
+    // Kural: Son işlem zarar ise VE üzerinden 15 dakika geçmeden yeni işlem aranıyorsa
+    if (lastTx.pnl < 0 && timeDiff < 15 * 60 * 1000) {
+        return {
+            type: "🤬 Tilt Modu (İntikam)",
+            color: "#ef4444", // Kırmızı
+            riskAdvice: 0.1, // İşlemi neredeyse engelle
+            msg: "DUR! Zarardan hemen sonra işlem açmaya çalışıyorsun. Beynin değil hırsın konuşuyor. Git bir kahve iç."
+        };
+    }
+
+    // 2. ZAFER SARHOŞLUĞU (FOMO / OVERCONFIDENCE)
+    // Kural: Son işlem büyük bir kazançsa (%10+) VE hemen (10 dk) yeni işlem aranıyorsa
+    if (lastTx.pnl > currentBalance * 0.10 && timeDiff < 10 * 60 * 1000) {
+        return {
+            type: "🎉 Zafer Sarhoşluğu",
+            color: "#8b5cf6", // Mor
+            riskAdvice: 1.0, // Riski düşür
+            msg: "Büyük kazandın, tebrikler. Ama özgüven zehirlenmesi yaşama. Şu an hata yapmaya çok müsaitsin."
+        };
+    }
+
+    // 3. ALL-IN HASTALIĞI (GAMBLER)
+    // Kural: Ortalama işlem büyüklüğü kasanın %60'ından fazlaysa
+    if (avgSize > currentBalance * 0.60) {
+        return {
+            type: "🎰 Kumarbaz (All-In)",
+            color: "#b91c1c", // Koyu Kırmızı
+            riskAdvice: 0.5,
+            msg: "Bakiyenin yarısından fazlasını tek işleme bağlıyorsun. Bu yatırım değil, Rus Ruleti."
+        };
+    }
+
+    // 4. KAĞIT ELLER (PAPER HANDS) - Eklediğim Özellik
+    // Kural: Ortalama Zarar, Ortalama Kazancın 2 katıysa (Risk:Reward bozuk)
+    if (losses.length > 0 && avgLoss > avgWin * 2) {
+        return {
+            type: "🧻 Paper Hands",
+            color: "#f59e0b", // Turuncu
+            riskAdvice: 1.0,
+            msg: `Kazançları erken kesip zararları büyütüyorsun (R:R Bozuk). Kârda beklemeyi öğrenmelisin.`
+        };
+    }
+
+    // --- [KARAKTER ANALİZİ & SONUÇ] ---
+    
+    // Trader Türünü Belirle
+    let traderStyle = "Day Trader";
+    if (avgDuration < 60 * 60 * 1000) traderStyle = "⚡ Scalper"; // 1 saat altı
+    if (avgDuration > 24 * 60 * 60 * 1000) traderStyle = "🐢 Swing Trader"; // 24 saat üstü
+
+    // Nihai Karar
+    if (winRate > 60) {
+        return {
+            type: `💎 Usta ${traderStyle}`,
+            color: "#10b981", // Yeşil
+            riskAdvice: 3.0, // Ödül modu
+            msg: `Piyasa ile uyumun harika. ${traderStyle} stilinde çok başarılısın. Elini korkak alıştırma.`
+        };
+    } else if (winRate < 40) {
+        return {
+            type: "Öğrenci Modu",
+            color: "#f97316", // Turuncu
+            riskAdvice: 1.0, // Korumacı
+            msg: "Piyasa şu an seni zorluyor. Defansif kal, hacmi düşür ve öğrenmeye odaklan."
+        };
+    }
+
+    // Standart
+    return {
+        type: "⚖️ Dengeli Trader",
+        color: "#3b82f6", // Mavi
+        riskAdvice: 2.0,
+        msg: "Her şey kontrol altında. Stratejine ve planına sadık kal."
+    };
 }
 
 </script>
