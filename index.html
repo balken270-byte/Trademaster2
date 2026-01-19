@@ -909,7 +909,7 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 /* --- APP SETTINGS (DÜZELTİLMİŞ & SABİTLENMİŞ) --- */
 .app-settings-container { 
     /* Üstten 80px boşluk bırakarak menünün altında kalmasını engelliyoruz */
-    padding: 80px 20px 100px 20px !important; 
+    padding: 20px 20px 100px 20px !important; 
     
     /* İçeriğin taşmasını engellemek için */
     width: 100%;
@@ -1763,6 +1763,7 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 }
 
 
+
     </style>
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5912166843737955"
@@ -2055,48 +2056,229 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 
     </div>
 </div>
-  <div id="page-news" class="page" style="padding:0;">
-
-    <div class="news-hero-section">
+<div id="page-news" class="page" style="display:none; background-color: #0b0f19; height: 100vh; overflow: hidden;">
+    
+    <div style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 230px; /* Üst panelin toplam yüksekliği */
+        background-color: #0b0f19;
+        z-index: 9999;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 4px 25px rgba(0,0,0,0.6);">
         
-        <div class="news-search-box">
-            <i class="fas fa-search" style="color:var(--text-sub)"></i>
-            <input type="text" id="newsSearchInput" class="ns-input" placeholder="Haberlerde ara... (Örn: Fed, Altın)" onkeyup="if(event.key === 'Enter') runNewsSearch()">
-            <button class="ns-btn" onclick="runNewsSearch()"><i class="fas fa-arrow-right"></i></button>
-        </div>
-        
-        <div class="news-status-row">
-            <div class="status-badge">
-                <div class="dot-pulse"></div>
-                CANLI YAYIN
+        <div style="padding: 15px 20px; display:flex; justify-content:space-between; align-items:center; height: 60px;">
+            <div>
+                <h2 style="margin:0; color:#ffffff; font-size:22px; font-weight:800; letter-spacing:-0.5px;">
+                    Piyasa<span style="color:#f59e0b">Pulse</span>
+                </h2>
+                <span style="font-size:11px; color:#94a3b8;">Google News & Investing Entegrasyonu</span>
             </div>
-            <button class="timer-btn" onclick="toggleAutoRefresh(this)">
-                <i class="fas fa-sync-alt fa-spin" id="refreshIcon"></i> 
-                <span id="refreshTimer">57s</span>
+            <button onclick="window.newsService.refresh()" style="background:#1f2937; border:1px solid rgba(255,255,255,0.1); color:#f59e0b; width:36px; height:36px; border-radius:10px; cursor:pointer;">
+                <i class="fas fa-sync-alt"></i>
             </button>
         </div>
 
-        <div class="refresh-bar-container" style="margin:0;">
-            <div id="refreshBar" class="refresh-bar-fill"></div>
+        <div style="padding: 0 15px; height: 160px;">
+            <div style="border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); background:#131b2e; height: 100%;">
+                <div class="tradingview-widget-container">
+                    <div class="tradingview-widget-container__widget"></div>
+                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>
+                    {
+                    "colorTheme": "dark",
+                    "isTransparent": true,
+                    "width": "100%",
+                    "height": "160", 
+                    "locale": "tr",
+                    "importanceFilter": "0,1",
+                    "currencyFilter": "USD,EUR,TRY"
+                    }
+                    </script>
+                </div>
+            </div>
         </div>
 
-        <div class="news-filter-chips">
-            <div class="nf-chip active" onclick="filterNews('GENEL', this)">🔥 Manşet</div>
-            <div class="nf-chip" onclick="filterNews('EKONOMİ', this)">Ekonomi</div>
-            <div class="nf-chip" onclick="filterNews('KRİPTO', this)">Kripto</div>
-            <div class="nf-chip" onclick="filterNews('BORSA', this)">Borsa</div>
-            <div class="nf-chip" onclick="filterNews('EMTİA', this)">Altın</div>
-        </div>
-    </div> 
-
-    <div id="newsTimeline" class="news-timeline-container">
-        <div style="text-align:center; padding:40px; color:var(--text-sub);">
-            <i class="fas fa-circle-notch fa-spin"></i> Yükleniyor...
+        <div style="
+            display: flex; 
+            gap: 10px; 
+            overflow-x: auto; 
+            padding: 10px 15px; 
+            height: 60px;
+            white-space: nowrap; 
+            align-items: center;
+            scrollbar-width: none;"> 
+            
+            <button class="nf-chip-fixed active" onclick="window.newsService.fetchDualNews('manset', this)" style="background:#f59e0b; color:#000; border:none; padding:8px 18px; border-radius:50px; font-weight:700; flex-shrink:0;">🔥 Manşet</button>
+            <button class="nf-chip-fixed" onclick="window.newsService.fetchDualNews('kripto', this)" style="background:#1f2937; color:#cbd5e1; border:1px solid rgba(255,255,255,0.1); padding:8px 18px; border-radius:50px; flex-shrink:0;">Bitcoin</button>
+            <button class="nf-chip-fixed" onclick="window.newsService.fetchDualNews('ekonomi', this)" style="background:#1f2937; color:#cbd5e1; border:1px solid rgba(255,255,255,0.1); padding:8px 18px; border-radius:50px; flex-shrink:0;">Ekonomi</button>
+            <button class="nf-chip-fixed" onclick="window.newsService.fetchDualNews('borsa', this)" style="background:#1f2937; color:#cbd5e1; border:1px solid rgba(255,255,255,0.1); padding:8px 18px; border-radius:50px; flex-shrink:0;">Borsa</button>
+            <button class="nf-chip-fixed" onclick="window.newsService.fetchDualNews('emtia', this)" style="background:#1f2937; color:#cbd5e1; border:1px solid rgba(255,255,255,0.1); padding:8px 18px; border-radius:50px; flex-shrink:0;">Altın</button>
         </div>
     </div>
 
+    <div id="newsTimeline" style="
+        margin-top: 210px; 
+        padding: 15px; 
+        padding-bottom: 120px; 
+        overflow-y: auto;
+        height: calc(100vh - 200px);
+        scroll-behavior: smooth;">
+        
+        <div style="text-align:center; padding-top:60px; color:#64748b;">
+            <i class="fas fa-circle-notch fa-spin"></i> İki farklı kaynaktan haberler taranıyor...
+        </div>
+    </div>
+
+    <script>
+    window.newsService = {
+        currentCategory: 'manset',
+        
+        // KAYNAK TANIMLARI (2 Farklı Yerden Çekmek İçin)
+        sources: {
+            manset: {
+                primary: "https://news.google.com/rss/search?q=Ekonomi+Finans+when:1d&hl=tr-TR&gl=TR&ceid=TR:tr",
+                secondary: "https://www.bloomberght.com/rss"
+            },
+            kripto: {
+                primary: "https://news.google.com/rss/search?q=Kripto+Bitcoin+when:1d&hl=tr-TR&gl=TR&ceid=TR:tr",
+                secondary: "https://tr.cointelegraph.com/rss" // 2. Kaynak: CoinTelegraph
+            },
+            ekonomi: {
+                primary: "https://news.google.com/rss/search?q=Merkez+Bankası+Enflasyon+when:1d&hl=tr-TR&gl=TR&ceid=TR:tr",
+                secondary: "https://tr.investing.com/rss/news_1.rss" // 2. Kaynak: Investing
+            },
+            borsa: {
+                primary: "https://news.google.com/rss/search?q=BIST100+Hisse+when:1d&hl=tr-TR&gl=TR&ceid=TR:tr",
+                secondary: "https://www.dunya.com/rss" // 2. Kaynak: Dünya Gazetesi
+            },
+            emtia: {
+                primary: "https://news.google.com/rss/search?q=Altın+Dolar+Petrol+when:1d&hl=tr-TR&gl=TR&ceid=TR:tr",
+                secondary: "https://tr.investing.com/rss/news_11.rss" // 2. Kaynak: Emtia Haberleri
+            }
+        },
+
+        init: function() {
+            this.fetchDualNews('manset', null);
+        },
+
+        fetchDualNews: async function(cat, btn) {
+            this.currentCategory = cat;
+            const container = document.getElementById('newsTimeline');
+            
+            // Buton Tasarımı Güncelle
+            if(btn) {
+                document.querySelectorAll('.nf-chip-fixed').forEach(b => {
+                    b.style.background='#1f2937'; b.style.color='#cbd5e1'; b.style.border='1px solid rgba(255,255,255,0.1)';
+                });
+                btn.style.background='#f59e0b'; btn.style.color='#000'; btn.style.border='none';
+            }
+
+            // Yükleniyor Göster
+            container.innerHTML = '<div style="text-align:center; padding-top:60px; color:#f59e0b;"><i class="fas fa-circle-notch fa-spin fa-2x"></i><br><br>Google ve Özel Kaynaklar Taranıyor...</div>';
+
+            // Seçili kategorinin URL'lerini al
+            const urls = this.sources[cat] || this.sources.manset;
+            
+            // RSS'i JSON'a çeviren API (CORS aşmak için)
+            const proxy = "https://api.rss2json.com/v1/api.json?rss_url=";
+
+            try {
+                // İKİ KAYNAĞA AYNI ANDA İSTEK AT (PARALEL)
+                const [res1, res2] = await Promise.all([
+                    fetch(proxy + encodeURIComponent(urls.primary)).then(r => r.json()),
+                    fetch(proxy + encodeURIComponent(urls.secondary)).then(r => r.json())
+                ]);
+
+                let allItems = [];
+
+                // 1. Kaynak Verileri (Google)
+                if(res1.status === 'ok') {
+                    res1.items.forEach(item => { item.provider = "Google News"; allItems.push(item); });
+                }
+
+                // 2. Kaynak Verileri (Özel)
+                if(res2.status === 'ok') {
+                    res2.items.forEach(item => { item.provider = res2.feed.title || "Özel Kaynak"; allItems.push(item); });
+                }
+
+                // Hepsini Tarihe Göre Sırala (En yeni en üstte)
+                allItems.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+
+                this.render(allItems);
+
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = '<div style="text-align:center; padding:40px; color:#ef4444;">Bağlantı hatası. İnternetinizi kontrol edin.</div>';
+            }
+        },
+
+        refresh: function() {
+            this.fetchDualNews(this.currentCategory, document.querySelector('.nf-chip-fixed[style*="rgb(245, 158, 11)"]'));
+        },
+
+        render: function(list) {
+            const container = document.getElementById('newsTimeline');
+            if(list.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:40px;">Haber bulunamadı.</div>';
+                return;
+            }
+
+            let html = '';
+            list.forEach(item => {
+                const timeAgo = this.timeSince(new Date(item.pubDate));
+                // Görsel bulmaya çalış
+                let imgMatch = item.description.match(/src="([^"]+)"/);
+                let img = imgMatch ? imgMatch[1] : null;
+                // Google News bazen görseli gizler, varsayılan ikon koyalım
+                if(!img && item.enclosure && item.enclosure.link) img = item.enclosure.link;
+
+                // Kaynak rengi
+                let sourceColor = item.provider === "Google News" ? "#4285F4" : "#f59e0b";
+
+                html += `
+                <div onclick="window.open('${item.link}', '_blank')" style="background:#1f2937; border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:15px; margin-bottom:12px; box-shadow:0 4px 10px rgba(0,0,0,0.3); animation: fadeIn 0.5s ease; cursor:pointer;">
+                    
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                        <span style="font-size:10px; background:${sourceColor}20; color:${sourceColor}; padding:2px 8px; border-radius:4px; font-weight:700;">
+                            ${item.provider}
+                        </span>
+                        <span style="font-size:10px; color:#94a3b8;">
+                            <i class="far fa-clock"></i> ${timeAgo}
+                        </span>
+                    </div>
+
+                    <div style="display:flex; gap:12px;">
+                        <div style="flex:1;">
+                            <h3 style="margin:0; font-size:14px; font-weight:600; color:#f1f5f9; line-height:1.4;">${item.title}</h3>
+                        </div>
+                        ${img ? `<img src="${img}" style="width:60px; height:60px; object-fit:cover; border-radius:8px;">` : ''}
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        },
+
+        timeSince: function(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            let interval = seconds / 3600;
+            if (interval > 1) return Math.floor(interval) + " sa önce";
+            interval = seconds / 60;
+            if (interval > 1) return Math.floor(interval) + " dk önce";
+            return "Az önce";
+        }
+    };
+
+    // Başlat
+    setTimeout(() => {
+        if(window.newsService) window.newsService.init();
+    }, 500);
+    </script>
 </div>
 
+
+    
     <div id="page-analysis" class="page">
     
     <div style="margin-bottom: 20px;">
@@ -3457,7 +3639,7 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "2.9"; 
+    const CURRENT_VERSION = "3.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -9616,6 +9798,7 @@ function analyzeTraderDNA(history, currentBalance) {
         msg: "Her şey kontrol altında. Stratejine ve planına sadık kal."
     };
 }
+
 
 </script>
 </body>
