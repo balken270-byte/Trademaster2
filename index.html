@@ -3378,7 +3378,7 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "2.7"; 
+    const CURRENT_VERSION = "2.8"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -9228,6 +9228,64 @@ function processAndRenderCompact(priceData, mcapData, volData) {
         </div>`;
     }
     projList.insertAdjacentHTML('beforeend', projHTML);
+}
+/* --- BÜYÜME (STRATEJİ TESTİ) HESAPLAMA MOTORU --- */
+function runLabTest() {
+    // 1. Girdileri Al
+    let startBal = parseFloat(document.getElementById('labStart').value);
+    let winPct = parseFloat(document.getElementById('labWinPct').value);
+    let freq = parseFloat(document.getElementById('labFreq').value);
+    let duration = parseFloat(document.getElementById('labDuration').value);
+
+    // 2. Kontrol Et
+    if (isNaN(startBal) || isNaN(winPct) || isNaN(freq) || isNaN(duration)) {
+        alert("Lütfen tüm alanları doldurunuz.");
+        return;
+    }
+
+    // 3. Hesaplama (Bileşik Getiri Formülü)
+    let totalTrades = freq * 4 * duration; // Haftalık işlem sayısını aya çevir
+    let finalBal = startBal;
+    let labList = [];
+
+    for (let m = 1; m <= duration; m++) {
+        // Her ay içindeki işlemlerin kümülatif etkisi
+        for (let t = 1; t <= (freq * 4); t++) {
+            finalBal = finalBal * (1 + (winPct / 100));
+        }
+        
+        // Aylık raporu listeye ekle
+        labList.push({
+            month: m,
+            balance: finalBal,
+            profit: finalBal - startBal
+        });
+    }
+
+    // 4. UI Güncelleme (Sonuçları Göster)
+    document.getElementById('labResults').style.display = 'block';
+    document.getElementById('resLabStart').innerText = startBal.toLocaleString() + " ₺";
+    document.getElementById('resLabEnd').innerText = Math.round(finalBal).toLocaleString() + " ₺";
+    
+    let growth = ((finalBal - startBal) / startBal) * 100;
+    document.getElementById('resLabGrowth').innerText = "%" + growth.toFixed(0);
+
+    // 5. Aylık İlerleme Listesini Çiz
+    let container = document.getElementById('labListContainer');
+    container.innerHTML = "";
+    labList.forEach(item => {
+        container.innerHTML += `
+            <div class="lab-row">
+                <div class="lab-col-left">
+                    <span class="lab-month-badge">${item.month}. AY</span>
+                    <span class="lab-balance-val">${Math.round(item.balance).toLocaleString()} ₺</span>
+                </div>
+                <div class="lab-col-right">
+                    <span class="lab-profit-lbl">TOPLAM KÂR</span>
+                    <span class="lab-profit-val">+${Math.round(item.profit).toLocaleString()} ₺</span>
+                </div>
+            </div>`;
+    });
 }
 
 </script>
