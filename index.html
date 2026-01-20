@@ -1907,29 +1907,58 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
             this.fetchDualNews('manset', null);
         },
 
-        fetchDualNews: async function(cat, btn) {
+                fetchDualNews: async function(cat, btn) {
+            // Varsayılan kategori koruması
+            cat = cat || 'manset';
             this.currentCategory = cat;
+            
             const container = document.getElementById('newsTimeline');
             
-            // Buton Tasarımı Güncelle
-            if(btn) {
+            // --- GÜÇLENDİRİLMİŞ OTOMATİK BUTON SEÇİMİ ---
+            // Eğer buton (btn) yoksa, kategori ismine göre doğru butonu bulup seçeriz.
+            if (!btn) {
+                // Kategori sırasına göre butonların listesi
+                const map = { 'manset': 0, 'kripto': 1, 'ekonomi': 2, 'borsa': 3, 'emtia': 4 };
+                const index = map[cat] !== undefined ? map[cat] : 0;
+                
+                // DOM'daki butonları al
+                const allBtns = document.querySelectorAll('.nf-chip-fixed');
+                if (allBtns && allBtns[index]) {
+                    btn = allBtns[index]; // Doğru butonu zorla ata
+                }
+            }
+            // ---------------------------------------------
+
+            // Buton Tasarımı Güncelle (Artık btn kesinlikle dolu)
+            if (btn) {
                 document.querySelectorAll('.nf-chip-fixed').forEach(b => {
-                    b.style.background='#1f2937'; b.style.color='#cbd5e1'; b.style.border='1px solid rgba(255,255,255,0.1)';
+                    // Pasif stil
+                    b.style.background = '#1f2937'; 
+                    b.style.color = '#cbd5e1'; 
+                    b.style.border = '1px solid rgba(255,255,255,0.1)';
+                    b.classList.remove('active');
                 });
-                btn.style.background='#f59e0b'; btn.style.color='#000'; btn.style.border='none';
+                
+                // Aktif stil (Turuncu)
+                btn.style.background = '#f59e0b'; 
+                btn.style.color = '#000'; 
+                btn.style.border = 'none';
+                btn.classList.add('active');
             }
 
             // Yükleniyor Göster
-            container.innerHTML = '<div style="text-align:center; padding-top:60px; color:#f59e0b;"><i class="fas fa-circle-notch fa-spin fa-2x"></i><br><br>Google ve Özel Kaynaklar Taranıyor...</div>';
+            if(container) {
+                container.innerHTML = '<div style="text-align:center; padding-top:60px; color:#f59e0b;"><i class="fas fa-circle-notch fa-spin fa-2x"></i><br><br>Haberler Taranıyor...</div>';
+            }
 
             // Seçili kategorinin URL'lerini al
             const urls = this.sources[cat] || this.sources.manset;
             
-            // RSS'i JSON'a çeviren API (CORS aşmak için)
+            // RSS'i JSON'a çeviren API
             const proxy = "https://api.rss2json.com/v1/api.json?rss_url=";
 
             try {
-                // İKİ KAYNAĞA AYNI ANDA İSTEK AT (PARALEL)
+                // İKİ KAYNAĞA AYNI ANDA İSTEK AT
                 const [res1, res2] = await Promise.all([
                     fetch(proxy + encodeURIComponent(urls.primary)).then(r => r.json()),
                     fetch(proxy + encodeURIComponent(urls.secondary)).then(r => r.json())
@@ -1938,26 +1967,26 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
                 let allItems = [];
 
                 // 1. Kaynak Verileri (Google)
-                if(res1.status === 'ok') {
+                if(res1 && res1.status === 'ok' && res1.items) {
                     res1.items.forEach(item => { item.provider = "Google News"; allItems.push(item); });
                 }
 
                 // 2. Kaynak Verileri (Özel)
-                if(res2.status === 'ok') {
+                if(res2 && res2.status === 'ok' && res2.items) {
                     res2.items.forEach(item => { item.provider = res2.feed.title || "Özel Kaynak"; allItems.push(item); });
                 }
 
-                // Hepsini Tarihe Göre Sırala (En yeni en üstte)
+                // Tarihe Göre Sırala
                 allItems.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
 
                 this.render(allItems);
 
             } catch (err) {
                 console.error(err);
-                container.innerHTML = '<div style="text-align:center; padding:40px; color:#ef4444;">Bağlantı hatası. İnternetinizi kontrol edin.</div>';
+                if(container) container.innerHTML = '<div style="text-align:center; padding:40px; color:#ef4444;">Bağlantı hatası. İnternetinizi kontrol edin.</div>';
             }
         },
-
+        
         refresh: function() {
             this.fetchDualNews(this.currentCategory, document.querySelector('.nf-chip-fixed[style*="rgb(245, 158, 11)"]'));
         },
@@ -3383,7 +3412,7 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "3.1"; 
+    const CURRENT_VERSION = "3.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -3621,33 +3650,33 @@ function switchPage(p, btn) {
     if(backBtn) backBtn.style.display = (p === 'portfolio') ? 'none' : 'flex';
 }
 
-/* --- GÜNCELLENMİŞ AKILLI FİYAT MOTORU (MOD KORUMALI) --- */
+/* ==========================================================
+   ✅ DÜZELTİLMİŞ FİYAT MOTORU (DONMA SORUNU GİDERİLDİ)
+   ========================================================== */
+
+// NOT: 'polyApiKey' değişkeni dosyanın en başında tanımlı olduğu için 
+// burada tekrar tanımlamıyoruz. Sistem mevcut anahtarı kullanacak.
+
+/* --- 1. ANA YÖNETİCİ (MOD SİSTEMİYLE UYUMLU) --- */
 async function getPrice(s, forceCategory = null) {
     s = s.toUpperCase().trim(); 
     if(!s) return { price: 0, origin: 'TRY', change: 0 };
 
-    // Aktif Modu Belirle:
-    // Eğer fonksiyona zorlama bir kategori geldiyse (loadPF'den) onu kullan.
-    // Gelmediyse (Hızlı İşlemden) UI'daki seçili butona bak.
+    // Aktif Modu Belirle
     let currentMode = forceCategory;
     if (!currentMode) {
         const modeEl = document.getElementById('activeSearchMode');
         currentMode = modeEl ? modeEl.value : 'CRYPTO';
     }
 
-    // A) ÖZEL EŞLEŞTİRMELER
-    const mapping = {
-        'TESLA': 'TSLA', 'APPLE': 'AAPL', 'MICROSOFT': 'MSFT', 
-        'AMAZON': 'AMZN', 'GOOGLE': 'GOOGL', 'FACEBOOK': 'META', 'NVIDIA': 'NVDA'
-    };
+    // Özel Eşleştirmeler
+    const mapping = { 'TESLA': 'TSLA', 'APPLE': 'AAPL', 'MICROSOFT': 'MSFT', 'AMAZON': 'AMZN', 'GOOGLE': 'GOOGL', 'FACEBOOK': 'META', 'NVIDIA': 'NVDA' };
     if(mapping[s]) s = mapping[s];
 
-    // --- MOD 1: KRİPTO (Sadece CoinGecko & Binance Çalışır) ---
+    // --- MOD 1: KRİPTO ---
     if (currentMode === 'CRYPTO') {
-        // İsimde '.IS' varsa veya hisse gibi duruyorsa bile aratmayız, çünkü Kripto modundayız.
-        
-        // 1. CoinGecko
-        if(coingeckoApiKey) {
+        // CoinGecko (Varsa)
+        if(typeof coingeckoApiKey !== 'undefined' && coingeckoApiKey) {
             try {
                 const searchRes = await fetch(`https://api.coingecko.com/api/v3/search?query=${s}&x_cg_demo_api_key=${coingeckoApiKey}`);
                 const searchData = await searchRes.json();
@@ -3661,7 +3690,7 @@ async function getPrice(s, forceCategory = null) {
                                 price: priceData[coin.id].usd, 
                                 origin: 'USD', 
                                 change: priceData[coin.id].usd_24h_change, 
-                                source: 'CG', // Etiket için önemli
+                                source: 'CG',
                                 image: coin.large, 
                                 correctedSymbol: coin.symbol.toUpperCase() 
                             };
@@ -3670,22 +3699,32 @@ async function getPrice(s, forceCategory = null) {
                 }
             } catch(e) {}
         }
-
-        // 2. Binance (Yedek)
-        let resBinance = await tryBinance(s);
-        if(resBinance) return resBinance;
         
-        // Bulunamadıysa boş dön (Borsa tarafına geçme!)
+        // Binance (Yedek)
+        let binanceSym = s.replace('BINANCE:', '').replace('USDT', '');
+        try {
+            let r = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${binanceSym}USDT`);
+            if(r.ok) {
+                let d = await r.json();
+                return { 
+                    price: parseFloat(d.lastPrice), 
+                    origin: 'USD', 
+                    change: parseFloat(d.priceChangePercent), 
+                    source: 'BINANCE',
+                    correctedSymbol: binanceSym + 'USDT'
+                };
+            }
+        } catch(e){}
+        
         return { price: 0, origin: 'USD', change: 0 };
     }
 
-    // --- MOD 2: BORSA (Sadece Massive & Yahoo Çalışır) ---
+    // --- MOD 2: BORSA (HİSSE & EMTİA) ---
     if (currentMode === 'BORSA') {
         
-        // Altın/Döviz Kontrolü (Borsa modu altında çalışır)
+        // Altın/Döviz Kontrolü
         const goldKeywords = ['ONS', 'GRAM', '24K', 'ÇEYREK', 'YARIM', 'TAM', 'CUMHURİYET', 'ATA'];
         if(goldKeywords.some(k => s.includes(k))) {
-             // Altın hesaplama mantığı (Mevcut kodunuzdakiyle aynı kalabilir)
              try {
                 const res = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=["PAXGUSDT","USDTTRY"]');
                 const data = await res.json();
@@ -3697,7 +3736,6 @@ async function getPrice(s, forceCategory = null) {
                     let factor = 1; let type = 'GRAM24';
                     if(s.includes('ONS')) { factor=0; type='ONS'; }
                     else if(s.includes('ÇEYREK')) { factor=1.635; type='CEYREK'; }
-                    // ... (kısalttım) ...
                     let finalP = (type==='ONS') ? ons : ((ons*usdTry)/31.1035)*factor;
                     let org = (type==='ONS')?'USD':'TRY';
                     return { price: finalP, origin: org, change: parseFloat(paxg.priceChangePercent), source: 'KUYUMCU', image: null };
@@ -3705,97 +3743,142 @@ async function getPrice(s, forceCategory = null) {
              } catch(e){}
         }
 
-        // 1. Massive (Global Hisse)
-        if(polyApiKey && !s.includes('.IS')) {
+        // 1. Yahoo (BIST & Yedek) - Önce buna baksın (Daha hızlıdır)
+        let resYahoo = await tryYahoo(s);
+        if(resYahoo) return resYahoo;
+
+        // 2. Massive (Global Hisse) - Bulamazsa buraya gitsin
+        // Hata koruması: polyApiKey tanımlı mı diye bakar
+        if(typeof polyApiKey !== 'undefined' && polyApiKey && !s.includes('.IS')) {
             let resMassive = await tryPolygon(s);
             if(resMassive) return resMassive;
         }
 
-        // 2. Yahoo (BIST & Yedek)
-        let resYahoo = await tryYahoo(s);
-        if(resYahoo) return resYahoo;
-
-        // Bulunamadıysa boş dön (Kripto tarafına geçme!)
         return { price: 0, origin: 'TRY', change: 0 };
     }
 
     return { price: 0, origin: 'TRY', change: 0 };
 }
 
-/* --- MASSIVE (LOGO DESTEKLİ) --- */
+/* --- 2. MASSIVE (LOGO DESTEKLİ & TATİL KORUMALI) --- */
 async function tryPolygon(symbol) {
-    if(!polyApiKey) return null;
+    if(typeof polyApiKey === 'undefined' || !polyApiKey) return null;
+
     let cleanSym = symbol.replace('BINANCE:','').replace('USDT','').toUpperCase().trim();
     if(cleanSym.length === 6 && !cleanSym.includes('.') && (cleanSym.startsWith('USD') || cleanSym.startsWith('EUR'))) cleanSym = "C:" + cleanSym;
 
-    try {
-        // 1. FİYAT ÇEKME (Aggs)
-        let d = new Date(); d.setDate(d.getDate() - 1); 
+    // BUGÜN'DEN GERİYE TARAMA (TATİL ÇÖZÜMÜ)
+    let d = new Date(); 
+    d.setDate(d.getDate() - 1); // Dünden başla
+    let attempt = 0;
+
+    while(attempt < 5) {
+        // Hafta sonu atlama
         if(d.getDay() === 0) d.setDate(d.getDate() - 2); 
         else if(d.getDay() === 6) d.setDate(d.getDate() - 1);
-        let dateStr = d.toISOString().split('T')[0];
-
-        let urlPrice = `https://api.massive.com/v2/aggs/ticker/${cleanSym}/range/1/day/${dateStr}/${dateStr}?adjusted=true&sort=desc&limit=1&apiKey=${polyApiKey}`;
-        let rPrice = await fetch(urlPrice);
         
-        if(rPrice.ok) {
-            let dPrice = await rPrice.json();
-            if(dPrice.results && dPrice.results.length > 0) {
-                let res = dPrice.results[0];
-                
-                // 2. LOGO ÇEKME (Ticker Details Endpoint)
-                // Burası yeni! Massive'den logoyu istiyoruz.
-                let logoUrl = null;
-                try {
-                    let urlDetails = `https://api.massive.com/v3/reference/tickers/${cleanSym}?apiKey=${polyApiKey}`;
-                    let rDet = await fetch(urlDetails);
-                    if(rDet.ok) {
-                        let dDet = await rDet.json();
-                        if(dDet.results && dDet.results.branding && dDet.results.branding.icon_url) {
-                            // Massive logoları için API Key'i URL'in sonuna eklemek gerekir!
-                            logoUrl = dDet.results.branding.icon_url + `?apiKey=${polyApiKey}`;
-                        }
-                    }
-                } catch(imgErr) { console.log("Logo alınamadı", imgErr); }
+        let dateStr = d.toISOString().split('T')[0];
+        
+        // URL: api.massive.com
+        let urlPrice = `https://api.massive.com/v2/aggs/ticker/${cleanSym}/range/1/day/${dateStr}/${dateStr}?adjusted=true&sort=desc&limit=1&apiKey=${polyApiKey}`;
 
-                return { 
-                    price: res.c, origin: 'USD', 
-                    change: ((res.c - res.o) / res.o) * 100, 
-                    source: '⚡ MASSIVE',
-                    image: logoUrl // Logo artık geliyor
-                };
+        try {
+            let rPrice = await fetch(urlPrice);
+            if(rPrice.ok) {
+                let dPrice = await rPrice.json();
+                if(dPrice.results && dPrice.results.length > 0) {
+                    let res = dPrice.results[0];
+                    
+                    // Logo Çekme
+                    let logoUrl = null;
+                    try {
+                        let urlDetails = `https://api.massive.com/v3/reference/tickers/${cleanSym}?apiKey=${polyApiKey}`;
+                        let rDet = await fetch(urlDetails);
+                        if(rDet.ok) {
+                            let dDet = await rDet.json();
+                            if(dDet.results?.branding?.icon_url) {
+                                logoUrl = dDet.results.branding.icon_url + `?apiKey=${polyApiKey}`;
+                            }
+                        }
+                    } catch(imgErr) {}
+
+                    return { 
+                        price: res.c, 
+                        origin: 'USD', 
+                        change: ((res.c - res.o) / res.o) * 100, 
+                        source: '⚡ MASSIVE',
+                        image: logoUrl 
+                    };
+                }
             }
-        }
-    } catch(e) {}
+        } catch(e) {}
+
+        // Veri yoksa 1 gün daha geri git
+        d.setDate(d.getDate() - 1);
+        attempt++;
+    }
     return null;
 }
 
-/* --- YAHOO (HİSSE YEDEĞİ) --- */
+/* --- 3. YAHOO (HİSSE YEDEĞİ) --- */
 async function tryYahoo(symbol) {
     let s = symbol.toUpperCase().trim();
     if(!s.includes('=') && !s.includes('.') && s.length <= 5 && !s.includes('USD') && !s.includes('EUR')) s += '.IS';
+    
+    const proxy = "https://api.allorigins.win/raw?url=";
     const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${s}?interval=1d&range=1d`;
-    const proxies = [{ url: 'https://api.allorigins.win/raw?url=', name: 'AO' }, { url: 'https://corsproxy.io/?', name: 'CP' }];
 
-    for (let proxy of proxies) {
-        try {
-            const response = await fetch(proxy.url + encodeURIComponent(targetUrl));
-            if (response.ok) {
-                const d = await response.json();
-                if (d.chart && d.chart.result && d.chart.result[0]) {
-                    let meta = d.chart.result[0].meta;
-                    let price = meta.regularMarketPrice;
-                    let prevClose = meta.chartPreviousClose;
-                    if(!price) throw new Error("Boş");
-                    let change = (prevClose > 0) ? ((price - prevClose) / prevClose) * 100 : 0;
-                    let origin = (s.includes('=F') || s.includes('=X')) ? 'USD' : 'TRY';
-                    
-                    return { price: parseFloat(price), origin: origin, change: change, source: 'YAHOO' };
-                }
+    try {
+        const response = await fetch(proxy + encodeURIComponent(targetUrl));
+        if (response.ok) {
+            const d = await response.json();
+            if (d.chart && d.chart.result && d.chart.result[0]) {
+                let meta = d.chart.result[0].meta;
+                let price = meta.regularMarketPrice;
+                let prevClose = meta.chartPreviousClose;
+                
+                let change = (prevClose > 0) ? ((price - prevClose) / prevClose) * 100 : 0;
+                let origin = (s.includes('=F') || s.includes('=X') || s.includes('USD')) ? 'USD' : 'TRY';
+                
+                return { 
+                    price: parseFloat(price), 
+                    origin: origin, 
+                    change: change, 
+                    source: 'YAHOO',
+                    image: null
+                };
             }
-        } catch (err) { continue; }
-    }
+        }
+    } catch (err) {}
     return null;
+}
+
+/* --- 4. TOPLU VERİ ÇEKME (Cüzdan İçin) --- */
+async function fetchMassiveQuotes(symbolsArray) {
+    if(!symbolsArray || symbolsArray.length === 0) return [];
+    
+    const promises = symbolsArray.map(async (sym) => {
+        // Önce Borsa modunda dene
+        let data = await getPrice(sym, 'BORSA');
+        
+        // Eğer Borsa bulamazsa ve Kripto ise Kripto dene
+        if((!data || data.price === 0) && (sym.includes('USDT') || sym.includes('BTC'))) {
+            data = await getPrice(sym, 'CRYPTO');
+        }
+
+        if(data && data.price > 0) {
+            return {
+                symbol: sym,
+                regularMarketPrice: data.price,
+                regularMarketChangePercent: data.change,
+                currency: data.origin
+            };
+        }
+        return null;
+    });
+
+    const results = await Promise.all(promises);
+    return results.filter(r => r !== null);
 }
 
 /* --- BINANCE (KRİPTO YEDEĞİ) --- */
