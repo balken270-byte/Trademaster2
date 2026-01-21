@@ -945,7 +945,8 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 .pbc-info { display: flex; flex-direction: column; }
 .pbc-name { font-size: 18px; font-weight: 800; color: white; margin-bottom: 4px; }
 .pbc-badge { font-size: 10px; font-weight: 700; background: rgba(255,255,255,0.1); padding: 3px 8px; border-radius: 8px; width: fit-content; }
-.profile-banner-card.premium-glow .pbc-badge { background: linear-gradient(90deg, #f59e0b, #d97706); color:white; }
+.profile-banner-card.premium-glow .pbc-badge { background: #334155; color: #94a3b8; }
+
 
 /* 2. TAB MENÜSÜ (SEGMENTED) */
 .settings-tabs.segmented {
@@ -1612,6 +1613,32 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     border: 1px solid rgba(255,255,255,0.05);
 }
 
+/* --- PROFİL ÇERÇEVE SİSTEMİ --- */
+
+/* FREE KULLANICI (Standart Çerçeve) */
+.profile-frame-free {
+    border: 3px solid #475569; /* Koyu Gri/Mavi */
+    filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
+}
+
+/* PRO KULLANICI (Altın Çerçeve & Efekt) */
+.profile-frame-pro {
+    border: 3px solid #f59e0b; /* Altın Sarısı */
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.6); /* Parlama Efekti */
+    animation: proGlow 3s infinite alternate;
+}
+
+@keyframes proGlow {
+    from { box-shadow: 0 0 10px rgba(245, 158, 11, 0.4); }
+    to { box-shadow: 0 0 20px rgba(245, 158, 11, 0.8); }
+}
+
+/* KARNE BLURLAMA (Free üyeler detayları göremez) */
+.blur-content {
+    filter: blur(5px);
+    user-select: none;
+    pointer-events: none;
+}
 
     </style>
     
@@ -1906,616 +1933,694 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     </div>
 </div>
 
-<div id="page-news" class="page" style="display:none; background:#0b0f19; padding:0; overflow:hidden;">
+
+<div id="page-news" class="page" style="display:none; background:#0a0e17; padding:0; overflow:hidden;">
+
+<style>
+#page-news * { box-sizing: border-box; }
+
+/* HERO */
+.news-hero {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 300px;
+    z-index: 50;
+    background: #0f172a;
+}
+.news-hero-img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0.55;
+    transition: opacity 0.5s;
+}
+.news-hero-gradient {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to bottom, rgba(10,14,23,0.3) 0%, rgba(10,14,23,0.5) 50%, #0a0e17 100%);
+}
+
+/* HERO BUTONLAR */
+.news-menu-btn, .news-refresh-btn {
+    position: absolute;
+    top: 50px;
+    width: 42px; height: 42px;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 60;
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: transform 0.2s;
+}
+.news-menu-btn { left: 20px; flex-direction: column; gap: 4px; }
+.news-refresh-btn { right: 20px; color: #fff; font-size: 15px; }
+.news-menu-btn:active, .news-refresh-btn:active { transform: scale(0.92); }
+.news-menu-btn span { width: 16px; height: 2px; background: #fff; border-radius: 2px; }
+
+/* HERO İÇERİK */
+.news-hero-content {
+    position: absolute;
+    bottom: 24px; left: 20px; right: 20px;
+    z-index: 55;
+}
+.news-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    background: #3b82f6;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+.news-hero-title {
+    font-size: 19px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.4;
+    text-shadow: 0 2px 15px rgba(0,0,0,0.5);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.news-hero-meta {
+    margin-top: 8px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* SLIDER DOTS */
+.news-hero-dots {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 5px;
+    z-index: 56;
+}
+.news-hero-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.news-hero-dot.active {
+    width: 22px;
+    border-radius: 3px;
+    background: #fff;
+}
+
+/* KATEGORİ BAR */
+.news-cat-bar {
+    position: fixed;
+    top: 300px; left: 0; right: 0;
+    height: 48px;
+    background: #0a0e17;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 50;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.news-cat-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+}
+.news-cat-chip i { 
+    font-size: 14px;
+    opacity: 0.9;
+}
+.news-cat-chip i { font-size: 13px; }
+.news-count {
+    font-size: 11px;
+    color: #64748b;
+}
+.news-count strong { color: #94a3b8; }
+
+/* HABER LİSTESİ */
+.news-list {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    overflow-y: auto;
+    padding: 358px 20px 100px;
+}
+
+/* HABER KARTI */
+.news-card {
+    display: flex;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    cursor: pointer;
+}
+.news-card:active { opacity: 0.6; }
+.news-card-body { flex: 1; min-width: 0; }
+.news-card-src {
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+.news-card-src span { color: #64748b; font-weight: 400; }
+.news-card-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #e2e8f0;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.news-card-img {
+    width: 78px; height: 78px;
+    border-radius: 10px;
+    object-fit: cover;
+    background: #1e293b;
+    flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   YAN PANEL - ARKA PLAN RESİMLİ
+═══════════════════════════════════════════════════════════════ */
+.news-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 500;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+}
+.news-overlay.show { opacity: 1; visibility: visible; }
+
+.news-panel {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: 280px;
+    z-index: 501;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.news-panel.show { transform: translateX(0); }
+
+/* Panel arka plan resmi */
+.np-bg {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-size: cover;
+    background-position: center;
+    transition: background-image 0.5s ease;
+}
+.np-bg::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(180deg, 
+        rgba(0,0,0,0.7) 0%, 
+        rgba(0,0,0,0.85) 50%, 
+        rgba(0,0,0,0.95) 100%);
+}
+
+/* Panel içerik */
+.np-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.np-header {
+    padding: 55px 20px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.np-title { 
+    font-size: 22px; 
+    font-weight: 700; 
+    color: #fff;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+.np-sub { 
+    font-size: 11px; 
+    color: rgba(255,255,255,0.6); 
+    margin-top: 3px; 
+}
+
+.np-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 10px;
+}
+
+/* Kategori item */
+.np-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-bottom: 4px;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+.np-item:active { transform: scale(0.98); }
+.np-item.active { 
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.np-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #fff;
+    background: rgba(255,255,255,0.15) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.np-name {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.8);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+.np-item.active .np-name { 
+    color: #fff; 
+    font-weight: 600; 
+}
+
+.np-check {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.np-item.active .np-check { display: flex; }
+
+.np-footer {
+    padding: 14px 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,0,0,0.3);
+}
+.np-footer::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: #22c55e;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #22c55e;
+}
+
+/* LOADING & ANİMASYON */
+.news-loading {
+    text-align: center;
+    padding: 50px 20px;
+    color: #64748b;
+}
+.news-loading i { font-size: 24px; color: #3b82f6; margin-bottom: 12px; display: block; }
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<!-- HERO -->
+<div class="news-hero">
+    <img class="news-hero-img" id="heroImg" src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800">
+    <div class="news-hero-gradient"></div>
     
-
-    <style>
-        /* 1. ÜSTTEKİ SABİT BÜYÜK RESİM */
-        .hero-section {
-            position: fixed; top: 0; left: 0; width: 100%;
-            height: 280px; /* Sabit Yükseklik */
-            z-index: 50;
-            background: #1e293b;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-        }
-        .hero-bg { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; transition: opacity 0.3s; }
-        .hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(11,15,25,0.3), #0b0f19); }
-        .hero-content { position: absolute; bottom: 50px; left: 20px; right: 20px; z-index: 55; }
-        .category-badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 10px; font-weight: 800; color: #fff; background: #3b82f6; margin-bottom: 8px; }
-        .hero-headline { font-size: 20px; font-weight: 800; color: #fff; text-shadow: 0 4px 10px rgba(0,0,0,0.8); line-height: 1.3; }
-
-        /* 2. SABİT BUTON ŞERİDİ (Resmin Altına Yapışık) */
-        .sticky-controls {
-            position: fixed; top: 280px; left: 0; width: 100%;
-            height: 60px;
-            z-index: 50;
-            background: #0b0f19;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .tabs-container { display: flex; gap: 10px; overflow-x: auto; padding: 0 20px; scrollbar-width: none; }
-        .tab-btn { padding: 8px 18px; background: rgba(255,255,255,0.05); border-radius: 50px; font-size: 12px; color: #94a3b8; white-space: nowrap; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; }
-        .tab-btn.active { background: #fff; color: #000; border-color: #fff; font-weight: 700; }
-
-        /* 3. KAYDIRILABİLİR HABER ALANI */
-        .news-scroll-area {
-            position: absolute; top: 0; left: 0; width: 100%;
-            height: 100vh;
-            overflow-y: auto; /* Kaydırma Açık */
-            padding-top: 350px; /* Resim(280) + Buton(60) + Boşluk(10) */
-            padding-bottom: 120px;
-            padding-left: 20px; padding-right: 20px;
-            box-sizing: border-box;
-            z-index: 10; /* Sabit alanların altında */
-        }
-
-        /* Kart Tasarımı */
-        .news-card { display: flex; gap: 15px; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
-        .news-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-        .news-meta { display: flex; gap: 6px; font-size: 10px; margin-bottom: 5px; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
-        .news-title { font-size: 14px; color: #e2e8f0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        .news-thumb { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); }
-    </style>
-
-    <div class="hero-section">
-        <img id="heroImage" src="https://images.unsplash.com/photo-1611974765270-ca1258634369?q=80&w=1000" class="hero-bg">
-        <div class="hero-overlay"></div>
-
-        <div style="position:absolute; top:50px; left:20px; z-index:99;">
-            <div style="font-size:24px; font-weight:900; color:#fff; text-shadow:0 2px 10px rgba(0,0,0,0.5);">Gündem</div>
-            <div style="font-size:10px; font-weight:600; color:rgba(255,255,255,0.7); letter-spacing:1px;">CANLI PİYASA AKIŞI</div>
-        </div>
-
-        <div class="hero-content">
-            <div id="heroBadge" class="category-badge">MANŞET</div>
-            <div id="heroTitle" class="hero-headline">Piyasalarda kritik hafta: Gözler Merkez Bankası faiz kararında.</div>
-        </div>
+    <div class="news-menu-btn" onclick="newsPanel.toggle()">
+        <span></span><span></span><span></span>
     </div>
-
-     <div class="sticky-controls">
-        <div class="tabs-container">
-            <div class="tab-btn active" onclick="window.newsService.fetchDualNews('manset', this)">Manşet</div>
-            <div class="tab-btn" onclick="window.newsService.fetchDualNews('kripto', this)">Kripto</div>
-            <div class="tab-btn" onclick="window.newsService.fetchDualNews('borsa', this)">Borsa</div>
-            <div class="tab-btn" onclick="window.newsService.fetchDualNews('emtia', this)">Emtia</div>
-            <div class="tab-btn" onclick="window.newsService.fetchDualNews('doviz', this)">Döviz</div>
-            <div class="tab-btn" onclick="window.newsService.fetchDualNews('teknoloji', this)">Teknoloji</div>
-        </div>
+    <div class="news-refresh-btn" onclick="news.refresh()">
+        <i class="fas fa-sync-alt"></i>
     </div>
-
-    <div id="newsListContainer" class="news-scroll-area">
-        <div style="text-align:center; padding-top:40px; color:#64748b;">
-            <i class="fas fa-circle-notch fa-spin fa-2x"></i><br><br>Yükleniyor...
-        </div>
-    </div>
-
-    <script>
-    window.newsService = {
-    currentCategory: 'manset',
     
-    // TÜRKÇE + GÜVENILIR GLOBAL KAYNAKLAR
-    sources: {
-        'manset': [
-            'https://news.google.com/rss?hl=tr&gl=TR&ceid=TR:tr',
-            'https://www.trthaber.com/sitene-ekle/rss/?tur=gundem',
-            'https://www.ntv.com.tr/gundem.rss',
-            'https://www.cnnturk.com/feed/rss/all/news',
-            'https://www.aa.com.tr/tr/rss/default?cat=guncel',
-            'https://t24.com.tr/rss'
-        ],
-        'kripto': [
-            'https://news.google.com/rss/search?q=kripto+bitcoin+ethereum&hl=tr&gl=TR&ceid=TR:tr',
-            'https://tr.cointelegraph.com/rss',
-            'https://koinbulteni.com/feed/',
-            'https://uzmancoin.com/feed/',
-            'https://bitcoinhaber.net/feed/',
-            'https://coinotag.com/feed/',
-            'https://kripto.istanbul/feed/',
-            'https://www.coindesk.com/arc/outboundfeeds/rss/'
-        ],
-        'borsa': [
-            'https://news.google.com/rss/search?q=borsa+istanbul+BIST+hisse&hl=tr&gl=TR&ceid=TR:tr',
-            'https://www.bloomberght.com/rss',
-            'https://www.dunya.com/rss',
-            'https://www.ekonomim.com/feed',
-            'https://bigpara.hurriyet.com.tr/rss/',
-            'https://www.mynet.com/finans/rss/borsa',
-            'https://tr.investing.com/rss/news.rss',
-            'https://tr.tradingview.com/feed/'
-        ],
-        'emtia': [
-            'https://news.google.com/rss/search?q=altın+petrol+gümüş&hl=tr&gl=TR&ceid=TR:tr',
-            'https://www.bloomberght.com/rss',
-            'https://tr.investing.com/rss/commodities_Ede.rss',
-            'https://www.dunya.com/rss',
-            'https://bigpara.hurriyet.com.tr/rss/',
-            'https://altin.in/feed/'
-        ],
-        'doviz': [
-            'https://news.google.com/rss/search?q=dolar+euro+TL+kur&hl=tr&gl=TR&ceid=TR:tr',
-            'https://www.doviz.com/rss/haberler',
-            'https://kur.doviz.com/rss',
-            'https://tr.investing.com/rss/forex_Ede.rss',
-            'https://www.bloomberght.com/rss',
-            'https://bigpara.hurriyet.com.tr/rss/'
-        ],
-        'teknoloji': [
-            'https://news.google.com/rss/search?q=teknoloji+yapay+zeka&hl=tr&gl=TR&ceid=TR:tr',
-            'https://webrazzi.com/feed/',
-            'https://www.donanimhaber.com/rss/',
-            'https://www.chip.com.tr/rss/',
-            'https://www.log.com.tr/feed/',
-            'https://www.technopat.net/feed/'
-        ],
-        'ekonomi': [
-            'https://news.google.com/rss/search?q=ekonomi+enflasyon+merkez+bankası&hl=tr&gl=TR&ceid=TR:tr',
-            'https://www.bloomberght.com/rss',
-            'https://www.dunya.com/rss',
-            'https://www.ekonomim.com/feed',
-            'https://www.aa.com.tr/tr/rss/default?cat=ekonomi',
-            'https://www.para.com.tr/rss'
-        ],
-        'dunya': [
-            'https://news.google.com/rss/search?q=dünya+haberleri&hl=tr&gl=TR&ceid=TR:tr',
-            'https://www.trthaber.com/sitene-ekle/rss/?tur=dunya',
-            'https://www.ntv.com.tr/dunya.rss',
-            'https://www.cnnturk.com/feed/rss/all/world',
-            'https://www.aa.com.tr/tr/rss/default?cat=dunya',
-            'https://www.bbc.com/turkce/index.xml'
-        ]
+    <div class="news-hero-content">
+        <div class="news-hero-badge" id="heroBadge"><i class="fas fa-newspaper"></i> MANŞET</div>
+        <div class="news-hero-title" id="heroTitle">Haberler yükleniyor...</div>
+        <div class="news-hero-meta" id="heroMeta"><i class="far fa-clock"></i> --</div>
+    </div>
+    <div class="news-hero-dots" id="heroDots"></div>
+</div>
+
+<!-- KATEGORİ BAR -->
+<div class="news-cat-bar">
+    <div class="news-cat-chip" id="catChip"><i class="fas fa-newspaper"></i> Manşet</div>
+    <div class="news-count" id="newsCount">Son 24 saat • <strong>0</strong> haber</div>
+</div>
+
+<!-- HABER LİSTESİ -->
+<div class="news-list" id="newsList">
+    <div class="news-loading"><i class="fas fa-circle-notch fa-spin"></i> Yükleniyor...</div>
+</div>
+
+<!-- YAN PANEL -->
+<div class="news-overlay" id="newsOverlay" onclick="newsPanel.toggle()"></div>
+<div class="news-panel" id="newsPanel">
+    <div class="np-bg" id="npBg"></div>
+    <div class="np-content">
+        <div class="np-header">
+            <div class="np-title">Kategoriler</div>
+            <div class="np-sub">Bir kategori seçin</div>
+        </div>
+        <div class="np-body" id="npBody"></div>
+        <div class="np-footer" id="npFooter">Son güncelleme: --:--</div>
+    </div>
+</div>
+
+<script>
+// KATEGORİLER (Arka plan resimleri eklendi)
+const categories = [
+    { 
+        id: 'manset', 
+        name: 'Manşet', 
+        icon: 'fas fa-fire', 
+        color: '#ef4444',
+        bg: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600'
     },
-
-    // YEDEK RESİMLER (Yüksek kalite)
-    fallbackImages: {
-        'manset': 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=800',
-        'kripto': 'https://images.unsplash.com/photo-1622630998477-166aead6616d?q=80&w=800',
-        'borsa': 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=800',
-        'emtia': 'https://images.unsplash.com/photo-1610375461246-83df859d849d?q=80&w=800',
-        'doviz': 'https://images.unsplash.com/photo-1621761311771-4cc5c5652a8c?q=80&w=800',
-        'teknoloji': 'https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=800',
-        'ekonomi': 'https://images.unsplash.com/photo-1543286386-713bdd548da4?q=80&w=800',
-        'dunya': 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=800'
+    { 
+        id: 'kripto', 
+        name: 'Kripto', 
+        icon: 'fab fa-bitcoin', 
+        color: '#f7931a',
+        bg: 'https://images.unsplash.com/photo-1622630998477-166aead6616d?w=600'
     },
-
-    // KATEGORİ BAZLI ANAHTAR KELİME RESİMLERİ
-    keywordImages: {
-        'bitcoin': 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?q=80&w=400',
-        'ethereum': 'https://images.unsplash.com/photo-1622630998477-166aead6616d?q=80&w=400',
-        'altın': 'https://images.unsplash.com/photo-1610375461246-83df859d849d?q=80&w=400',
-        'gold': 'https://images.unsplash.com/photo-1610375461246-83df859d849d?q=80&w=400',
-        'petrol': 'https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?q=80&w=400',
-        'oil': 'https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?q=80&w=400',
-        'dolar': 'https://images.unsplash.com/photo-1621761311771-4cc5c5652a8c?q=80&w=400',
-        'euro': 'https://images.unsplash.com/photo-1621761311771-4cc5c5652a8c?q=80&w=400',
-        'borsa': 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=400',
-        'bist': 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=400',
-        'hisse': 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=400',
-        'yapay zeka': 'https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=400',
-        'ai': 'https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=400',
-        'apple': 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?q=80&w=400',
-        'iphone': 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?q=80&w=400',
-        'tesla': 'https://images.unsplash.com/photo-1617788138017-80ad40651399?q=80&w=400',
-        'nvidia': 'https://images.unsplash.com/photo-1622630998477-166aead6616d?q=80&w=400',
-        'gümüş': 'https://images.unsplash.com/photo-1589783292673-e6207a03c31c?q=80&w=400',
-        'enflasyon': 'https://images.unsplash.com/photo-1635840420199-f876e36cef97?q=80&w=400',
-        'faiz': 'https://images.unsplash.com/photo-1635840420199-f876e36cef97?q=80&w=400',
-        'merkez bankası': 'https://images.unsplash.com/photo-1541354329998-f4d9a9f9297f?q=80&w=400',
-        'tcmb': 'https://images.unsplash.com/photo-1541354329998-f4d9a9f9297f?q=80&w=400',
-        'fed': 'https://images.unsplash.com/photo-1541354329998-f4d9a9f9297f?q=80&w=400',
-        'deprem': 'https://images.unsplash.com/photo-1586772002130-b0f3daa6288e?q=80&w=400',
-        'seçim': 'https://images.unsplash.com/photo-1540910419892-4a36d2c3266c?q=80&w=400',
-        'erdoğan': 'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?q=80&w=400',
-        'trump': 'https://images.unsplash.com/photo-1580128660010-fd027e1e587a?q=80&w=400'
+    { 
+        id: 'borsa', 
+        name: 'Borsa', 
+        icon: 'fas fa-chart-line', 
+        color: '#10b981',
+        bg: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600'
     },
-
-    cache: {},
-    cacheTimeout: 180000,
-    imageCache: {}, // Resim cache'i
-
-    fetchDualNews: async function(cat, btn) {
-        cat = cat || 'manset';
-        this.currentCategory = cat;
-        const listContainer = document.getElementById('newsListContainer');
-
-        if(btn) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        }
-
-        // Cache kontrolü
-        const cacheKey = cat;
-        const cached = this.cache[cacheKey];
-        if(cached && (Date.now() - cached.timestamp < this.cacheTimeout)) {
-            this.renderList(cached.items);
-            if(cached.items.length > 0) this.updateHeroDynamic(cached.items[0], cat);
-            return;
-        }
-
-        if(listContainer) {
-            listContainer.innerHTML = `
-                <div style="text-align:center; padding-top:40px; color:#64748b;">
-                    <i class="fas fa-satellite-dish fa-spin fa-2x"></i>
-                    <br><br>
-                    <span style="font-size:14px;">Haberler taranıyor...</span>
-                    <div style="font-size:11px; margin-top:8px; opacity:0.6;">
-                        ${(this.sources[cat] || []).length} Türkçe kaynak
-                    </div>
-                </div>`;
-        }
-
-        const urls = this.sources[cat] || this.sources.manset;
-        const proxies = [
-            "https://api.rss2json.com/v1/api.json?rss_url=",
-            "https://api.allorigins.win/raw?url="
-        ];
-
-        try {
-            const promises = urls.map(async (url, index) => {
-                try {
-                    // Birincil proxy dene
-                    let response = await Promise.race([
-                        fetch(proxies[0] + encodeURIComponent(url)),
-                        new Promise((_, reject) => setTimeout(() => reject('timeout'), 6000))
-                    ]);
-                    
-                    let data = await response.json();
-                    
-                    if(data && data.status === 'ok' && data.items) {
-                        return data.items.map(item => ({
-                            ...item,
-                            provider: this.extractProvider(data.feed?.title || url, url),
-                            sourceUrl: url
-                        }));
-                    }
-                    return [];
-                } catch(e) {
-                    return [];
-                }
-            });
-
-            const results = await Promise.all(promises);
-            let allItems = results.flat();
-
-            // 24 SAAT FİLTRESİ
-            const now = new Date();
-            const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-            allItems = allItems.filter(item => {
-                const itemDate = new Date(item.pubDate);
-                return itemDate >= twentyFourHoursAgo && !isNaN(itemDate);
-            });
-
-            // Duplicate temizle
-            const seen = new Set();
-            allItems = allItems.filter(item => {
-                const key = item.title.toLowerCase().replace(/[^a-zğüşöçı0-9]/g, '').substring(0, 40);
-                if(seen.has(key)) return false;
-                seen.add(key);
-                return true;
-            });
-
-            // Tarihe göre sırala
-            allItems.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-
-            // Cache kaydet
-            this.cache[cacheKey] = { items: allItems, timestamp: Date.now() };
-
-            this.renderList(allItems);
-            if(allItems.length > 0) this.updateHeroDynamic(allItems[0], cat);
-
-        } catch(e) {
-            console.error('Hata:', e);
-            if(listContainer) {
-                listContainer.innerHTML = `
-                    <div style="text-align:center; padding-top:40px; color:#ef4444;">
-                        <i class="fas fa-exclamation-triangle fa-2x"></i>
-                        <br><br>Bağlantı hatası
-                        <br><button onclick="newsService.fetchDualNews('${cat}')" 
-                            style="margin-top:15px; padding:10px 24px; border-radius:10px; 
-                            background:linear-gradient(135deg,#3b82f6,#1d4ed8); color:white; 
-                            border:none; cursor:pointer; font-weight:600;">
-                            <i class="fas fa-redo"></i> Tekrar Dene
-                        </button>
-                    </div>`;
-            }
-        }
+    { 
+        id: 'emtia', 
+        name: 'Emtia', 
+        icon: 'fas fa-coins', 
+        color: '#eab308',
+        bg: 'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=600'
     },
-
-    extractProvider: function(title, url) {
-        if(!title && !url) return 'Kaynak';
-        const text = (title + ' ' + url).toLowerCase();
-        
-        const providers = {
-            'google': 'Google News', 'trthaber': 'TRT Haber', 'trt.': 'TRT Haber',
-            'ntv': 'NTV', 'cnnturk': 'CNN Türk', 'hurriyet': 'Hürriyet',
-            'milliyet': 'Milliyet', 'sabah': 'Sabah', 'sozcu': 'Sözcü',
-            'haberturk': 'Habertürk', 'aa.com': 'Anadolu Ajansı',
-            'bloomberght': 'Bloomberg HT', 'dunya.com': 'Dünya',
-            'bigpara': 'Bigpara', 'investing': 'Investing.com',
-            'tradingview': 'TradingView', 'cointelegraph': 'Cointelegraph',
-            'koinbulteni': 'Koin Bülteni', 'uzmancoin': 'Uzman Coin',
-            'bitcoinhaber': 'Bitcoin Haber', 'coinotag': 'Coinotag',
-            'webrazzi': 'Webrazzi', 'shiftdelete': 'ShiftDelete',
-            'donanimhaber': 'Donanım Haber', 'chip': 'Chip', 'technopat': 'Technopat',
-            'log.com': 'LOG', 'bbc': 'BBC Türkçe', 't24': 'T24',
-            'doviz.com': 'Doviz.com', 'coindesk': 'CoinDesk',
-            'ekonomim': 'Ekonomim', 'para.com': 'Para', 'altin.in': 'Altın.in',
-            'mynet': 'Mynet Finans', 'kripto.istanbul': 'Kripto İstanbul'
-        };
-        
-        for(const [key, name] of Object.entries(providers)) {
-            if(text.includes(key)) return name;
-        }
-        return title ? title.split(' - ')[0].split(' | ')[0].substring(0, 18) : 'Kaynak';
+    { 
+        id: 'doviz', 
+        name: 'Döviz', 
+        icon: 'fas fa-dollar-sign', 
+        color: '#06b6d4',
+        bg: 'https://images.unsplash.com/photo-1621761311771-4cc5c5652a8c?w=600'
     },
-
-    renderList: function(items) {
-        const listContainer = document.getElementById('newsListContainer');
-        if(!listContainer) return;
-
-        if(items.length === 0) {
-            listContainer.innerHTML = `
-                <div style="text-align:center; padding-top:40px; color:#64748b;">
-                    <i class="fas fa-inbox fa-2x"></i>
-                    <br><br>Son 24 saatte haber bulunamadı
-                    <br><button onclick="newsService.refresh()" 
-                        style="margin-top:15px; padding:8px 20px; border-radius:8px; 
-                        background:#3b82f6; color:white; border:none; cursor:pointer;">
-                        Yenile
-                    </button>
-                </div>`;
-            return;
-        }
-
-        listContainer.innerHTML = `
-            <div style="padding:10px 15px; font-size:12px; color:#94a3b8; 
-                background:rgba(255,255,255,0.03); border-radius:10px; margin-bottom:12px;
-                display:flex; justify-content:space-between; align-items:center;
-                border:1px solid rgba(255,255,255,0.05);">
-                <span><i class="fas fa-clock" style="margin-right:6px;"></i>Son 24 saat</span>
-                <span style="background:rgba(59,130,246,0.2); padding:3px 10px; border-radius:20px; color:#60a5fa;">
-                    <strong>${items.length}</strong> haber
-                </span>
-            </div>`;
-
-        items.forEach((item, index) => {
-            const timeAgo = this.timeSince(new Date(item.pubDate));
-            const imgUrl = this.getSmartImage(item);
-            const providerColor = this.getProviderColor(item.provider);
-
-            const html = `
-            <div class="news-card" onclick="window.open('${item.link}', '_blank')" 
-                style="animation: fadeInUp 0.3s ease ${index * 0.025}s both;">
-                <div class="news-info">
-                    <div class="news-meta">
-                        <span style="color:${providerColor}; font-weight:600; font-size:11px;">
-                            ${item.provider}
-                        </span>
-                        <span style="opacity:0.5; font-size:11px;">• ${timeAgo}</span>
-                    </div>
-                    <div class="news-title">${this.cleanTitle(item.title)}</div>
-                </div>
-                <div class="news-thumb-wrapper" style="position:relative; width:85px; height:85px; flex-shrink:0;">
-                    <img src="${imgUrl}" class="news-thumb" 
-                        style="width:100%; height:100%; object-fit:cover; border-radius:12px;"
-                        onerror="this.onerror=null; this.src='${this.fallbackImages[this.currentCategory]}';">
-                </div>
-            </div>`;
-            listContainer.innerHTML += html;
-        });
+    { 
+        id: 'teknoloji', 
+        name: 'Teknoloji', 
+        icon: 'fas fa-microchip', 
+        color: '#8b5cf6',
+        bg: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600'
     },
-
-    // AKILLI RESİM BULMA (Geliştirilmiş)
-    getSmartImage: function(item) {
-        // 1. Önce RSS'den gelen resmi kontrol et
-        let img = this.extractImageFromRSS(item);
-        
-        // 2. Resim geçerli mi kontrol et
-        if(img && this.isValidImageUrl(img)) {
-            return this.proxyImage(img);
-        }
-        
-        // 3. Başlığa göre anahtar kelime resmi bul
-        const keywordImg = this.getKeywordImage(item.title);
-        if(keywordImg) return keywordImg;
-        
-        // 4. Varsayılan kategori resmi
-        return this.fallbackImages[this.currentCategory];
+    { 
+        id: 'ekonomi', 
+        name: 'Ekonomi', 
+        icon: 'fas fa-landmark', 
+        color: '#6366f1',
+        bg: 'https://images.unsplash.com/photo-1543286386-713bdd548da4?w=600'
     },
+    { 
+        id: 'dunya', 
+        name: 'Dünya', 
+        icon: 'fas fa-globe', 
+        color: '#ec4899',
+        bg: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600'
+    }
+];
 
-    extractImageFromRSS: function(item) {
-        // Thumbnail
-        if(item.thumbnail && item.thumbnail.length > 10) return item.thumbnail;
-        
-        // Enclosure
-        if(item.enclosure && item.enclosure.link) return item.enclosure.link;
-        if(item.enclosure && item.enclosure.url) return item.enclosure.url;
-        
-        // Media content
-        if(item.media && item.media.content && item.media.content.url) return item.media.content.url;
-        
-        // İçerikten çıkar
-        const content = (item.description || '') + (item.content || '');
-        
-        // Farklı img pattern'leri
-        const patterns = [
-            /src=["']([^"']+\.(jpg|jpeg|png|gif|webp)[^"']*)["']/i,
-            /src=["']([^"']+)["']/i,
-            /data-src=["']([^"']+)["']/i,
-            /srcset=["']([^\s"']+)/i,
-            /<img[^>]+src=["']?([^"'\s>]+)/i
-        ];
-        
-        for(const pattern of patterns) {
-            const match = content.match(pattern);
-            if(match && match[1] && this.isValidImageUrl(match[1])) {
-                return match[1];
-            }
-        }
-        
-        return null;
-    },
-
-    isValidImageUrl: function(url) {
-        if(!url || url.length < 10) return false;
-        // Base64 veya data URL'lerini kabul et
-        if(url.startsWith('data:image')) return true;
-        // Geçersiz URL'leri filtrele
-        const invalid = ['spacer', '1x1', 'pixel', 'blank', 'placeholder', 'avatar', 'logo', 'icon', 'sprite'];
-        const urlLower = url.toLowerCase();
-        for(const inv of invalid) {
-            if(urlLower.includes(inv)) return false;
-        }
-        // Çok küçük boyutları filtrele
-        if(urlLower.includes('width=1') || urlLower.includes('w=1') || urlLower.includes('size=1')) return false;
-        return true;
-    },
-
-    // Resmi proxy üzerinden yükle (CORS sorunu çözümü)
-    proxyImage: function(url) {
-        if(!url) return this.fallbackImages[this.currentCategory];
-        // Zaten güvenli URL'ler
-        if(url.startsWith('https://images.unsplash.com')) return url;
-        if(url.startsWith('data:image')) return url;
-        
-        // Bazı siteler direkt çalışıyor
-        const directSites = ['trthaber', 'ntv', 'cnnturk', 'aa.com.tr', 'bbc', 'unsplash', 'googleusercontent'];
-        for(const site of directSites) {
-            if(url.includes(site)) return url;
-        }
-        
-        // Sorunlu siteler için proxy kullan
-        // Not: Bazı siteler CORS engelliyor, bu durumda varsayılan resim gösterilecek
-        return url;
-    },
-
-    // Başlığa göre anahtar kelime resmi bul
-    getKeywordImage: function(title) {
-        if(!title) return null;
-        const titleLower = title.toLowerCase();
-        
-        for(const [keyword, imgUrl] of Object.entries(this.keywordImages)) {
-            if(titleLower.includes(keyword.toLowerCase())) {
-                return imgUrl;
-            }
-        }
-        return null;
-    },
-
-    cleanTitle: function(title) {
-        if(!title) return '';
-        // Kaynak adını sondan kaldır
-        let clean = title
-            .replace(/\s*[-–|]\s*(Google News|TRT|NTV|CNN|Hürriyet|Sabah|Milliyet|Sözcü|BBC|Bloomberg|Anadolu)[^|–-]*$/i, '')
-            .replace(/\s*[-–|]\s*[^|–-]{0,25}$/i, '')
-            .trim();
-        return clean || title;
-    },
-
-    updateHeroDynamic: function(item, cat) {
-        const imgEl = document.getElementById('heroImage');
-        const badgeEl = document.getElementById('heroBadge');
-        const titleEl = document.getElementById('heroTitle');
-        
-        let imgUrl = this.getSmartImage(item);
-
-        if(imgEl && titleEl) {
-            imgEl.style.transition = 'opacity 0.4s ease';
-            imgEl.style.opacity = '0.2';
-            
-            setTimeout(() => {
-                imgEl.src = imgUrl;
-                imgEl.onerror = () => { imgEl.src = this.fallbackImages[cat]; };
-                
-                if(badgeEl) {
-                    const names = {
-                        'manset': 'MANŞET', 'kripto': 'KRİPTO', 'borsa': 'BORSA',
-                        'emtia': 'EMTİA', 'doviz': 'DÖVİZ', 'teknoloji': 'TEKNOLOJİ',
-                        'ekonomi': 'EKONOMİ', 'dunya': 'DÜNYA'
-                    };
-                    badgeEl.innerText = names[cat] || cat.toUpperCase();
-                    badgeEl.style.background = this.getProviderColor(item.provider);
-                }
-                
-                titleEl.innerText = this.cleanTitle(item.title);
-                imgEl.style.opacity = '0.6';
-            }, 350);
-        }
-    },
-
-    timeSince: function(date) {
-        const seconds = Math.floor((new Date() - date) / 1000);
-        if(isNaN(seconds) || seconds < 0) return "Yeni";
-        if(seconds < 60) return "Şimdi";
-        if(seconds < 3600) return Math.floor(seconds / 60) + " dk";
-        if(seconds < 86400) return Math.floor(seconds / 3600) + " sa";
-        return Math.floor(seconds / 86400) + " gün";
-    },
-
-    getProviderColor: function(p) {
-        if(!p) return '#94a3b8';
-        const colors = {
-            'Google': '#4285f4', 'TRT': '#e11d48', 'NTV': '#059669',
-            'CNN': '#cc0000', 'Hürriyet': '#dc2626', 'Milliyet': '#ea580c',
-            'Sabah': '#0891b2', 'Sözcü': '#dc2626', 'Habertürk': '#1d4ed8',
-            'Anadolu': '#16a34a', 'Bloomberg': '#7c3aed', 'Dünya': '#0d9488',
-            'Bigpara': '#f59e0b', 'Investing': '#22c55e', 'TradingView': '#2563eb',
-            'Coin': '#f7931a', 'Bitcoin': '#f7931a', 'CoinDesk': '#1652f0',
-            'Webrazzi': '#00d1b2', 'ShiftDelete': '#ef4444', 'Donanım': '#6366f1',
-            'Chip': '#ec4899', 'Technopat': '#14b8a6', 'BBC': '#bb1919',
-            'T24': '#dc2626', 'Doviz': '#10b981', 'Uzman': '#8b5cf6',
-            'Ekonomim': '#0ea5e9', 'LOG': '#a855f7', 'Altın': '#eab308'
-        };
-        
-        for(const [key, color] of Object.entries(colors)) {
-            if(p.includes(key)) return color;
-        }
-        return '#64748b';
-    },
-
-    clearCache: function() { 
-        this.cache = {}; 
-        this.imageCache = {};
-    },
-    
-    refresh: function() { 
-        this.clearCache(); 
-        this.fetchDualNews(this.currentCategory); 
+// PANEL
+window.newsPanel = {
+    open: false,
+    toggle() {
+        this.open = !this.open;
+        document.getElementById('newsPanel').classList.toggle('show', this.open);
+        document.getElementById('newsOverlay').classList.toggle('show', this.open);
     }
 };
 
-// BAŞLAT
-setTimeout(() => { 
-    if(window.newsService) window.newsService.fetchDualNews('manset'); 
-}, 500);
+// ANA UYGULAMA
+window.news = {
+    cat: 'manset',
+    slide: 0,
+    top5: [],
+    timer: null,
 
-// 3 DAKİKADA BİR OTOMATİK YENİLE
-setInterval(() => {
-    const newsPage = document.getElementById('page-news');
-    if(window.newsService && newsPage && newsPage.style.display !== 'none') {
-        window.newsService.clearCache();
-        window.newsService.fetchDualNews(window.newsService.currentCategory, null);
-    }
-}, 180000);
+    init() {
+        this.renderPanel();
+        this.setPanelBg('manset');
+        this.load('manset');
+        this.startSlider();
+    },
 
-// CSS ANİMASYONU
-if(!document.getElementById('newsAnimStyle')) {
-    const style = document.createElement('style');
-    style.id = 'newsAnimStyle';
-    style.textContent = `
-        @keyframes fadeInUp { 
-            from { opacity: 0; transform: translateY(12px); } 
-            to { opacity: 1; transform: translateY(0); } 
+    renderPanel() {
+    document.getElementById('npBody').innerHTML = categories.map(c => `
+        <div class="np-item ${c.id === 'manset' ? 'active' : ''}" data-id="${c.id}" onclick="news.select('${c.id}')">
+            <div class="np-icon"><i class="${c.icon}"></i></div>
+            <div class="np-name">${c.name}</div>
+            <div class="np-check"><i class="fas fa-check"></i></div>
+        </div>
+    `).join('');
+},
+
+    setPanelBg(id) {
+        const c = categories.find(x => x.id === id);
+        if (c) {
+            document.getElementById('npBg').style.backgroundImage = `url('${c.bg}')`;
         }
-        .news-card { transition: transform 0.2s ease, background 0.2s ease; }
-        .news-card:active { transform: scale(0.98); }
-    `;
-    document.head.appendChild(style);
-}
-    </script>   
+    },
+
+    select(id) {
+        // Aktif item güncelle
+        document.querySelectorAll('.np-item').forEach(el => el.classList.toggle('active', el.dataset.id === id));
+        
+        // Panel arka planını değiştir
+        this.setPanelBg(id);
+        
+        // Paneli kapat ve yükle
+        setTimeout(() => newsPanel.toggle(), 200);
+        this.load(id);
+    },
+
+    load(id) {
+        this.cat = id;
+        const c = categories.find(x => x.id === id);
+        
+     // Chip güncelle (saydam)
+document.getElementById('catChip').innerHTML = `<i class="${c.icon}"></i> ${c.name}`;
+        
+        // Badge güncelle
+        document.getElementById('heroBadge').innerHTML = `<i class="${c.icon}"></i> ${c.name.toUpperCase()}`;
+        document.getElementById('heroBadge').style.background = c.color;
+        
+        // Loading
+        document.getElementById('newsList').innerHTML = `<div class="news-loading"><i class="fas fa-satellite-dish fa-spin"></i> Taranıyor...</div>`;
+        
+        newsData.fetch(id);
+    },
+
+    setHero(items) {
+        this.top5 = items.slice(0, 5);
+        if (!this.top5.length) return;
+        this.slide = 0;
+        this.showSlide(0);
+        document.getElementById('heroDots').innerHTML = this.top5.map((_, i) => 
+            `<div class="news-hero-dot ${i === 0 ? 'active' : ''}" onclick="news.goSlide(${i})"></div>`
+        ).join('');
+    },
+
+    showSlide(i) {
+        const item = this.top5[i];
+        if (!item) return;
+        const img = document.getElementById('heroImg');
+        img.style.opacity = '0.3';
+        setTimeout(() => {
+            img.src = newsData.getImg(item);
+            img.onerror = () => img.src = newsData.fallback[this.cat];
+            document.getElementById('heroTitle').textContent = newsData.clean(item.title);
+            document.getElementById('heroMeta').innerHTML = `<i class="far fa-clock"></i> ${item.provider} • ${newsData.ago(new Date(item.pubDate))}`;
+            img.style.opacity = '0.55';
+        }, 150);
+        document.querySelectorAll('.news-hero-dot').forEach((d, idx) => d.classList.toggle('active', idx === i));
+    },
+
+    goSlide(i) { this.slide = i; this.showSlide(i); this.resetSlider(); },
+    nextSlide() { if (this.top5.length) { this.slide = (this.slide + 1) % this.top5.length; this.showSlide(this.slide); }},
+    startSlider() { this.timer = setInterval(() => this.nextSlide(), 5000); },
+    resetSlider() { clearInterval(this.timer); this.startSlider(); },
+
+    setList(items) {
+        const list = items.slice(5);
+        document.getElementById('newsCount').innerHTML = `Son 24 saat • <strong>${items.length}</strong> haber`;
+        document.getElementById('npFooter').textContent = `Son güncelleme: ${new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'})}`;
+        
+        if (!list.length) {
+            document.getElementById('newsList').innerHTML = items.length 
+                ? `<div style="text-align:center;padding:40px;color:#64748b;"><i class="fas fa-check-circle" style="color:#22c55e;font-size:24px;display:block;margin-bottom:10px;"></i>Tüm haberler yukarıda</div>`
+                : `<div style="text-align:center;padding:40px;color:#64748b;">Haber bulunamadı</div>`;
+            return;
+        }
+
+        document.getElementById('newsList').innerHTML = list.map((item, i) => `
+            <div class="news-card" onclick="window.open('${item.link}','_blank')" style="animation:fadeUp .3s ease ${i*.02}s both">
+                <div class="news-card-body">
+                    <div class="news-card-src" style="color:${newsData.color(item.provider)}">${item.provider} <span>• ${newsData.ago(new Date(item.pubDate))}</span></div>
+                    <div class="news-card-title">${newsData.clean(item.title)}</div>
+                </div>
+                <img class="news-card-img" src="${newsData.getImg(item)}" onerror="this.src='${newsData.fallback[news.cat]}'">
+            </div>
+        `).join('');
+    },
+
+    refresh() { newsData.cache = {}; this.load(this.cat); }
+};
+
+// VERİ SERVİSİ
+window.newsData = {
+    cache: {},
+
+    sources: {
+        manset: ['https://news.google.com/rss?hl=tr&gl=TR&ceid=TR:tr','https://www.trthaber.com/sitene-ekle/rss/?tur=gundem','https://www.ntv.com.tr/gundem.rss','https://www.cnnturk.com/feed/rss/all/news','https://www.aa.com.tr/tr/rss/default?cat=guncel'],
+        kripto: ['https://news.google.com/rss/search?q=kripto+bitcoin&hl=tr&gl=TR&ceid=TR:tr','https://tr.cointelegraph.com/rss','https://koinbulteni.com/feed/','https://uzmancoin.com/feed/','https://coinotag.com/feed/'],
+        borsa: ['https://news.google.com/rss/search?q=borsa+istanbul+BIST&hl=tr&gl=TR&ceid=TR:tr','https://www.bloomberght.com/rss','https://www.dunya.com/rss','https://bigpara.hurriyet.com.tr/rss/','https://tr.investing.com/rss/news.rss'],
+        emtia: ['https://news.google.com/rss/search?q=altın+petrol&hl=tr&gl=TR&ceid=TR:tr','https://www.bloomberght.com/rss','https://tr.investing.com/rss/commodities_Ede.rss','https://bigpara.hurriyet.com.tr/rss/'],
+        doviz: ['https://news.google.com/rss/search?q=dolar+euro+TL&hl=tr&gl=TR&ceid=TR:tr','https://www.doviz.com/rss/haberler','https://tr.investing.com/rss/forex_Ede.rss','https://www.bloomberght.com/rss'],
+        teknoloji: ['https://news.google.com/rss/search?q=teknoloji+yapay+zeka&hl=tr&gl=TR&ceid=TR:tr','https://webrazzi.com/feed/','https://www.donanimhaber.com/rss/','https://www.technopat.net/feed/'],
+        ekonomi: ['https://news.google.com/rss/search?q=ekonomi+enflasyon&hl=tr&gl=TR&ceid=TR:tr','https://www.bloomberght.com/rss','https://www.dunya.com/rss','https://www.aa.com.tr/tr/rss/default?cat=ekonomi'],
+        dunya: ['https://news.google.com/rss/search?q=dünya+haberleri&hl=tr&gl=TR&ceid=TR:tr','https://www.trthaber.com/sitene-ekle/rss/?tur=dunya','https://www.ntv.com.tr/dunya.rss','https://www.bbc.com/turkce/index.xml']
+    },
+
+    fallback: {
+        manset: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800',
+        kripto: 'https://images.unsplash.com/photo-1622630998477-166aead6616d?w=800',
+        borsa: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800',
+        emtia: 'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=800',
+        doviz: 'https://images.unsplash.com/photo-1621761311771-4cc5c5652a8c?w=800',
+        teknoloji: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800',
+        ekonomi: 'https://images.unsplash.com/photo-1543286386-713bdd548da4?w=800',
+        dunya: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800'
+    },
+
+    kwImg: {
+        bitcoin: 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400',
+        altın: 'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=400',
+        dolar: 'https://images.unsplash.com/photo-1621761311771-4cc5c5652a8c?w=400',
+        petrol: 'https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?w=400'
+    },
+
+    async fetch(cat) {
+        if (this.cache[cat] && Date.now() - this.cache[cat].t < 180000) {
+            news.setHero(this.cache[cat].items);
+            news.setList(this.cache[cat].items);
+            return;
+        }
+
+        const proxy = 'https://api.rss2json.com/v1/api.json?rss_url=';
+        try {
+            const results = await Promise.all((this.sources[cat] || []).map(async url => {
+                try {
+                    const r = await Promise.race([fetch(proxy + encodeURIComponent(url)), new Promise((_, rej) => setTimeout(rej, 6000))]);
+                    const d = await r.json();
+                    return d?.status === 'ok' ? d.items.map(i => ({ ...i, provider: this.prov(d.feed?.title, url) })) : [];
+                } catch { return []; }
+            }));
+
+            let items = results.flat();
+            const cutoff = Date.now() - 86400000;
+            items = items.filter(i => new Date(i.pubDate).getTime() > cutoff);
+            
+            const seen = new Set();
+            items = items.filter(i => { const k = i.title.toLowerCase().slice(0, 40); if (seen.has(k)) return false; seen.add(k); return true; });
+            items.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+
+            this.cache[cat] = { items, t: Date.now() };
+            news.setHero(items);
+            news.setList(items);
+        } catch {
+            document.getElementById('newsList').innerHTML = `<div style="text-align:center;padding:40px;color:#ef4444;"><i class="fas fa-wifi" style="font-size:24px;display:block;margin-bottom:10px;"></i>Bağlantı hatası<br><button onclick="news.refresh()" style="margin-top:12px;padding:8px 20px;background:#3b82f6;color:#fff;border:none;border-radius:8px;cursor:pointer;">Tekrar Dene</button></div>`;
+        }
+    },
+
+    prov(title, url) {
+        const t = ((title || '') + url).toLowerCase();
+        const m = { google: 'Google', trthaber: 'TRT', ntv: 'NTV', cnnturk: 'CNN Türk', 'aa.com': 'AA', bloomberg: 'Bloomberg', 'dunya.com': 'Dünya', investing: 'Investing', cointelegraph: 'Cointelegraph', koinbulteni: 'Koin Bülteni', webrazzi: 'Webrazzi', bbc: 'BBC', 'doviz.com': 'Doviz.com', bigpara: 'Bigpara', technopat: 'Technopat', donanimhaber: 'DH' };
+        for (const [k, v] of Object.entries(m)) if (t.includes(k)) return v;
+        return 'Kaynak';
+    },
+
+    getImg(item) {
+        if (item.thumbnail?.length > 10) return item.thumbnail;
+        if (item.enclosure?.link) return item.enclosure.link;
+        const c = (item.description || '') + (item.content || '');
+        const m = c.match(/src=["']([^"']+\.(jpg|jpeg|png|webp)[^"']*)["']/i);
+        if (m?.[1]) return m[1];
+        const title = (item.title || '').toLowerCase();
+        for (const [k, v] of Object.entries(this.kwImg)) if (title.includes(k)) return v;
+        return this.fallback[news.cat];
+    },
+
+    clean: t => t?.replace(/\s*[-–|]\s*[^|–-]{0,25}$/i, '').trim() || '',
+    ago: d => { const s = Math.floor((Date.now() - d) / 1000); return s < 60 ? 'Şimdi' : s < 3600 ? Math.floor(s/60) + ' dk' : s < 86400 ? Math.floor(s/3600) + ' sa' : Math.floor(s/86400) + ' gün'; },
+    color: p => { const c = { Google: '#4285f4', TRT: '#e11d48', NTV: '#059669', CNN: '#cc0000', AA: '#16a34a', Bloomberg: '#7c3aed', Investing: '#22c55e', Coin: '#f7931a', Webrazzi: '#00d1b2', BBC: '#bb1919', Doviz: '#10b981', Bigpara: '#f59e0b' }; for (const [k, v] of Object.entries(c)) if (p?.includes(k)) return v; return '#64748b'; }
+};
+
+// BAŞLAT
+setTimeout(() => news.init(), 300);
+setInterval(() => { if (document.getElementById('page-news')?.style.display !== 'none') { newsData.cache = {}; news.load(news.cat); }}, 180000);
+</script>
+
 </div>
 
-    
-    <div id="page-analysis" class="page">
+
+
+<div id="page-analysis" class="page">
     
     <div style="margin-bottom: 20px;">
         <h2 style="margin:0; font-size:22px; font-weight:800; background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Finansal Planlama</h2>
@@ -3183,9 +3288,35 @@ if(!document.getElementById('newsAnimStyle')) {
                 
                 <div class="pbc-info">
                     <span class="pbc-name" id="menuProfileName">Yükleniyor...</span>
-                    <div class="pbc-badge"><i class="fas fa-crown"></i> PRO ÜYE</div>
+                    <div class="pbc-badge"><i class="fas fa-crown"></i> FREE ÜYE</div>
                 </div>
             </div>
+
+<div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #334155;">
+    <h3 style="margin:0 0 10px 0; color: #fff; font-size: 16px;">Üyelik Durumu</h3>
+    
+    <div id="planStatusText" style="color: #94a3b8; margin-bottom: 10px;">
+        Mevcut Plan: <span style="color: #fff; font-weight: bold;">FREE</span>
+    </div>
+
+    <button onclick="Membership.upgradeToPro()" id="btnUpgrade" style="width:100%; padding: 12px; background: linear-gradient(90deg, #f59e0b, #d97706); color: #000; font-weight: bold; border: none; border-radius: 8px; cursor: pointer;">
+        👑 PRO'ya Yükselt
+    </button>
+    
+    <button onclick="Membership.downgrade()" id="btnDowngrade" style="display:none; width:100%; padding: 10px; background: #ef4444; color: #fff; border: none; border-radius: 8px; cursor: pointer; margin-top:5px;">
+        Üyeliği İptal Et
+    </button>
+</div>
+
+<script>
+    // Ayarlar açılınca butonları ayarla
+    if(typeof Membership !== 'undefined' && Membership.isPro()){
+        document.getElementById('planStatusText').innerHTML = "Mevcut Plan: <span style='color:#f59e0b'>PRO KULLANICI 💎</span>";
+        document.getElementById('btnUpgrade').style.display = 'none';
+        document.getElementById('btnDowngrade').style.display = 'block';
+    }
+</script>
+
 
             <div style="font-size:11px; font-weight:700; color:var(--text-sub); margin-bottom:10px; margin-left:10px;">UYGULAMA AYARLARI</div>
             
@@ -3872,10 +4003,71 @@ if(!document.getElementById('newsAnimStyle')) {
 
 
 <script>
+    
+    /* --- ÜYELİK YÖNETİM SİSTEMİ --- */
+const Membership = {
+    // Durum Kontrolü
+    isPro: function() {
+        return localStorage.getItem('userPlan') === 'PRO';
+    },
+
+    // Pro Satın Alma (Simülasyon)
+    upgradeToPro: function() {
+        if(confirm("TradeVia PRO Paket (Aylık 49₺)\n\nÖzellikler:\n- Sınırsız Zaman Makinesi\n- Detaylı Trader Karnesi\n- Altın Profil Çerçevesi\n\nOnaylıyor musunuz?")) {
+            localStorage.setItem('userPlan', 'PRO');
+            alert("Tebrikler! Artık PRO üyesiniz. Hoş geldiniz!");
+            location.reload();
+        }
+    },
+
+    // Üyeliği İptal Etme (Test için)
+    downgrade: function() {
+        localStorage.setItem('userPlan', 'FREE');
+        alert("Üyelik Free pakete düşürüldü.");
+        location.reload();
+    },
+
+    // ZAMAN MAKİNESİ LİMİT KONTROLÜ
+    checkTimeMachineLimit: function() {
+        if (this.isPro()) return true; // Pro'ya limit yok
+
+        // Bugünün tarihi (Örn: "21.01.2026")
+        let today = new Date().toLocaleDateString();
+        let usageData = JSON.parse(localStorage.getItem('tm_usage')) || { date: today, count: 0 };
+
+        // Tarih değiştiyse sayacı sıfırla
+        if (usageData.date !== today) {
+            usageData = { date: today, count: 0 };
+        }
+
+        // Limit kontrolü (3 Hak)
+        if (usageData.count >= 3) {
+            alert("🔒 GÜNLÜK LİMİT DOLDU!\n\nFree pakette günde sadece 3 kez Zaman Makinesi kullanabilirsin.\nSınırsız analiz için Ayarlar'dan PRO'ya geç.");
+            return false; // Engelle
+        }
+
+        // Kullanım hakkını düş ve kaydet
+        usageData.count++;
+        localStorage.setItem('tm_usage', JSON.stringify(usageData));
+        console.log(`Zaman Makinesi: ${usageData.count}/3 kullanıldı.`);
+        return true; // İzin ver
+    }
+};
+
+// Sayfa Yüklenince Profil Çerçevesini Ayarla
+document.addEventListener("DOMContentLoaded", () => {
+    let avatar = document.getElementById('userAvatar'); // Avatar resminin ID'si
+    if(avatar) {
+        avatar.className = ""; // Eski sınıfları temizle
+        avatar.classList.add(Membership.isPro() ? 'profile-frame-pro' : 'profile-frame-free');
+    }
+});
+
+    
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "3.3"; 
+    const CURRENT_VERSION = "3.4"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -3979,6 +4171,8 @@ let notifySettings = JSON.parse(localStorage.getItem('tm_notify_settings')) || {
 const trans = { tr: { loading:"Yükleniyor..." }, en: { loading:"Loading..." } };
 let appSettings = JSON.parse(localStorage.getItem('tm_settings')) || {currency:'TRY', lang:'tr', theme:'ocean'};
 let userProfile = JSON.parse(localStorage.getItem('tm_user_profile')) || { name: 'Misafir', bio: 'Yatırımcı', joinDate: new Date().toLocaleDateString(), img: null };
+
+let lastMassiveUpdate = 0; 
 
 // --- GÜNCELLENDİ: TESTTE ÇALIŞAN MASSIVE ANAHTARI (S3 ANAHTARI) ---
 let polyApiKey = localStorage.getItem('tm_poly_key') || 'SKlgEqfjqAiyyR7atS2g7OEGQRYVYOMm';
@@ -4217,6 +4411,15 @@ async function getPrice(s, forceCategory = null) {
              } catch(e){}
         }
 
+// --- MOD 3: MASSIVE (ABD HİSSELERİ - EKLENECEK KISIM) ---
+    if (currentMode === 'MASSIVE') {
+        if(typeof polyApiKey !== 'undefined' && polyApiKey) {
+            let res = await tryPolygon(s); 
+            if(res) return res;
+        }
+        return { price: 0, origin: 'USD', change: 0 };
+    }
+    
         // 1. Yahoo (BIST & Yedek) - Önce buna baksın (Daha hızlıdır)
         let resYahoo = await tryYahoo(s);
         if(resYahoo) return resYahoo;
@@ -4234,64 +4437,69 @@ async function getPrice(s, forceCategory = null) {
     return { price: 0, origin: 'TRY', change: 0 };
 }
 
-/* --- 2. MASSIVE (LOGO DESTEKLİ & TATİL KORUMALI) --- */
+/* --- 2. MASSIVE (AKILLI SİSTEM: CANLI + PREV) --- */
 async function tryPolygon(symbol) {
     if(typeof polyApiKey === 'undefined' || !polyApiKey) return null;
-
     let cleanSym = symbol.replace('BINANCE:','').replace('USDT','').toUpperCase().trim();
     if(cleanSym.length === 6 && !cleanSym.includes('.') && (cleanSym.startsWith('USD') || cleanSym.startsWith('EUR'))) cleanSym = "C:" + cleanSym;
 
-    // BUGÜN'DEN GERİYE TARAMA (TATİL ÇÖZÜMÜ)
-    let d = new Date(); 
-    d.setDate(d.getDate() - 1); // Dünden başla
-    let attempt = 0;
+    // --- ADIM 1: BUGÜNÜN CANLI VERİSİ (Piyasa Açıksa) ---
+    // (Saat 17:30'dan sonra burası çalışır)
+    let d = new Date();
+    let dateStr = d.toISOString().split('T')[0];
+    let urlToday = `https://api.massive.com/v2/aggs/ticker/${cleanSym}/range/1/day/${dateStr}/${dateStr}?adjusted=true&sort=desc&limit=1&apiKey=${polyApiKey}`;
 
-    while(attempt < 5) {
-        // Hafta sonu atlama
-        if(d.getDay() === 0) d.setDate(d.getDate() - 2); 
-        else if(d.getDay() === 6) d.setDate(d.getDate() - 1);
-        
-        let dateStr = d.toISOString().split('T')[0];
-        
-        // URL: api.massive.com
-        let urlPrice = `https://api.massive.com/v2/aggs/ticker/${cleanSym}/range/1/day/${dateStr}/${dateStr}?adjusted=true&sort=desc&limit=1&apiKey=${polyApiKey}`;
-
-        try {
-            let rPrice = await fetch(urlPrice);
-            if(rPrice.ok) {
-                let dPrice = await rPrice.json();
-                if(dPrice.results && dPrice.results.length > 0) {
-                    let res = dPrice.results[0];
-                    
-                    // Logo Çekme
-                    let logoUrl = null;
-                    try {
-                        let urlDetails = `https://api.massive.com/v3/reference/tickers/${cleanSym}?apiKey=${polyApiKey}`;
-                        let rDet = await fetch(urlDetails);
-                        if(rDet.ok) {
-                            let dDet = await rDet.json();
-                            if(dDet.results?.branding?.icon_url) {
-                                logoUrl = dDet.results.branding.icon_url + `?apiKey=${polyApiKey}`;
-                            }
-                        }
-                    } catch(imgErr) {}
-
-                    return { 
-                        price: res.c, 
-                        origin: 'USD', 
-                        change: ((res.c - res.o) / res.o) * 100, 
-                        source: '⚡ MASSIVE',
-                        image: logoUrl 
-                    };
-                }
+    try {
+        let r = await fetch(urlToday);
+        if(r.ok) {
+            let dData = await r.json();
+            if(dData.results && dData.results.length > 0) {
+                 return await processPolyResult(dData.results[0], cleanSym, polyApiKey);
             }
-        } catch(e) {}
+        }
+    } catch(e) {}
 
-        // Veri yoksa 1 gün daha geri git
-        d.setDate(d.getDate() - 1);
-        attempt++;
-    }
+    // --- ADIM 2: EN SON KAPANIŞ (Yedek Kuvvet) ---
+    // Piyasa kapalıysa veya tatilse, son işlem gününü otomatik bulur.
+    let urlPrev = `https://api.massive.com/v2/aggs/ticker/${cleanSym}/prev?adjusted=true&apiKey=${polyApiKey}`;
+
+    try {
+        let rPrev = await fetch(urlPrev);
+        if(rPrev.ok) {
+            let dPrev = await rPrev.json();
+            // Prev endpoint'i bazen tek obje bazen array döner, ikisini de kapsayalım
+            let result = (dPrev.results && dPrev.results.length) ? dPrev.results[0] : (dPrev.results ? dPrev.results : null);
+            
+            if(result) {
+                 return await processPolyResult(result, cleanSym, polyApiKey);
+            }
+        }
+    } catch(e) {}
+
     return null;
+}
+
+// --- YARDIMCI FONKSİYON (Logoyu ve Fiyatı Hazırlar) ---
+async function processPolyResult(res, sym, key) {
+    let logoUrl = null;
+    try {
+        let urlDetails = `https://api.massive.com/v3/reference/tickers/${sym}?apiKey=${key}`;
+        let rDet = await fetch(urlDetails);
+        if(rDet.ok) {
+            let dDet = await rDet.json();
+            if(dDet.results?.branding?.icon_url) {
+                logoUrl = dDet.results.branding.icon_url + `?apiKey=${key}`;
+            }
+        }
+    } catch(imgErr) {}
+
+    return { 
+        price: res.c, 
+        origin: 'USD', 
+        change: ((res.c - res.o) / res.o) * 100, 
+        source: '⚡ MASSIVE', 
+        image: logoUrl 
+    };
 }
 
 /* --- 3. YAHOO (HİSSE YEDEĞİ) --- */
@@ -4371,56 +4579,68 @@ function startLiveUpdates() {
     }, 60000); 
 }
 
-/* --- YÖNETİCİ: CÜZDAN YENİLEME VE EMİR VERME --- */
+/* --- YÖNETİCİ: CÜZDAN YENİLEME (SIRALI VE GARANTİLİ MOD) --- */
 async function loadPF(refreshData = false) {
     let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
-    if (as.length === 0) { renderPortfolioHTML([]); return; }
+    if (as.length === 0) {
+        renderPortfolioHTML([]);
+        return;
+    }
 
     if (refreshData) {
         document.getElementById('totalWallet').style.opacity = "0.5";
+        
+        let updatedAssets = []; // Yeni listeyi burada toplayacağız
 
-        const promises = as.map(async (a) => {
-            // 1. MEVCUT ETİKETİ OKU (VARLIĞIN KİMLİĞİ)
-            let savedSource = (a.source || "").toUpperCase(); 
+        // --- ÖNEMLİ DEĞİŞİKLİK: Promise.all YERİNE FOR DÖNGÜSÜ ---
+        // Bu, varlıkları teker teker günceller. Daha yavaştır ama HATA VERMEZ.
+        for (let i = 0; i < as.length; i++) {
+            let a = as[i];
             
-            // 2. EMRİ HAZIRLA (KAYNAĞA GÖRE KESİN TALİMAT)
-            let strictOrder = null; // Varsayılan: Boş (Otomatik ara)
+            try {
+                let savedSource = (a.source || "").toUpperCase();
+                let strictOrder = null;
 
-            // Eğer etikette MASSIVE kelimesi varsa -> Emir: 'MASSIVE'
-            if (savedSource.includes('MASSIVE')) {
-                strictOrder = 'MASSIVE'; 
-            }
-            // Eğer etikette BINANCE veya CG varsa -> Emir: 'CRYPTO'
-            else if (savedSource.includes('BINANCE') || savedSource.includes('CG')) {
-                strictOrder = 'CRYPTO';
-            }
-            // Eğer etikette YAHOO veya BIST varsa -> Emir: 'YAHOO'
-            else if (savedSource.includes('YAHOO') || savedSource.includes('BIST')) {
-                strictOrder = 'YAHOO';
-            }
+                // --- MOD BELİRLEME ---
+                if (savedSource.includes('MASSIVE')) {
+                    strictOrder = 'MASSIVE';
+                } 
+                else if (savedSource.includes('BINANCE') || savedSource.includes('CG') || a.name.includes('USDT') || a.name.includes('BTC')) {
+                    strictOrder = 'CRYPTO';
+                } 
+                else if (savedSource.includes('YAHOO') || savedSource.includes('BIST') || a.name.includes('.IS')) {
+                    strictOrder = 'BORSA'; 
+                }
 
-            // 3. EMRİ İŞÇİYE İLET
-            // (a.name = Sembol, strictOrder = Kesin Emir)
-            let live = await getPrice(a.name, strictOrder); 
+                // API ÇAĞRISI (Her varlık için anlık bekleme)
+                let live = await getPrice(a.name, strictOrder);
+                
+                if (live && live.price > 0) {
+                    a.curr = live.price;
+                    if (live.source && live.source !== 'Piyasa') a.source = live.source;
+                }
 
-            // 4. SONUCU İŞLE
-            if (live.price > 0) {
-                a.curr = live.price;
-                // Kaynağı da tazele (Eğer değiştiyse)
-                if (live.source) a.source = live.source;
-                if (live.image) a.image = live.image;
-            } else {
-                console.log(a.name + " için fiyat alınamadı, eski veri korundu.");
+            } catch (err) {
+                console.error("Varlık hatası:", a.name, err);
+                // Hata olsa bile varlığı listeye ekle (silinmesin)
             }
-            return a;
-        });
+            
+            // İşlenen varlığı yeni listeye ekle
+            updatedAssets.push(a); 
+        }
 
-        await Promise.all(promises);
-        localStorage.setItem('myPF_final', JSON.stringify(as));
+        // Tüm döngü bitince kaydet
+        localStorage.setItem('myPF_final', JSON.stringify(updatedAssets));
+        as = updatedAssets;
+        
+        // Massive zaman damgasını güncelle (Artık engel yok, her seferinde güncel)
+        lastMassiveUpdate = Date.now();
+        
         document.getElementById('totalWallet').style.opacity = "1";
     }
     renderPortfolioHTML(as);
 }
+
 
 /* --- PİYASA SAYFASI YÖNETİMİ --- */
 function switchMarketMode(mode, btn) {
@@ -9342,7 +9562,7 @@ function switchPsychoTab(tabName) {
 
 /* --- HIZLANDIRILMIŞ PSİKOLOJİ ANALİZİ (HİSSE SENEDİ DÜZELTMELİ) --- */
 async function calcPsychoAnalysis() {
-    
+
     // 1. VERİ HAZIRLIĞI
     let history = JSON.parse(localStorage.getItem('tm_full_trade_history')) || [];
     
@@ -9648,6 +9868,18 @@ const statCpiData = {
 // 1. ANA TETİKLEYİCİ
 async function runStatisticalAnalysis() {
     let rawSymbol = document.getElementById('statSymbol').value.toUpperCase().trim();
+    
+    
+    function openTimeMachine() {
+    // EKLENEN KOD: Limit Kontrolü
+    if (!Membership.checkTimeMachineLimit()) return; 
+
+    // ... (Aşağıda senin eski kodların devam edecek)
+    document.getElementById('tmModal').style.display = 'flex';
+    // ...
+}
+
+    
     if(!rawSymbol) return addNotification('warn', 'Hata', 'Lütfen bir sembol girin.');
 
     const resultDiv = document.getElementById('statResult');
@@ -10109,8 +10341,323 @@ function analyzeTraderDNA(history, currentBalance) {
     }
 }, 300000);
 
-
 </script>
+
+<script>
+/* 0. CSS STİLLERİ */
+(function injectStyles() {
+    const style = document.createElement('style');
+    style.innerHTML = `
+        /* MEVCUT STİLLER */
+        .profile-frame-free { border: 3px solid #475569 !important; }
+        .profile-frame-pro { border: 3px solid #f59e0b !important; box-shadow: 0 0 15px rgba(245, 158, 11, 0.6) !important; animation: proGlow 2s infinite alternate; }
+        @keyframes proGlow { from { box-shadow: 0 0 5px rgba(245, 158, 11, 0.4); border-color: #f59e0b; } to { box-shadow: 0 0 25px rgba(245, 158, 11, 0.9); border-color: #fbbf24; } }
+        
+        .membership-card { border-radius: 16px; padding: 20px; margin-bottom: 20px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: all 0.3s ease; }
+        .card-free { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #334155; }
+        .card-pro { background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%); border: 1px solid #fbbf24; color: white; }
+        .card-pro::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%); transform: rotate(45deg); pointer-events: none; }
+        
+        .mc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .mc-title { font-size: 18px; font-weight: 800; letter-spacing: 1px; }
+        .mc-badge { padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+        .badge-free { background: rgba(255,255,255,0.1); color: #94a3b8; }
+        .badge-pro { background: rgba(0,0,0,0.3); color: #fbbf24; border: 1px solid rgba(255,255,255,0.2); color:white; }
+        .mc-dates { font-size: 11px; opacity: 0.9; margin-top: 10px; line-height: 1.6; }
+        .mc-progress-bg { width: 100%; height: 6px; background: rgba(0,0,0,0.2); border-radius: 10px; margin-top: 15px; overflow: hidden; }
+        .mc-progress-fill { height: 100%; background: white; border-radius: 10px; width: 0%; transition: width 1s ease; }
+
+        /* UPSELL MODAL (GÜZEL TASARIM) */
+        #upsell-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 20000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            animation: fadeIn 0.3s ease;
+            background: url('https://images.unsplash.com/photo-1611974765270-ca12586343bb?q=80&w=1974&auto=format&fit=crop') no-repeat center center/cover;
+        }
+        #upsell-modal::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); z-index: -1;
+        }
+        .upsell-card {
+            background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px; padding: 40px 30px; width: 85%; max-width: 360px;
+            text-align: center; position: relative; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .upsell-card::after {
+            content: ''; position: absolute; inset: -2px; z-index: -2; border-radius: 26px; 
+            background: linear-gradient(45deg, #f59e0b, transparent, #fbbf24);
+            animation: rotateBorder 4s linear infinite; opacity: 0.6;
+        }
+        .upsell-content-mask { background: #1e293b; border-radius: 24px; position: absolute; inset: 0; z-index: -1; }
+        .uc-icon {
+            width: 80px; height: 80px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.05));
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px auto; border: 1px solid rgba(245, 158, 11, 0.3);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+        }
+        .uc-icon i { font-size: 36px; color: #fbbf24; filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.5)); }
+        .uc-title { font-size: 26px; font-weight: 900; color: white; margin-bottom: 5px; letter-spacing: -0.5px; }
+        .uc-subtitle { font-size: 14px; color: #94a3b8; margin-bottom: 30px; font-weight: 500; }
+        .uc-features { text-align: left; margin-bottom: 30px; padding: 0 10px; }
+        .uc-item { display: flex; align-items: center; margin-bottom: 15px; font-size: 14px; color: #e2e8f0; font-weight: 500; }
+        .uc-item i { color: #f59e0b; margin-right: 15px; font-size: 18px; min-width: 20px; text-align: center; }
+        .uc-btn {
+            background: linear-gradient(90deg, #f59e0b, #d97706); color: white;
+            border: none; padding: 18px 0; width: 100%; border-radius: 14px;
+            font-size: 16px; font-weight: 800; cursor: pointer;
+            box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4); transition: transform 0.2s, box-shadow 0.2s;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .uc-btn:active { transform: scale(0.96); box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3); }
+        .uc-close { margin-top: 20px; background: none; border: none; color: #64748b; font-size: 13px; cursor: pointer; text-decoration: none; transition: color 0.3s; }
+        .uc-close:hover { color: #94a3b8; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        @keyframes rotateBorder { 0% { opacity: 0.3; } 50% { opacity: 0.8; } 100% { opacity: 0.3; } }
+    `;
+    document.head.appendChild(style);
+})();
+
+/* 1. ÜYELİK SİSTEMİ */
+const MembershipSystem = {
+    isPro: function() { 
+        this.checkExpiration();
+        return localStorage.getItem('userPlan') === 'PRO'; 
+    },
+    
+    showUpsell: function() {
+        if (document.getElementById('upsell-modal')) {
+            document.getElementById('upsell-modal').style.display = 'flex';
+            return;
+        }
+        const html = `
+            <div id="upsell-modal">
+                <div class="upsell-card">
+                    <div class="upsell-content-mask"></div>
+                    <div style="position:relative; z-index:1;">
+                        <div class="uc-icon"><i class="fas fa-crown"></i></div>
+                        <div class="uc-title">TRADEVIA PRO</div>
+                        <div class="uc-subtitle">Sınırları kaldır, piyasaya hükmet.</div>
+                        <div class="uc-features">
+                            <div class="uc-item"><i class="fas fa-brain"></i> <b>Zeka Merkezi:</b> Yapay zeka yatırımcı analizi</div>
+                            <div class="uc-item"><i class="fas fa-chart-line"></i> <b>FOMO Skor:</b> Duygusal işlem ölçümü</div>
+                            <div class="uc-item"><i class="fas fa-graduation-cap"></i> <b>Trader Karnesi:</b> Başarı puanın</div>
+                            <div class="uc-item"><i class="fas fa-history"></i> <b>Zaman Makinesi:</b> Sınırsız analiz</div>
+                            <div class="uc-item"><i class="fas fa-sync-alt"></i> <b>Otomatik Veri:</b> Tek tıkla aktarım</div>
+                        </div>
+                        <button class="uc-btn" onclick="MembershipSystem.processPayment()">PRO'YA GEÇ (49₺)</button>
+                        <button class="uc-close" onclick="document.getElementById('upsell-modal').style.display='none'">Belki Daha Sonra</button>
+                    </div>
+                </div>
+            </div>`;
+        document.body.insertAdjacentHTML('beforeend', html);
+        document.getElementById('upsell-modal').style.display = 'flex';
+    },
+
+    processPayment: function() {
+        document.getElementById('upsell-modal').style.display = 'none';
+        if (window.Android && window.Android.buyPro) {
+            window.Android.buyPro();
+        } else {
+            if(confirm("🛠️ TEST MODU\n\nGoogle Play simülasyonu: Ödeme başarılı sayılsın mı?")) {
+                this.activatePro();
+            }
+        }
+    },
+    
+    activatePro: function() {
+        const now = new Date();
+        const endDate = new Date();
+        endDate.setDate(now.getDate() + 30); 
+
+        localStorage.setItem('userPlan', 'PRO');
+        localStorage.setItem('proStartDate', now.toISOString()); 
+        localStorage.setItem('proEndDate', endDate.toISOString()); 
+        
+        alert("🎉 TEBRİKLER! Ödeme Başarılı.\nPro üyeliğiniz 30 gün boyunca aktif!");
+        location.reload();
+    },
+    
+    downgrade: function() {
+        if(confirm("Free pakete dönmek istediğine emin misin?")) {
+            this.setFree();
+            location.reload();
+        }
+    },
+
+    setFree: function() {
+        localStorage.setItem('userPlan', 'FREE');
+        localStorage.removeItem('proStartDate');
+        localStorage.removeItem('proEndDate');
+        alert("Paketiniz Free'ye düşürüldü.");
+    },
+    
+    checkExpiration: function() {
+        if (localStorage.getItem('userPlan') !== 'PRO') return;
+        const endDateStr = localStorage.getItem('proEndDate');
+        if (!endDateStr) return; 
+        const now = new Date();
+        const endDate = new Date(endDateStr);
+        if (now > endDate) {
+            alert("⚠️ PRO ÜYELİK SÜRENİZ DOLDU.\n\nOtomatik olarak Free pakete geçirildiniz.");
+            this.setFree();
+            location.reload();
+        }
+    },
+    
+    checkUsageLimit: function(featureName, maxLimit, title) {
+        if (this.isPro()) return true; 
+        let today = new Date().toLocaleDateString();
+        let key = 'limit_' + featureName;
+        let usage = JSON.parse(localStorage.getItem(key)) || { date: today, count: 0 };
+        if (usage.date !== today) { usage = { date: today, count: 0 }; localStorage.setItem(key, JSON.stringify(usage)); }
+        if (usage.count >= maxLimit) {
+            alert(`🔒 GÜNLÜK LİMİT DOLDU!\n\nFree pakette '${title}' özelliğini günde ${maxLimit} kez kullanabilirsin.`);
+            return false;
+        }
+        usage.count++; localStorage.setItem(key, JSON.stringify(usage)); return true;
+    },
+
+    refreshUI: function() {
+        const isPro = this.isPro();
+        let img = document.getElementById('menuProfileImg');
+        if(img) {
+            img.classList.remove('profile-frame-free', 'profile-frame-pro');
+            img.classList.add(isPro ? 'profile-frame-pro' : 'profile-frame-free');
+        }
+        let badge = document.querySelector('.pbc-badge');
+        if(badge) {
+            if(isPro) {
+                badge.innerHTML = '<i class="fas fa-crown"></i> PRO ÜYE';
+                badge.style.background = 'linear-gradient(45deg, #f59e0b, #d97706)'; badge.style.color = '#000';
+            } else {
+                badge.innerHTML = '<i class="fas fa-user"></i> FREE ÜYE';
+                badge.style.background = '#334155'; badge.style.color = '#94a3b8';
+            }
+        }
+
+        let btnUp = document.getElementById('btnUpgrade');
+        let btnDown = document.getElementById('btnDowngrade');
+        
+        if(btnUp) btnUp.style.display = isPro ? 'none' : 'block';
+        if(btnDown) btnDown.style.display = isPro ? 'block' : 'none';
+        
+        if(btnUp) btnUp.onclick = () => this.showUpsell();
+        if(btnDown) btnDown.onclick = () => this.downgrade();
+
+        let statusContainer = document.getElementById('planStatusText');
+        if(statusContainer) {
+            if (!isPro) {
+                statusContainer.innerHTML = `
+                    <div class="membership-card card-free">
+                        <div class="mc-header"><div class="mc-title">FREE PLAN</div><div class="mc-badge badge-free">STANDART</div></div>
+                        <div style="font-size:12px; color:#cbd5e1; margin-bottom:10px;">Temel özelliklerle piyasayı takip et. Kısıtlı erişim.</div>
+                        <div class="mc-progress-bg"><div class="mc-progress-fill" style="width:0%"></div></div>
+                    </div>`;
+            } else {
+                const start = new Date(localStorage.getItem('proStartDate'));
+                const end = new Date(localStorage.getItem('proEndDate'));
+                const now = new Date();
+                const formatDate = (d) => d.toLocaleDateString('tr-TR');
+                const diffTime = Math.abs(end - now);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                let percent = ((30 - diffDays) / 30) * 100;
+                if(percent > 100) percent = 100; if(percent < 0) percent = 0;
+
+                statusContainer.innerHTML = `
+                    <div class="membership-card card-pro">
+                        <div class="mc-header"><div class="mc-title"><i class="fas fa-crown"></i> PRO MEMBER</div><div class="mc-badge badge-pro">PREMIUM</div></div>
+                        <div class="mc-dates">
+                            <div style="display:flex; justify-content:space-between;"><span>📅 Başlangıç:</span> <b>${formatDate(start)}</b></div>
+                            <div style="display:flex; justify-content:space-between;"><span>⏳ Bitiş:</span> <b>${formatDate(end)}</b></div>
+                            <div style="margin-top:8px; font-size:13px; font-weight:bold; color:#fbbf24;">Kalan Süre: ${diffDays} Gün</div>
+                        </div>
+                        <div class="mc-progress-bg"><div class="mc-progress-fill" style="width:${100 - percent}%"></div></div>
+                    </div>`;
+            }
+        }
+    }
+};
+
+window.onPaymentSuccess = function() { MembershipSystem.activatePro(); };
+
+/* KISITLAMALAR */
+if (!window.original_switchAnTab) window.original_switchAnTab = window.switchAnTab;
+window.switchAnTab = function(tabName, btn) {
+    if (tabName === 'psycho' && !MembershipSystem.isPro()) {
+        MembershipSystem.showUpsell(); 
+        return; 
+    }
+    if(typeof window.original_switchAnTab === 'function') window.original_switchAnTab(tabName, btn);
+};
+
+if (!window.original_runStatisticalAnalysis) window.original_runStatisticalAnalysis = window.runStatisticalAnalysis;
+window.runStatisticalAnalysis = async function() {
+    let symbolInput = document.getElementById('statSymbol');
+    if (!symbolInput || !symbolInput.value || symbolInput.value.trim() === "") { alert("⚠️ Lütfen sembol girin."); return; }
+    if (!MembershipSystem.checkUsageLimit('timeMachine', 3, 'Zaman Makinesi')) return; 
+    if(typeof window.original_runStatisticalAnalysis === 'function') await window.original_runStatisticalAnalysis();
+};
+
+if (!window.original_calculateTraderScore) window.original_calculateTraderScore = window.calculateTraderScore;
+window.calculateTraderScore = function() {
+    if (!MembershipSystem.isPro()) {
+        let scoreEl = document.getElementById('pfScore'); 
+        if (scoreEl && scoreEl.closest('.dash-card')) {
+            let card = scoreEl.closest('.dash-card');
+            card.style.position = 'relative';
+            if (card.querySelector('.pro-lock-overlay')) card.querySelector('.pro-lock-overlay').remove();
+            let overlay = document.createElement('div');
+            overlay.className = 'pro-lock-overlay';
+            overlay.style.cssText = `position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 16px; text-align: center; border:1px solid rgba(255,255,255,0.1); opacity: 1 !important;`;
+            overlay.innerHTML = `<div style="margin-bottom:15px;"><i class="fas fa-lock" style="font-size:28px; color:#f59e0b;"></i></div><div style="color:white; font-weight:800; font-size:16px; margin-bottom:8px;">KARNE KİLİTLİ</div><button onclick="MembershipSystem.showUpsell()" style="background: linear-gradient(90deg, #f59e0b, #d97706); color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 700; cursor: pointer;">PRO OL</button>`;
+            card.appendChild(overlay);
+        }
+        return; 
+    }
+    if(typeof window.original_calculateTraderScore === 'function') window.original_calculateTraderScore();
+    let locks = document.querySelectorAll('.pro-lock-overlay'); locks.forEach(l => l.remove());
+};
+
+if (!window.original_populateAdvAvgAssets) window.original_populateAdvAvgAssets = window.populateAdvAvgAssets;
+window.populateAdvAvgAssets = function() {
+    const select = document.getElementById('advAvgSelect');
+    if(!select) return;
+    select.innerHTML = '<option value="-1">Manuel Giriş Yap / Seçiniz</option>';
+    let assets = JSON.parse(localStorage.getItem('myPF_final')) || [];
+    assets.forEach((a, i) => {
+        let text = ""; let symbol = a.name || "Bilinmeyen"; let cost = parseFloat(a.buy); if(isNaN(cost)) cost = 0;
+        if (MembershipSystem.isPro()) { let sym = a.origin === 'USD' ? '$' : '₺'; text = `${symbol} (Ort: ${cost.toFixed(2)} ${sym})`; } else { text = `${symbol}`; }
+        select.innerHTML += `<option value="${i}">${text}</option>`;
+    });
+};
+
+if (!window.original_fillAdvAvgData) window.original_fillAdvAvgData = window.fillAdvAvgData;
+window.fillAdvAvgData = function(avg, amount, price) {
+    if (MembershipSystem.isPro()) { if(typeof window.original_fillAdvAvgData === 'function') window.original_fillAdvAvgData(avg, amount, price); return; }
+    MembershipSystem.showUpsell();
+    if(document.getElementById('aaCurrentCost')) document.getElementById('aaCurrentCost').value = "";
+    if(document.getElementById('aaCurrentAmount')) document.getElementById('aaCurrentAmount').value = "";
+    let sel = document.getElementById('advAvgSelect'); if(sel) sel.value = "-1";
+};
+
+/* BAŞLATICI */
+document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => {
+        MembershipSystem.refreshUI();
+        if(typeof window.calculateTraderScore === 'function') window.calculateTraderScore(); 
+        if(typeof window.populateAdvAvgAssets === 'function') window.populateAdvAvgAssets();
+        
+        // 🔥 GÜNCELLEME: HERKES İÇİN HESAPLA (AMA GÖSTERME)
+        // Böylece Pro olduğunda beklemez.
+        if(typeof window.calcPsychoAnalysis === 'function') {
+            window.calcPsychoAnalysis();
+        }
+    }, 500);
+});
+</script>
+
+
 </body>
 </html>
 
