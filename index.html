@@ -1640,6 +1640,105 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     pointer-events: none;
 }
 
+/* --- GLOBAL BASMA (TICKLAMA) ANİMASYONU --- */
+
+/* 1. Tüm Butonlar, Menü Öğeleri ve Kartlar için Ortak Efekt */
+button:active, 
+.btn:active, 
+.btn-primary:active, 
+.btn-danger:active, 
+.btn-secondary:active,
+.nav-item:active,       /* Alt menü ikonları */
+.floating-btn:active,   /* Sağ alttaki yuvarlak (+) butonu */
+.tgl-switch:active,     /* Ayarlardaki switchler */
+.action-btn:active,     /* Tablo içindeki sil/düzenle butonları */
+.filter-chip:active,    /* Filtre butonları */
+.currency-toggle-btn:active, /* USD/TRY butonu */
+.quick-action-btn:active /* Hızlı işlem butonları */
+{
+    transform: scale(0.94) !important; /* %6 Küçülme */
+    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.9; /* Hafif saydamlık */
+}
+
+/* 2. Mobilde Dokunma İzini Kaldır (Daha Native Hissettirir) */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+/* --- ARGE / KONTROL MERKEZİ TASARIMI --- */
+.arge-wrapper {
+    background: rgba(20, 20, 30, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 25px;
+    margin: 15px 0;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Arka plana hafif kodsal süsleme (Decoration) */
+.arge-wrapper::before {
+    content: '';
+    position: absolute;
+    top: -50px; right: -50px;
+    width: 150px; height: 150px;
+    background: radial-gradient(circle, rgba(66, 133, 244, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.arge-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.arge-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, #fff, #aab);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 0.5px;
+}
+
+.arge-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Yan yana 2 kutu */
+    gap: 15px;
+}
+
+.arge-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 20px 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Tıklanınca efekt */
+.arge-card:active {
+    transform: scale(0.96);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.arge-icon-box {
+    width: 50px;
+    height:
+
     </style>
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5912166843737955"
@@ -1939,7 +2038,6 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 <style>
 #page-news * { box-sizing: border-box; }
 
-/* HERO */
 .news-hero {
     position: fixed;
     top: 0; left: 0; right: 0;
@@ -1959,12 +2057,11 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     background: linear-gradient(to bottom, rgba(10,14,23,0.3) 0%, rgba(10,14,23,0.5) 50%, #0a0e17 100%);
 }
 
-/* HERO BUTONLAR */
 .news-menu-btn, .news-refresh-btn {
     position: absolute;
     top: 50px;
     width: 42px; height: 42px;
-    background: rgba(0,0,0,0.5);
+    background: rgba(255,255,255,0.1);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-radius: 12px;
@@ -1973,7 +2070,7 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     justify-content: center;
     cursor: pointer;
     z-index: 60;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
     transition: transform 0.2s;
 }
 .news-menu-btn { left: 20px; flex-direction: column; gap: 4px; }
@@ -1981,7 +2078,6 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 .news-menu-btn:active, .news-refresh-btn:active { transform: scale(0.92); }
 .news-menu-btn span { width: 16px; height: 2px; background: #fff; border-radius: 2px; }
 
-/* HERO İÇERİK */
 .news-hero-content {
     position: absolute;
     bottom: 24px; left: 20px; right: 20px;
@@ -1991,9 +2087,12 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 5px 10px;
-    background: #3b82f6;
-    border-radius: 6px;
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
     font-size: 10px;
     font-weight: 700;
     color: #fff;
@@ -2001,7 +2100,7 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     text-transform: uppercase;
 }
 .news-hero-title {
-    font-size: 19px;
+    font-size: 18px;
     font-weight: 700;
     color: #fff;
     line-height: 1.4;
@@ -2015,12 +2114,8 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     margin-top: 8px;
     font-size: 11px;
     color: rgba(255,255,255,0.6);
-    display: flex;
-    align-items: center;
-    gap: 6px;
 }
 
-/* SLIDER DOTS */
 .news-hero-dots {
     position: absolute;
     bottom: 10px;
@@ -2038,16 +2133,15 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     transition: all 0.3s;
 }
 .news-hero-dot.active {
-    width: 22px;
+    width: 20px;
     border-radius: 3px;
     background: #fff;
 }
 
-/* KATEGORİ BAR */
 .news-cat-bar {
     position: fixed;
     top: 300px; left: 0; right: 0;
-    height: 48px;
+    height: 46px;
     background: #0a0e17;
     display: flex;
     align-items: center;
@@ -2060,36 +2154,29 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 14px;
+    padding: 7px 12px;
     background: rgba(255,255,255,0.08);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 18px;
     color: #fff;
     font-size: 12px;
     font-weight: 600;
 }
-.news-cat-chip i { 
-    font-size: 14px;
-    opacity: 0.9;
-}
-.news-cat-chip i { font-size: 13px; }
 .news-count {
     font-size: 11px;
     color: #64748b;
 }
 .news-count strong { color: #94a3b8; }
 
-/* HABER LİSTESİ */
 .news-list {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
     overflow-y: auto;
-    padding: 358px 20px 100px;
+    padding: 356px 16px 100px;
 }
 
-/* HABER KARTI */
 .news-card {
     display: flex;
     gap: 12px;
@@ -2116,20 +2203,17 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     overflow: hidden;
 }
 .news-card-img {
-    width: 78px; height: 78px;
+    width: 76px; height: 76px;
     border-radius: 10px;
     object-fit: cover;
     background: #1e293b;
     flex-shrink: 0;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   YAN PANEL - ARKA PLAN RESİMLİ
-═══════════════════════════════════════════════════════════════ */
 .news-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.85);
     z-index: 500;
     opacity: 0;
     visibility: hidden;
@@ -2140,35 +2224,28 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 .news-panel {
     position: fixed;
     top: 0; left: 0; bottom: 0;
-    width: 280px;
+    width: 270px;
     z-index: 501;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
-    display: flex;
-    flex-direction: column;
     overflow: hidden;
 }
 .news-panel.show { transform: translateX(0); }
 
-/* Panel arka plan resmi */
 .np-bg {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
     background-size: cover;
     background-position: center;
-    transition: background-image 0.5s ease;
+    transition: background-image 0.4s;
 }
 .np-bg::after {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(180deg, 
-        rgba(0,0,0,0.7) 0%, 
-        rgba(0,0,0,0.85) 50%, 
-        rgba(0,0,0,0.95) 100%);
+    background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.85) 100%);
 }
 
-/* Panel içerik */
 .np-content {
     position: relative;
     z-index: 2;
@@ -2178,446 +2255,698 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 }
 
 .np-header {
-    padding: 55px 20px 18px;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 50px 20px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
 }
-.np-title { 
-    font-size: 22px; 
-    font-weight: 700; 
-    color: #fff;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-}
-.np-sub { 
-    font-size: 11px; 
-    color: rgba(255,255,255,0.6); 
-    margin-top: 3px; 
-}
+.np-title { font-size: 20px; font-weight: 700; color: #fff; }
+.np-sub { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
 
 .np-body {
     flex: 1;
     overflow-y: auto;
-    padding: 12px 10px;
+    padding: 10px 8px;
 }
 
-/* Kategori item */
 .np-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 14px;
-    border-radius: 12px;
+    padding: 11px 12px;
+    border-radius: 10px;
     cursor: pointer;
-    margin-bottom: 4px;
-    transition: all 0.2s;
-    border: 1px solid transparent;
+    margin-bottom: 3px;
+    transition: background 0.2s;
 }
-.np-item:active { transform: scale(0.98); }
-.np-item.active { 
-    background: rgba(255,255,255,0.1);
-    border-color: rgba(255,255,255,0.15);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-}
+.np-item:active { opacity: 0.7; }
+.np-item.active { background: rgba(255,255,255,0.12); }
 
 .np-icon {
-    width: 36px; height: 36px;
-    border-radius: 10px;
+    width: 34px; height: 34px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    font-size: 15px;
     color: #fff;
-    background: rgba(255,255,255,0.15) !important;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.1);
 }
 
 .np-name {
     flex: 1;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 500;
-    color: rgba(255,255,255,0.8);
-    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    color: rgba(255,255,255,0.7);
 }
-.np-item.active .np-name { 
-    color: #fff; 
-    font-weight: 600; 
-}
+.np-item.active .np-name { color: #fff; font-weight: 600; }
 
 .np-check {
-    width: 20px; height: 20px;
+    width: 18px; height: 18px;
     border-radius: 50%;
     background: #fff;
     display: none;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-size: 9px;
     color: #000;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 .np-item.active .np-check { display: flex; }
 
 .np-footer {
-    padding: 14px 20px;
-    border-top: 1px solid rgba(255,255,255,0.08);
-    font-size: 11px;
-    color: rgba(255,255,255,0.5);
+    padding: 12px 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 10px;
+    color: rgba(255,255,255,0.4);
     display: flex;
     align-items: center;
     gap: 6px;
-    background: rgba(0,0,0,0.3);
 }
 .np-footer::before {
     content: '';
-    width: 6px; height: 6px;
+    width: 5px; height: 5px;
     background: #22c55e;
     border-radius: 50%;
-    box-shadow: 0 0 8px #22c55e;
+    animation: pulse 2s infinite;
 }
 
-/* LOADING & ANİMASYON */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
 .news-loading {
     text-align: center;
     padding: 50px 20px;
     color: #64748b;
 }
-.news-loading i { font-size: 24px; color: #3b82f6; margin-bottom: 12px; display: block; }
+.news-loading i { font-size: 22px; color: #3b82f6; margin-bottom: 10px; display: block; }
 
 @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
 }
 </style>
 
-<!-- HERO -->
 <div class="news-hero">
-    <img class="news-hero-img" id="heroImg" src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800">
+    <img class="news-hero-img" id="heroImg" src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800">
     <div class="news-hero-gradient"></div>
-    
-    <div class="news-menu-btn" onclick="newsPanel.toggle()">
-        <span></span><span></span><span></span>
-    </div>
-    <div class="news-refresh-btn" onclick="news.refresh()">
-        <i class="fas fa-sync-alt"></i>
-    </div>
-    
+    <div class="news-menu-btn" onclick="NewsPanel.toggle()"><span></span><span></span><span></span></div>
+    <div class="news-refresh-btn" onclick="NewsApp.refresh()"><i class="fas fa-sync-alt"></i></div>
     <div class="news-hero-content">
-        <div class="news-hero-badge" id="heroBadge"><i class="fas fa-newspaper"></i> MANŞET</div>
+        <div class="news-hero-badge" id="heroBadge"><i class="fas fa-chart-bar"></i> PİYASA</div>
         <div class="news-hero-title" id="heroTitle">Haberler yükleniyor...</div>
-        <div class="news-hero-meta" id="heroMeta"><i class="far fa-clock"></i> --</div>
+        <div class="news-hero-meta" id="heroMeta">--</div>
     </div>
     <div class="news-hero-dots" id="heroDots"></div>
 </div>
 
-<!-- KATEGORİ BAR -->
 <div class="news-cat-bar">
-    <div class="news-cat-chip" id="catChip"><i class="fas fa-newspaper"></i> Manşet</div>
+    <div class="news-cat-chip" id="catChip"><i class="fas fa-chart-bar"></i> Piyasa</div>
     <div class="news-count" id="newsCount">Son 24 saat • <strong>0</strong> haber</div>
 </div>
 
-<!-- HABER LİSTESİ -->
 <div class="news-list" id="newsList">
-    <div class="news-loading"><i class="fas fa-circle-notch fa-spin"></i> Yükleniyor...</div>
+    <div class="news-loading"><i class="fas fa-spinner fa-spin"></i>Yükleniyor...</div>
 </div>
 
-<!-- YAN PANEL -->
-<div class="news-overlay" id="newsOverlay" onclick="newsPanel.toggle()"></div>
+<div class="news-overlay" id="newsOverlay" onclick="NewsPanel.toggle()"></div>
 <div class="news-panel" id="newsPanel">
     <div class="np-bg" id="npBg"></div>
     <div class="np-content">
         <div class="np-header">
             <div class="np-title">Kategoriler</div>
-            <div class="np-sub">Bir kategori seçin</div>
+            <div class="np-sub">Haber türü seçin</div>
         </div>
         <div class="np-body" id="npBody"></div>
-        <div class="np-footer" id="npFooter">Son güncelleme: --:--</div>
+        <div class="np-footer" id="npFooter">Güncelleme: --:--</div>
     </div>
 </div>
 
 <script>
-// KATEGORİLER (Arka plan resimleri eklendi)
-const categories = [
-    { 
-        id: 'manset', 
-        name: 'Manşet', 
-        icon: 'fas fa-fire', 
-        color: '#ef4444',
-        bg: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600'
-    },
-    { 
-        id: 'kripto', 
-        name: 'Kripto', 
-        icon: 'fab fa-bitcoin', 
-        color: '#f7931a',
-        bg: 'https://images.unsplash.com/photo-1622630998477-166aead6616d?w=600'
-    },
-    { 
-        id: 'borsa', 
-        name: 'Borsa', 
-        icon: 'fas fa-chart-line', 
-        color: '#10b981',
-        bg: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600'
-    },
-    { 
-        id: 'emtia', 
-        name: 'Emtia', 
-        icon: 'fas fa-coins', 
-        color: '#eab308',
-        bg: 'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=600'
-    },
-    { 
-        id: 'doviz', 
-        name: 'Döviz', 
-        icon: 'fas fa-dollar-sign', 
-        color: '#06b6d4',
-        bg: 'https://images.unsplash.com/photo-1621761311771-4cc5c5652a8c?w=600'
-    },
-    { 
-        id: 'teknoloji', 
-        name: 'Teknoloji', 
-        icon: 'fas fa-microchip', 
-        color: '#8b5cf6',
-        bg: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600'
-    },
-    { 
-        id: 'ekonomi', 
-        name: 'Ekonomi', 
-        icon: 'fas fa-landmark', 
-        color: '#6366f1',
-        bg: 'https://images.unsplash.com/photo-1543286386-713bdd548da4?w=600'
-    },
-    { 
-        id: 'dunya', 
-        name: 'Dünya', 
-        icon: 'fas fa-globe', 
-        color: '#ec4899',
-        bg: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600'
-    }
-];
+(function() {
+    // KATEGORİLER
+    const CATEGORIES = [
+        { id: 'piyasa', name: 'Piyasa', icon: 'fas fa-chart-bar', bg: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600' },
+        { id: 'kripto', name: 'Kripto', icon: 'fab fa-bitcoin', bg: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=600' },
+        { id: 'borsa', name: 'Borsa', icon: 'fas fa-chart-line', bg: 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=600' },
+        { id: 'emtia', name: 'Emtia', icon: 'fas fa-coins', bg: 'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=600' },
+        { id: 'doviz', name: 'Döviz', icon: 'fas fa-dollar-sign', bg: 'https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=600' },
+        { id: 'ekonomi', name: 'Ekonomi', icon: 'fas fa-landmark', bg: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=600' }
+    ];
 
-// PANEL
-window.newsPanel = {
-    open: false,
-    toggle() {
-        this.open = !this.open;
-        document.getElementById('newsPanel').classList.toggle('show', this.open);
-        document.getElementById('newsOverlay').classList.toggle('show', this.open);
-    }
-};
+    // TÜM KAYNAKLAR (Mevcut + Investing + TradingView)
+    const SOURCES = {
+        piyasa: [
+            'https://news.google.com/rss/search?q=borsa+dolar+altın+ekonomi&hl=tr&gl=TR&ceid=TR:tr',
+            'https://www.bloomberght.com/rss',
+            'https://www.dunya.com/rss',
+            'https://bigpara.hurriyet.com.tr/rss/',
+            'https://tr.investing.com/rss/news.rss',
+            'https://www.aa.com.tr/tr/rss/default?cat=ekonomi',
+            'https://www.tradingview.com/feed/'
+        ],
+        kripto: [
+            'https://tr.cointelegraph.com/rss',
+            'https://koinbulteni.com/feed/',
+            'https://uzmancoin.com/feed/',
+            'https://coinotag.com/feed/',
+            'https://bitcoinhaber.net/feed/',
+            'https://tr.investing.com/rss/news_301.rss',
+            'https://www.tradingview.com/feed/?sort=crypto'
+        ],
+        borsa: [
+            'https://www.bloomberght.com/rss',
+            'https://bigpara.hurriyet.com.tr/rss/',
+            'https://www.dunya.com/rss',
+            'https://tr.investing.com/rss/news.rss',
+            'https://tr.investing.com/rss/stock_Ede.rss',
+            'https://www.aa.com.tr/tr/rss/default?cat=ekonomi',
+            'https://www.tradingview.com/feed/?sort=stock'
+        ],
+        emtia: [
+            'https://tr.investing.com/rss/commodities_Ede.rss',
+            'https://www.bloomberght.com/rss',
+            'https://bigpara.hurriyet.com.tr/rss/',
+            'https://www.dunya.com/rss',
+            'https://tr.investing.com/rss/news_14.rss',
+            'https://www.tradingview.com/feed/?sort=commodities'
+        ],
+        doviz: [
+            'https://www.doviz.com/rss/haberler',
+            'https://tr.investing.com/rss/forex_Ede.rss',
+            'https://www.bloomberght.com/rss',
+            'https://bigpara.hurriyet.com.tr/rss/',
+            'https://www.dunya.com/rss',
+            'https://tr.investing.com/rss/news_1.rss',
+            'https://www.tradingview.com/feed/?sort=forex'
+        ],
+        ekonomi: [
+            'https://www.bloomberght.com/rss',
+            'https://www.dunya.com/rss',
+            'https://www.aa.com.tr/tr/rss/default?cat=ekonomi',
+            'https://bigpara.hurriyet.com.tr/rss/',
+            'https://tr.investing.com/rss/news_95.rss',
+            'https://tr.investing.com/rss/news.rss',
+            'https://www.tradingview.com/feed/'
+        ]
+    };
 
-// ANA UYGULAMA
-window.news = {
-    cat: 'manset',
-    slide: 0,
-    top5: [],
-    timer: null,
-
-    init() {
-        this.renderPanel();
-        this.setPanelBg('manset');
-        this.load('manset');
-        this.startSlider();
-    },
-
-    renderPanel() {
-    document.getElementById('npBody').innerHTML = categories.map(c => `
-        <div class="np-item ${c.id === 'manset' ? 'active' : ''}" data-id="${c.id}" onclick="news.select('${c.id}')">
-            <div class="np-icon"><i class="${c.icon}"></i></div>
-            <div class="np-name">${c.name}</div>
-            <div class="np-check"><i class="fas fa-check"></i></div>
-        </div>
-    `).join('');
-},
-
-    setPanelBg(id) {
-        const c = categories.find(x => x.id === id);
-        if (c) {
-            document.getElementById('npBg').style.backgroundImage = `url('${c.bg}')`;
-        }
-    },
-
-    select(id) {
-        // Aktif item güncelle
-        document.querySelectorAll('.np-item').forEach(el => el.classList.toggle('active', el.dataset.id === id));
-        
-        // Panel arka planını değiştir
-        this.setPanelBg(id);
-        
-        // Paneli kapat ve yükle
-        setTimeout(() => newsPanel.toggle(), 200);
-        this.load(id);
-    },
-
-    load(id) {
-        this.cat = id;
-        const c = categories.find(x => x.id === id);
-        
-     // Chip güncelle (saydam)
-document.getElementById('catChip').innerHTML = `<i class="${c.icon}"></i> ${c.name}`;
-        
-        // Badge güncelle
-        document.getElementById('heroBadge').innerHTML = `<i class="${c.icon}"></i> ${c.name.toUpperCase()}`;
-        document.getElementById('heroBadge').style.background = c.color;
-        
-        // Loading
-        document.getElementById('newsList').innerHTML = `<div class="news-loading"><i class="fas fa-satellite-dish fa-spin"></i> Taranıyor...</div>`;
-        
-        newsData.fetch(id);
-    },
-
-    setHero(items) {
-        this.top5 = items.slice(0, 5);
-        if (!this.top5.length) return;
-        this.slide = 0;
-        this.showSlide(0);
-        document.getElementById('heroDots').innerHTML = this.top5.map((_, i) => 
-            `<div class="news-hero-dot ${i === 0 ? 'active' : ''}" onclick="news.goSlide(${i})"></div>`
-        ).join('');
-    },
-
-    showSlide(i) {
-        const item = this.top5[i];
-        if (!item) return;
-        const img = document.getElementById('heroImg');
-        img.style.opacity = '0.3';
-        setTimeout(() => {
-            img.src = newsData.getImg(item);
-            img.onerror = () => img.src = newsData.fallback[this.cat];
-            document.getElementById('heroTitle').textContent = newsData.clean(item.title);
-            document.getElementById('heroMeta').innerHTML = `<i class="far fa-clock"></i> ${item.provider} • ${newsData.ago(new Date(item.pubDate))}`;
-            img.style.opacity = '0.55';
-        }, 150);
-        document.querySelectorAll('.news-hero-dot').forEach((d, idx) => d.classList.toggle('active', idx === i));
-    },
-
-    goSlide(i) { this.slide = i; this.showSlide(i); this.resetSlider(); },
-    nextSlide() { if (this.top5.length) { this.slide = (this.slide + 1) % this.top5.length; this.showSlide(this.slide); }},
-    startSlider() { this.timer = setInterval(() => this.nextSlide(), 5000); },
-    resetSlider() { clearInterval(this.timer); this.startSlider(); },
-
-    setList(items) {
-        const list = items.slice(5);
-        document.getElementById('newsCount').innerHTML = `Son 24 saat • <strong>${items.length}</strong> haber`;
-        document.getElementById('npFooter').textContent = `Son güncelleme: ${new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'})}`;
-        
-        if (!list.length) {
-            document.getElementById('newsList').innerHTML = items.length 
-                ? `<div style="text-align:center;padding:40px;color:#64748b;"><i class="fas fa-check-circle" style="color:#22c55e;font-size:24px;display:block;margin-bottom:10px;"></i>Tüm haberler yukarıda</div>`
-                : `<div style="text-align:center;padding:40px;color:#64748b;">Haber bulunamadı</div>`;
-            return;
-        }
-
-        document.getElementById('newsList').innerHTML = list.map((item, i) => `
-            <div class="news-card" onclick="window.open('${item.link}','_blank')" style="animation:fadeUp .3s ease ${i*.02}s both">
-                <div class="news-card-body">
-                    <div class="news-card-src" style="color:${newsData.color(item.provider)}">${item.provider} <span>• ${newsData.ago(new Date(item.pubDate))}</span></div>
-                    <div class="news-card-title">${newsData.clean(item.title)}</div>
-                </div>
-                <img class="news-card-img" src="${newsData.getImg(item)}" onerror="this.src='${newsData.fallback[news.cat]}'">
-            </div>
-        `).join('');
-    },
-
-    refresh() { newsData.cache = {}; this.load(this.cat); }
-};
-
-// VERİ SERVİSİ
-window.newsData = {
-    cache: {},
-
-    sources: {
-        manset: ['https://news.google.com/rss?hl=tr&gl=TR&ceid=TR:tr','https://www.trthaber.com/sitene-ekle/rss/?tur=gundem','https://www.ntv.com.tr/gundem.rss','https://www.cnnturk.com/feed/rss/all/news','https://www.aa.com.tr/tr/rss/default?cat=guncel'],
-        kripto: ['https://news.google.com/rss/search?q=kripto+bitcoin&hl=tr&gl=TR&ceid=TR:tr','https://tr.cointelegraph.com/rss','https://koinbulteni.com/feed/','https://uzmancoin.com/feed/','https://coinotag.com/feed/'],
-        borsa: ['https://news.google.com/rss/search?q=borsa+istanbul+BIST&hl=tr&gl=TR&ceid=TR:tr','https://www.bloomberght.com/rss','https://www.dunya.com/rss','https://bigpara.hurriyet.com.tr/rss/','https://tr.investing.com/rss/news.rss'],
-        emtia: ['https://news.google.com/rss/search?q=altın+petrol&hl=tr&gl=TR&ceid=TR:tr','https://www.bloomberght.com/rss','https://tr.investing.com/rss/commodities_Ede.rss','https://bigpara.hurriyet.com.tr/rss/'],
-        doviz: ['https://news.google.com/rss/search?q=dolar+euro+TL&hl=tr&gl=TR&ceid=TR:tr','https://www.doviz.com/rss/haberler','https://tr.investing.com/rss/forex_Ede.rss','https://www.bloomberght.com/rss'],
-        teknoloji: ['https://news.google.com/rss/search?q=teknoloji+yapay+zeka&hl=tr&gl=TR&ceid=TR:tr','https://webrazzi.com/feed/','https://www.donanimhaber.com/rss/','https://www.technopat.net/feed/'],
-        ekonomi: ['https://news.google.com/rss/search?q=ekonomi+enflasyon&hl=tr&gl=TR&ceid=TR:tr','https://www.bloomberght.com/rss','https://www.dunya.com/rss','https://www.aa.com.tr/tr/rss/default?cat=ekonomi'],
-        dunya: ['https://news.google.com/rss/search?q=dünya+haberleri&hl=tr&gl=TR&ceid=TR:tr','https://www.trthaber.com/sitene-ekle/rss/?tur=dunya','https://www.ntv.com.tr/dunya.rss','https://www.bbc.com/turkce/index.xml']
-    },
-
-    fallback: {
-        manset: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800',
-        kripto: 'https://images.unsplash.com/photo-1622630998477-166aead6616d?w=800',
-        borsa: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800',
+    // FALLBACK RESİMLER
+    const FALLBACK_IMAGES = {
+        piyasa: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800',
+        kripto: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800',
+        borsa: 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=800',
         emtia: 'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=800',
-        doviz: 'https://images.unsplash.com/photo-1621761311771-4cc5c5652a8c?w=800',
-        teknoloji: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800',
-        ekonomi: 'https://images.unsplash.com/photo-1543286386-713bdd548da4?w=800',
-        dunya: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800'
-    },
+        doviz: 'https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=800',
+        ekonomi: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800'
+    };
 
-    kwImg: {
+    // ANAHTAR KELİME RESİMLERİ
+    const KEYWORD_IMAGES = {
         bitcoin: 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400',
+        btc: 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400',
+        ethereum: 'https://images.unsplash.com/photo-1622630998477-166aead6616d?w=400',
+        eth: 'https://images.unsplash.com/photo-1622630998477-166aead6616d?w=400',
+        kripto: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400',
         altın: 'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=400',
-        dolar: 'https://images.unsplash.com/photo-1621761311771-4cc5c5652a8c?w=400',
-        petrol: 'https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?w=400'
-    },
+        ons: 'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=400',
+        gold: 'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=400',
+        petrol: 'https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?w=400',
+        brent: 'https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?w=400',
+        dolar: 'https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=400',
+        euro: 'https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=400',
+        kur: 'https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=400',
+        borsa: 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=400',
+        bist: 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=400',
+        hisse: 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=400',
+        faiz: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=400',
+        enflasyon: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=400',
+        tcmb: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=400',
+        merkez: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=400',
+        fed: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=400'
+    };
 
-    async fetch(cat) {
-        if (this.cache[cat] && Date.now() - this.cache[cat].t < 180000) {
-            news.setHero(this.cache[cat].items);
-            news.setList(this.cache[cat].items);
-            return;
+    // KAYNAK İSİMLERİ
+    const PROVIDER_NAMES = {
+        google: 'Google',
+        bloomberg: 'Bloomberg',
+        dunya: 'Dünya',
+        bigpara: 'Bigpara',
+        investing: 'Investing',
+        cointelegraph: 'Cointelegraph',
+        koinbulteni: 'Koin Bülteni',
+        uzmancoin: 'Uzman Coin',
+        coinotag: 'Coinotag',
+        bitcoinhaber: 'BTC Haber',
+        doviz: 'Doviz.com',
+        'aa.com': 'AA',
+        tradingview: 'TradingView'
+    };
+
+    // KAYNAK RENKLERİ
+    const PROVIDER_COLORS = {
+        Google: '#4285f4',
+        Bloomberg: '#7c3aed',
+        Dünya: '#0d9488',
+        Bigpara: '#f59e0b',
+        Investing: '#22c55e',
+        Cointelegraph: '#f7931a',
+        'Koin Bülteni': '#3b82f6',
+        'Uzman Coin': '#8b5cf6',
+        Coinotag: '#eab308',
+        'BTC Haber': '#f97316',
+        'Doviz.com': '#10b981',
+        AA: '#16a34a',
+        TradingView: '#2962ff'
+    };
+
+    // PANEL KONTROL
+    window.NewsPanel = {
+        isOpen: false,
+        toggle: function() {
+            this.isOpen = !this.isOpen;
+            document.getElementById('newsPanel').classList.toggle('show', this.isOpen);
+            document.getElementById('newsOverlay').classList.toggle('show', this.isOpen);
         }
+    };
 
-        const proxy = 'https://api.rss2json.com/v1/api.json?rss_url=';
-        try {
-            const results = await Promise.all((this.sources[cat] || []).map(async url => {
-                try {
-                    const r = await Promise.race([fetch(proxy + encodeURIComponent(url)), new Promise((_, rej) => setTimeout(rej, 6000))]);
-                    const d = await r.json();
-                    return d?.status === 'ok' ? d.items.map(i => ({ ...i, provider: this.prov(d.feed?.title, url) })) : [];
-                } catch { return []; }
-            }));
+    // ANA UYGULAMA
+    window.NewsApp = {
+        currentCategory: 'piyasa',
+        currentSlide: 0,
+        topNews: [],
+        sliderTimer: null,
+        refreshTimer: null,
+        cache: {},
 
-            let items = results.flat();
-            const cutoff = Date.now() - 86400000;
-            items = items.filter(i => new Date(i.pubDate).getTime() > cutoff);
+        // Başlat
+        init: function() {
+            this.renderPanel();
+            this.setBackground('piyasa');
+            this.loadNews('piyasa');
+            this.startSlider();
+            this.startAutoRefresh();
+            console.log('📰 Haber modülü başlatıldı');
+        },
+
+        // Panel render
+        renderPanel: function() {
+            var html = '';
+            for (var i = 0; i < CATEGORIES.length; i++) {
+                var c = CATEGORIES[i];
+                var isActive = c.id === 'piyasa' ? 'active' : '';
+                html += '<div class="np-item ' + isActive + '" data-id="' + c.id + '" onclick="NewsApp.selectCategory(\'' + c.id + '\')">';
+                html += '<div class="np-icon"><i class="' + c.icon + '"></i></div>';
+                html += '<div class="np-name">' + c.name + '</div>';
+                html += '<div class="np-check"><i class="fas fa-check"></i></div>';
+                html += '</div>';
+            }
+            document.getElementById('npBody').innerHTML = html;
+        },
+
+        // Arka plan ayarla
+        setBackground: function(id) {
+            for (var i = 0; i < CATEGORIES.length; i++) {
+                if (CATEGORIES[i].id === id) {
+                    document.getElementById('npBg').style.backgroundImage = 'url(' + CATEGORIES[i].bg + ')';
+                    break;
+                }
+            }
+        },
+
+        // Kategori seç
+        selectCategory: function(id) {
+            var items = document.querySelectorAll('.np-item');
+            for (var i = 0; i < items.length; i++) {
+                items[i].classList.toggle('active', items[i].dataset.id === id);
+            }
+            this.setBackground(id);
+            var self = this;
+            setTimeout(function() { NewsPanel.toggle(); }, 150);
+            this.loadNews(id);
+        },
+
+        // Haberleri yükle
+        loadNews: function(id) {
+            this.currentCategory = id;
+            var category = null;
+            for (var i = 0; i < CATEGORIES.length; i++) {
+                if (CATEGORIES[i].id === id) {
+                    category = CATEGORIES[i];
+                    break;
+                }
+            }
+
+            document.getElementById('catChip').innerHTML = '<i class="' + category.icon + '"></i> ' + category.name;
+            document.getElementById('heroBadge').innerHTML = '<i class="' + category.icon + '"></i> ' + category.name.toUpperCase();
+            document.getElementById('newsList').innerHTML = '<div class="news-loading"><i class="fas fa-satellite-dish fa-spin"></i> Haberler taranıyor...</div>';
+
+            this.fetchNews(id);
+        },
+
+        // Haberleri çek
+        fetchNews: function(category) {
+            var self = this;
+            var cacheData = this.cache[category];
             
-            const seen = new Set();
-            items = items.filter(i => { const k = i.title.toLowerCase().slice(0, 40); if (seen.has(k)) return false; seen.add(k); return true; });
-            items.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+            // 3 dakika cache
+            if (cacheData && Date.now() - cacheData.timestamp < 180000) {
+                this.renderNews(cacheData.items);
+                return;
+            }
 
-            this.cache[cat] = { items, t: Date.now() };
-            news.setHero(items);
-            news.setList(items);
-        } catch {
-            document.getElementById('newsList').innerHTML = `<div style="text-align:center;padding:40px;color:#ef4444;"><i class="fas fa-wifi" style="font-size:24px;display:block;margin-bottom:10px;"></i>Bağlantı hatası<br><button onclick="news.refresh()" style="margin-top:12px;padding:8px 20px;background:#3b82f6;color:#fff;border:none;border-radius:8px;cursor:pointer;">Tekrar Dene</button></div>`;
+            var proxy = 'https://api.rss2json.com/v1/api.json?rss_url=';
+            var urls = SOURCES[category] || [];
+            var completed = 0;
+            var allItems = [];
+
+            if (urls.length === 0) {
+                this.renderNews([]);
+                return;
+            }
+
+            for (var i = 0; i < urls.length; i++) {
+                (function(url) {
+                    var xhr = new XMLHttpRequest();
+                    xhr.timeout = 10000;
+                    xhr.open('GET', proxy + encodeURIComponent(url), true);
+                    
+                    xhr.onload = function() {
+                        if (xhr.status === 200) {
+                            try {
+                                var data = JSON.parse(xhr.responseText);
+                                if (data && data.status === 'ok' && data.items) {
+                                    var provider = self.getProviderName(data.feed ? data.feed.title : '', url);
+                                    for (var j = 0; j < data.items.length; j++) {
+                                        data.items[j].provider = provider;
+                                        allItems.push(data.items[j]);
+                                    }
+                                }
+                            } catch (e) {}
+                        }
+                        checkComplete();
+                    };
+
+                    xhr.onerror = function() { checkComplete(); };
+                    xhr.ontimeout = function() { checkComplete(); };
+                    xhr.send();
+                })(urls[i]);
+            }
+
+            function checkComplete() {
+                completed++;
+                if (completed === urls.length) {
+                    self.processNews(allItems, category);
+                }
+            }
+        },
+
+        // Haberleri işle
+        processNews: function(items, category) {
+            var now = Date.now();
+            var oneDayAgo = now - 86400000; // 24 saat
+            var filtered = [];
+            var seen = {};
+
+            // Son 24 saat filtrele ve duplicate temizle
+            for (var i = 0; i < items.length; i++) {
+                var item = items[i];
+                var pubDate = new Date(item.pubDate).getTime();
+                
+                if (pubDate > oneDayAgo) {
+                    var key = item.title.toLowerCase().substring(0, 50);
+                    if (!seen[key]) {
+                        seen[key] = true;
+                        filtered.push(item);
+                    }
+                }
+            }
+
+            // Tarihe göre sırala (yeniden eskiye)
+            filtered.sort(function(a, b) {
+                return new Date(b.pubDate) - new Date(a.pubDate);
+            });
+
+            // Cache'e kaydet
+            this.cache[category] = {
+                items: filtered,
+                timestamp: Date.now()
+            };
+
+            this.renderNews(filtered);
+        },
+
+        // Haberleri göster
+        renderNews: function(items) {
+            var self = this;
+            
+            // Hero slider
+            this.topNews = items.slice(0, 5);
+            this.currentSlide = 0;
+
+            if (this.topNews.length > 0) {
+                this.showSlide(0);
+                var dotsHtml = '';
+                for (var i = 0; i < this.topNews.length; i++) {
+                    dotsHtml += '<div class="news-hero-dot ' + (i === 0 ? 'active' : '') + '" onclick="NewsApp.goToSlide(' + i + ')"></div>';
+                }
+                document.getElementById('heroDots').innerHTML = dotsHtml;
+            }
+
+            // Güncelleme zamanı
+            var now = new Date();
+            var timeStr = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+            document.getElementById('newsCount').innerHTML = 'Son 24 saat • <strong>' + items.length + '</strong> haber';
+            document.getElementById('npFooter').textContent = 'Güncelleme: ' + timeStr;
+
+            // Liste
+            var listItems = items.slice(5);
+
+            if (listItems.length === 0) {
+                if (items.length > 0) {
+                    document.getElementById('newsList').innerHTML = '<div style="text-align:center;padding:40px;color:#64748b;"><i class="fas fa-check-circle" style="color:#22c55e;font-size:24px;display:block;margin-bottom:10px;"></i>Tüm haberler yukarıda</div>';
+                } else {
+                    document.getElementById('newsList').innerHTML = '<div style="text-align:center;padding:40px;color:#64748b;"><i class="fas fa-inbox" style="font-size:24px;display:block;margin-bottom:10px;"></i>Haber bulunamadı</div>';
+                }
+                return;
+            }
+
+            var html = '';
+            for (var i = 0; i < listItems.length; i++) {
+                var item = listItems[i];
+                var color = PROVIDER_COLORS[item.provider] || '#64748b';
+                var img = this.getImage(item);
+                var title = this.cleanTitle(item.title);
+                var ago = this.timeAgo(new Date(item.pubDate));
+
+                html += '<div class="news-card" onclick="window.open(\'' + item.link + '\',\'_blank\')" style="animation:fadeUp .25s ease ' + (i * 0.02) + 's both">';
+                html += '<div class="news-card-body">';
+                html += '<div class="news-card-src" style="color:' + color + '">' + item.provider + ' <span>• ' + ago + '</span></div>';
+                html += '<div class="news-card-title">' + title + '</div>';
+                html += '</div>';
+                html += '<img class="news-card-img" src="' + img + '" onerror="this.src=\'' + FALLBACK_IMAGES[self.currentCategory] + '\'">';
+                html += '</div>';
+            }
+
+            document.getElementById('newsList').innerHTML = html;
+        },
+
+        // Slide göster
+        showSlide: function(index) {
+            var item = this.topNews[index];
+            if (!item) return;
+
+            var self = this;
+            var img = document.getElementById('heroImg');
+            img.style.opacity = '0.3';
+
+            setTimeout(function() {
+                img.src = self.getImage(item);
+                img.onerror = function() { img.src = FALLBACK_IMAGES[self.currentCategory]; };
+                document.getElementById('heroTitle').textContent = self.cleanTitle(item.title);
+                document.getElementById('heroMeta').innerHTML = '<i class="far fa-clock"></i> ' + item.provider + ' • ' + self.timeAgo(new Date(item.pubDate));
+                img.style.opacity = '0.55';
+            }, 150);
+
+            var dots = document.querySelectorAll('.news-hero-dot');
+            for (var i = 0; i < dots.length; i++) {
+                dots[i].classList.toggle('active', i === index);
+            }
+        },
+
+        // Slide'a git
+        goToSlide: function(index) {
+            this.currentSlide = index;
+            this.showSlide(index);
+            this.resetSlider();
+        },
+
+        // Sonraki slide
+        nextSlide: function() {
+            if (this.topNews.length > 0) {
+                this.currentSlide = (this.currentSlide + 1) % this.topNews.length;
+                this.showSlide(this.currentSlide);
+            }
+        },
+
+        // Slider başlat
+        startSlider: function() {
+            var self = this;
+            if (this.sliderTimer) clearInterval(this.sliderTimer);
+            this.sliderTimer = setInterval(function() {
+                self.nextSlide();
+            }, 5000);
+        },
+
+        // Slider sıfırla
+        resetSlider: function() {
+            this.startSlider();
+        },
+
+        // Otomatik yenileme başlat (3 dakika)
+        startAutoRefresh: function() {
+            var self = this;
+            if (this.refreshTimer) clearInterval(this.refreshTimer);
+            
+            this.refreshTimer = setInterval(function() {
+                var page = document.getElementById('page-news');
+                if (page && page.style.display !== 'none') {
+                    console.log('🔄 Otomatik yenileme: ' + new Date().toLocaleTimeString());
+                    self.cache = {};
+                    self.loadNews(self.currentCategory);
+                }
+            }, 180000); // 3 dakika
+        },
+
+        // Manuel yenile
+        refresh: function() {
+            var btn = document.querySelector('.news-refresh-btn i');
+            if (btn) {
+                btn.classList.remove('fa-sync-alt');
+                btn.classList.add('fa-spinner', 'fa-spin');
+            }
+
+            this.cache = {};
+            this.loadNews(this.currentCategory);
+
+            setTimeout(function() {
+                if (btn) {
+                    btn.classList.remove('fa-spinner', 'fa-spin');
+                    btn.classList.add('fa-sync-alt');
+                }
+            }, 2000);
+        },
+
+        // Resim al
+        getImage: function(item) {
+            // 1. Thumbnail
+            if (item.thumbnail && item.thumbnail.length > 20 && !this.isBadImage(item.thumbnail)) {
+                return item.thumbnail;
+            }
+
+            // 2. Enclosure
+            if (item.enclosure) {
+                var encUrl = item.enclosure.link || item.enclosure.url;
+                if (encUrl && encUrl.length > 20 && !this.isBadImage(encUrl)) {
+                    return encUrl;
+                }
+            }
+
+            // 3. İçerikten ara
+            var content = (item.description || '') + (item.content || '');
+            var imgMatch = content.match(/<img[^>]+src=["']([^"']+)["']/i);
+            if (imgMatch && imgMatch[1] && !this.isBadImage(imgMatch[1])) {
+                return imgMatch[1];
+            }
+
+            // 4. Anahtar kelime
+            var title = (item.title || '').toLowerCase();
+            for (var keyword in KEYWORD_IMAGES) {
+                if (title.indexOf(keyword) !== -1) {
+                    return KEYWORD_IMAGES[keyword];
+                }
+            }
+
+            // 5. Fallback
+            return FALLBACK_IMAGES[this.currentCategory];
+        },
+
+        // Kötü resim kontrolü
+        isBadImage: function(url) {
+            if (!url) return true;
+            var badWords = ['spacer', '1x1', 'pixel', 'blank', 'placeholder', 'logo', 'icon', 'avatar', 'tracking', 'analytics', 'badge', 'button', 'sprite', 'transparent'];
+            var lowerUrl = url.toLowerCase();
+            
+            for (var i = 0; i < badWords.length; i++) {
+                if (lowerUrl.indexOf(badWords[i]) !== -1) return true;
+            }
+            
+            if (lowerUrl.indexOf('.gif') !== -1 && lowerUrl.indexOf('giphy') === -1) return true;
+            if (lowerUrl.indexOf('width=1') !== -1 || lowerUrl.indexOf('size=1') !== -1 || lowerUrl.indexOf('w=1') !== -1) return true;
+            
+            return false;
+        },
+
+        // Kaynak adı al
+        getProviderName: function(title, url) {
+            var text = ((title || '') + url).toLowerCase();
+            for (var key in PROVIDER_NAMES) {
+                if (text.indexOf(key) !== -1) {
+                    return PROVIDER_NAMES[key];
+                }
+            }
+            return 'Kaynak';
+        },
+
+        // Başlık temizle
+        cleanTitle: function(title) {
+            if (!title) return '';
+            return title.replace(/\s*[-–|]\s*[^|–-]{0,30}$/i, '').trim();
+        },
+
+        // Zaman farkı
+        timeAgo: function(date) {
+            var seconds = Math.floor((Date.now() - date) / 1000);
+            if (seconds < 60) return 'Şimdi';
+            if (seconds < 3600) return Math.floor(seconds / 60) + ' dk';
+            if (seconds < 86400) return Math.floor(seconds / 3600) + ' sa';
+            return Math.floor(seconds / 86400) + ' gün';
         }
-    },
+    };
 
-    prov(title, url) {
-        const t = ((title || '') + url).toLowerCase();
-        const m = { google: 'Google', trthaber: 'TRT', ntv: 'NTV', cnnturk: 'CNN Türk', 'aa.com': 'AA', bloomberg: 'Bloomberg', 'dunya.com': 'Dünya', investing: 'Investing', cointelegraph: 'Cointelegraph', koinbulteni: 'Koin Bülteni', webrazzi: 'Webrazzi', bbc: 'BBC', 'doviz.com': 'Doviz.com', bigpara: 'Bigpara', technopat: 'Technopat', donanimhaber: 'DH' };
-        for (const [k, v] of Object.entries(m)) if (t.includes(k)) return v;
-        return 'Kaynak';
-    },
+    // BAŞLAT
+    function initNews() {
+        setTimeout(function() {
+            NewsApp.init();
+        }, 300);
+    }
 
-    getImg(item) {
-        if (item.thumbnail?.length > 10) return item.thumbnail;
-        if (item.enclosure?.link) return item.enclosure.link;
-        const c = (item.description || '') + (item.content || '');
-        const m = c.match(/src=["']([^"']+\.(jpg|jpeg|png|webp)[^"']*)["']/i);
-        if (m?.[1]) return m[1];
-        const title = (item.title || '').toLowerCase();
-        for (const [k, v] of Object.entries(this.kwImg)) if (title.includes(k)) return v;
-        return this.fallback[news.cat];
-    },
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        initNews();
+    } else {
+        document.addEventListener('DOMContentLoaded', initNews);
+    }
 
-    clean: t => t?.replace(/\s*[-–|]\s*[^|–-]{0,25}$/i, '').trim() || '',
-    ago: d => { const s = Math.floor((Date.now() - d) / 1000); return s < 60 ? 'Şimdi' : s < 3600 ? Math.floor(s/60) + ' dk' : s < 86400 ? Math.floor(s/3600) + ' sa' : Math.floor(s/86400) + ' gün'; },
-    color: p => { const c = { Google: '#4285f4', TRT: '#e11d48', NTV: '#059669', CNN: '#cc0000', AA: '#16a34a', Bloomberg: '#7c3aed', Investing: '#22c55e', Coin: '#f7931a', Webrazzi: '#00d1b2', BBC: '#bb1919', Doviz: '#10b981', Bigpara: '#f59e0b' }; for (const [k, v] of Object.entries(c)) if (p?.includes(k)) return v; return '#64748b'; }
-};
+    // Tab değişikliğinde kontrol
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            var page = document.getElementById('page-news');
+            if (page && page.style.display !== 'none') {
+                var cacheData = NewsApp.cache[NewsApp.currentCategory];
+                var lastUpdate = cacheData ? cacheData.timestamp : 0;
+                if (Date.now() - lastUpdate > 180000) {
+                    console.log('🔄 Tab aktif, haberler yenileniyor...');
+                    NewsApp.cache = {};
+                    NewsApp.loadNews(NewsApp.currentCategory);
+                }
+            }
+        }
+    });
 
-// BAŞLAT
-setTimeout(() => news.init(), 300);
-setInterval(() => { if (document.getElementById('page-news')?.style.display !== 'none') { newsData.cache = {}; news.load(news.cat); }}, 180000);
+})();
 </script>
 
 </div>
-
 
 
 <div id="page-analysis" class="page">
@@ -2796,429 +3125,1342 @@ setInterval(() => { if (document.getElementById('page-news')?.style.display !== 
     </div>
 </div>
 
+<!-- LAB SECTION - Premium Design -->
+<!-- Bu kodu mevcut an-view-lab section'ının yerine yapıştır -->
 
-    <div id="an-view-lab" class="an-view-section" style="display:none;">
-        
-        <div style="display:flex; gap:10px; overflow-x:auto; margin-bottom:15px; padding-bottom:5px;">
-            <button class="chart-filter-btn active" onclick="switchLabTool('growth', this)">Büyüme</button>
-            <button class="chart-filter-btn" onclick="switchLabTool('risk', this)">Risk Hesabı</button>
-            <button class="chart-filter-btn" onclick="switchLabTool('avg', this)">Maliyet Düşür</button>
-            <button class="chart-filter-btn" onclick="switchLabTool('time', this)" style="border:1px solid #8b5cf6; color:#a78bfa;">
-    Zaman Makinesi
-</button>
-<button class="chart-filter-btn" onclick="switchLabTool('pos', this)">
-    <i class="fa-solid fa-shield-halved"></i> Risk Sihirbazı
-</button>
+<style>
+/* LAB PREMIUM STYLES */
+#an-view-lab {
+    --lab-bg-deep: #030712;
+    --lab-bg-card: rgba(15, 23, 42, 0.6);
+    --lab-bg-elevated: rgba(30, 41, 59, 0.4);
+    --lab-glass-border: rgba(255, 255, 255, 0.06);
+    --lab-accent-gold: #d4a574;
+    --lab-accent-gold-dim: rgba(212, 165, 116, 0.15);
+    --lab-accent-emerald: #34d399;
+    --lab-accent-emerald-dim: rgba(52, 211, 153, 0.12);
+    --lab-accent-rose: #fb7185;
+    --lab-accent-rose-dim: rgba(251, 113, 133, 0.12);
+    --lab-accent-violet: #a78bfa;
+    --lab-accent-violet-dim: rgba(167, 139, 250, 0.12);
+    --lab-accent-sky: #38bdf8;
+    --lab-accent-sky-dim: rgba(56, 189, 248, 0.12);
+    --lab-text-primary: #f1f5f9;
+    --lab-text-secondary: #94a3b8;
+    --lab-text-muted: #475569;
+}
 
-        </div>
+#an-view-lab .lab-ambient-bg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+    border-radius: 20px;
+}
 
-        <div id="lab-tool-growth" class="lab-tool-container">
-            <div style="background:var(--bg-card); padding:20px; border-radius:16px; border:1px dashed var(--accent); margin-bottom:20px; text-align:center;">
-                <i class="fas fa-flask" style="font-size:32px; color:var(--accent); margin-bottom:10px;"></i>
-                <div style="font-weight:800; font-size:16px;">Strateji Test Laboratuvarı</div>
-                <div style="font-size:11px; color:var(--text-sub);">Bileşik getirinin gücünü test edin.</div>
-            </div>
+#an-view-lab .lab-ambient-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.3;
+    animation: labFloat 20s ease-in-out infinite;
+}
 
-            <div class="card">
-                <div class="lbl-sm">DENEY PARAMETRELERİ</div>
-                <div class="input-row">
-                    <div><span style="font-size:11px; color:var(--text-sub);">Başlangıç Sermayesi</span><input type="number" id="labStart" class="modern-input" placeholder="Örn: 10000"></div>
-                    <div><span style="font-size:11px; color:var(--text-sub);">İşlem Başı Kâr Hedefi (%)</span><input type="number" id="labWinPct" class="modern-input" value="2"></div>
-                </div>
-                <div class="input-row">
-                    <div><span style="font-size:11px; color:var(--text-sub);">Haftalık İşlem Sayısı</span><input type="number" id="labFreq" class="modern-input" value="2"></div>
-                    <div><span style="font-size:11px; color:var(--text-sub);">Süre (Ay)</span><input type="number" id="labDuration" class="modern-input" value="12"></div>
-                </div>
-                <button class="btn-main" onclick="runLabTest()">DENEYİ BAŞLAT</button>
-            </div>
+#an-view-lab .lab-orb-1 {
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, var(--lab-accent-gold) 0%, transparent 70%);
+    top: -15%; right: -10%;
+}
 
-            <div id="labResults" style="display:none;">
-                <div class="dash-card full-width" style="background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%); margin-bottom: 15px;">
-                    <div class="metric-title">DENEY SONUCU</div>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:10px;">
-                        <div><div style="font-size:10px; color:var(--text-sub);">BAŞLANGIÇ</div><div id="resLabStart" style="font-size:16px; font-weight:700; color:white;">--</div></div>
-                        <div style="text-align:right;"><div style="font-size:10px; color:var(--text-sub);">BİTİŞ (TAHMİNİ)</div><div id="resLabEnd" style="font-size:20px; font-weight:800; color:var(--success);">--</div></div>
-                    </div>
-                    <div style="margin-top:15px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1);">
-                        <span style="font-size:11px; color:var(--text-sub);">Toplam Büyüme:</span> <span id="resLabGrowth" style="font-weight:700; color:var(--accent);">--</span>
-                    </div>
-                </div>
-                <div style="margin-bottom: 10px;"><div class="lbl-sm" style="margin-bottom: 10px;">AYLIK İLERLEME RAPORU</div><div id="labListContainer" class="lab-list-container"></div></div>
-            </div>
-        </div>
+#an-view-lab .lab-orb-2 {
+    width: 250px; height: 250px;
+    background: radial-gradient(circle, var(--lab-accent-violet) 0%, transparent 70%);
+    bottom: 10%; left: -15%;
+    animation-delay: -7s;
+}
 
-        <div id="lab-tool-risk" class="lab-tool-container" style="display:none;">
-            <div class="card" style="border-left: 3px solid var(--danger);">
-                <div class="lbl-sm" style="color:var(--danger)">RİSK & POZİSYON YÖNETİMİ</div>
-                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
-    <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
-        <div style="width:40px; height:40px; background:rgba(239, 68, 68, 0.2); border-radius:10px; display:flex; align-items:center; justify-content:center;">
-            <i class="fas fa-radiation" style="color:#ef4444; font-size:20px;"></i>
-        </div>
-        <div>
-            <div style="font-weight:800; font-size:16px; color:white;">KAOS ODASI</div>
-            <div style="font-size:10px; color:var(--text-sub);">Portföyün krizlere ne kadar dayanıklı?</div>
-        </div>
-    </div>
+@keyframes labFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(20px, -20px) scale(1.05); }
+}
 
-    <div class="card" style="background: linear-gradient(145deg, #2a0a0a 0%, #1a0505 100%); border: 1px solid #450a0a;">
-        <div class="lbl-sm" style="color:#fca5a5;">SENARYO SEÇ</div>
-        
-        <select id="chaosScenario" class="modern-input" style="background:rgba(0,0,0,0.3); border-color:#7f1d1d; color:#fecaca;" onchange="runChaosSimulation()">
-            <option value="0">Senaryo Seçiniz...</option>
-            <option value="crypto_winter"> Kripto Kışı (Bitcoin -%60)</option>
-            <option value="market_crash"> Küresel Borsa Çöküşü (-%35)</option>
-            <option value="currency_shock">Kur Şoku (Dolar +%40)</option>
-            <option value="gold_rush"> Güvenli Liman (Altın +%25)</option>
-            <option value="black_monday"> Kara Pazartesi (Her Şey -%20)</option>
-        </select>
+#an-view-lab .lab-header {
+    text-align: center;
+    padding: 30px 20px;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+}
 
-        <div id="chaosResult" style="display:none; margin-top:15px; animation: fadeIn 0.5s;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                <span style="font-size:11px; color:#fca5a5;">Senaryo Sonrası Tahmini Bakiye</span>
-            </div>
-            
-            <div style="font-size:24px; font-weight:800; color:white;" id="chaosBalance">--</div>
-            
-            <div class="goal-strip-container" style="background:rgba(0,0,0,0.5); margin-top:5px; height:30px;">
-                <div id="chaosBar" class="goal-strip-fill" style="width: 100%; background:var(--text-sub);"></div>
-                <div class="goal-text-overlay">
-                    <span id="chaosChangeText" style="color:white; text-shadow:0 1px 2px black;">--</span>
-                </div>
-            </div>
+#an-view-lab .lab-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, var(--lab-accent-gold-dim), transparent);
+    border: 1px solid rgba(212, 165, 116, 0.3);
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--lab-accent-gold);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 15px;
+    animation: labShimmer 3s ease-in-out infinite;
+}
 
-            <div style="margin-top:15px; font-size:11px; line-height:1.4; color:#d1d5db; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px;">
-                <i class="fas fa-info-circle" style="color:#fca5a5;"></i> 
-                <span id="chaosAdvice">--</span>
-            </div>
-        </div>
-    </div>
-</div>
+@keyframes labShimmer {
+    0%, 100% { box-shadow: 0 0 15px rgba(212, 165, 116, 0.1); }
+    50% { box-shadow: 0 0 25px rgba(212, 165, 116, 0.25); }
+}
 
-                <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; margin-bottom:15px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-size:10px; color:var(--text-sub); font-weight:700;">PORTFÖYDEN SEÇ</span>
-                        <button onclick="populateRiskAssets()" style="background:none; border:none; color:var(--accent); font-size:12px; cursor:pointer;">
-                            <i class="fas fa-sync-alt"></i> Yenile
-                        </button>
-                    </div>
-                    <select id="riskAssetSelect" class="modern-input" style="margin-top:5px; border-color:var(--accent);" onchange="fillRiskFromAsset()">
-                        <option value="-1">Manuel Giriş / Seçiniz</option>
-                    </select>
-                </div>
+#an-view-lab .lab-title {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+}
 
-                <div class="input-row">
-                    <div>
-                        <span style="font-size:11px; color:var(--text-sub);">Sermaye (Varlık Değeri)</span>
-                        <input type="number" id="riskBalance" class="modern-input" placeholder="Otomatik Çekilir">
-                    </div>
-                    <div>
-                        <span style="font-size:11px; color:var(--text-sub);">Risk İştahı (%)</span>
-                        <input type="number" id="riskPct" class="modern-input" value="1" placeholder="%1">
-                    </div>
-                </div>
-                <div class="input-row">
-                    <div>
-                        <span style="font-size:11px; color:var(--text-sub);">Giriş Fiyatı</span>
-                        <input type="number" id="riskEntry" class="modern-input" placeholder="0.00">
-                    </div>
-                    <div>
-                        <span style="font-size:11px; color:var(--text-sub);">Stop Fiyatı</span>
-                        <input type="number" id="riskStop" class="modern-input" placeholder="0.00">
-                    </div>
-                </div>
-                <button class="btn-main" onclick="calcLabRisk()">POZİSYON HESAPLA</button>
-            </div>
+#an-view-lab .lab-subtitle {
+    font-size: 13px;
+    color: var(--lab-text-secondary);
+}
 
-            <div id="riskResultBox" class="dash-card full-width" style="display:none; background: linear-gradient(145deg, #451a03 0%, #171717 100%); border:1px solid var(--danger);">
-                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px; margin-bottom:10px;">
-                    <div class="metric-title" style="color:var(--danger); margin:0;">İŞLEM PLANI</div>
-                    <div style="font-size:10px; color:var(--text-sub);">STOP ZARARI: <span id="resRiskLoss" style="color:white; font-weight:800;">--</span></div>
-                </div>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-                    <div><div style="font-size:10px; color:var(--text-sub);">ALINACAK ADET</div><div id="resRiskQty" style="font-size:20px; font-weight:800; color:white;">--</div></div>
-                    <div style="text-align:right;"><div style="font-size:10px; color:#f59e0b; font-weight:700;">GEREKEN NAKİT</div><div id="resPosSize" style="font-size:20px; font-weight:800; color:#f59e0b;">--</div></div>
-                </div>
-                <div id="riskWarning" style="margin-top:15px; font-size:11px; background:rgba(255,255,255,0.05); padding:8px; border-radius:6px; display:flex; align-items:center; gap:8px;">
-                    <i class="fas fa-wallet"></i> <span id="riskRatioText">--</span>
-                </div>
-            </div>
-        </div>
+/* Tab Navigation - Mevcut yapıya uyumlu */
+#an-view-lab .lab-tab-nav {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: var(--lab-bg-card);
+    backdrop-filter: blur(20px);
+    border-radius: 12px;
+    border: 1px solid var(--lab-glass-border);
+    margin-bottom: 20px;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
 
-<div id="lab-tool-avg" class="lab-tool-container" style="display:none;">
+#an-view-lab .lab-tab-nav .chart-filter-btn {
+    flex: 1;
+    padding: 10px 6px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--lab-text-secondary);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+#an-view-lab .lab-tab-nav .chart-filter-btn i {
+    font-size: 16px;
+}
+
+#an-view-lab .lab-tab-nav .chart-filter-btn:hover {
+    color: var(--lab-text-primary);
+    background: var(--lab-bg-elevated);
+}
+
+#an-view-lab .lab-tab-nav .chart-filter-btn.active {
+    background: linear-gradient(135deg, rgba(212, 165, 116, 0.15), rgba(212, 165, 116, 0.05));
+    color: var(--lab-accent-gold);
+    box-shadow: 0 0 0 1px rgba(212, 165, 116, 0.3), 0 4px 15px -4px rgba(212, 165, 116, 0.2);
+}
+
+/* Zaman Makinesi özel stil */
+#an-view-lab .lab-tab-nav .chart-filter-btn[onclick*="time"] {
+    background: linear-gradient(135deg, var(--lab-accent-violet-dim), transparent);
+    color: var(--lab-accent-violet);
+}
+
+#an-view-lab .lab-tab-nav .chart-filter-btn[onclick*="time"].active {
+    background: linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(167, 139, 250, 0.05));
+    box-shadow: 0 0 0 1px rgba(167, 139, 250, 0.4);
+}
+
+/* Tool Containers */
+#an-view-lab .lab-tool-container {
+    animation: labPanelIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes labPanelIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Glass Card */
+#an-view-lab .lab-glass-card {
+    background: var(--lab-bg-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--lab-glass-border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+}
+
+#an-view-lab .lab-glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+}
+
+/* Tool Header */
+#an-view-lab .lab-tool-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+#an-view-lab .lab-tool-icon {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    position: relative;
+}
+
+#an-view-lab .lab-tool-icon.gold {
+    background: linear-gradient(135deg, var(--lab-accent-gold-dim), transparent);
+    color: var(--lab-accent-gold);
+    box-shadow: 0 6px 24px -6px rgba(212, 165, 116, 0.3);
+}
+
+#an-view-lab .lab-tool-icon.rose {
+    background: linear-gradient(135deg, var(--lab-accent-rose-dim), transparent);
+    color: var(--lab-accent-rose);
+    box-shadow: 0 6px 24px -6px rgba(251, 113, 133, 0.3);
+}
+
+#an-view-lab .lab-tool-icon.sky {
+    background: linear-gradient(135deg, var(--lab-accent-sky-dim), transparent);
+    color: var(--lab-accent-sky);
+    box-shadow: 0 6px 24px -6px rgba(56, 189, 248, 0.3);
+}
+
+#an-view-lab .lab-tool-icon.violet {
+    background: linear-gradient(135deg, var(--lab-accent-violet-dim), transparent);
+    color: var(--lab-accent-violet);
+    box-shadow: 0 6px 24px -6px rgba(167, 139, 250, 0.3);
+}
+
+#an-view-lab .lab-tool-icon.emerald {
+    background: linear-gradient(135deg, var(--lab-accent-emerald-dim), transparent);
+    color: var(--lab-accent-emerald);
+    box-shadow: 0 6px 24px -6px rgba(52, 211, 153, 0.3);
+}
+
+#an-view-lab .lab-tool-info h3 {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--lab-text-primary);
+    margin-bottom: 3px;
+}
+
+#an-view-lab .lab-tool-info p {
+    font-size: 11px;
+    color: var(--lab-text-secondary);
+}
+
+/* Section Label */
+#an-view-lab .lab-section-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--lab-text-muted);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#an-view-lab .lab-section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--lab-glass-border), transparent);
+}
+
+/* Form Elements */
+#an-view-lab .lab-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+#an-view-lab .lab-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+#an-view-lab .lab-form-group.full {
+    grid-column: 1 / -1;
+}
+
+#an-view-lab .lab-form-label {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--lab-text-secondary);
+}
+
+#an-view-lab .lab-input {
+    width: 100%;
+    padding: 12px 14px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--lab-glass-border);
+    border-radius: 10px;
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--lab-text-primary);
+    transition: all 0.2s;
+    outline: none;
+}
+
+#an-view-lab .lab-input::placeholder {
+    color: var(--lab-text-muted);
+    font-family: inherit;
+}
+
+#an-view-lab .lab-input:focus {
+    border-color: var(--lab-accent-gold);
+    box-shadow: 0 0 0 3px var(--lab-accent-gold-dim);
+}
+
+#an-view-lab .lab-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+    cursor: pointer;
+}
+
+/* Primary Button */
+#an-view-lab .lab-btn-primary {
+    width: 100%;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, var(--lab-accent-gold), #b8956a);
+    border: none;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: #0a0f1a;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#an-view-lab .lab-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px -8px rgba(212, 165, 116, 0.5);
+}
+
+#an-view-lab .lab-btn-primary.rose {
+    background: linear-gradient(135deg, var(--lab-accent-rose), #e11d48);
+}
+
+#an-view-lab .lab-btn-primary.rose:hover {
+    box-shadow: 0 8px 25px -8px rgba(251, 113, 133, 0.5);
+}
+
+#an-view-lab .lab-btn-primary.sky {
+    background: linear-gradient(135deg, var(--lab-accent-sky), #0ea5e9);
+}
+
+#an-view-lab .lab-btn-primary.sky:hover {
+    box-shadow: 0 8px 25px -8px rgba(56, 189, 248, 0.5);
+}
+
+#an-view-lab .lab-btn-primary.violet {
+    background: linear-gradient(135deg, var(--lab-accent-violet), #8b5cf6);
+    color: white;
+}
+
+#an-view-lab .lab-btn-primary.violet:hover {
+    box-shadow: 0 8px 25px -8px rgba(167, 139, 250, 0.5);
+}
+
+/* Secondary Button */
+#an-view-lab .lab-btn-secondary {
+    padding: 10px 16px;
+    background: var(--lab-bg-elevated);
+    border: 1px solid var(--lab-glass-border);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--lab-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#an-view-lab .lab-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--lab-text-primary);
+}
+
+/* Results Card */
+#an-view-lab .lab-results-card {
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(10, 15, 26, 0.9));
+    border: 1px solid var(--lab-glass-border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+#an-view-lab .lab-results-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+}
+
+#an-view-lab .lab-results-card.gold {
+    border-color: rgba(212, 165, 116, 0.3);
+}
+#an-view-lab .lab-results-card.gold::before {
+    background: linear-gradient(90deg, transparent, var(--lab-accent-gold), transparent);
+}
+
+#an-view-lab .lab-results-card.rose {
+    border-color: rgba(251, 113, 133, 0.3);
+}
+#an-view-lab .lab-results-card.rose::before {
+    background: linear-gradient(90deg, transparent, var(--lab-accent-rose), transparent);
+}
+
+#an-view-lab .lab-results-card.sky {
+    border-color: rgba(56, 189, 248, 0.3);
+}
+#an-view-lab .lab-results-card.sky::before {
+    background: linear-gradient(90deg, transparent, var(--lab-accent-sky), transparent);
+}
+
+#an-view-lab .lab-results-card.emerald {
+    border-color: rgba(52, 211, 153, 0.3);
+}
+#an-view-lab .lab-results-card.emerald::before {
+    background: linear-gradient(90deg, transparent, var(--lab-accent-emerald), transparent);
+}
+
+/* Big Number */
+#an-view-lab .lab-big-number {
+    text-align: center;
+    padding: 16px 0;
+}
+
+#an-view-lab .lab-big-number-label {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--lab-text-muted);
+    margin-bottom: 6px;
+}
+
+#an-view-lab .lab-big-number-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, #fff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+#an-view-lab .lab-big-number-value.gold {
+    background: linear-gradient(135deg, var(--lab-accent-gold), #fbbf24);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+#an-view-lab .lab-big-number-value.emerald {
+    background: linear-gradient(135deg, var(--lab-accent-emerald), #6ee7b7);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+/* Stats Grid */
+#an-view-lab .lab-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 16px 0;
+}
+
+#an-view-lab .lab-stat-item {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    padding: 14px;
+    border: 1px solid var(--lab-glass-border);
+}
+
+#an-view-lab .lab-stat-label {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--lab-text-muted);
+    margin-bottom: 4px;
+}
+
+#an-view-lab .lab-stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--lab-text-primary);
+}
+
+#an-view-lab .lab-stat-value.emerald { color: var(--lab-accent-emerald); }
+#an-view-lab .lab-stat-value.rose { color: var(--lab-accent-rose); }
+#an-view-lab .lab-stat-value.gold { color: var(--lab-accent-gold); }
+
+/* Scenario Select */
+#an-view-lab .lab-scenario-select {
+    width: 100%;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(15, 23, 42, 0.8));
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--lab-text-primary);
+    cursor: pointer;
+    appearance: none;
+    margin-bottom: 16px;
+}
+
+#an-view-lab .lab-scenario-select:focus {
+    outline: none;
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+#an-view-lab .lab-scenario-select option {
+    background: var(--bg-card);
+    color: var(--lab-text-primary);
+}
+
+/* Progress Bar */
+#an-view-lab .lab-progress-container {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    height: 36px;
+    position: relative;
+    overflow: hidden;
+    margin: 12px 0;
+}
+
+#an-view-lab .lab-progress-fill {
+    height: 100%;
+    border-radius: 8px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#an-view-lab .lab-progress-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Advice Box */
+#an-view-lab .lab-advice-box {
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+#an-view-lab .lab-advice-box i {
+    font-size: 16px;
+    margin-top: 1px;
+}
+
+#an-view-lab .lab-advice-box p {
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--lab-text-secondary);
+}
+
+/* Mode Toggle */
+#an-view-lab .lab-mode-toggle {
+    display: flex;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 16px;
+}
+
+#an-view-lab .lab-mode-toggle .sim-tab {
+    flex: 1;
+    padding: 10px 14px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--lab-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+#an-view-lab .lab-mode-toggle .sim-tab.active {
+    background: var(--lab-bg-elevated);
+    color: var(--lab-text-primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Range Slider */
+#an-view-lab .lab-range-slider {
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    outline: none;
+    margin: 10px 0;
+}
+
+#an-view-lab .lab-range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, var(--lab-accent-sky), #0ea5e9);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(56, 189, 248, 0.4);
+}
+
+/* Strategy Steps */
+#an-view-lab .lab-strategy-step {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    border-left: 3px solid var(--lab-accent-sky);
+    transition: all 0.2s;
+}
+
+#an-view-lab .lab-strategy-step:hover {
+    background: rgba(0, 0, 0, 0.3);
+    transform: translateX(4px);
+}
+
+#an-view-lab .lab-step-number {
+    width: 28px; height: 28px;
+    background: var(--lab-accent-sky-dim);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--lab-accent-sky);
+}
+
+/* Data Table */
+#an-view-lab .lab-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+#an-view-lab .lab-data-table th {
+    padding: 12px 10px;
+    background: rgba(0, 0, 0, 0.3);
+    text-align: right;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--lab-text-muted);
+    white-space: nowrap;
+}
+
+#an-view-lab .lab-data-table th:first-child { text-align: left; }
+
+#an-view-lab .lab-data-table td {
+    padding: 12px 10px;
+    text-align: right;
+    border-top: 1px solid var(--lab-glass-border);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    color: var(--lab-text-primary);
+}
+
+#an-view-lab .lab-data-table td:first-child {
+    text-align: left;
+    font-family: inherit;
+    font-weight: 600;
+}
+
+/* DNA Card */
+#an-view-lab .lab-dna-card {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(15, 23, 42, 0.6));
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+#an-view-lab .lab-dna-type {
+    padding: 3px 10px;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+#an-view-lab .lab-dna-type.conservative {
+    background: rgba(52, 211, 153, 0.15);
+    color: var(--lab-accent-emerald);
+}
+
+#an-view-lab .lab-dna-type.moderate {
+    background: rgba(56, 189, 248, 0.15);
+    color: var(--lab-accent-sky);
+}
+
+#an-view-lab .lab-dna-type.aggressive {
+    background: rgba(251, 113, 133, 0.15);
+    color: var(--lab-accent-rose);
+}
+
+/* Monthly Report */
+#an-view-lab .lab-monthly-report {
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+#an-view-lab .lab-monthly-report::-webkit-scrollbar { width: 5px; }
+#an-view-lab .lab-monthly-report::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); border-radius: 8px; }
+#an-view-lab .lab-monthly-report::-webkit-scrollbar-thumb { background: var(--lab-text-muted); border-radius: 8px; }
+
+#an-view-lab .lab-month-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    border-left: 3px solid transparent;
+    transition: all 0.2s;
+}
+
+#an-view-lab .lab-month-item:hover {
+    background: rgba(0, 0, 0, 0.25);
+    border-left-color: var(--lab-accent-gold);
+}
+
+#an-view-lab .lab-month-number {
+    width: 32px; height: 32px;
+    background: var(--lab-accent-gold-dim);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--lab-accent-gold);
+}
+
+/* Projection Item */
+#an-view-lab .lab-projection-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    border-left: 3px solid var(--lab-accent-sky);
+}
+
+#an-view-lab .lab-projection-bar {
+    flex: 1;
+    height: 6px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#an-view-lab .lab-projection-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--lab-accent-sky), var(--lab-accent-emerald));
+    border-radius: 8px;
+}
+
+/* Risk Alert */
+#an-view-lab .lab-risk-alert {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 16px 0;
+}
+
+/* Disclaimer */
+#an-view-lab .lab-disclaimer {
+    text-align: center;
+    padding: 14px;
+    font-size: 9px;
+    color: var(--lab-text-muted);
+    border-top: 1px solid var(--lab-glass-border);
+    margin-top: 20px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+    #an-view-lab .lab-title { font-size: 24px; }
+    #an-view-lab .lab-form-grid { grid-template-columns: 1fr; }
+    #an-view-lab .lab-stats-grid { grid-template-columns: 1fr; }
+    #an-view-lab .lab-big-number-value { font-size: 28px; }
+    #an-view-lab .lab-tool-header { flex-direction: column; text-align: center; }
+}
+</style>
+
+<div id="an-view-lab" class="an-view-section" style="display:none; position: relative;">
     
-    <div style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding:15px; border-radius:16px; margin-bottom:20px; display:flex; align-items:center; gap:15px; box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4);">
-        <div style="width:45px; height:45px; background:rgba(255,255,255,0.2); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; color:white;">
-            <i class="fas fa-chess-knight"></i>
-        </div>
-        <div>
-            <div style="font-weight:800; font-size:16px; color:white;">AKILLI STRATEJİ MERKEZİ</div>
-            <div style="font-size:11px; color:#dbeafe;">Sadece maliyet düşürme, geleceği planla ve riski yönet.</div>
-        </div>
+    <!-- Ambient Background -->
+    <div class="lab-ambient-bg">
+        <div class="lab-ambient-orb lab-orb-1"></div>
+        <div class="lab-ambient-orb lab-orb-2"></div>
     </div>
 
-    <div style="margin-bottom:15px;">
-        <div style="font-size:10px; color:var(--text-sub); margin-bottom:5px; font-weight:700;">VARLIK SEÇ (OTOMATİK DOLDUR)</div>
-        <select id="advAvgSelect" class="modern-input" style="border-color:#3b82f6;" onchange="fillAdvAvgData()">
-            <option value="-1">Manuel Giriş Yap</option>
-        </select>
+    <!-- Header -->
+    <div class="lab-header">
+        <div class="lab-badge"><i class="fas fa-crown"></i> PREMIUM LAB</div>
+        <h1 class="lab-title">Strateji Laboratuvarı</h1>
+        <p class="lab-subtitle">Profesyonel yatırım araçları ve simülasyonlar</p>
     </div>
 
-    <div class="sim-tab-group" style="margin-bottom:15px;">
-        <div class="sim-tab active" onclick="switchAvgMode('budget', this)">💰 Bütçe ile Planla</div>
-        <div class="sim-tab" onclick="switchAvgMode('target', this)">🎯 Hedefe Kilitlen</div>
-    </div>
-
-    <div class="card" style="border-left: 3px solid #3b82f6; background: linear-gradient(to bottom, rgba(59, 130, 246, 0.05), rgba(15, 23, 42, 0.6));">
-        
-        <div class="input-row">
-            <div>
-                <span style="font-size:10px; color:var(--text-sub);">Eldeki Adet</span>
-                <input type="number" id="aaOldQty" class="modern-input" placeholder="0">
-            </div>
-            <div>
-                <span style="font-size:10px; color:var(--text-sub);">Maliyetim</span>
-                <input type="number" id="aaOldPrice" class="modern-input" placeholder="0.00">
-            </div>
-        </div>
-        <div style="margin-bottom:10px;">
-            <span style="font-size:10px; color:var(--text-sub);">Şu Anki Piyasa Fiyatı</span>
-            <input type="number" id="aaCurPrice" class="modern-input" placeholder="Güncel Fiyat">
-        </div>
-
-        <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:15px 0;">
-
-        <div id="avg-mode-budget">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-size:12px; color:#93c5fd; font-weight:700;">Ne kadar ekleyebilirsin? (Nakit)</span>
-                <span id="sliderValDisplay" style="font-size:10px; color:#60a5fa;">0</span>
-            </div>
-            
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:5px;">
-                <input type="range" id="aaBudgetSlider" min="0" max="1000000" step="100" value="0" class="modern-range" oninput="syncBudgetSlider('slider')">
-                
-                <input type="number" id="aaBudget" class="modern-input" style="width:120px; text-align:right; font-weight:bold; color:#93c5fd;" placeholder="Tutar" onkeyup="syncBudgetSlider('input')">
-            </div>
-            <div style="display:flex; justify-content:space-between; font-size:9px; color:var(--text-sub); margin-bottom:15px;">
-                <span>Az</span><span>Çok</span>
-            </div>
-
-            <button class="btn-main" style="background: linear-gradient(to right, #2563eb, #1d4ed8);" onclick="calcAdvAvg('budget')">STRATEJİYİ OLUŞTUR 🚀</button>
-        </div>
-
-        <div id="avg-mode-target" style="display:none;">
-            <span style="font-size:12px; color:#fca5a5; font-weight:700;">Hedeflediğin Ortalama Kaç?</span>
-            <input type="number" id="aaTarget" class="modern-input" placeholder="Örn: 50.00" onkeyup="calcAdvAvg('target')">
-            <button class="btn-main" style="background: linear-gradient(to right, #dc2626, #b91c1c);" onclick="calcAdvAvg('target')">GEREKENİ HESAPLA 🎯</button>
-        </div>
-
-    </div>
-
-    <div id="aaRiskAlert" style="display:none; background:rgba(239,68,68,0.15); border-left:3px solid #ef4444; padding:12px; border-radius:8px; margin:15px 0; font-size:11px; color:#fca5a5; align-items:start; gap:10px;">
-        <i class="fas fa-triangle-exclamation" style="font-size:16px; margin-top:2px;"></i>
-        <div>
-            <div style="font-weight:700; margin-bottom:3px;">YÜKSEK KONSANTRASYON RİSKİ!</div>
-            <div id="aaRiskMsg">--</div>
-        </div>
-    </div>
-
-    <div id="aaResultBox" class="dash-card full-width" style="display:none; background: linear-gradient(145deg, #0f172a 0%, #172554 100%); border:1px solid #3b82f6; position:relative; overflow:hidden;">
-        
-        <i class="fas fa-chart-line" style="position:absolute; right:-30px; bottom:-20px; font-size:120px; color:rgba(255,255,255,0.03); transform:rotate(-10deg);"></i>
-
-        <div class="metric-title" style="color:#60a5fa; display:flex; justify-content:space-between;">
-            <span>ANA SENARYO SONUCU</span>
-            <span id="aaSavingBadge" style="padding:2px 6px; border-radius:4px; font-size:9px;">--</span>
-        </div>
-
-        <div style="text-align:center; padding:15px 0;">
-            <div style="font-size:10px; color:var(--text-sub);">YENİ ORTALAMANIZ</div>
-            <div id="aaResAvg" style="font-size:38px; font-weight:900; color:white; letter-spacing:-1px; text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);">--</div>
-            <div style="display:flex; justify-content:center; gap:10px; margin-top:5px;">
-                <span style="font-size:11px; color:#fca5a5; text-decoration:line-through;" id="aaResOldAvg">--</span>
-                <i class="fas fa-arrow-right" style="font-size:10px; color:var(--text-sub); margin-top:3px;"></i>
-                <span style="font-size:12px; color:#6ee7b7; font-weight:700; background:rgba(16,185,129,0.1); padding:2px 8px; border-radius:12px;" id="aaResDiff">--</span>
-            </div>
-        </div>
-        
-        <div style="background:rgba(255,255,255,0.05); border-radius:10px; padding:12px; font-size:11px;">
-            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-                <span style="color:var(--text-sub);">Alınacak Adet:</span>
-                <span style="font-weight:700; color:white;" id="aaResQty">--</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-                <span style="color:var(--text-sub);">Gereken Nakit:</span>
-                <span style="font-weight:700; color:#f59e0b;" id="aaResCost">--</span>
-            </div>
-            <div style="border-top:1px solid rgba(255,255,255,0.1); margin-top:6px; padding-top:6px; display:flex; justify-content:space-between;">
-                <span style="color:var(--text-sub);">Yeni Toplam Maliyet:</span>
-                <span style="font-weight:700;" id="aaResTotal">--</span>
-            </div>
-        </div>
-
-        <div id="aaBreakEvenMsg" style="margin-top:10px; text-align:center; font-size:11px; color:#bfdbfe; background:rgba(59, 130, 246, 0.1); padding:8px; border-radius:8px;"></div>
-
-        <div id="aaStrategyBox" style="margin-top:20px; border-top:1px solid rgba(255,255,255,0.1); padding-top:15px;">
-            <div style="font-size:12px; font-weight:700; color:#93c5fd; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
-                <i class="fas fa-layer-group"></i> PROFESYONEL KADEMELİ ALIM PLANI
-            </div>
-            <div style="font-size:10px; color:var(--text-sub); margin-bottom:10px;">Paranı tek seferde harcamak yerine, düşüşleri fırsata çevir:</div>
-            
-            <div id="strategyStepsContainer"></div>
-        </div>
-
-        <button onclick="saveCurrentScenario()" class="btn-main" style="margin-top:20px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--text-sub); font-size:12px;">
-            <i class="fas fa-bookmark"></i> Bu Senaryoyu İzleme Listeme Kaydet
+    <!-- Tab Navigation - Kompakt versiyon -->
+    <div class="lab-tab-nav">
+        <button class="chart-filter-btn active" onclick="switchLabTool('growth', this)">
+            <i class="fas fa-chart-line"></i>
+            <span>Büyüme</span>
         </button>
+        <button class="chart-filter-btn" onclick="switchLabTool('risk', this)">
+            <i class="fas fa-shield-halved"></i>
+            <span>Risk</span>
+        </button>
+        <button class="chart-filter-btn" onclick="switchLabTool('avg', this)">
+            <i class="fas fa-chess-knight"></i>
+            <span>Maliyet</span>
+        </button>
+        <button class="chart-filter-btn" onclick="switchLabTool('time', this)">
+            <i class="fas fa-clock-rotate-left"></i>
+            <span>Zaman</span>
+        </button>
+        <button class="chart-filter-btn" onclick="switchLabTool('pos', this)">
+            <i class="fas fa-wand-magic-sparkles"></i>
+            <span>Sihirbaz</span>
+        </button>
+    </div>
 
-        <div style="margin-top:25px; border-top:1px dashed rgba(255,255,255,0.1); padding-top:15px;">
-            <div style="font-size:11px; font-weight:700; color:var(--text-sub); margin-bottom:10px;">
-                <i class="fas fa-folder-open"></i> KAYITLI STRATEJİLERİM
+    <!-- ========== GROWTH TOOL ========== -->
+    <div id="lab-tool-growth" class="lab-tool-container">
+        <div class="lab-glass-card">
+            <div class="lab-tool-header">
+                <div class="lab-tool-icon gold"><i class="fas fa-flask"></i></div>
+                <div class="lab-tool-info">
+                    <h3>Bileşik Getiri Testi</h3>
+                    <p>Strateji test laboratuvarında büyüme potansiyelini simüle edin</p>
+                </div>
             </div>
-            <div id="savedStrategiesList">
-                <div style="text-align:center; font-size:10px; color:var(--text-sub); opacity:0.5;">Henüz kayıtlı plan yok.</div>
+
+            <div class="lab-section-label">Deney Parametreleri</div>
+
+            <div class="lab-form-grid">
+                <div class="lab-form-group">
+                    <label class="lab-form-label"><i class="fas fa-wallet"></i> Başlangıç Sermayesi</label>
+                    <input type="number" id="labStart" class="lab-input" placeholder="Örn: 10000">
+                </div>
+                <div class="lab-form-group">
+                    <label class="lab-form-label"><i class="fas fa-percent"></i> İşlem Başı Kâr Hedefi (%)</label>
+                    <input type="number" id="labWinPct" class="lab-input" value="2">
+                </div>
+                <div class="lab-form-group">
+                    <label class="lab-form-label"><i class="fas fa-repeat"></i> Haftalık İşlem Sayısı</label>
+                    <input type="number" id="labFreq" class="lab-input" value="2">
+                </div>
+                <div class="lab-form-group">
+                    <label class="lab-form-label"><i class="fas fa-calendar"></i> Süre (Ay)</label>
+                    <input type="number" id="labDuration" class="lab-input" value="12">
+                </div>
+            </div>
+
+            <button class="lab-btn-primary" onclick="runLabTest()">
+                <i class="fas fa-play"></i> DENEYİ BAŞLAT
+            </button>
+        </div>
+
+        <!-- Results -->
+        <div id="labResults" style="display:none;">
+            <div class="lab-results-card gold">
+                <div class="lab-section-label" style="color: var(--lab-accent-gold);">Deney Sonucu</div>
+                <div class="lab-stats-grid">
+                    <div class="lab-stat-item">
+                        <div class="lab-stat-label">Başlangıç</div>
+                        <div class="lab-stat-value" id="resLabStart">--</div>
+                    </div>
+                    <div class="lab-stat-item">
+                        <div class="lab-stat-label">Bitiş (Tahmini)</div>
+                        <div class="lab-stat-value emerald" id="resLabEnd">--</div>
+                    </div>
+                </div>
+                <div class="lab-big-number">
+                    <div class="lab-big-number-label">Toplam Büyüme</div>
+                    <div class="lab-big-number-value gold" id="resLabGrowth">+0%</div>
+                </div>
+            </div>
+
+            <div class="lab-glass-card" style="margin-top: 16px;">
+                <div class="lab-section-label">Aylık İlerleme Raporu</div>
+                <div id="labListContainer" class="lab-monthly-report"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== RISK TOOL ========== -->
+    <div id="lab-tool-risk" class="lab-tool-container" style="display:none;">
+        <div class="lab-glass-card">
+            <div class="lab-tool-header">
+                <div class="lab-tool-icon rose"><i class="fas fa-radiation"></i></div>
+                <div class="lab-tool-info">
+                    <h3>Risk & Pozisyon Yönetimi</h3>
+                    <p>Portföyünün krizlere dayanıklılığını test edin</p>
+                </div>
+            </div>
+
+            <!-- Chaos Room -->
+            <div class="lab-section-label" style="color: var(--lab-accent-rose);">Kaos Odası</div>
+            
+            <select id="chaosScenario" class="lab-input lab-select lab-scenario-select" onchange="runChaosSimulation()">
+                <option value="0">🔮 Senaryo Seçiniz...</option>
+                <option value="crypto_winter">❄️ Kripto Kışı (Bitcoin -%60)</option>
+                <option value="market_crash">📉 Küresel Borsa Çöküşü (-%35)</option>
+                <option value="currency_shock">💱 Kur Şoku (Dolar +%40)</option>
+                <option value="gold_rush">🥇 Güvenli Liman (Altın +%25)</option>
+                <option value="black_monday">⚫ Kara Pazartesi (Her Şey -%20)</option>
+            </select>
+
+            <div id="chaosResult" style="display:none;">
+                <div class="lab-stat-label">Senaryo Sonrası Tahmini Bakiye</div>
+                <div class="lab-big-number">
+                    <div class="lab-big-number-value" id="chaosBalance">--</div>
+                </div>
+                
+                <div class="lab-progress-container">
+                    <div id="chaosBar" class="lab-progress-fill" style="width: 100%; background: linear-gradient(90deg, #ef4444, #f59e0b);"></div>
+                    <div class="lab-progress-text">
+                        <span id="chaosChangeText">--</span>
+                    </div>
+                </div>
+
+                <div class="lab-advice-box">
+                    <i class="fas fa-lightbulb" style="color: var(--lab-accent-gold);"></i>
+                    <p id="chaosAdvice">--</p>
+                </div>
             </div>
         </div>
 
+        <!-- Position Calculator -->
+        <div class="lab-glass-card">
+            <div class="lab-section-label">Pozisyon Hesaplama</div>
+
+            <div style="background: rgba(0,0,0,0.2); padding: 14px; border-radius: 10px; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span class="lab-form-label"><i class="fas fa-folder-open"></i> Portföyden Seç</span>
+                    <button onclick="populateRiskAssets()" class="lab-btn-secondary"><i class="fas fa-sync-alt"></i></button>
+                </div>
+                <select id="riskAssetSelect" class="lab-input lab-select" onchange="fillRiskFromAsset()">
+                    <option value="-1">Manuel Giriş / Seçiniz</option>
+                </select>
+            </div>
+
+            <div class="lab-form-grid">
+                <div class="lab-form-group">
+                    <label class="lab-form-label">Sermaye (Varlık Değeri)</label>
+                    <input type="number" id="riskBalance" class="lab-input" placeholder="Otomatik çekilir">
+                </div>
+                <div class="lab-form-group">
+                    <label class="lab-form-label">Risk İştahı (%)</label>
+                    <input type="number" id="riskPct" class="lab-input" value="1" placeholder="%1">
+                </div>
+                <div class="lab-form-group">
+                    <label class="lab-form-label">Giriş Fiyatı</label>
+                    <input type="number" id="riskEntry" class="lab-input" placeholder="0.00">
+                </div>
+                <div class="lab-form-group">
+                    <label class="lab-form-label">Stop Fiyatı</label>
+                    <input type="number" id="riskStop" class="lab-input" placeholder="0.00">
+                </div>
+            </div>
+
+            <button class="lab-btn-primary rose" onclick="calcLabRisk()">
+                <i class="fas fa-calculator"></i> POZİSYON HESAPLA
+            </button>
+        </div>
+
+        <!-- Risk Results -->
+        <div id="riskResultBox" style="display:none;">
+            <div class="lab-results-card rose">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                    <div class="lab-section-label" style="color: var(--lab-accent-rose); margin: 0;">İşlem Planı</div>
+                    <span style="font-size: 10px; color: var(--lab-text-muted);">STOP ZARARI: <span id="resRiskLoss" style="color: white; font-weight: 700;">--</span></span>
+                </div>
+                <div class="lab-stats-grid">
+                    <div class="lab-stat-item">
+                        <div class="lab-stat-label">Alınacak Adet</div>
+                        <div class="lab-stat-value" id="resRiskQty">--</div>
+                    </div>
+                    <div class="lab-stat-item">
+                        <div class="lab-stat-label">Gereken Nakit</div>
+                        <div class="lab-stat-value gold" id="resPosSize">--</div>
+                    </div>
+                </div>
+                <div id="riskWarning" class="lab-advice-box">
+    <i class="fas fa-wallet" style="color: var(--lab-text-secondary);"></i>
+    <p id="riskRatioText">--</p>
+</div>
+
+            </div>
+        </div>
     </div>
-</div>
 
-                <div id="lab-tool-chaos" class="lab-tool-container" style="display:none;">
-            </div>
-            <div id="lab-tool-time" class="lab-tool-container" style="display:none;">
-    
-    <div class="card" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;">
-        <div style="display:flex; flex-direction:column; gap:10px;">
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:5px;">
-                <div style="width:36px; height:36px; background:rgba(99, 102, 241, 0.2); border-radius:8px; display:flex; align-items:center; justify-content:center; color:#818cf8;">
-                    <i class="fas fa-history"></i>
-                </div>
-                <div>
-                    <div style="font-size:16px; font-weight:800; color:white;">ZAMAN MAKİNESİ</div>
-                    
-                    <div style="font-size:11px; color:#94a3b8;">Geçmiş Veri & Gelecek Simülasyonu</div>
+    <!-- ========== AVERAGE DOWN TOOL ========== -->
+    <div id="lab-tool-avg" class="lab-tool-container" style="display:none;">
+        <div class="lab-glass-card">
+            <div class="lab-tool-header">
+                <div class="lab-tool-icon sky"><i class="fas fa-chess-knight"></i></div>
+                <div class="lab-tool-info">
+                    <h3>Akıllı Strateji Merkezi</h3>
+                    <p>Sadece maliyet düşürme değil, geleceği planla ve riski yönet</p>
                 </div>
             </div>
 
-<div style="margin-bottom:10px;">
-    <div style="font-size:10px; color:var(--text-sub); margin-bottom:5px; font-weight:700;">HIZLI ANALİZ (PORTFÖYDEN SEÇ)</div>
-    <select id="timeMachineSelect" class="modern-input" style="border-color:#8b5cf6;" onchange="fillTimeMachineSymbol()">
-        <option value="-1">Manuel Yazacağım</option>
-        </select>
-</div>
+            <div style="margin-bottom: 16px;">
+                <label class="lab-form-label"><i class="fas fa-folder-open"></i> Varlık Seç (Otomatik Doldur)</label>
+                <select id="advAvgSelect" class="lab-input lab-select" style="margin-top: 6px;" onchange="fillAdvAvgData()">
+                    <option value="-1">Manuel Giriş Yap</option>
+                </select>
+            </div>
 
+            <div class="lab-mode-toggle">
+                <div class="sim-tab active" onclick="switchAvgMode('budget', this)">💰 Bütçe ile Planla</div>
+                <div class="sim-tab" onclick="switchAvgMode('target', this)">🎯 Hedefe Kilitlen</div>
+            </div>
 
-            <div style="display:flex; gap:10px;">
-                <input type="text" id="statSymbol" class="modern-input" placeholder="Örn: BTC, ETH..." style="text-transform:uppercase; font-weight:700; letter-spacing:1px;">
-                <button onclick="runStatisticalAnalysis()" class="btn-main" style="width:auto; white-space:nowrap; background:#6366f1;">
+            <div class="lab-form-grid">
+                <div class="lab-form-group">
+                    <label class="lab-form-label">Eldeki Adet</label>
+                    <input type="number" id="aaOldQty" class="lab-input" placeholder="0">
+                </div>
+                <div class="lab-form-group">
+                    <label class="lab-form-label">Maliyetim</label>
+                    <input type="number" id="aaOldPrice" class="lab-input" placeholder="0.00">
+                </div>
+                <div class="lab-form-group full">
+                    <label class="lab-form-label">Şu Anki Piyasa Fiyatı</label>
+                    <input type="number" id="aaCurPrice" class="lab-input" placeholder="Güncel fiyat">
+                </div>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--lab-glass-border); margin: 16px 0;">
+
+            <!-- Budget Mode -->
+            <div id="avg-mode-budget">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span class="lab-form-label" style="color: var(--lab-accent-sky);">Ne kadar ekleyebilirsin? (Nakit)</span>
+                    <span id="sliderValDisplay" style="font-size: 11px; color: var(--lab-accent-sky); font-weight: 600;">0</span>
+                </div>
+                
+                <input type="range" id="aaBudgetSlider" class="lab-range-slider" min="0" max="1000000" step="100" value="0" oninput="syncBudgetSlider('slider')">
+                
+                <div style="display: flex; justify-content: space-between; font-size: 9px; color: var(--lab-text-muted); margin-bottom: 12px;">
+                    <span>Az</span><span>Çok</span>
+                </div>
+
+                <input type="number" id="aaBudget" class="lab-input" style="margin-bottom: 16px;" placeholder="Veya direkt tutar girin" onkeyup="syncBudgetSlider('input')">
+
+                <button class="lab-btn-primary sky" onclick="calcAdvAvg('budget')">
+                    <i class="fas fa-rocket"></i> STRATEJİYİ OLUŞTUR
+                </button>
+            </div>
+
+            <!-- Target Mode -->
+            <div id="avg-mode-target" style="display:none;">
+                <div class="lab-form-group" style="margin-bottom: 16px;">
+                    <label class="lab-form-label" style="color: var(--lab-accent-rose);">Hedeflediğin Ortalama Kaç?</label>
+                    <input type="number" id="aaTarget" class="lab-input" placeholder="Örn: 50.00">
+                </div>
+                <button class="lab-btn-primary rose" onclick="calcAdvAvg('target')">
+                    <i class="fas fa-crosshairs"></i> GEREKENİ HESAPLA
+                </button>
+            </div>
+        </div>
+
+        <!-- Risk Alert -->
+        <div id="aaRiskAlert" class="lab-risk-alert" style="display:none;">
+            <i class="fas fa-triangle-exclamation" style="font-size: 18px; color: #ef4444;"></i>
+            <div>
+                <div style="font-weight: 700; color: #ef4444; margin-bottom: 3px; font-size: 12px;">YÜKSEK KONSANTRASYON RİSKİ!</div>
+                <div id="aaRiskMsg" style="font-size: 11px; color: #fca5a5;">--</div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div id="aaResultBox" style="display:none;">
+            <div class="lab-results-card sky">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div class="lab-section-label" style="color: var(--lab-accent-sky); margin: 0;">Ana Senaryo Sonucu</div>
+                    <span id="aaSavingBadge" style="padding: 3px 8px; border-radius: 5px; font-size: 9px; font-weight: 700; background: var(--lab-accent-emerald-dim); color: var(--lab-accent-emerald);">--</span>
+                </div>
+
+                <div class="lab-big-number">
+                    <div class="lab-big-number-label">Yeni Ortalamanız</div>
+                    <div class="lab-big-number-value" id="aaResAvg" style="font-size: 32px;">--</div>
+                    <div style="display: flex; justify-content: center; gap: 10px; margin-top: 6px; align-items: center;">
+                        <span style="font-size: 12px; color: var(--lab-accent-rose); text-decoration: line-through;" id="aaResOldAvg">--</span>
+                        <i class="fas fa-arrow-right" style="font-size: 9px; color: var(--lab-text-muted);"></i>
+                        <span id="aaResDiff" style="font-size: 11px; font-weight: 700; color: var(--lab-accent-emerald); background: var(--lab-accent-emerald-dim); padding: 3px 8px; border-radius: 100px;">--</span>
+                    </div>
+                </div>
+
+                <div style="background: rgba(0,0,0,0.2); border-radius: 10px; padding: 14px; margin-top: 16px; font-size: 11px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: var(--lab-text-muted);">Alınacak Adet:</span>
+                        <span style="font-weight: 700; color: white;" id="aaResQty">--</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: var(--lab-text-muted);">Gereken Nakit:</span>
+                        <span style="font-weight: 700; color: var(--lab-accent-gold);" id="aaResCost">--</span>
+                    </div>
+                    <div style="border-top: 1px solid var(--lab-glass-border); padding-top: 8px; display: flex; justify-content: space-between;">
+                        <span style="color: var(--lab-text-muted);">Yeni Toplam Maliyet:</span>
+                        <span style="font-weight: 700;" id="aaResTotal">--</span>
+                    </div>
+                </div>
+
+                <div id="aaBreakEvenMsg" style="margin-top: 12px; text-align: center; font-size: 11px; color: var(--lab-accent-sky); background: var(--lab-accent-sky-dim); padding: 10px; border-radius: 8px;"></div>
+
+                <!-- Strategy Steps -->
+                <div id="aaStrategyBox" style="margin-top: 18px; border-top: 1px solid var(--lab-glass-border); padding-top: 14px;">
+                    <div class="lab-section-label" style="color: var(--lab-accent-sky);">
+                        <i class="fas fa-layer-group"></i> Profesyonel Kademeli Alım Planı
+                    </div>
+                    <p style="font-size: 10px; color: var(--lab-text-muted); margin-bottom: 12px;">Paranı tek seferde harcamak yerine, düşüşleri fırsata çevir:</p>
+                    <div id="strategyStepsContainer"></div>
+                </div>
+
+                <button onclick="saveCurrentScenario()" class="lab-btn-secondary" style="width: 100%; margin-top: 16px; justify-content: center;">
+                    <i class="fas fa-bookmark"></i> Bu Senaryoyu İzleme Listeme Kaydet
+                </button>
+
+                <div style="margin-top: 20px; padding-top: 14px; border-top: 1px dashed var(--lab-glass-border);">
+                    <div style="font-size: 10px; font-weight: 700; color: var(--lab-text-muted); margin-bottom: 10px;">
+                        <i class="fas fa-folder-open"></i> KAYITLI STRATEJİLERİM
+                    </div>
+                    <div id="savedStrategiesList">
+                        <div style="text-align: center; font-size: 10px; color: var(--lab-text-muted); opacity: 0.5;">Henüz kayıtlı plan yok.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== TIME MACHINE TOOL ========== -->
+    <div id="lab-tool-time" class="lab-tool-container" style="display:none;">
+        <div class="lab-glass-card">
+            <div class="lab-tool-header">
+                <div class="lab-tool-icon violet"><i class="fas fa-clock-rotate-left"></i></div>
+                <div class="lab-tool-info">
+                    <h3>Zaman Makinesi</h3>
+                    <p>Geçmiş veri analizi & gelecek simülasyonu</p>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+                <label class="lab-form-label"><i class="fas fa-bolt"></i> Hızlı Analiz (Portföyden Seç)</label>
+                <select id="timeMachineSelect" class="lab-input lab-select" style="margin-top: 6px;" onchange="fillTimeMachineSymbol()">
+                    <option value="-1">Manuel Yazacağım</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="statSymbol" class="lab-input" placeholder="Örn: BTC, ETH..." style="text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
+                <button onclick="runStatisticalAnalysis()" class="lab-btn-primary violet" style="width: auto; white-space: nowrap; padding: 12px 20px;">
                     <i class="fas fa-search"></i> ANALİZ ET
                 </button>
             </div>
-            <div style="font-size:9px; color:#64748b;">* Veriler: CoinGecko (Öncelikli) > Binance (Yedek)</div>
-        </div>
-    </div>
 
-    <div id="statResult" style="display:none;">
-        
-        <div class="card" style="border:1px solid #3b82f6; background: linear-gradient(180deg, rgba(59, 130, 246, 0.1) 0%, rgba(15, 23, 42, 1) 100%); margin-bottom:20px;">
-            <div class="lbl-sm" style="color:#60a5fa; border-bottom:1px solid rgba(59, 130, 246, 0.3); padding-bottom:5px; margin-bottom:10px;">
-                GELECEK 5 YIL (OLASILIK BANDI)
+            <p style="font-size: 9px; color: var(--lab-text-muted); margin-top: 10px; text-align: center;">
+                * Veriler: CoinGecko (Öncelikli) > Binance (Yedek)
+            </p>
+        </div>
+
+        <!-- Statistical Results -->
+        <div id="statResult" style="display:none;">
+            <div class="lab-glass-card">
+                <div class="lab-section-label" style="color: var(--lab-accent-sky);">Gelecek 5 Yıl (Olasılık Bandı)</div>
+                <div id="projectionList"></div>
             </div>
-            <div id="projectionList" style="display:flex; flex-direction:column; gap:6px;">
+
+            <div class="lab-glass-card" style="padding: 0; overflow: hidden;">
+                <div class="lab-section-label" style="padding: 14px 16px; margin: 0; background: rgba(0,0,0,0.2);">Geçmiş Performans</div>
+                <div style="overflow-x: auto;">
+                    <table class="lab-data-table">
+                        <thead>
+                            <tr>
+                                <th>YIL</th>
+                                <th>KAPANIŞ</th>
+                                <th style="color: var(--lab-accent-emerald);">YÜKSEK</th>
+                                <th style="color: var(--lab-accent-rose);">DÜŞÜK</th>
+                                <th style="color: var(--lab-accent-gold);">M.CAP</th>
+                                <th style="color: var(--lab-accent-sky);">HACİM</th>
+                                <th>REEL</th>
+                            </tr>
+                        </thead>
+                        <tbody id="statTableBody"></tbody>
+                    </table>
                 </div>
-        </div>
+            </div>
 
-        <div class="card" style="padding:0; overflow:hidden;">
-            <div class="lbl-sm" style="padding:10px; background:rgba(255,255,255,0.02);">GEÇMİŞ PERFORMANS</div>
-            <div style="overflow-x:auto;">
-                <table style="width:100%; border-collapse:collapse; font-size:10px; color:white; white-space:nowrap;">
-                    <thead>
-                        <tr style="background:rgba(255,255,255,0.05); color:#94a3b8; text-align:right;">
-                            <th style="padding:8px 4px; text-align:left;">YIL</th>
-                            <th style="padding:8px 4px;">KAPANIŞ</th>
-                            <th style="padding:8px 4px; color:#10b981;">YÜKSEK</th>
-                            <th style="padding:8px 4px; color:#ef4444;">DÜŞÜK</th>
-                            <th style="padding:8px 4px; color:#f59e0b;">M.CAP</th> 
-                            <th style="padding:8px 4px; color:#38bdf8;">HACİM</th> 
-                            <th style="padding:8px 4px;">REEL</th>
-                        </tr>
-                    </thead>
-                    <tbody id="statTableBody">
-                        </tbody>
-                </table>
-            </div>
-        </div>
-        
-                    
-            <div style="margin-top:10px; font-size:9px; color:var(--text-sub); text-align:center; padding:0 20px;">
-        Yasal Uyarı: Bu tablo bir yatırım tavsiyesi değildir. Geçmiş performans geleceği garanti etmez.
-    </div>
-</div> </div> <div id="lab-tool-pos" class="lab-tool-container" style="display:none; animation: fadeIn 0.4s ease;">
-    
-    <div style="background: linear-gradient(135deg, #10b98115, #10b98105); border:1px solid #10b98130; border-radius:12px; padding:15px; margin-bottom:15px;">
-        <div style="display:flex; align-items:center; gap:10px;">
-            <div style="width:36px; height:36px; background:rgba(16, 185, 129, 0.2); border-radius:8px; display:flex; align-items:center; justify-content:center; color:#10b981;">
-                <i class="fas fa-shield-alt"></i>
-            </div>
-            <div>
-                <div style="font-size:16px; font-weight:800; color:white;">RİSK SİHİRBAZI</div>
-                <div style="font-size:11px; color:#94a3b8;">Yapay zeka destekli kasa ve risk yönetimi.</div>
+            <div class="lab-disclaimer">
+                ⚠️ Yasal Uyarı: Bu tablo bir yatırım tavsiyesi değildir. Geçmiş performans geleceği garanti etmez.
             </div>
         </div>
     </div>
 
-    <div id="dnaCard" style="background:#1e293b; border-radius:12px; padding:15px; margin-bottom:15px; border-left:4px solid #94a3b8; display:none;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-            <span style="font-size:10px; color:#94a3b8; font-weight:700;">SİSTEMİN SENİN HAKKINDAKİ GÖRÜŞÜ</span>
-            <span id="dnaType" style="font-size:11px; font-weight:800; padding:2px 8px; border-radius:4px; background:#334155;">ANALİZ EDİLİYOR...</span>
+    <!-- ========== CHAOS TOOL (empty placeholder) ========== -->
+    <div id="lab-tool-chaos" class="lab-tool-container" style="display:none;"></div>
+
+    <!-- ========== POSITION WIZARD TOOL ========== -->
+    <div id="lab-tool-pos" class="lab-tool-container" style="display:none;">
+        <div class="lab-glass-card">
+            <div class="lab-tool-header">
+                <div class="lab-tool-icon emerald"><i class="fas fa-wand-magic-sparkles"></i></div>
+                <div class="lab-tool-info">
+                    <h3>Risk Sihirbazı</h3>
+                    <p>Yapay zeka destekli kasa ve risk yönetimi</p>
+                </div>
+            </div>
+
+            <!-- DNA Card -->
+            <div id="dnaCard" class="lab-dna-card" style="display:none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--lab-text-muted);">Sistemin Senin Hakkındaki Görüşü</span>
+                    <span id="dnaType" class="lab-dna-type moderate">ANALİZ EDİLİYOR...</span>
+                </div>
+                <p id="dnaMsg" style="font-size: 12px; line-height: 1.5; color: var(--lab-text-secondary);">Veriler yükleniyor...</p>
+            </div>
+
+            <div class="lab-form-group" style="margin-bottom: 14px;">
+                <label class="lab-form-label"><i class="fas fa-vault"></i> Toplam Kasa (Sermaye)</label>
+                <div style="display: flex; gap: 8px; margin-top: 6px;">
+                    <input type="number" id="posBalance" class="lab-input" placeholder="Toplam paranız (TL/$)" onkeyup="calcPositionSize()">
+                    <button onclick="fillPosBalance()" class="lab-btn-secondary" style="padding: 12px 16px;"><i class="fas fa-wallet"></i></button>
+                </div>
+            </div>
+
+            <div class="lab-form-grid">
+                <div class="lab-form-group">
+                    <label class="lab-form-label">Risk (%)</label>
+                    <select id="posRiskPct" class="lab-input lab-select" onchange="calcPositionSize()">
+                        <option value="1">%1 (Profesyonel)</option>
+                        <option value="2" selected>%2 (Standart)</option>
+                        <option value="3">%3 (Agresif)</option>
+                        <option value="5">%5 (Kumarbaz)</option>
+                    </select>
+                </div>
+                <div class="lab-form-group">
+                    <label class="lab-form-label">Stop Uzaklığı (%)</label>
+                    <input type="number" id="posStopDist" class="lab-input" placeholder="% Örn: 5" value="5" onkeyup="calcPositionSize()">
+                </div>
+            </div>
         </div>
-        <div id="dnaMsg" style="font-size:12px; color:#cbd5e1; line-height:1.4;">Veriler yükleniyor...</div>
+
+        <!-- Results -->
+        <div class="lab-results-card emerald">
+            <div class="lab-stats-grid">
+                <div class="lab-stat-item">
+                    <div class="lab-stat-label">Güvenli İşlem Büyüklüğü</div>
+                    <div class="lab-stat-value" id="posResultSize" style="font-size: 20px;">0 ₺</div>
+                </div>
+                <div class="lab-stat-item">
+                    <div class="lab-stat-label">Maksimum Kayıp Riski</div>
+                    <div class="lab-stat-value rose" id="posResultRisk" style="font-size: 18px;">0 ₺</div>
+                </div>
+            </div>
+
+            <div class="lab-advice-box" style="background: var(--lab-accent-emerald-dim); border: 1px solid rgba(52, 211, 153, 0.2);">
+                <i class="fas fa-check-circle" style="color: var(--lab-accent-emerald);"></i>
+                <p style="color: var(--lab-accent-emerald);">Psikolojini bozmamak için işleme bu tutarla girmelisin.</p>
+            </div>
+        </div>
     </div>
 
-    <div class="card" style="border:1px solid rgba(255,255,255,0.05);">
-        <div style="margin-bottom:15px;">
-            <div style="font-size:10px; color:var(--text-sub); margin-bottom:5px; font-weight:700;">TOPLAM KASA (SERMAYE)</div>
-            <div style="display:flex; gap:10px;">
-                <input type="number" id="posBalance" class="modern-input" placeholder="Toplam paranız (TL/$)" onkeyup="calcPositionSize()">
-                <button onclick="fillPosBalance()" class="action-btn" style="width:auto; background:#334155;"><i class="fas fa-wallet"></i></button>
-            </div>
-        </div>
-        <div style="display:flex; gap:10px; margin-bottom:5px;">
-            <div style="flex:1;">
-                <div style="font-size:10px; color:var(--text-sub); margin-bottom:5px; font-weight:700;">RİSK (%)</div>
-                <select id="posRiskPct" class="modern-input" onchange="calcPositionSize()" style="font-weight:700;">
-                    <option value="1">%1 (Profesyonel)</option>
-                    <option value="2" selected>%2 (Standart)</option>
-                    <option value="3">%3 (Agresif)</option>
-                    <option value="5">%5 (Kumarbaz)</option>
-                </select>
-            </div>
-            <div style="flex:1;">
-                 <div style="font-size:10px; color:var(--text-sub); margin-bottom:5px; font-weight:700;">STOP UZAKLIĞI (%)</div>
-                 <input type="number" id="posStopDist" class="modern-input" placeholder="% Örn: 5" value="5" onkeyup="calcPositionSize()">
-            </div>
-        </div>
-    </div>
+</div>
 
-    <div style="background:linear-gradient(145deg, #1e293b 0%, #0f172a 100%); border-radius:12px; padding:15px; border:1px solid rgba(255,255,255,0.05); margin-top:10px;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.05);">
-            <span style="font-size:12px; color:#94a3b8;">Güvenli İşlem Büyüklüğü:</span>
-            <span id="posResultSize" style="font-size:16px; font-weight:800; color:#fff;">0 ₺</span>
-        </div>
-        <div style="display:flex; justify-content:space-between;">
-            <span style="font-size:12px; color:#94a3b8;">Maksimum Kayıp Riski:</span>
-            <span id="posResultRisk" style="font-size:14px; font-weight:700; color:#ef4444;">0 ₺</span>
-        </div>
-        <div style="margin-top:15px; font-size:10px; color:#10b981; font-style:italic; background:rgba(16, 185, 129, 0.1); padding:8px; border-radius:6px;">
-            <i class="fas fa-check-circle"></i> Psikolojini bozmamak için işleme bu tutarla girmelisin.
-                            </div> 
-
-                </div> 
-
-            </div> 
-
-        </div>
-
+ 
     <div id="an-view-psycho" class="an-view-section" style="display:none;">
         
     
@@ -3489,7 +4731,21 @@ setInterval(() => { if (document.getElementById('page-news')?.style.display !== 
                     <div class="switch-row"><div><span class="switch-label">Haberler</span></div><label class="tgl-switch"><input type="checkbox" id="ntf_news" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label></div>
                 </div>
                 <div class="card">
-                    <div class="switch-row"><div><span class="switch-label">Ses</span></div><label class="tgl-switch"><input type="checkbox" id="ntf_sound" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label></div>
+                    <div
+                     class="switch-row"><div><span class="switch-label">Ses</span></div><label class="tgl-switch"><input type="checkbox" id="ntf_sound" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label></div>
+                     <div class="switch-row"><div><span class="switch-label">Titreşim</span></div><label class="tgl-switch"><input type="checkbox" id="ntf_vibrate" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label></div>
+
+<div class="switch-row" style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px; padding-top: 12px;">
+    <div>
+        <span class="switch-label" style="color: #f59e0b;">Gizli Mod (API Gizle)</span>
+        <span class="switch-desc">Veri sağlayıcı ve sistem mesajlarını tamamen kapatır.</span>
+    </div>
+    <label class="tgl-switch">
+        <input type="checkbox" id="muteAllToggle" onchange="toggleSecretMode()">
+        <span class="tgl-slider"></span>
+    </label>
+</div>
+
                     <div class="switch-row"><div><span class="switch-label">Titreşim</span></div><label class="tgl-switch"><input type="checkbox" id="ntf_vibrate" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label></div>
                 </div>
                 <button class="btn-main btn-sec" onclick="testNotification()">Test Bildirimi</button>
@@ -4067,7 +5323,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "3.4"; 
+    const CURRENT_VERSION = "3.5"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -5877,54 +7133,78 @@ async function loadNews(query) {
 
     function toggleTradeMenu() { const content = document.getElementById('tradeContent'); const chevron = document.getElementById('tradeChevron'); const card = document.getElementById('tradeCard'); if (content.classList.contains('collapsed')) { content.classList.remove('collapsed'); chevron.classList.add('rotated'); card.classList.add('open'); } else { content.classList.add('collapsed'); chevron.classList.remove('rotated'); card.classList.remove('open'); } }
     function toggleAssetDetails(id) { const content = document.getElementById('asset-content-' + id); const chevron = document.getElementById('asset-chevron-' + id); if (content.classList.contains('collapsed')) { content.classList.remove('collapsed'); chevron.classList.add('rotated'); } else { content.classList.add('collapsed'); chevron.classList.remove('rotated'); } }
-        /* --- YENİ GELİŞMİŞ BİLDİRİM SİSTEMİ (C KISMI) --- */
-    function addNotification(type, title, msg) {
-        // 1. Uygulama İçi Kayıt (Eski Yöntem)
-        let n = { type: type, title: title, msg: msg, time: new Date().toLocaleTimeString(), read: false };
+/* --- YENİ GELİŞMİŞ BİLDİRİM SİSTEMİ (TEK VE DÜZELTİLMİŞ HALİ) --- */
+function addNotification(type, title, msg) {
+    // 1. GİZLİ MOD KONTROLÜ (EN BAŞTA)
+    // Eğer Gizli Mod açıksa ve bu mesaj aç/kapa mesajı değilse, durdur.
+    const isSecretMode = localStorage.getItem('tm_secret_mode') === 'true';
+    if (isSecretMode && title !== 'Gizli Mod Kapalı' && title !== 'Gizli Mod Aktif') {
+        return; // Fonksiyonu burada durdur, bildirim gösterme.
+    }
+
+    // 2. UYGULAMA İÇİ KAYIT (MEVCUT SİSTEM)
+    let n = { type: type, title: title, msg: msg, time: new Date().toLocaleTimeString(), read: false };
+    
+    // Notifications dizisi tanımlı mı diye kontrol edelim (Hata almamak için)
+    if(typeof notifications !== 'undefined') {
         notifications.unshift(n);
         if(notifications.length > 50) notifications.pop();
         localStorage.setItem('tm_notifications', JSON.stringify(notifications));
-        updateBadge();
-        if(document.getElementById('page-notifications') && document.getElementById('page-notifications').classList.contains('active')) renderNotifications();
-
-        // 2. Kategori Tespiti
-        let category = 'trade'; // Varsayılan
-        if(title.includes('Alarm') || title.includes('HEDEF') || title.includes('DİKKAT')) category = 'price';
-        else if(title.includes('Haber')) category = 'news';
         
-        // 3. Ayar Kontrolü: Kullanıcı bu kategoriyi kapatmış mı?
-        // (Eğer ayar yoksa varsayılan olarak göster)
-        if(notifySettings && !notifySettings[category]) return;
-
-        // 4. SES VE TİTREŞİM
-        if(notifySettings && notifySettings.sound) playNotificationSound(type);
-        if(notifySettings && notifySettings.vibrate && navigator.vibrate) {
-            if(type === 'danger') navigator.vibrate([100, 50, 100, 50, 100]); // 3 kere titret (Hata)
-            else navigator.vibrate(200); // Tek titret (Normal)
+        if(typeof updateBadge === 'function') updateBadge();
+        
+        let pageNotif = document.getElementById('page-notifications');
+        if(pageNotif && pageNotif.classList.contains('active') && typeof renderNotifications === 'function') {
+            renderNotifications();
         }
+    }
 
-        // 5. BROWSER / TELEFON BİLDİRİMİ (PUSH)
-        if ("Notification" in window && Notification.permission === "granted") {
-            // Mobilde ikonun düzgün görünmesi için app iconu
-            let iconUrl = "https://cdn-icons-png.flaticon.com/512/3429/3429170.png"; 
-            if(type === 'danger') iconUrl = "https://cdn-icons-png.flaticon.com/512/190/190406.png"; 
+    // 3. KATEGORİ AYARLARI KONTROLÜ
+    let category = 'trade'; // Varsayılan
+    if(title.includes('Alarm') || title.includes('HEDEF') || title.includes('DİKKAT')) category = 'price';
+    else if(title.includes('Haber')) category = 'news';
+    
+    // Ayar nesnesi varsa kontrol et, yoksa devam et
+    if(typeof notifySettings !== 'undefined' && !notifySettings[category]) return;
 
+    // 4. SES VE TİTREŞİM
+    if(typeof notifySettings !== 'undefined' && notifySettings.sound && typeof playNotificationSound === 'function') {
+        playNotificationSound(type);
+    }
+
+    if(typeof notifySettings !== 'undefined' && notifySettings.vibrate && navigator.vibrate) {
+        if(type === 'danger') navigator.vibrate([100, 50, 100, 50, 100]); // 3 kere titret (Hata)
+        else navigator.vibrate(200); // Tek titret (Normal)
+    }
+
+    // 5. BROWSER / TELEFON BİLDİRİMİ (PUSH)
+    if ("Notification" in window && Notification.permission === "granted") {
+        let iconUrl = "https://cdn-icons-png.flaticon.com/512/3429/3429170.png"; 
+        if(type === 'danger') iconUrl = "https://cdn-icons-png.flaticon.com/512/190/190406.png"; 
+
+        // Titreşim ayarı varsa bildirime de ekle
+        let vibPattern = (typeof notifySettings !== 'undefined' && notifySettings.vibrate) ? [200, 100, 200] : [];
+
+        try {
             const notif = new Notification(title, {
                 body: msg,
                 icon: iconUrl,
-                vibrate: (notifySettings && notifySettings.vibrate) ? [200, 100, 200] : []
+                vibrate: vibPattern
             });
 
             // Bildirime tıklayınca uygulamaya odaklan
             notif.onclick = function() {
                 window.focus();
                 notif.close();
-                // Bildirim sayfasına yönlendir (index 3 genelde bildirim sayfasıdır)
+                // Bildirim sayfasına yönlendir
                 let notifBtn = document.querySelectorAll('.nav-item')[3]; 
-                if(notifBtn) switchPage('notifications', notifBtn);
+                if(notifBtn && typeof switchPage === 'function') switchPage('notifications', notifBtn);
             };
+        } catch(e) {
+            console.log("Bildirim oluşturma hatası:", e);
         }
     }
+}
 
     function renderNotifications(){ let l = document.getElementById('notificationList'); l.innerHTML = ""; if(notifications.length === 0){ l.innerHTML = "<div style='text-align:center; padding:30px; color:var(--text-sub); opacity:0.6;'><i class='fas fa-bell-slash' style='font-size:24px; margin-bottom:10px;'></i><br>Bildirim Yok</div>"; return; } notifications.forEach(n => { let icon = 'info-circle'; let cls = 'n-info'; if(n.type === 'success') { icon = 'check-circle'; cls = 'n-success'; } if(n.type === 'danger') { icon = 'exclamation-circle'; cls = 'n-danger'; } if(n.type === 'warn') { icon = 'bell'; cls = 'n-warn'; } l.innerHTML += `<div class="notif-card ${cls} ${n.read ? '' : 'unread'}"><div class="notif-icon-box"><i class="fas fa-${icon}"></i></div><div class="notif-content"><div class="notif-title">${n.title}</div><div class="notif-msg">${n.msg}</div></div><div class="notif-time">${n.time}</div></div>`; }); notifications.forEach(n => n.read = true); localStorage.setItem('tm_notifications', JSON.stringify(notifications)); updateBadge(); }
     function updateBadge(){ let unread = notifications.filter(n => !n.read).length; let b = document.getElementById('notifBadge'); if(unread > 0){ b.innerText = unread; b.classList.add('active'); } else { b.classList.remove('active'); } }
@@ -7358,6 +8638,19 @@ function saveNotifySettings() {
     
     // Ses önizlemesi (Kullanıcı sesi açarsa 'ding' duysun)
     if(notifySettings.sound && event.target.id === 'ntf_sound') playNotificationSound('success');
+}
+// --- GİZLİ MOD (SECRET MODE) ---
+function toggleSecretMode() {
+    const isSecret = document.getElementById('muteAllToggle').checked;
+    localStorage.setItem('tm_secret_mode', isSecret);
+    
+    if(isSecret) {
+        // Kullanıcıya son bir bilgi verip susuyoruz
+        addNotification('warn', 'Gizli Mod Aktif', 'Artık hiçbir sistem bildirimi ekranda görünmeyecek.');
+    } else {
+        // Sessizlikten çıkınca haber ver
+        addNotification('success', 'Gizli Mod Kapalı', 'Bildirimler tekrar aktif.');
+    }
 }
 
 // Ses Çalma Fonksiyonu
