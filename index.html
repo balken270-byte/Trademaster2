@@ -3068,68 +3068,771 @@ button:active,
         </div> 
     </div>
 
-    <div id="an-view-vision" class="an-view-section" style="display:none;">
+    <!-- VISION SECTION - Premium Design -->
+<!-- Bu kodu mevcut an-view-vision section'ının yerine yapıştır -->
+
+<style>
+/* VISION PREMIUM STYLES */
+
+/* Fullscreen Mode */
+#an-view-vision.vision-fullscreen-mode {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 9999 !important;
+    background: #030712 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
+#an-view-vision {
+    --vision-bg-deep: #030712;
+    --vision-bg-card: rgba(15, 23, 42, 0.6);
+    --vision-bg-elevated: rgba(30, 41, 59, 0.4);
+    --vision-glass-border: rgba(255, 255, 255, 0.06);
+    --vision-accent-purple: #a855f7;
+    --vision-accent-purple-dim: rgba(168, 85, 247, 0.15);
+    --vision-accent-pink: #d946ef;
+    --vision-accent-pink-dim: rgba(217, 70, 239, 0.12);
+    --vision-accent-orange: #f97316;
+    --vision-accent-orange-dim: rgba(249, 115, 22, 0.12);
+    --vision-accent-emerald: #34d399;
+    --vision-accent-emerald-dim: rgba(52, 211, 153, 0.12);
+    --vision-accent-gold: #fbbf24;
+    --vision-accent-gold-dim: rgba(251, 191, 36, 0.12);
+    --vision-text-primary: #f1f5f9;
+    --vision-text-secondary: #94a3b8;
+    --vision-text-muted: #475569;
+}
+
+/* Top Navigation Bar */
+#an-view-vision .vision-topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: rgba(3, 7, 18, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--vision-glass-border);
+    z-index: 10000;
+    height: 64px;
+}
+
+#an-view-vision .vision-back-btn {
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: none;
+    border-radius: 12px;
+    color: var(--vision-text-primary);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+#an-view-vision .vision-back-btn:hover {
+    background: var(--vision-bg-elevated);
+}
+
+#an-view-vision .vision-back-btn:active {
+    transform: scale(0.95);
+}
+
+#an-view-vision .vision-topbar-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#an-view-vision .vision-topbar-brand {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--vision-text-primary);
+    letter-spacing: -0.5px;
+}
+
+#an-view-vision .vision-topbar-beta {
+    font-size: 10px;
+    font-weight: 700;
+    color: #fb7185;
+    letter-spacing: 0.5px;
+}
+
+/* Scrollable Content */
+#an-view-vision .vision-content {
+    position: absolute;
+    top: 64px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 16px;
+    padding-bottom: 100px;
+    -webkit-overflow-scrolling: touch;
+}
+
+#an-view-vision .vision-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+#an-view-vision .vision-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#an-view-vision .vision-content::-webkit-scrollbar-thumb {
+    background: var(--vision-text-muted);
+    border-radius: 4px;
+}
+
+/* Ambient Background */
+#an-view-vision .vision-ambient-bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+#an-view-vision .vision-ambient-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.25;
+    animation: visionFloat 20s ease-in-out infinite;
+}
+
+#an-view-vision .vision-orb-1 {
+    width: 280px; height: 280px;
+    background: radial-gradient(circle, var(--vision-accent-purple) 0%, transparent 70%);
+    top: -10%; right: -5%;
+}
+
+#an-view-vision .vision-orb-2 {
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, var(--vision-accent-pink) 0%, transparent 70%);
+    bottom: 20%; left: -10%;
+    animation-delay: -10s;
+}
+
+@keyframes visionFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(15px, -15px) scale(1.05); }
+}
+
+/* Header Section */
+#an-view-vision .vision-header {
+    text-align: center;
+    padding: 20px 16px 10px;
+    position: relative;
+    z-index: 1;
+}
+
+#an-view-vision .vision-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, var(--vision-accent-purple-dim), transparent);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    padding: 5px 14px;
+    border-radius: 100px;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--vision-accent-purple);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+#an-view-vision .vision-title {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #fff 0%, #a855f7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 6px;
+}
+
+#an-view-vision .vision-subtitle {
+    font-size: 12px;
+    color: var(--vision-text-secondary);
+}
+
+/* Goal Progress Card */
+#an-view-vision .vision-goal-card {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(15, 23, 42, 0.8));
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+}
+
+#an-view-vision .vision-goal-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--vision-accent-purple), var(--vision-accent-pink), transparent);
+}
+
+#an-view-vision .vision-goal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+#an-view-vision .vision-goal-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--vision-text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#an-view-vision .vision-goal-title i {
+    color: var(--vision-accent-purple);
+}
+
+#an-view-vision .vision-edit-btn {
+    background: rgba(168, 85, 247, 0.1);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--vision-accent-purple);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#an-view-vision .vision-edit-btn:hover {
+    background: rgba(168, 85, 247, 0.2);
+}
+
+/* Progress Bar - Eski class isimleri korundu */
+#an-view-vision .goal-strip-container {
+    position: relative;
+    height: 48px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+#an-view-vision .goal-strip-fill {
+    height: 100%;
+    border-radius: 12px;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+#an-view-vision .goal-strip-fill::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%);
+    animation: visionShine 2.5s ease-in-out infinite;
+}
+
+@keyframes visionShine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+#an-view-vision .goal-strip-fill.gs-red {
+    background: linear-gradient(90deg, #ef4444, #f97316);
+}
+
+#an-view-vision .goal-strip-fill.gs-orange {
+    background: linear-gradient(90deg, #f97316, #fbbf24);
+}
+
+#an-view-vision .goal-strip-fill.gs-yellow {
+    background: linear-gradient(90deg, #fbbf24, #a3e635);
+}
+
+#an-view-vision .goal-strip-fill.gs-green {
+    background: linear-gradient(90deg, #22c55e, #10b981);
+}
+
+#an-view-vision .goal-strip-fill.gs-complete {
+    background: linear-gradient(90deg, #a855f7, #d946ef);
+}
+
+#an-view-vision .goal-text-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
+    z-index: 2;
+}
+
+#an-view-vision .goal-text-overlay span:first-child {
+    font-size: 16px;
+    font-weight: 800;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+#an-view-vision .goal-text-overlay span:last-child {
+    font-size: 11px;
+    font-weight: 600;
+    color: #d8b4fe;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Stats Row */
+#an-view-vision .vision-stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 16px;
+}
+
+#an-view-vision .vision-stat-mini {
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+}
+
+#an-view-vision .vision-stat-mini-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--vision-text-primary);
+    margin-bottom: 2px;
+}
+
+#an-view-vision .vision-stat-mini-label {
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--vision-text-muted);
+}
+
+/* Glass Card */
+#an-view-vision .vision-glass-card {
+    background: var(--vision-bg-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--vision-glass-border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+}
+
+#an-view-vision .vision-glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+}
+
+/* Section Label */
+#an-view-vision .vision-section-label,
+#an-view-vision .lbl-sm {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--vision-text-muted);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Form Elements */
+#an-view-vision .vision-form-grid,
+#an-view-vision .input-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+#an-view-vision .vision-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+#an-view-vision .vision-form-label {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--vision-text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#an-view-vision .vision-input,
+#an-view-vision .modern-input {
+    width: 100%;
+    padding: 14px 16px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--vision-glass-border);
+    border-radius: 12px;
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--vision-text-primary);
+    transition: all 0.2s;
+    outline: none;
+}
+
+#an-view-vision .vision-input::placeholder,
+#an-view-vision .modern-input::placeholder {
+    color: var(--vision-text-muted);
+    font-family: inherit;
+    font-weight: 400;
+}
+
+#an-view-vision .vision-input:focus,
+#an-view-vision .modern-input:focus {
+    border-color: var(--vision-accent-purple);
+    box-shadow: 0 0 0 3px var(--vision-accent-purple-dim);
+}
+
+/* Primary Button */
+#an-view-vision .vision-btn-primary,
+#an-view-vision .btn-main {
+    width: 100%;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, var(--vision-accent-purple), var(--vision-accent-pink)) !important;
+    border: none;
+    border-radius: 14px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#an-view-vision .vision-btn-primary:hover,
+#an-view-vision .btn-main:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px -10px rgba(168, 85, 247, 0.5);
+}
+
+/* Chart Card */
+#an-view-vision .vision-chart-card,
+#an-view-vision .dash-card {
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(10, 15, 26, 0.9));
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--vision-glass-border);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+}
+
+#an-view-vision .vision-chart-card::before,
+#an-view-vision .dash-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--vision-accent-pink), var(--vision-accent-orange), transparent);
+}
+
+#an-view-vision .vision-chart-header,
+#an-view-vision .metric-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--vision-text-primary);
+}
+
+#an-view-vision .vision-chart-legend {
+    display: flex;
+    gap: 12px;
+    font-size: 9px;
+    font-weight: 600;
+}
+
+#an-view-vision .vision-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--vision-text-secondary);
+}
+
+#an-view-vision .vision-legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+#an-view-vision .vision-legend-dot.purple {
+    background: linear-gradient(135deg, var(--vision-accent-purple), var(--vision-accent-pink));
+    box-shadow: 0 0 8px var(--vision-accent-pink);
+}
+
+#an-view-vision .vision-legend-dot.orange {
+    background: linear-gradient(135deg, var(--vision-accent-orange), #fb923c);
+    box-shadow: 0 0 8px var(--vision-accent-orange);
+}
+
+#an-view-vision .vision-chart-container {
+    position: relative;
+    height: 280px;
+    width: 100%;
+}
+
+/* Daily Log Section */
+#an-view-vision .vision-log-card {
+    background: var(--vision-bg-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--vision-glass-border);
+    border-radius: 16px;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+#an-view-vision .daily-log-container,
+#an-view-vision .vision-log-list {
+    max-height: 350px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+#an-view-vision .daily-log-container::-webkit-scrollbar,
+#an-view-vision .vision-log-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+#an-view-vision .daily-log-container::-webkit-scrollbar-track,
+#an-view-vision .vision-log-list::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+#an-view-vision .daily-log-container::-webkit-scrollbar-thumb,
+#an-view-vision .vision-log-list::-webkit-scrollbar-thumb {
+    background: var(--vision-text-muted);
+    border-radius: 4px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+    #an-view-vision .vision-title { font-size: 20px; }
+    #an-view-vision .vision-form-grid,
+    #an-view-vision .input-row { grid-template-columns: 1fr; }
+    #an-view-vision .vision-stats-row { gap: 6px; }
+    #an-view-vision .vision-stat-mini { padding: 10px 8px; }
+    #an-view-vision .vision-stat-mini-value { font-size: 14px; }
+    #an-view-vision .vision-chart-container { height: 220px; }
+}
+</style>
+
+<div id="an-view-vision" class="an-view-section vision-fullscreen-mode" style="display:none;">
     
-    <div style="margin-bottom: 20px;">
-        <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom:5px;">
-            <button onclick="editTargetGoal()" style="background:none; border:none; color:var(--text-sub); font-size:10px; cursor:pointer;">
-                <i class="fas fa-edit"></i> Hedefi Düzenle
+    <!-- Ambient Background -->
+    <div class="vision-ambient-bg">
+        <div class="vision-ambient-orb vision-orb-1"></div>
+        <div class="vision-ambient-orb vision-orb-2"></div>
+    </div>
+
+    <!-- Top Navigation Bar -->
+    <div class="vision-topbar">
+        <button class="vision-back-btn" onclick="closeVisionView()">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="vision-topbar-title">
+            <span class="vision-topbar-brand">TradeVia</span>
+            <span class="vision-topbar-beta">BETA</span>
+        </div>
+        <div style="width: 40px;"></div>
+    </div>
+
+    <!-- Scrollable Content -->
+    <div class="vision-content">
+
+        <!-- Header -->
+        <div class="vision-header">
+            <div class="vision-badge"><i class="fas fa-rocket"></i> HEDEFLERİM</div>
+            <h1 class="vision-title">Finansal Vizyon</h1>
+            <p class="vision-subtitle">Geleceğini bugünden planla</p>
+        </div>
+
+        <!-- Goal Progress Card -->
+        <div class="vision-goal-card">
+            <div class="vision-goal-header">
+                <div class="vision-goal-title">
+                    <i class="fas fa-bullseye"></i>
+                    HEDEF İLERLEMESİ
+                </div>
+                <button class="vision-edit-btn" onclick="editTargetGoal()">
+                    <i class="fas fa-edit"></i>
+                    Düzenle
+                </button>
+            </div>
+
+            <div class="goal-strip-container" style="position: relative;">
+                <div id="dynamicGoalBar" class="goal-strip-fill gs-red" style="width: 0%;"></div>
+                <div class="goal-text-overlay">
+                    <span id="goalCurrentText" style="color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">%0</span>
+                    <span id="goalTargetTextRight" style="color: #d8b4fe; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">HEDEF: --</span>
+                </div>
+            </div>
+
+            <div class="vision-stats-row">
+                <div class="vision-stat-mini">
+                    <div class="vision-stat-mini-value" id="visionCurrentValue">₺0</div>
+                    <div class="vision-stat-mini-label">Mevcut</div>
+                </div>
+                <div class="vision-stat-mini">
+                    <div class="vision-stat-mini-value" id="visionRemainingValue">₺0</div>
+                    <div class="vision-stat-mini-label">Kalan</div>
+                </div>
+                <div class="vision-stat-mini">
+                    <div class="vision-stat-mini-value" id="visionMonthsLeft">--</div>
+                    <div class="vision-stat-mini-label">Tahmini Ay</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulation Settings -->
+        <div class="vision-glass-card">
+            <div class="lbl-sm">SİMÜLASYON AYARLARI</div>
+
+            <div class="input-row">
+                <div class="vision-form-group">
+                    <span class="vision-form-label"><i class="fas fa-percent"></i> Aylık Kâr Beklentisi (%)</span>
+                    <input type="number" id="visionRate" class="modern-input" value="5" placeholder="Örn: 5">
+                </div>
+                <div class="vision-form-group">
+                    <span class="vision-form-label"><i class="fas fa-plus-circle"></i> Aylık Ek Yatırım</span>
+                    <input type="number" id="visionAdd" class="modern-input" value="1000" placeholder="Örn: 1000">
+                </div>
+            </div>
+
+            <button class="btn-main" style="margin-top:10px;" onclick="manualUpdateVision()">
+                <i class="fas fa-calculator"></i> SİMÜLASYONU GÜNCELLE
             </button>
         </div>
-        <div class="goal-strip-container" style="position: relative;">
-            <div id="dynamicGoalBar" class="goal-strip-fill gs-red" style="width: 0%;"></div>
-            <div class="goal-text-overlay">
-                <span id="goalCurrentText" style="color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">%0</span>
-                <span id="goalTargetTextRight" style="color: #d8b4fe; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">HEDEF: --</span>
-            </div>
-        </div>
-    </div>
 
-    <div class="card">
-        <div class="lbl-sm">SİMÜLASYON AYARLARI</div>
-        <div class="input-row">
-            <div>
-                <span style="font-size:11px; color:var(--text-sub);">Aylık Kâr Beklentisi (%)</span>
-                <input type="number" id="visionRate" class="modern-input" value="5" placeholder="Örn: 5">
+        <!-- Growth Chart -->
+        <div class="dash-card full-width" style="padding-bottom: 10px;">
+            <div class="metric-title" style="display:flex; justify-content:space-between;">
+                <span><i class="fas fa-chart-area" style="color: var(--vision-accent-pink); margin-right: 8px;"></i>BÜYÜME GRAFİĞİ</span>
+                <div class="vision-chart-legend">
+                    <div class="vision-legend-item">
+                        <div class="vision-legend-dot purple"></div>
+                        <span>Tahmini</span>
+                    </div>
+                    <div class="vision-legend-item">
+                        <div class="vision-legend-dot orange"></div>
+                        <span>Anapara</span>
+                    </div>
+                </div>
             </div>
-            <div>
-                <span style="font-size:11px; color:var(--text-sub);">Aylık Ek Yatırım (Nakit)</span>
-                <input type="number" id="visionAdd" class="modern-input" value="1000" placeholder="Örn: 1000">
+            
+            <div class="vision-chart-container">
+                <canvas id="visionChart"></canvas>
             </div>
         </div>
-        
-        <button class="btn-main" style="margin-top:10px; background: linear-gradient(90deg, #8b5cf6, #d946ef);" onclick="manualUpdateVision()">
-            <i class="fas fa-calculator"></i> SİMÜLASYONU GÜNCELLE
-        </button>
-    </div>
 
-    <div class="dash-card full-width" style="padding-bottom: 10px;">
-        <div class="metric-title" style="display:flex; justify-content:space-between;">
-            <span>BÜYÜME GRAFİĞİ</span>
-            <div style="display:flex; gap:8px; font-size:9px;">
-                <span style="color:#d946ef;">● Tahmini</span>
-                <span style="color:#f97316;">● Anapara</span>
+        <!-- Daily Log -->
+        <div class="vision-log-card">
+            <div class="lbl-sm"><i class="fas fa-history" style="color: var(--vision-accent-purple); margin-right: 8px;"></i>GÜNLÜK KAZANÇ RAPORU</div>
+            <div id="dailyLogList" class="daily-log-container">
+                <div style="text-align:center; padding:20px; color:var(--vision-text-secondary);">Veriler yükleniyor...</div>
             </div>
         </div>
-        
-        <div style="position: relative; height: 250px; width: 100%;">
-            <canvas id="visionChart"></canvas>
-        </div>
-    </div>
 
-    <div style="margin-top:20px;">
-        <div class="lbl-sm">GÜNLÜK KAZANÇ RAPORU</div>
-        <div id="dailyLogList" class="daily-log-container">
-            <div style="text-align:center; padding:20px; color:var(--text-sub);">Veriler yükleniyor...</div>
-        </div>
-    </div>
+    </div> <!-- vision-content kapanışı -->
+
 </div>
+
+<script>
+// Vision'ı kapatıp Analiz sayfasına dön
+function closeVisionView() {
+    const visionView = document.getElementById('an-view-vision');
+    visionView.style.display = 'none';
+    
+    document.body.style.overflow = '';
+    
+    // PERFORMANS tabına tıkla
+    const tabs = document.querySelectorAll('.chart-filter-btn, .an-tab-btn, .tab-btn');
+    tabs.forEach(tab => {
+        const text = tab.textContent.trim().toUpperCase();
+        if (text.includes('PERFORMANS') || text.includes('PERFORM')) {
+            tab.click();
+        }
+    });
+}
+</script>
+
 
 <!-- LAB SECTION - Premium Design -->
 <!-- Bu kodu mevcut an-view-lab section'ının yerine yapıştır -->
 
 <style>
 /* LAB PREMIUM STYLES */
+
+/* Fullscreen Mode - Tüm ekranı kapla */
+#an-view-lab.lab-fullscreen-mode {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 9999 !important;
+    background: #030712 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
 #an-view-lab {
     --lab-bg-deep: #030712;
     --lab-bg-card: rgba(15, 23, 42, 0.6);
@@ -3148,6 +3851,112 @@ button:active,
     --lab-text-primary: #f1f5f9;
     --lab-text-secondary: #94a3b8;
     --lab-text-muted: #475569;
+}
+
+/* Top Navigation Bar - Fixed at top */
+#an-view-lab .lab-topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: rgba(3, 7, 18, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--lab-glass-border);
+    z-index: 10000;
+    height: 64px;
+}
+
+#an-view-lab .lab-back-btn {
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: none;
+    border-radius: 12px;
+    color: var(--lab-text-primary);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+#an-view-lab .lab-back-btn:hover {
+    background: var(--lab-bg-elevated);
+}
+
+#an-view-lab .lab-back-btn:active {
+    transform: scale(0.95);
+}
+
+#an-view-lab .lab-topbar-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#an-view-lab .lab-topbar-brand {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--lab-text-primary);
+    letter-spacing: -0.5px;
+}
+
+#an-view-lab .lab-topbar-beta {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--lab-accent-rose);
+    letter-spacing: 0.5px;
+}
+
+#an-view-lab .lab-notify-btn {
+    width: 44px;
+    height: 44px;
+    background: var(--lab-bg-card);
+    border: 1px solid var(--lab-glass-border);
+    border-radius: 14px;
+    color: var(--lab-text-secondary);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+#an-view-lab .lab-notify-btn:hover {
+    background: var(--lab-bg-elevated);
+    color: var(--lab-text-primary);
+}
+
+/* Scrollable Content Area */
+#an-view-lab .lab-content {
+    position: absolute;
+    top: 64px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0 16px 100px 16px;
+    -webkit-overflow-scrolling: touch;
+}
+
+#an-view-lab .lab-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+#an-view-lab .lab-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#an-view-lab .lab-content::-webkit-scrollbar-thumb {
+    background: var(--lab-text-muted);
+    border-radius: 4px;
 }
 
 #an-view-lab .lab-ambient-bg {
@@ -3976,7 +4785,7 @@ button:active,
 }
 </style>
 
-<div id="an-view-lab" class="an-view-section" style="display:none; position: relative;">
+<div id="an-view-lab" class="an-view-section lab-fullscreen-mode" style="display:none;">
     
     <!-- Ambient Background -->
     <div class="lab-ambient-bg">
@@ -3984,12 +4793,26 @@ button:active,
         <div class="lab-ambient-orb lab-orb-2"></div>
     </div>
 
-    <!-- Header -->
-    <div class="lab-header">
-        <div class="lab-badge"><i class="fas fa-crown"></i> PREMIUM LAB</div>
-        <h1 class="lab-title">Strateji Laboratuvarı</h1>
-        <p class="lab-subtitle">Profesyonel yatırım araçları ve simülasyonlar</p>
+    <!-- Top Navigation Bar - Sticky -->
+    <div class="lab-topbar">
+        <button class="lab-back-btn" onclick="closeLabView()">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="lab-topbar-title">
+            <span class="lab-topbar-brand">TradeVia</span>
+            <span class="lab-topbar-beta">BETA</span>
+        </div>
+        <div style="width: 40px;"></div>
     </div>
+
+    <!-- Scrollable Content -->
+    <div class="lab-content">
+        <!-- Header -->
+        <div class="lab-header">
+            <div class="lab-badge"><i class="fas fa-flask"></i> AR-GE LAB</div>
+            <h1 class="lab-title">Strateji Laboratuvarı</h1>
+            <p class="lab-subtitle">Profesyonel yatırım araçları ve simülasyonlar</p>
+        </div>
 
     <!-- Tab Navigation - Kompakt versiyon -->
     <div class="lab-tab-nav">
@@ -4177,11 +5000,10 @@ button:active,
                         <div class="lab-stat-value gold" id="resPosSize">--</div>
                     </div>
                 </div>
-                <div id="riskWarning" class="lab-advice-box">
-    <i class="fas fa-wallet" style="color: var(--lab-text-secondary);"></i>
-    <p id="riskRatioText">--</p>
-</div>
-
+                <div class="lab-advice-box">
+                    <i class="fas fa-wallet" style="color: var(--lab-text-secondary);"></i>
+                    <p id="riskRatioText">--</p>
+                </div>
             </div>
         </div>
     </div>
@@ -4458,7 +5280,53 @@ button:active,
         </div>
     </div>
 
+    </div> <!-- lab-content kapanışı -->
+
 </div>
+
+<script>
+// Lab'ı kapatıp Analiz sayfasına dön
+function closeLabView() {
+    // Lab'ı gizle
+    const labView = document.getElementById('an-view-lab');
+    labView.style.display = 'none';
+    
+    // Body scroll'u geri aç
+    document.body.style.overflow = '';
+    
+    // AR-GE tabını pasif yap ve başka bir taba (PERFORMANS) tıkla
+    const tabs = document.querySelectorAll('.chart-filter-btn, .an-tab-btn, .tab-btn');
+    tabs.forEach(tab => {
+        const text = tab.textContent.trim().toUpperCase();
+        if (text.includes('PERFORMANS') || text.includes('PERFORM')) {
+            tab.click();
+        }
+    });
+    
+    // Alternatif: Eğer switchLabTool varsa onu kullan
+    if (typeof switchLabTool === 'function') {
+        // Hiçbir şey yapma, tab tıklaması yeterli
+    }
+    
+    // Analiz view'ı göster
+    const analizViews = document.querySelectorAll('[id*="analiz"], [id*="analysis"], [id*="perform"]');
+    analizViews.forEach(view => {
+        if (!view.id.includes('lab')) {
+            view.style.display = 'block';
+        }
+    });
+}
+
+// Lab açıldığında çağrılacak fonksiyon (opsiyonel)
+function openLabFullscreen() {
+    const labView = document.getElementById('an-view-lab');
+    labView.style.display = 'block';
+    
+    // Scroll'u en üste al
+    const content = labView.querySelector('.lab-content');
+    if (content) content.scrollTop = 0;
+}
+</script>
 
  
     <div id="an-view-psycho" class="an-view-section" style="display:none;">
@@ -5323,7 +6191,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "3.5"; 
+    const CURRENT_VERSION = "3.6"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -11633,6 +12501,56 @@ function analyzeTraderDNA(history, currentBalance) {
         window.newsService.fetchDualNews(currentCat, null);
     }
 }, 300000);
+
+/* --- AR-GE (LAB) ve HEDEFLERİM ÜST BAR GİZLEME MODÜLÜ --- */
+
+// 1. Mevcut switchAnTab fonksiyonunu sarmalıyoruz
+const originalSwitchAnTab = window.switchAnTab || function(){};
+
+window.switchAnTab = function(tab, btn) {
+    // Önce orijinal geçiş işlemini yap
+    originalSwitchAnTab(tab, btn);
+
+    const topBar = document.querySelector('.top-bar');
+    
+    // DEĞİŞİKLİK BURADA: Eğer sekme 'lab' VEYA 'vision' ise gizle
+    if (tab === 'lab' || tab === 'vision') {
+        if(topBar) topBar.style.display = 'none';
+    } else {
+        // Diğer sekmelerde göster
+        if(topBar) topBar.style.display = 'flex';
+    }
+};
+
+// 2. AR-GE ekranından çıkış (Aynı kaldı)
+window.closeLabView = function() {
+    document.getElementById('an-view-lab').style.display = 'none';
+    document.getElementById('an-view-lab').classList.remove('active');
+    resetTopBar();
+};
+
+// 3. YENİ EKLENEN: Hedeflerim ekranından çıkış
+window.closeVisionView = function() {
+    // Hedeflerim ekranını gizle (ID: an-view-vision)
+    document.getElementById('an-view-vision').style.display = 'none';
+    document.getElementById('an-view-vision').classList.remove('active');
+    resetTopBar();
+};
+
+// Ortak toparlama fonksiyonu (Kod tekrarını önlemek için)
+function resetTopBar() {
+    // Üst barı tekrar görünür yap
+    const topBar = document.querySelector('.top-bar');
+    if(topBar) topBar.style.display = 'flex';
+
+    // Varsayılan olarak Performans sekmesine geri dön
+    const perfBtn = document.querySelector(".s-tab.seg-style"); 
+    if (perfBtn) {
+        switchAnTab('perf', perfBtn);
+        document.querySelectorAll('.s-tab').forEach(t => t.classList.remove('active'));
+        perfBtn.classList.add('active');
+    }
+}
 
 </script>
 
