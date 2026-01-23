@@ -6191,7 +6191,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "3.6"; 
+    const CURRENT_VERSION = "3.7"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -12551,6 +12551,130 @@ function resetTopBar() {
         perfBtn.classList.add('active');
     }
 }
+
+/* ==========================================
+   DÜZELTME PAKETİ (Risk Hesaplama & Görünüm)
+   Bu kodları script'in en altına ekleyin.
+   ========================================== */
+
+/* 1. RİSK HESAPLAMA MOTORU (VİRGÜL VE BOŞLUK HATASI GİDERİLDİ) */
+window.calcLabRisk = function() {
+    // Türkçe virgüllü sayıları (Örn: 10,5) sisteme tanıtan yardımcı
+    function parseTR(val) {
+        if (!val) return 0;
+        val = val.toString().trim();
+        // Hem nokta hem virgül varsa (10.000,50 gibi) -> Noktayı sil, virgülü nokta yap
+        if (val.includes('.') && val.includes(',')) {
+            val = val.replace(/\./g, '').replace(',', '.');
+        } 
+        // Sadece virgül varsa (10,5 gibi) -> Virgülü nokta yap
+        else if (val.includes(',')) {
+            val = val.replace(',', '.');
+        }
+        return parseFloat(val) || 0;
+    }
+
+    // Değerleri güvenli şekilde al
+    let balance = parseTR(document.getElementById('riskBalance').value);
+    let riskPct = parseTR(document.getElementById('riskPct').value);
+    let entry = parseTR(document.getElementById('riskEntry').value);
+    let stop = parseTR(document.getElementById('riskStop').value);
+
+    // Hata Kontrolü
+    if (balance <= 0) return alert("Lütfen geçerli bir Bakiye girin.");
+    if (entry <= 0 || stop <= 0) return alert("Giriş ve Stop fiyatı 0 olamaz.");
+    if (entry === stop) return alert("Giriş ve Stop fiyatı aynı olamaz.");
+
+    // Hesaplama Matematigi
+    let riskAmount = balance * (riskPct / 100); // Riske edilen para
+    let diffPerUnit = Math.abs(entry - stop);   // Birim başına fark
+    let qty = riskAmount / diffPerUnit;         // Alınacak adet
+    let totalPosSize = qty * entry;             // Toplam pozisyon büyüklüğü
+    let portfolioImpact = (totalPosSize / balance) * 100; // Kasaya etkisi (%)
+
+    // Sonuçları Ekrana Bas (TL veya Dolar simgesiyle)
+    let sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY') ? '₺' : '$';
+    
+    document.getElementById('resRiskQty').innerText = qty.toLocaleString(undefined, {maximumFractionDigits: 4});
+    document.getElementById('resRiskLoss').innerText = "-" + sym + riskAmount.toLocaleString(undefined, {maximumFractionDigits: 2});
+    document.getElementById('resPosSize').innerText = sym + totalPosSize.toLocaleString(undefined, {maximumFractionDigits: 2});
+
+    // Alt Bilgi Mesajını Güncelle
+    let ratioText = document.getElementById('riskRatioText');
+    if(ratioText) {
+        ratioText.innerHTML = `Bu işlem kasanın <b>%${portfolioImpact.toFixed(1)}</b> kadarını kullanır.`;
+        if(portfolioImpact > 100) {
+            ratioText.innerHTML += " <br><span style='color:#ef4444; font-weight:800;'>(YETERSİZ BAKİYE)</span>";
+        }
+    }
+
+    // Sonuç kutusunu görünür yap
+    document.getElementById('riskResultBox').style.display = 'block';
+};
+
+/* 2. GÖRÜNÜM DÜZELTMESİ (ARGE ve HEDEFLER ÜST BAR SORUNU) */
+// Mevcut bozuk geçiş fonksiyonunu tamamen yenisiyle değiştiriyoruz.
+
+// Önceki fonksiyonu yedeklemeye gerek yok, doğrudan temiz bir versiyon yazıyoruz.
+window.switchAnTab = function(tab, btn) {
+    // A) PRO Üyelik Kontrolü (Psikoloji Sekmesi İçin)
+    if (tab === 'psycho' && typeof MembershipSystem !== 'undefined' && !MembershipSystem.isPro()) {
+        MembershipSystem.showUpsell();
+        return;
+    }
+
+    // B) Sekme Değiştirme İşlemi
+    // 1. Tüm analiz sekmelerini gizle
+    document.querySelectorAll('.an-view-section').forEach(el => el.style.display = 'none');
+    
+    // 2. İstenen sekmeyi aç
+    const target = document.getElementById('an-view-' + tab);
+    if(target) target.style.display = 'block';
+    
+    // 3. Buton rengini aktif yap
+    document.querySelectorAll('.s-tab').forEach(el => el.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+
+    // C) KRİTİK DÜZELTME: Üst Barı Gizle/Göster
+    const topBar = document.querySelector('.top-bar');
+    if (topBar) {
+        // Eğer Arge (lab) veya Hedefler (vision) ise üst barı YOK ET
+        if (tab === 'lab' || tab === 'vision') {
+            topBar.style.setProperty('display', 'none', 'important');
+        } else {
+            // Diğer sayfalarda geri getir
+            topBar.style.setProperty('display', 'flex', 'important');
+        }
+    }
+
+    // D) Sayfa İçi Verileri Yükle
+    if(tab === 'vision' && typeof loadVisionData === 'function') loadVisionData();
+    if(tab === 'lab') {
+        if(typeof populateRiskAssets === 'function') populateRiskAssets();
+        // Lab açıldığında bakiyeyi otomatik doldurmayı dene
+        const netWorthEl = document.getElementById('anNetWorth');
+        const labStart = document.getElementById('labStart');
+        if(netWorthEl && labStart && !labStart.value) {
+            let val = parseFloat(netWorthEl.innerText.replace(/[^0-9,-]+/g,"").replace(',','.')) || 0;
+            if(val > 0) labStart.value = val;
+        }
+    }
+    if(tab === 'psycho' && typeof calcPsychoAnalysis === 'function') calcPsychoAnalysis();
+};
+
+// Çıkış Butonlarını da Güncelliyoruz (Geri dönünce barın geri gelmesi için)
+window.closeLabView = function() {
+    document.getElementById('an-view-lab').style.display = 'none';
+    // Performans sekmesine geri dön (Bu işlem üst barı otomatik açacak)
+    const perfBtn = document.querySelector(".s-tab[onclick*='perf']");
+    if(perfBtn) window.switchAnTab('perf', perfBtn);
+};
+
+window.closeVisionView = function() {
+    document.getElementById('an-view-vision').style.display = 'none';
+    const perfBtn = document.querySelector(".s-tab[onclick*='perf']");
+    if(perfBtn) window.switchAnTab('perf', perfBtn);
+};
 
 </script>
 
