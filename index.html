@@ -1739,6 +1739,7 @@ button:active,
     width: 50px;
     height:
 
+
     </style>
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5912166843737955"
@@ -1879,7 +1880,8 @@ button:active,
     
 </div>
 
-<div class="top-bar">
+<div class="top-bar" id="mainTopBar">
+    
     <div style="display:flex; align-items:center;">
         <div id="manualBackBtn" onclick="goBackHome()" style="display:none; margin-right:10px; cursor:pointer; width:30px; height:30px; align-items:center; justify-content:center;">
             <i class="fas fa-arrow-left" style="font-size:18px; color:white;"></i>
@@ -5385,295 +5387,950 @@ function openLabFullscreen() {
 
 </div>
 
-        <div id="page-settings" class="page" style="padding:0; background:var(--bg-body);">
-    <div class="app-settings-container" style="padding: 20px;">
+<!-- ============================================
+     TRADEVIA PREMIUM AYARLAR SAYFASI
+  
+     ============================================ -->
 
+<div id="page-settings" class="page" style="padding:0; background:#000000;">
+    
+    <!-- Ambient Background Orbs -->
+    <div style="position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden;">
+        <div style="position:absolute; width:500px; height:500px; background:radial-gradient(circle, rgba(255,214,10,0.15) 0%, transparent 70%); top:-200px; right:-150px; border-radius:50%; filter:blur(100px); opacity:0.5; animation:orbFloat1 25s ease-in-out infinite;"></div>
+        <div style="position:absolute; width:400px; height:400px; background:radial-gradient(circle, rgba(10,132,255,0.12) 0%, transparent 70%); bottom:10%; left:-150px; border-radius:50%; filter:blur(100px); opacity:0.5; animation:orbFloat2 30s ease-in-out infinite;"></div>
+        <div style="position:absolute; width:300px; height:300px; background:radial-gradient(circle, rgba(48,209,88,0.1) 0%, transparent 70%); top:50%; right:-100px; border-radius:50%; filter:blur(100px); opacity:0.5; animation:orbFloat3 20s ease-in-out infinite;"></div>
+    </div>
+    
+    <style>
+        @keyframes orbFloat1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(-30px, 40px) scale(1.1); }
+            50% { transform: translate(20px, -20px) scale(0.9); }
+            75% { transform: translate(-40px, -30px) scale(1.05); }
+        }
+        @keyframes orbFloat2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(50px, -40px) scale(1.15); }
+            66% { transform: translate(-30px, 30px) scale(0.95); }
+        }
+        @keyframes orbFloat3 {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-40px, 40px) rotate(180deg); }
+        }
+        
+        /* Premium Settings Styles */
+        #page-settings .ps-container { position:relative; z-index:1; max-width:480px; margin:0 auto; padding:20px 20px 120px; }
+        
+        /* Profile Hero */
+        #page-settings .ps-profile-hero {
+            position:relative; background:#131316; border:1px solid rgba(255,255,255,0.08);
+            border-radius:24px; padding:24px; margin-bottom:16px; overflow:hidden;
+            cursor:pointer; transition:all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #page-settings .ps-profile-hero::before {
+            content:''; position:absolute; top:0; left:0; right:0; height:100px;
+            background:linear-gradient(135deg, #FFD60A 0%, #FF9500 50%, #FF6B00 100%);
+            opacity:0.08; mask-image:linear-gradient(180deg, black 0%, transparent 100%);
+            -webkit-mask-image:linear-gradient(180deg, black 0%, transparent 100%);
+        }
+        #page-settings .ps-profile-hero:hover { border-color:rgba(255,255,255,0.12); transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,0,0,0.6); }
+        #page-settings .ps-profile-hero:active { transform:translateY(0) scale(0.99); }
+        
+        #page-settings .ps-profile-content { position:relative; display:flex; align-items:center; gap:18px; }
+        #page-settings .ps-avatar-wrap { position:relative; flex-shrink:0; }
+        #page-settings .ps-avatar { width:72px; height:72px; border-radius:20px; object-fit:cover; border:2px solid rgba(255,255,255,0.08); transition:all 0.25s; }
+        #page-settings .ps-profile-hero:hover .ps-avatar { border-color:#FFD60A; box-shadow:0 0 20px rgba(255,214,10,0.2); }
+        #page-settings .ps-status-dot { position:absolute; bottom:2px; right:2px; width:18px; height:18px; background:#30D158; border:3px solid #131316; border-radius:50%; }
+        #page-settings .ps-profile-info { flex:1; min-width:0; }
+        #page-settings .ps-profile-name { font-size:20px; font-weight:700; color:#fff; margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        #page-settings .ps-badge { display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:9999px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+        #page-settings .ps-badge.free { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); color:rgba(255,255,255,0.72); }
+        #page-settings .ps-badge.pro { background:linear-gradient(135deg, #FFD60A 0%, #FF9500 100%); color:#000; border:none; box-shadow:0 4px 16px rgba(255,214,10,0.3); }
+        #page-settings .ps-badge i { font-size:10px; }
+        #page-settings .ps-arrow { width:40px; height:40px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.04); border-radius:12px; color:rgba(255,255,255,0.48); font-size:14px; transition:all 0.25s; }
+        #page-settings .ps-profile-hero:hover .ps-arrow { background:rgba(255,255,255,0.06); color:#fff; transform:translateX(4px); }
+        
+        /* Kompakt Membership Button */
+        #page-settings .ps-membership-btn {
+            display:flex; align-items:center; justify-content:space-between;
+            background:linear-gradient(135deg, rgba(255,214,10,0.1) 0%, rgba(255,149,0,0.05) 100%);
+            border:1px solid rgba(255,214,10,0.25); border-radius:16px;
+            padding:14px 18px; margin-bottom:24px; cursor:pointer;
+            transition:all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #page-settings .ps-membership-btn:hover {
+            border-color:rgba(255,214,10,0.4);
+            box-shadow:0 0 30px rgba(255,214,10,0.15);
+            transform:translateY(-1px);
+        }
+        #page-settings .ps-membership-btn:active { transform:scale(0.99); }
+        #page-settings .ps-membership-btn-left { display:flex; align-items:center; gap:12px; }
+        #page-settings .ps-membership-btn-icon {
+            width:36px; height:36px; border-radius:10px;
+            background:linear-gradient(135deg, #FFD60A 0%, #FF9500 100%);
+            display:flex; align-items:center; justify-content:center;
+            font-size:16px; color:#000;
+        }
+        #page-settings .ps-membership-btn-text { font-size:14px; font-weight:600; color:#fff; }
+        #page-settings .ps-membership-btn-sub { font-size:11px; color:rgba(255,255,255,0.5); }
+        #page-settings .ps-membership-btn-arrow { color:#FFD60A; font-size:14px; }
+        
+        /* PRO durumunda buton */
+        #page-settings .ps-membership-btn.is-pro {
+            background:linear-gradient(135deg, rgba(48,209,88,0.1) 0%, rgba(16,185,129,0.05) 100%);
+            border-color:rgba(48,209,88,0.25);
+        }
+        #page-settings .ps-membership-btn.is-pro:hover {
+            border-color:rgba(48,209,88,0.4);
+            box-shadow:0 0 30px rgba(48,209,88,0.15);
+        }
+        #page-settings .ps-membership-btn.is-pro .ps-membership-btn-icon {
+            background:linear-gradient(135deg, #30D158 0%, #00A040 100%);
+        }
+        #page-settings .ps-membership-btn.is-pro .ps-membership-btn-arrow { color:#30D158; }
+        
+        /* Premium Modal Overlay */
+        #page-settings .ps-modal-overlay {
+            position:fixed; inset:0; background:rgba(0,0,0,0.85);
+            backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+            z-index:9999; display:none; align-items:center; justify-content:center;
+            padding:20px; opacity:0; transition:opacity 0.3s ease;
+        }
+        #page-settings .ps-modal-overlay.active { display:flex; opacity:1; }
+        
+        /* Premium Modal */
+        #page-settings .ps-premium-modal {
+            width:100%; max-width:360px; background:#131316;
+            border:1px solid rgba(255,255,255,0.1); border-radius:28px;
+            overflow:hidden; position:relative;
+            transform:scale(0.9) translateY(20px);
+            transition:transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        #page-settings .ps-modal-overlay.active .ps-premium-modal {
+            transform:scale(1) translateY(0);
+        }
+        
+        /* Modal Header */
+        #page-settings .ps-modal-header {
+            position:relative; padding:30px 24px 20px; text-align:center;
+            background:linear-gradient(180deg, rgba(255,214,10,0.15) 0%, transparent 100%);
+        }
+        #page-settings .ps-modal-close {
+            position:absolute; top:16px; right:16px;
+            width:32px; height:32px; border-radius:50%;
+            background:rgba(255,255,255,0.1); border:none;
+            color:#fff; font-size:14px; cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            transition:all 0.2s;
+        }
+        #page-settings .ps-modal-close:hover { background:rgba(255,255,255,0.15); transform:rotate(90deg); }
+        
+        #page-settings .ps-modal-icon {
+            width:72px; height:72px; margin:0 auto 16px;
+            background:linear-gradient(135deg, #FFD60A 0%, #FF9500 50%, #FF6B00 100%);
+            border-radius:20px; display:flex; align-items:center; justify-content:center;
+            font-size:32px; color:#000; box-shadow:0 12px 40px rgba(255,214,10,0.4);
+        }
+        #page-settings .ps-modal-title { font-size:24px; font-weight:800; color:#fff; margin-bottom:8px; }
+        #page-settings .ps-modal-subtitle { font-size:14px; color:rgba(255,255,255,0.6); }
+        
+        /* Modal Body */
+        #page-settings .ps-modal-body { padding:24px; }
+        
+        /* Features List */
+        #page-settings .ps-features-list { margin-bottom:24px; }
+        #page-settings .ps-feature-item {
+            display:flex; align-items:center; gap:14px;
+            padding:14px 0; border-bottom:1px solid rgba(255,255,255,0.05);
+        }
+        #page-settings .ps-feature-item:last-child { border-bottom:none; }
+        #page-settings .ps-feature-icon {
+            width:40px; height:40px; border-radius:12px;
+            background:rgba(255,214,10,0.1); border:1px solid rgba(255,214,10,0.2);
+            display:flex; align-items:center; justify-content:center;
+            font-size:16px; color:#FFD60A; flex-shrink:0;
+        }
+        #page-settings .ps-feature-text { flex:1; }
+        #page-settings .ps-feature-title { font-size:14px; font-weight:600; color:#fff; margin-bottom:2px; }
+        #page-settings .ps-feature-desc { font-size:12px; color:rgba(255,255,255,0.5); }
+        
+        /* Upgrade Button */
+        #page-settings .ps-modal-upgrade-btn {
+            width:100%; padding:18px 24px;
+            background:linear-gradient(135deg, #FFD60A 0%, #FF9500 100%);
+            border:none; border-radius:16px; font-family:inherit;
+            font-size:16px; font-weight:700; color:#000; cursor:pointer;
+            display:flex; align-items:center; justify-content:center; gap:10px;
+            transition:all 0.25s; box-shadow:0 8px 32px rgba(255,214,10,0.3);
+        }
+        #page-settings .ps-modal-upgrade-btn:hover {
+            transform:translateY(-2px);
+            box-shadow:0 12px 40px rgba(255,214,10,0.4);
+        }
+        #page-settings .ps-modal-upgrade-btn:active { transform:scale(0.98); }
+        
+        /* Downgrade Button */
+        #page-settings .ps-modal-downgrade-btn {
+            width:100%; padding:14px; margin-top:12px;
+            background:rgba(255,69,58,0.1); border:1px solid rgba(255,69,58,0.2);
+            border-radius:12px; font-family:inherit; font-size:14px;
+            font-weight:600; color:#FF453A; cursor:pointer;
+            display:none; transition:all 0.2s;
+        }
+        #page-settings .ps-modal-downgrade-btn:hover { background:rgba(255,69,58,0.15); }
+        
+        /* PRO Active State */
+        #page-settings .ps-modal-header.is-pro { background:linear-gradient(180deg, rgba(48,209,88,0.15) 0%, transparent 100%); }
+        #page-settings .ps-modal-header.is-pro .ps-modal-icon {
+            background:linear-gradient(135deg, #30D158 0%, #00A040 100%);
+            box-shadow:0 12px 40px rgba(48,209,88,0.4);
+        }
+        #page-settings .ps-feature-item.active .ps-feature-icon {
+            background:rgba(48,209,88,0.15); border-color:rgba(48,209,88,0.3); color:#30D158;
+        }
+        #page-settings .ps-feature-item.active .ps-feature-title::after {
+            content:' ✓'; color:#30D158;
+        }
+        
+        /* Section Label */
+        #page-settings .ps-section-label { font-size:12px; font-weight:600; color:rgba(255,255,255,0.32); text-transform:uppercase; letter-spacing:1px; padding:0 4px; margin-bottom:12px; }
+        
+        /* Menu List */
+        #page-settings .ps-menu-list { background:#131316; border:1px solid rgba(255,255,255,0.04); border-radius:20px; overflow:hidden; margin-bottom:32px; }
+        #page-settings .ps-menu-item {
+            display:flex; align-items:center; padding:16px 18px; cursor:pointer;
+            transition:all 0.15s; border-bottom:1px solid rgba(255,255,255,0.04); position:relative;
+        }
+        #page-settings .ps-menu-item:last-child { border-bottom:none; }
+        #page-settings .ps-menu-item::before { content:''; position:absolute; inset:0; background:rgba(255,255,255,0.08); opacity:0; transition:opacity 0.15s; }
+        #page-settings .ps-menu-item:hover::before { opacity:1; }
+        #page-settings .ps-menu-item:active { transform:scale(0.99); }
+        
+        #page-settings .ps-menu-icon { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:16px; margin-right:14px; position:relative; flex-shrink:0; color:#fff; }
+        #page-settings .ps-menu-icon.blue { background:linear-gradient(135deg, #0A84FF, #0066CC); }
+        #page-settings .ps-menu-icon.orange { background:linear-gradient(135deg, #FF9F0A, #FF6B00); }
+        #page-settings .ps-menu-icon.green { background:linear-gradient(135deg, #30D158, #00A040); }
+        #page-settings .ps-menu-icon.purple { background:linear-gradient(135deg, #BF5AF2, #9933FF); }
+        #page-settings .ps-menu-icon.cyan { background:linear-gradient(135deg, #64D2FF, #00B4D8); }
+        #page-settings .ps-menu-icon.gray { background:linear-gradient(135deg, #636366, #48484A); }
+        #page-settings .ps-menu-icon.red { background:linear-gradient(135deg, #FF453A, #CC0000); }
+        
+        #page-settings .ps-menu-text { flex:1; position:relative; }
+        #page-settings .ps-menu-title { font-size:15px; font-weight:500; color:#fff; margin-bottom:2px; }
+        #page-settings .ps-menu-title.danger { color:#FF453A; }
+        #page-settings .ps-menu-subtitle { font-size:12px; color:rgba(255,255,255,0.48); }
+        #page-settings .ps-menu-arrow { color:rgba(255,255,255,0.32); font-size:12px; position:relative; transition:all 0.15s; }
+        #page-settings .ps-menu-item:hover .ps-menu-arrow { color:rgba(255,255,255,0.48); transform:translateX(3px); }
+        
+        /* Detail Page Styles */
+        #page-settings .ps-detail-header {
+            position:sticky; top:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+            padding:16px 0; margin:0 -20px 24px; padding-left:20px; padding-right:20px; z-index:100;
+            display:flex; align-items:center; gap:16px; border-bottom:1px solid rgba(255,255,255,0.04);
+        }
+        #page-settings .ps-btn-back {
+            width:40px; height:40px; display:flex; align-items:center; justify-content:center;
+            background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px;
+            color:#fff; font-size:16px; cursor:pointer; transition:all 0.15s;
+        }
+        #page-settings .ps-btn-back:hover { background:rgba(255,255,255,0.06); transform:translateX(-2px); }
+        #page-settings .ps-detail-title { font-size:18px; font-weight:700; color:#fff; }
+        
+        /* Card */
+        #page-settings .ps-card { background:#131316; border:1px solid rgba(255,255,255,0.04); border-radius:20px; padding:20px; margin-bottom:20px; }
+        #page-settings .ps-card-label { font-size:11px; font-weight:700; color:rgba(255,255,255,0.32); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px; }
+        
+        /* Input */
+        #page-settings .ps-input-group { margin-bottom:16px; }
+        #page-settings .ps-input-group:last-child { margin-bottom:0; }
+        #page-settings .ps-input-label { display:block; font-size:12px; font-weight:500; color:rgba(255,255,255,0.48); margin-bottom:8px; }
+        #page-settings .ps-input {
+            width:100%; padding:14px 16px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.08);
+            border-radius:12px; font-family:inherit; font-size:15px; color:#fff; transition:all 0.15s;
+        }
+        #page-settings .ps-input:focus { outline:none; border-color:#FFD60A; background:rgba(255,214,10,0.04); box-shadow:0 0 0 3px rgba(255,214,10,0.1); }
+        #page-settings .ps-input::placeholder { color:rgba(255,255,255,0.32); }
+        
+        /* Select */
+        #page-settings .ps-select {
+            padding:14px 40px 14px 16px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.08);
+            border-radius:12px; font-family:inherit; font-size:15px; color:#fff; cursor:pointer; appearance:none;
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23ffffff' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat:no-repeat; background-position:right 12px center; background-size:20px; transition:all 0.15s;
+        }
+        #page-settings .ps-select:focus { outline:none; border-color:#FFD60A; }
+        #page-settings .ps-select option { background:#1A1A1F; color:#fff; }
+        
+        /* Setting Row */
+        #page-settings .ps-setting-row { display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+        #page-settings .ps-setting-row:last-child { border-bottom:none; padding-bottom:0; }
+        #page-settings .ps-setting-row:first-child { padding-top:0; }
+        #page-settings .ps-setting-info { flex:1; margin-right:16px; }
+        #page-settings .ps-setting-title { font-size:15px; font-weight:500; color:#fff; margin-bottom:2px; }
+        #page-settings .ps-setting-desc { font-size:12px; color:rgba(255,255,255,0.48); }
+        
+        /* Toggle */
+        #page-settings .ps-toggle { position:relative; width:51px; height:31px; flex-shrink:0; }
+        #page-settings .ps-toggle input { opacity:0; width:0; height:0; }
+        #page-settings .ps-toggle-track { position:absolute; cursor:pointer; inset:0; background:rgba(255,255,255,0.06); border-radius:9999px; transition:all 0.25s; }
+        #page-settings .ps-toggle-thumb { position:absolute; top:2px; left:2px; width:27px; height:27px; background:#fff; border-radius:50%; transition:all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow:0 2px 8px rgba(0,0,0,0.3); }
+        #page-settings .ps-toggle input:checked + .ps-toggle-track { background:#30D158; }
+        #page-settings .ps-toggle input:checked + .ps-toggle-track .ps-toggle-thumb { transform:translateX(20px); }
+        
+        /* Stats Grid */
+        #page-settings .ps-stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        #page-settings .ps-stat-card { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04); border-radius:16px; padding:18px; text-align:center; }
+        #page-settings .ps-stat-label { font-size:10px; font-weight:600; color:rgba(255,255,255,0.32); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
+        #page-settings .ps-stat-value { font-size:26px; font-weight:800; color:#fff; }
+        
+        /* Accounting Hero */
+        #page-settings .ps-accounting-hero {
+            background:linear-gradient(135deg, rgba(48,209,88,0.08) 0%, rgba(10,132,255,0.04) 100%);
+            border:1px solid rgba(48,209,88,0.15); border-radius:24px; padding:24px; margin-bottom:24px;
+        }
+        #page-settings .ps-acc-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px; }
+        #page-settings .ps-acc-item { text-align:left; }
+        #page-settings .ps-acc-item.right { text-align:right; }
+        #page-settings .ps-acc-label { font-size:10px; font-weight:600; color:rgba(255,255,255,0.32); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; }
+        #page-settings .ps-acc-label.success { color:#30D158; }
+        #page-settings .ps-acc-value { font-size:22px; font-weight:800; color:#fff; }
+        #page-settings .ps-acc-value.success { color:#30D158; }
+        #page-settings .ps-acc-value.small { font-size:16px; font-weight:600; color:rgba(255,255,255,0.72); }
+        
+        #page-settings .ps-btn-salary {
+            width:100%; padding:16px 24px; background:linear-gradient(135deg, #30D158, #00A040);
+            border:none; border-radius:16px; font-family:inherit; font-size:14px; font-weight:700; color:#fff;
+            cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; transition:all 0.25s;
+        }
+        #page-settings .ps-btn-salary:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(48,209,88,0.3); }
+        
+        /* Filter Chips */
+        #page-settings .ps-filter-scroll { display:flex; gap:8px; overflow-x:auto; padding:4px 0 16px; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+        #page-settings .ps-filter-scroll::-webkit-scrollbar { display:none; }
+        #page-settings .ps-filter-chip {
+            padding:10px 18px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+            border-radius:9999px; font-family:inherit; font-size:13px; font-weight:500; color:rgba(255,255,255,0.72);
+            white-space:nowrap; cursor:pointer; transition:all 0.15s;
+        }
+        #page-settings .ps-filter-chip:hover { background:rgba(255,255,255,0.06); }
+        #page-settings .ps-filter-chip.active { background:#FFD60A; border-color:#FFD60A; color:#000; font-weight:600; }
+        
+        /* Buttons */
+        #page-settings .ps-btn {
+            padding:16px 24px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+            border-radius:16px; font-family:inherit; font-size:14px; font-weight:600; color:#fff;
+            cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; transition:all 0.15s;
+        }
+        #page-settings .ps-btn:hover { background:rgba(255,255,255,0.06); }
+        #page-settings .ps-btn-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        #page-settings .ps-btn.success { background:#30D158; border-color:#30D158; }
+        #page-settings .ps-btn.success:hover { background:#00A040; }
+        #page-settings .ps-btn.primary { background:#0A84FF; border-color:#0A84FF; }
+        #page-settings .ps-btn.primary:hover { background:#0066CC; }
+        
+        #page-settings .ps-btn-trash {
+            width:100%; padding:16px; background:rgba(255,69,58,0.16); border:1px solid rgba(255,69,58,0.2);
+            border-radius:16px; font-family:inherit; font-size:14px; font-weight:500; color:#FF453A;
+            cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; margin-top:24px; transition:all 0.15s;
+        }
+        #page-settings .ps-btn-trash:hover { background:rgba(255,69,58,0.24); }
+        
+        /* Drive Section */
+        #page-settings .ps-drive-section { margin-top:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.04); }
+        #page-settings .ps-drive-header { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+        #page-settings .ps-drive-logo { width:40px; height:40px; background:linear-gradient(135deg, #4285F4 25%, #34A853 25%, #34A853 50%, #FBBC05 50%, #FBBC05 75%, #EA4335 75%); border-radius:12px; display:flex; align-items:center; justify-content:center; }
+        #page-settings .ps-drive-logo i { color:#fff; font-size:18px; text-shadow:0 1px 3px rgba(0,0,0,0.3); }
+        #page-settings .ps-drive-info h4 { font-size:15px; font-weight:600; color:#fff; margin:0 0 2px 0; }
+        #page-settings .ps-drive-status { font-size:12px; color:rgba(255,255,255,0.48); }
+        
+        /* Permission Alert */
+        #page-settings .ps-perm-alert {
+            display:none; align-items:center; justify-content:space-between; padding:16px;
+            background:rgba(255,159,10,0.1); border:1px solid rgba(255,159,10,0.2); border-left:4px solid #FF9F0A;
+            border-radius:16px; margin-bottom:20px;
+        }
+        #page-settings .ps-perm-alert-text { font-size:13px; font-weight:600; color:#FF9F0A; }
+        #page-settings .ps-perm-alert-btn {
+            padding:8px 16px; background:#FF9F0A; border:none; border-radius:8px;
+            font-family:inherit; font-size:12px; font-weight:700; color:#000; cursor:pointer; transition:all 0.15s;
+        }
+        #page-settings .ps-perm-alert-btn:hover { transform:scale(1.05); }
+        
+        /* Profile Edit */
+        #page-settings .ps-profile-edit-hero { text-align:center; padding:24px 0; }
+        #page-settings .ps-avatar-editor { position:relative; width:120px; height:120px; margin:0 auto 16px; }
+        #page-settings .ps-avatar-preview { width:120px; height:120px; border-radius:24px; object-fit:cover; border:3px solid rgba(255,255,255,0.08); transition:all 0.25s; }
+        #page-settings .ps-avatar-upload-btn {
+            position:absolute; bottom:-6px; right:-6px; width:40px; height:40px; background:#FFD60A;
+            border-radius:12px; display:flex; align-items:center; justify-content:center; color:#000; font-size:16px;
+            cursor:pointer; transition:all 0.15s; box-shadow:0 4px 16px rgba(255,214,10,0.4); border:none;
+        }
+        #page-settings .ps-avatar-upload-btn:hover { transform:scale(1.1); }
+        #page-settings .ps-avatar-hint { font-size:13px; color:rgba(255,255,255,0.48); }
+        
+        /* History Header */
+        #page-settings .ps-history-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+        #page-settings .ps-tool-btn {
+            padding:8px 14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+            border-radius:12px; font-family:inherit; font-size:13px; font-weight:500; color:#fff;
+            cursor:pointer; display:flex; align-items:center; gap:6px; transition:all 0.15s;
+        }
+        #page-settings .ps-tool-btn:hover { background:rgba(255,255,255,0.06); }
+    </style>
+
+    <div class="app-settings-container ps-container">
+
+        <!-- ========== ANA SAYFA (settings-home) ========== -->
         <div id="settings-home" class="settings-home-wrapper">
             
-            <div id="mainProfileCard" class="profile-banner-card" onclick="openSubPage('profile')">
-                <img id="menuProfileImg" 
-                     src="https://via.placeholder.com/150/1e2538/ffffff?text=TR" 
-                     class="pbc-img"
-                     onerror="this.src='https://via.placeholder.com/150/1e2538/ffffff?text=USER'">
-                
-                <div class="pbc-info">
-                    <span class="pbc-name" id="menuProfileName">Yükleniyor...</span>
-                    <div class="pbc-badge"><i class="fas fa-crown"></i> FREE ÜYE</div>
-                </div>
-            </div>
-
-<div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #334155;">
-    <h3 style="margin:0 0 10px 0; color: #fff; font-size: 16px;">Üyelik Durumu</h3>
-    
-    <div id="planStatusText" style="color: #94a3b8; margin-bottom: 10px;">
-        Mevcut Plan: <span style="color: #fff; font-weight: bold;">FREE</span>
-    </div>
-
-    <button onclick="Membership.upgradeToPro()" id="btnUpgrade" style="width:100%; padding: 12px; background: linear-gradient(90deg, #f59e0b, #d97706); color: #000; font-weight: bold; border: none; border-radius: 8px; cursor: pointer;">
-        👑 PRO'ya Yükselt
-    </button>
-    
-    <button onclick="Membership.downgrade()" id="btnDowngrade" style="display:none; width:100%; padding: 10px; background: #ef4444; color: #fff; border: none; border-radius: 8px; cursor: pointer; margin-top:5px;">
-        Üyeliği İptal Et
-    </button>
-</div>
-
-<script>
-    // Ayarlar açılınca butonları ayarla
-    if(typeof Membership !== 'undefined' && Membership.isPro()){
-        document.getElementById('planStatusText').innerHTML = "Mevcut Plan: <span style='color:#f59e0b'>PRO KULLANICI 💎</span>";
-        document.getElementById('btnUpgrade').style.display = 'none';
-        document.getElementById('btnDowngrade').style.display = 'block';
-    }
-</script>
-
-
-            <div style="font-size:11px; font-weight:700; color:var(--text-sub); margin-bottom:10px; margin-left:10px;">UYGULAMA AYARLARI</div>
-            
-            <div class="menu-list-wrapper">
-    <div class="menu-list-item" onclick="openSubPage('general')">
-        <div class="mli-left">
-            <div class="mli-icon-box bg-blue"><i class="fas fa-sliders-h"></i></div>
-            <span class="mli-text">Genel & Görünüm</span>
-        </div>
-        <div class="mli-arrow"><i class="fas fa-chevron-right"></i></div>
-    </div>
-
-    <div class="menu-list-item" onclick="openSubPage('notify')">
-        <div class="mli-left">
-            <div class="mli-icon-box bg-orange"><i class="fas fa-bell"></i></div>
-            <span class="mli-text">Bildirimler</span>
-        </div>
-        <div class="mli-arrow"><i class="fas fa-chevron-right"></i></div>
-    </div>
-
-    <div class="menu-list-item" onclick="openSubPage('history')">
-        <div class="mli-left">
-            <div class="mli-icon-box bg-green"><i class="fas fa-history"></i></div>
-            <span class="mli-text">Kasa & Geçmiş</span>
-        </div>
-        <div class="mli-arrow"><i class="fas fa-chevron-right"></i></div>
-    </div>
-</div>
-
-<div style="font-size:11px; font-weight:700; color:var(--text-sub); margin:15px 0 10px 10px;">DESTEK & YASAL</div>
-
-<div class="menu-list-wrapper">
-    
-    <div class="menu-list-item" onclick="window.open('iletisim.html', '_blank')">
-        <div class="mli-left">
-            <div class="mli-icon-box" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);"><i class="fas fa-envelope"></i></div>
-            <span class="mli-text">Bize Ulaşın</span>
-        </div>
-        <div class="mli-arrow"><i class="fas fa-chevron-right"></i></div>
-    </div>
-
-    <div class="menu-list-item" onclick="window.open('gizlilik.html', '_blank')">
-        <div class="mli-left">
-            <div class="mli-icon-box" style="background: linear-gradient(135deg, #10b981, #059669);"><i class="fas fa-shield-alt"></i></div>
-            <span class="mli-text">Gizlilik Politikası</span>
-        </div>
-        <div class="mli-arrow"><i class="fas fa-chevron-right"></i></div>
-    </div>
-
-    <div class="menu-list-item" onclick="window.open('kullanim-kosullari.html', '_blank')">
-        <div class="mli-left">
-            <div class="mli-icon-box" style="background: linear-gradient(135deg, #64748b, #475569);"><i class="fas fa-file-contract"></i></div>
-            <span class="mli-text">Kullanım Koşulları</span>
-        </div>
-        <div class="mli-arrow"><i class="fas fa-chevron-right"></i></div>
-    </div>
-
-</div>
-
-<div class="menu-list-wrapper" style="margin-top:20px; margin-bottom: 120px;">
-    <div class="menu-list-item" onclick="clearAllData()">
-        <div class="mli-left">
-            <div class="mli-icon-box bg-red"><i class="fas fa-trash-alt"></i></div>
-            <span class="mli-text" style="color:#ef4444;" data-lang="reset_data">Verileri Sıfırla</span>
-        </div>
-    </div>
-</div>
-
-
-        </div>
-
-        <div id="settings-detail" class="settings-detail-wrapper">
-            
-            <div class="sub-header">
-                <button class="back-btn" onclick="closeSubPage()">
-                    <i class="fas fa-chevron-left"></i> Geri
-                </button>
-                <span class="sub-title" id="subPageTitle">Detay</span>
-            </div>
-
-            <div id="set-profile" class="settings-content" style="display:none;">
-                <div style="text-align:center; margin-bottom:20px;">
-                    <div class="profile-img-wrap" style="margin:0 auto 10px auto;">
-                        <img id="displayProfileImg" src="" class="profile-img">
-                        <label class="profile-upload-btn"><i class="fas fa-camera"></i><input type="file" id="imgUploadInput" style="display:none;" accept="image/*" onchange="uploadProfileImg(this)"></label>
+            <!-- Profile Hero -->
+            <div class="ps-profile-hero" onclick="openSubPage('profile')">
+                <div class="ps-profile-content">
+                    <div class="ps-avatar-wrap">
+                        <img id="menuProfileImg" 
+                             src="https://via.placeholder.com/150/1e2538/ffffff?text=TR" 
+                             class="ps-avatar"
+                             onerror="this.src='https://via.placeholder.com/150/1e2538/ffffff?text=USER'">
+                        <div class="ps-status-dot"></div>
                     </div>
-                    <div style="font-size:11px; color:var(--text-sub);">Fotoğrafı güncellemek için ikona tıkla</div>
+                    <div class="ps-profile-info">
+                        <div class="ps-profile-name" id="menuProfileName">Yükleniyor...</div>
+                        <div class="ps-badge free pbc-badge" id="mainBadge">
+                            <i class="fas fa-user"></i> FREE ÜYE
+                        </div>
+                    </div>
+                    <div class="ps-arrow">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
                 </div>
+            </div>
 
-                <div class="card">
-                    <div class="lbl-sm">BİLGİLER</div>
-                    <div style="margin-bottom:15px;">
-                        <span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:5px;">Ad Soyad</span>
-                        <input type="text" id="profileNameInput" class="modern-input" onchange="saveProfileData()">
+            <!-- Kompakt Membership Button -->
+            <div class="ps-membership-btn" id="membershipBtn" onclick="openPremiumModal()">
+                <div class="ps-membership-btn-left">
+                    <div class="ps-membership-btn-icon">
+                        <i class="fas fa-crown"></i>
                     </div>
                     <div>
-                        <span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:5px;">Bio / Ünvan</span>
-                        <input type="text" id="profileBioInput" class="modern-input" onchange="saveProfileData()">
+                        <div class="ps-membership-btn-text" id="membershipBtnText">PRO'ya Yükselt</div>
+                        <div class="ps-membership-btn-sub" id="membershipBtnSub">Tüm özellikleri aç</div>
+                    </div>
+                </div>
+                <div class="ps-membership-btn-arrow">
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+
+            <!-- Uygulama Ayarları -->
+            <div class="ps-section-label">Uygulama Ayarları</div>
+            <div class="ps-menu-list">
+                <div class="ps-menu-item" onclick="openSubPage('general')">
+                    <div class="ps-menu-icon blue"><i class="fas fa-sliders-h"></i></div>
+                    <div class="ps-menu-text">
+                        <div class="ps-menu-title">Genel & Görünüm</div>
+                        <div class="ps-menu-subtitle">Tema, dil, para birimi</div>
+                    </div>
+                    <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
+                </div>
+                <div class="ps-menu-item" onclick="openSubPage('notify')">
+                    <div class="ps-menu-icon orange"><i class="fas fa-bell"></i></div>
+                    <div class="ps-menu-text">
+                        <div class="ps-menu-title">Bildirimler</div>
+                        <div class="ps-menu-subtitle">Alarm ve uyarı ayarları</div>
+                    </div>
+                    <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
+                </div>
+                <div class="ps-menu-item" onclick="openSubPage('history')">
+                    <div class="ps-menu-icon green"><i class="fas fa-wallet"></i></div>
+                    <div class="ps-menu-text">
+                        <div class="ps-menu-title">Kasa & Geçmiş</div>
+                        <div class="ps-menu-subtitle">İşlem kayıtları ve muhasebe</div>
+                    </div>
+                    <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
+                </div>
+            </div>
+
+            <!-- Destek & Yasal -->
+            <div class="ps-section-label">Destek & Yasal</div>
+            <div class="ps-menu-list">
+                <div class="ps-menu-item" onclick="window.open('iletisim.html','_blank')">
+                    <div class="ps-menu-icon purple"><i class="fas fa-envelope"></i></div>
+                    <div class="ps-menu-text">
+                        <div class="ps-menu-title">Bize Ulaşın</div>
+                    </div>
+                    <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
+                </div>
+                <div class="ps-menu-item" onclick="window.open('gizlilik.html','_blank')">
+                    <div class="ps-menu-icon cyan"><i class="fas fa-shield-alt"></i></div>
+                    <div class="ps-menu-text">
+                        <div class="ps-menu-title">Gizlilik Politikası</div>
+                    </div>
+                    <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
+                </div>
+                <div class="ps-menu-item" onclick="window.open('kullanim-kosullari.html','_blank')">
+                    <div class="ps-menu-icon gray"><i class="fas fa-file-contract"></i></div>
+                    <div class="ps-menu-text">
+                        <div class="ps-menu-title">Kullanım Koşulları</div>
+                    </div>
+                    <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
+                </div>
+            </div>
+
+            <!-- Verileri Sıfırla -->
+            <div class="ps-menu-list" style="margin-bottom:120px;">
+                <div class="ps-menu-item" onclick="clearAllData()">
+                    <div class="ps-menu-icon red"><i class="fas fa-trash-alt"></i></div>
+                    <div class="ps-menu-text">
+                        <div class="ps-menu-title danger" data-lang="reset_data">Verileri Sıfırla</div>
+                        <div class="ps-menu-subtitle">Tüm veriler kalıcı olarak silinir</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ========== PREMIUM MODAL ========== -->
+        <div class="ps-modal-overlay" id="premiumModalOverlay" onclick="closePremiumModal(event)" style="z-index: 999999;">
+    <div class="ps-premium-modal" onclick="event.stopPropagation()">
+        
+        <div class="ps-modal-header" id="premiumModalHeader">
+            <button class="ps-modal-close" onclick="closePremiumModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="ps-modal-icon" id="premiumModalIcon">
+                <i class="fas fa-crown"></i>
+            </div>
+            <div class="ps-modal-title" id="premiumModalTitle">TRADEVIA PRO</div>
+            <div class="ps-modal-subtitle" id="premiumModalSubtitle">Sınırları kaldır, piyasaya hükmet.</div>
+        </div>
+        
+        <div class="ps-modal-body">
+            <div class="ps-features-list">
+                
+                <div class="ps-feature-item">
+                    <div class="ps-feature-icon"><i class="fas fa-brain"></i></div>
+                    <div class="ps-feature-text">
+                        <div class="ps-feature-title">Zeka Merkezi</div>
+                        <div class="ps-feature-desc">Yapay zeka yatırımcı analizi</div>
+                    </div>
+                </div>
+
+                <div class="ps-feature-item">
+                    <div class="ps-feature-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="ps-feature-text">
+                        <div class="ps-feature-title">FOMO Skor</div>
+                        <div class="ps-feature-desc">Duygusal işlem ölçümü</div>
+                    </div>
+                </div>
+
+                <div class="ps-feature-item">
+                    <div class="ps-feature-icon"><i class="fas fa-graduation-cap"></i></div>
+                    <div class="ps-feature-text">
+                        <div class="ps-feature-title">Trader Karnesi</div>
+                        <div class="ps-feature-desc">Başarı puanın</div>
+                    </div>
+                </div>
+
+                <div class="ps-feature-item">
+                    <div class="ps-feature-icon"><i class="fas fa-history"></i></div>
+                    <div class="ps-feature-text">
+                        <div class="ps-feature-title">Zaman Makinesi</div>
+                        <div class="ps-feature-desc">Sınırsız analiz (Free: 3 Hak)</div>
+                    </div>
+                </div>
+
+                <div class="ps-feature-item">
+                    <div class="ps-feature-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+                    <div class="ps-feature-text">
+                        <div class="ps-feature-title">Maliyet Sihirbazı</div>
+                        <div class="ps-feature-desc">Portföyden otomatik veri çekme</div>
+                    </div>
+                </div>
+
+            </div>
+            
+            <button class="ps-modal-upgrade-btn" id="btnUpgrade" onclick="MembershipSystem.processPayment()">
+                <i class="fas fa-gem"></i>
+                PRO'YA GEÇ (99₺)
+            </button>
+            
+            <button class="ps-modal-downgrade-btn" id="btnDowngrade" onclick="MembershipSystem.downgrade(); closePremiumModal();">
+                <i class="fas fa-times-circle"></i> Üyeliği İptal Et
+            </button>
+        </div>
+    </div>
+</div>
+
+        <!-- ========== DETAY SAYFALARI ========== -->
+        <div id="settings-detail" class="settings-detail-wrapper">
+            
+            <!-- Header -->
+            <div class="ps-detail-header sub-header">
+                <button class="ps-btn-back back-btn" onclick="closeSubPage()"><i class="fas fa-chevron-left"></i></button>
+                <div class="ps-detail-title sub-title" id="subPageTitle">Detay</div>
+            </div>
+
+            <!-- ===== PROFİL SAYFASI ===== -->
+            <div id="set-profile" class="settings-content" style="display:none;">
+                <div class="ps-profile-edit-hero">
+                    <div class="ps-avatar-editor">
+                        <img id="displayProfileImg" src="" class="ps-avatar-preview">
+                        <label class="ps-avatar-upload-btn">
+                            <i class="fas fa-camera"></i>
+                            <input type="file" id="imgUploadInput" style="display:none;" accept="image/*" onchange="uploadProfileImg(this)">
+                        </label>
+                    </div>
+                    <p class="ps-avatar-hint">Fotoğrafı değiştirmek için tıkla</p>
+                </div>
+
+                <div class="ps-card card">
+                    <div class="ps-card-label lbl-sm">Bilgiler</div>
+                    <div class="ps-input-group">
+                        <label class="ps-input-label">Ad Soyad</label>
+                        <input type="text" id="profileNameInput" class="ps-input modern-input" placeholder="İsminizi girin" onchange="saveProfileData()">
+                    </div>
+                    <div class="ps-input-group">
+                        <label class="ps-input-label">Bio / Ünvan</label>
+                        <input type="text" id="profileBioInput" class="ps-input modern-input" placeholder="Kısa bir açıklama" onchange="saveProfileData()">
                     </div>
                     <div id="displayProfileName" style="display:none;"></div>
                     <div id="displayProfileBio" style="display:none;"></div>
                     <div id="membershipBadge" style="display:none;"></div>
                 </div>
 
-                <div class="card">
-                    <div class="lbl-sm">İSTATİSTİKLER</div>
-                    <div class="stats-grid">
-                        <div class="stat-box"><span class="stat-label">İŞLEM</span><div class="stat-val" id="profileTradeCount">0</div></div>
-                        <div class="stat-box"><span class="stat-label">TARİH</span><div class="stat-val" id="profileJoinDate">--</div></div>
+                <div class="ps-card card">
+                    <div class="ps-card-label lbl-sm">İstatistikler</div>
+                    <div class="ps-stats-grid stats-grid">
+                        <div class="ps-stat-card stat-box">
+                            <div class="ps-stat-label stat-label">Toplam İşlem</div>
+                            <div class="ps-stat-value stat-val" id="profileTradeCount">0</div>
+                        </div>
+                        <div class="ps-stat-card stat-box">
+                            <div class="ps-stat-label stat-label">Üyelik Tarihi</div>
+                            <div class="ps-stat-value stat-val" id="profileJoinDate" style="font-size:18px">--</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
+            <!-- ===== GENEL & GÖRÜNÜM SAYFASI ===== -->
             <div id="set-general" class="settings-content" style="display:none;">
-                <div class="card">
-                    <div class="lbl-sm">TERCİHLER</div>
-                    <div class="setting-item"><span>Para Birimi</span><select id="currSelect" class="setting-select" onchange="changeBaseCurrency(this.value)"><option value="TRY">TRY (₺)</option><option value="USD">USD ($)</option></select></div>
-                    <div class="setting-item"><span>Dil</span><select id="langSelect" class="setting-select" onchange="changeLanguage(this.value)"><option value="tr">Türkçe</option><option value="en">English</option></select></div>
-                    <div class="setting-item"><span>Tema</span><select id="themeSelect" class="setting-select" onchange="changeTheme(this.value)"><option value="ocean">Okyanus</option><option value="purple">Mor Gece</option><option value="dark">Zifiri</option></select></div>
+                <div class="ps-card card">
+                    <div class="ps-card-label lbl-sm">Tercihler</div>
+                    <div class="ps-setting-row setting-item">
+                        <span class="ps-setting-title">Para Birimi</span>
+                        <select id="currSelect" class="ps-select setting-select" style="width:auto;" onchange="changeBaseCurrency(this.value)">
+                            <option value="TRY">TRY (₺)</option>
+                            <option value="USD">USD ($)</option>
+                        </select>
+                    </div>
+                    <div class="ps-setting-row setting-item">
+                        <span class="ps-setting-title">Dil</span>
+                        <select id="langSelect" class="ps-select setting-select" style="width:auto;" onchange="changeLanguage(this.value)">
+                            <option value="tr">Türkçe</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
+                    <div class="ps-setting-row setting-item">
+                        <span class="ps-setting-title">Tema</span>
+                        <select id="themeSelect" class="ps-select setting-select" style="width:auto;" onchange="changeTheme(this.value)">
+                            <option value="ocean">Okyanus</option>
+                            <option value="purple">Mor Gece</option>
+                            <option value="dark">Zifiri</option>
+                        </select>
+                    </div>
                 </div>
+                
                 <div style="display:none;">
-    <input type="text" id="polyKey">
-    <div id="polyStatusText"></div>
-    <div id="polyIndicator"></div>
-</div>
+                    <input type="text" id="polyKey">
+                    <div id="polyStatusText"></div>
+                    <div id="polyIndicator"></div>
+                </div>
 
-                <div class="card">
-                    <div class="lbl-sm">YEDEKLEME</div>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
-                        <button class="btn-main btn-sec" onclick="downloadBackup()">İndir</button>
-                        <label class="btn-main btn-sec" style="margin:0;">Yükle <input type="file" style="display:none;" onchange="uploadBackup(this)"></label>
+                <div class="ps-card card">
+                    <div class="ps-card-label lbl-sm">Yedekleme</div>
+                    <div class="ps-btn-grid" style="margin-bottom:12px">
+                        <button class="ps-btn btn-main btn-sec" onclick="downloadBackup()">
+                            <i class="fas fa-download"></i> İndir
+                        </button>
+                        <label class="ps-btn btn-main btn-sec" style="cursor:pointer; margin:0;">
+                            <i class="fas fa-upload"></i> Yükle
+                            <input type="file" style="display:none" onchange="uploadBackup(this)">
+                        </label>
                     </div>
-                    <button class="btn-main btn-sec" onclick="exportExcel()">Excel Raporu</button>
-                    <div style="margin-top:15px; padding-top:15px; border-top:1px solid rgba(255,255,255,0.1);">
-    <div class="lbl-sm" style="margin-bottom:10px;"><i class="fab fa-google-drive"></i> GOOGLE DRIVE YEDEKLEME</div>
-    <div id="drive-status" style="font-size:10px; color:var(--text-sub); margin-bottom:5px;">Bağlantı Bekleniyor...</div>
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-        <button class="btn-main" style="background:#1f2937; border:1px solid rgba(255,255,255,0.1);" onclick="handleAuthClick()">
-            <i class="fas fa-sign-in-alt"></i> Giriş Yap
-        </button>
-        <button class="btn-main" style="background:#1f2937; border:1px solid rgba(255,255,255,0.1);" onclick="handleSignoutClick()">
-            <i class="fas fa-sign-out-alt"></i> Çıkış
-        </button>
-    </div>
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
-        <button class="btn-main" style="background:#10b981;" onclick="uploadToDrive()">
-            <i class="fas fa-cloud-upload-alt"></i> Buluta Yedekle
-        </button>
-        <button class="btn-main" style="background:#3b82f6;" onclick="downloadFromDrive()">
-            <i class="fas fa-cloud-download-alt"></i> Buluttan Yükle
-        </button>
-        <div style="height: 80px; width: 100%; clear: both;"></div>
+                    <button class="ps-btn btn-main btn-sec" style="width:100%" onclick="exportExcel()">
+                        <i class="fas fa-file-excel"></i> Excel Raporu
+                    </button>
 
-    </div>
-</div>
-
+                    <div class="ps-drive-section">
+                        <div class="ps-drive-header">
+                            <div class="ps-drive-logo"><i class="fab fa-google-drive"></i></div>
+                            <div class="ps-drive-info">
+                                <h4>Google Drive</h4>
+                                <div class="ps-drive-status" id="drive-status">Bağlantı bekleniyor...</div>
+                            </div>
+                        </div>
+                        <div class="ps-btn-grid" style="margin-bottom:12px">
+                            <button class="ps-btn" onclick="handleAuthClick()"><i class="fas fa-sign-in-alt"></i> Giriş</button>
+                            <button class="ps-btn" onclick="handleSignoutClick()"><i class="fas fa-sign-out-alt"></i> Çıkış</button>
+                        </div>
+                        <div class="ps-btn-grid">
+                            <button class="ps-btn success" onclick="uploadToDrive()"><i class="fas fa-cloud-upload-alt"></i> Yedekle</button>
+                            <button class="ps-btn primary" onclick="downloadFromDrive()"><i class="fas fa-cloud-download-alt"></i> Geri Yükle</button>
+                        </div>
+                        <div style="height:80px;"></div>
+                    </div>
                 </div>
             </div>
 
+            <!-- ===== BİLDİRİMLER SAYFASI ===== -->
             <div id="set-notify" class="settings-content" style="display:none;">
-                <div class="card" id="permRequestCard" style="display:none; background:rgba(245, 158, 11, 0.1); border-left:3px solid var(--gold);">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div style="font-size:12px; color:var(--gold); font-weight:700;">İzin Gerekli</div>
-                        <button class="btn-main" style="width:auto; padding:5px 10px; font-size:10px;" onclick="requestNotifyPermission()">İZİN VER</button>
+                
+                <div class="ps-perm-alert" id="permRequestCard">
+                    <span class="ps-perm-alert-text"><i class="fas fa-exclamation-triangle"></i> Bildirim izni gerekli</span>
+                    <button class="ps-perm-alert-btn" onclick="requestNotifyPermission()">İZİN VER</button>
+                </div>
+
+                <div class="ps-card card">
+                    <div class="ps-card-label lbl-sm">Bildirim Türleri</div>
+                    <div class="ps-setting-row switch-row">
+                        <div class="ps-setting-info">
+                            <div class="ps-setting-title switch-label">Fiyat Alarmları</div>
+                            <div class="ps-setting-desc switch-desc">Hedef fiyata ulaşıldığında bildir</div>
+                        </div>
+                        <label class="ps-toggle tgl-switch">
+                            <input type="checkbox" id="ntf_price" onchange="saveNotifySettings()">
+                            <div class="ps-toggle-track tgl-slider"><div class="ps-toggle-thumb"></div></div>
+                        </label>
+                    </div>
+                    <div class="ps-setting-row switch-row">
+                        <div class="ps-setting-info">
+                            <div class="ps-setting-title switch-label">İşlem Onayları</div>
+                            <div class="ps-setting-desc switch-desc">Alım/satım sonrası onay</div>
+                        </div>
+                        <label class="ps-toggle tgl-switch">
+                            <input type="checkbox" id="ntf_trade" onchange="saveNotifySettings()">
+                            <div class="ps-toggle-track tgl-slider"><div class="ps-toggle-thumb"></div></div>
+                        </label>
+                    </div>
+                    <div class="ps-setting-row switch-row">
+                        <div class="ps-setting-info">
+                            <div class="ps-setting-title switch-label">Haberler</div>
+                            <div class="ps-setting-desc switch-desc">Önemli piyasa haberleri</div>
+                        </div>
+                        <label class="ps-toggle tgl-switch">
+                            <input type="checkbox" id="ntf_news" onchange="saveNotifySettings()">
+                            <div class="ps-toggle-track tgl-slider"><div class="ps-toggle-thumb"></div></div>
+                        </label>
                     </div>
                 </div>
-                <div class="card">
-                    <div class="switch-row"><div><span class="switch-label">Fiyat Alarmları</span></div><label class="tgl-switch"><input type="checkbox" id="ntf_price" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label></div>
-                    <div class="switch-row"><div><span class="switch-label">İşlem Onayları</span></div><label class="tgl-switch"><input type="checkbox" id="ntf_trade" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label></div>
-                    <div class="switch-row"><div><span class="switch-label">Haberler</span></div><label class="tgl-switch"><input type="checkbox" id="ntf_news" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label></div>
-                </div>
-                <div class="card">
-                    <div
-                     class="switch-row"><div><span class="switch-label">Ses</span></div><label class="tgl-switch"><input type="checkbox" id="ntf_sound" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label></div>
-                     <div class="switch-row"><div><span class="switch-label">Titreşim</span></div><label class="tgl-switch"><input type="checkbox" id="ntf_vibrate" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label></div>
 
-<div class="switch-row" style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px; padding-top: 12px;">
-    <div>
-        <span class="switch-label" style="color: #f59e0b;">Gizli Mod (API Gizle)</span>
-        <span class="switch-desc">Veri sağlayıcı ve sistem mesajlarını tamamen kapatır.</span>
-    </div>
-    <label class="tgl-switch">
-        <input type="checkbox" id="muteAllToggle" onchange="toggleSecretMode()">
-        <span class="tgl-slider"></span>
-    </label>
-</div>
-
-                    <div class="switch-row"><div><span class="switch-label">Titreşim</span></div><label class="tgl-switch"><input type="checkbox" id="ntf_vibrate" onchange="saveNotifySettings()"><span class="tgl-slider"></span></label></div>
+                <div class="ps-card card">
+                    <div class="ps-card-label lbl-sm">Ses & Titreşim</div>
+                    <div class="ps-setting-row switch-row">
+                        <div class="ps-setting-info">
+                            <div class="ps-setting-title switch-label">Ses</div>
+                        </div>
+                        <label class="ps-toggle tgl-switch">
+                            <input type="checkbox" id="ntf_sound" onchange="saveNotifySettings()">
+                            <div class="ps-toggle-track tgl-slider"><div class="ps-toggle-thumb"></div></div>
+                        </label>
+                    </div>
+                    <div class="ps-setting-row switch-row">
+                        <div class="ps-setting-info">
+                            <div class="ps-setting-title switch-label">Titreşim</div>
+                        </div>
+                        <label class="ps-toggle tgl-switch">
+                            <input type="checkbox" id="ntf_vibrate" onchange="saveNotifySettings()">
+                            <div class="ps-toggle-track tgl-slider"><div class="ps-toggle-thumb"></div></div>
+                        </label>
+                    </div>
                 </div>
-                <button class="btn-main btn-sec" onclick="testNotification()">Test Bildirimi</button>
+
+                <div class="ps-card card">
+                    <div class="ps-card-label lbl-sm">Gelişmiş</div>
+                    <div class="ps-setting-row switch-row">
+                        <div class="ps-setting-info">
+                            <div class="ps-setting-title switch-label" style="color:#FFD60A;">Gizli Mod</div>
+                            <div class="ps-setting-desc switch-desc">API ve sistem mesajlarını gizle</div>
+                        </div>
+                        <label class="ps-toggle tgl-switch">
+                            <input type="checkbox" id="muteAllToggle" onchange="toggleSecretMode()">
+                            <div class="ps-toggle-track tgl-slider"><div class="ps-toggle-thumb"></div></div>
+                        </label>
+                    </div>
+                </div>
+
+                <button class="ps-btn" style="width:100%" onclick="testNotification()">
+                    <i class="fas fa-bell"></i> Test Bildirimi Gönder
+                </button>
             </div>
 
+            <!-- ===== KASA & GEÇMİŞ SAYFASI ===== -->
             <div id="set-history" class="settings-content" style="display:none;">
+                
+                <!-- Accounting Hero -->
+                <div class="ps-accounting-hero accounting-hero">
+                    <div class="ps-acc-grid acc-row">
+                        <div class="ps-acc-item acc-stat-box">
+                            <div class="ps-acc-label acc-lbl-sub">Toplam Özkaynak</div>
+                            <div class="ps-acc-value acc-val-lg" id="accTotalEquity">--</div>
+                        </div>
+                        <div class="ps-acc-item right acc-stat-box">
+                            <div class="ps-acc-label acc-lbl-sub">Net Kâr/Zarar</div>
+                            <div class="ps-acc-value acc-val-lg" id="accNetPnl">--</div>
+                        </div>
+                    </div>
+                    <div class="ps-acc-grid acc-row" style="margin-bottom:0">
+                        <div class="ps-acc-item acc-stat-box">
+                            <div class="ps-acc-label acc-lbl-sub">Yatırım Sermayesi</div>
+                            <div class="ps-acc-value small acc-val-sm" id="accCapital">--</div>
+                        </div>
+                        <div class="ps-acc-item right acc-stat-box">
+                            <div class="ps-acc-label success acc-lbl-sub" style="color:#30D158;">Çekilen Kâr (Maaş)</div>
+                            <div class="ps-acc-value small success acc-val-sm" id="accDividend" style="color:#30D158;">--</div>
+                        </div>
+                    </div>
+                    <button class="ps-btn-salary btn-main" onclick="openSalaryModal()">
+                        <i class="fas fa-hand-holding-usd"></i> KÂR DAĞITIMI YAP (MAAŞ ÖDE)
+                    </button>
+                </div>
+
+                <!-- History Header -->
+                <div class="ps-history-header">
+                    <div class="ps-card-label lbl-sm" style="margin:0">Defter Kayıtları</div>
+                    <button class="ps-tool-btn tool-btn" onclick="openCashModal()">
+                        <i class="fas fa-plus"></i> İşlem Ekle
+                    </button>
+                </div>
+
+                <!-- Filter Chips -->
+                <div class="ps-filter-scroll hist-filter-scroll">
+                    <button class="ps-filter-chip h-filter-btn active" onclick="filterHistory('all', this)">Tümü</button>
+                    <button class="ps-filter-chip h-filter-btn" onclick="filterHistory('NAKİT', this)">Kasa</button>
+                    <button class="ps-filter-chip h-filter-btn" onclick="filterHistory('ALIM', this)">Alım</button>
+                    <button class="ps-filter-chip h-filter-btn" onclick="filterHistory('SATIM', this)">Satım</button>
+                    <button class="ps-filter-chip h-filter-btn" onclick="filterHistory('MAAŞ', this)">Maaş</button>
+                </div>
+
+                <!-- History List -->
+                <div id="historyListFull"></div>
+
+                <!-- Trash Button -->
+                <button class="ps-btn-trash trash-btn" onclick="openTrashModal()">
+                    <i class="fas fa-trash-restore"></i> SİLİNEN KAYITLAR (<span id="trashCount">0</span>)
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+// Premium Modal Fonksiyonları
+function openPremiumModal() {
+    var overlay = document.getElementById('premiumModalOverlay');
+    overlay.style.display = 'flex';
+    setTimeout(function() { overlay.classList.add('active'); }, 10);
+    updatePremiumModalUI();
+}
+
+function closePremiumModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    var overlay = document.getElementById('premiumModalOverlay');
+    overlay.classList.remove('active');
+    setTimeout(function() { overlay.style.display = 'none'; }, 300);
+}
+
+function updatePremiumModalUI() {
+    var isPro = (typeof Membership !== 'undefined' && Membership.isPro());
+    var header = document.getElementById('premiumModalHeader');
+    var icon = document.getElementById('premiumModalIcon');
+    var title = document.getElementById('premiumModalTitle');
+    var subtitle = document.getElementById('premiumModalSubtitle');
+    var btnUp = document.getElementById('btnUpgrade');
+    var btnDown = document.getElementById('btnDowngrade');
+    var features = document.querySelectorAll('.ps-feature-item');
     
-    <div class="accounting-hero">
-        <div class="acc-row">
-            <div class="acc-stat-box">
-                <div class="acc-lbl-sub">TOPLAM ÖZKAYNAK</div>
-                <div class="acc-val-lg" id="accTotalEquity">--</div>
-            </div>
-            <div class="acc-stat-box right">
-                <div class="acc-lbl-sub">NET KÂR/ZARAR</div>
-                <div class="acc-val-lg" id="accNetPnl">--</div>
-            </div>
-        </div>
+    if (isPro) {
+        header.classList.add('is-pro');
+        icon.innerHTML = '<i class="fas fa-check"></i>';
+        title.textContent = 'PRO Aktif';
+        subtitle.textContent = 'Tüm özellikler açık';
+        btnUp.style.display = 'none';
+        btnDown.style.display = 'block';
+        features.forEach(function(f) { f.classList.add('active'); });
+    } else {
+        header.classList.remove('is-pro');
+        icon.innerHTML = '<i class="fas fa-crown"></i>';
+        title.textContent = 'PRO Üyelik';
+        subtitle.textContent = 'Tüm özelliklerin kilidini aç';
+        btnUp.style.display = 'block';
+        btnDown.style.display = 'none';
+        features.forEach(function(f) { f.classList.remove('active'); });
+    }
+}
+
+// Membership Buton UI Güncelleme
+function updateMembershipBtnUI() {
+    var isPro = (typeof Membership !== 'undefined' && Membership.isPro());
+    var btn = document.getElementById('membershipBtn');
+    var btnText = document.getElementById('membershipBtnText');
+    var btnSub = document.getElementById('membershipBtnSub');
+    var badge = document.getElementById('mainBadge');
+    
+    if (isPro) {
+        btn.classList.add('is-pro');
+        btnText.textContent = 'PRO Üyelik Aktif';
+        btnSub.textContent = 'Ayarları görüntüle';
+        btn.querySelector('.ps-membership-btn-icon i').className = 'fas fa-gem';
         
-        <div class="acc-row">
-            <div class="acc-stat-box">
-                <div class="acc-lbl-sub" style="color:var(--text-sub)">YATIRIM SERMAYESİ</div>
-                <div class="acc-val-sm" id="accCapital">--</div>
-            </div>
-            <div class="acc-stat-box right">
-                <div class="acc-lbl-sub" style="color:var(--success)">ÇEKİLEN KÂR (MAAŞ)</div>
-                <div class="acc-val-sm" id="accDividend" style="color:var(--success)">--</div>
-            </div>
-        </div>
+        if (badge) {
+            badge.className = 'ps-badge pro pbc-badge';
+            badge.innerHTML = '<i class="fas fa-gem"></i> PRO';
+        }
+    } else {
+        btn.classList.remove('is-pro');
+        btnText.textContent = 'PRO\'ya Yükselt';
+        btnSub.textContent = 'Tüm özellikleri aç';
+        btn.querySelector('.ps-membership-btn-icon i').className = 'fas fa-crown';
+        
+        if (badge) {
+            badge.className = 'ps-badge free pbc-badge';
+            badge.innerHTML = '<i class="fas fa-user"></i> FREE ÜYE';
+        }
+    }
+}
 
-        <button class="btn-main" style="margin-top:10px; background:linear-gradient(90deg, #10b981, #059669);" onclick="openSalaryModal()">
-            <i class="fas fa-hand-holding-usd"></i> KÂR DAĞITIMI YAP (MAAŞ ÖDE)
-        </button>
-    </div>
+// Sayfa yüklendiğinde UI'ı güncelle
+document.addEventListener('DOMContentLoaded', function() {
+    updateMembershipBtnUI();
+});
 
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <span class="lbl-sm">DEFTER KAYITLARI</span>
-        <button class="tool-btn" onclick="openCashModal()" style="background:var(--bg-input); padding:5px 10px; border-radius:8px; color:white;">+ İşlem Ekle</button>
-    </div>
+// Mevcut Membership objesini wrap et
+if (typeof Membership !== 'undefined') {
+    var originalUpgrade = Membership.upgradeToPro;
+    var originalDowngrade = Membership.downgrade;
+    
+    Membership.upgradeToPro = function() {
+        if (originalUpgrade) originalUpgrade.call(Membership);
+        updateMembershipBtnUI();
+        updatePremiumModalUI();
+    };
+    
+    Membership.downgrade = function() {
+        if (originalDowngrade) originalDowngrade.call(Membership);
+        updateMembershipBtnUI();
+        updatePremiumModalUI();
+    };
+}
 
-    <div class="hist-filter-scroll">
-        <div class="h-filter-btn active" onclick="filterHistory('all', this)">Tümü</div>
-        <div class="h-filter-btn" onclick="filterHistory('NAKİT', this)">Kasa</div>
-        <div class="h-filter-btn" onclick="filterHistory('ALIM', this)">Alım</div>
-        <div class="h-filter-btn" onclick="filterHistory('SATIM', this)">Satım</div>
-        <div class="h-filter-btn" onclick="filterHistory('MAAŞ', this)">Maaş</div>
-    </div>
-
-    <div id="historyListFull"></div>
-
-    <button class="trash-btn" onclick="openTrashModal()">
-        <i class="fas fa-trash-restore"></i> SİLİNEN KAYITLAR (<span id="trashCount">0</span>)
-    </button>
-</div>
-
-
-        </div>
-
-    </div> 
-</div>
+// Sayfa ilk açıldığında kontrol
+if (typeof Membership !== 'undefined' && Membership.isPro()) {
+    updateMembershipBtnUI();
+}
+</script>
 
 <div class="nav-container">
     <div class="nav-item active" onclick="switchPage('portfolio', this)"><i class="fas fa-wallet"></i><span data-lang="nav_wallet">Cüzdan</span></div>
@@ -6370,76 +7027,93 @@ function setSortMode(mode) {
     loadPF(false); 
 }
 
-/* --- SAYFA GEÇİŞ FONKSİYONU (DÜZELTİLMİŞ) --- */
-function switchPage(p, btn) { 
-    // 1. Tüm sayfaları gizle ve active sınıfını kaldır
-    document.querySelectorAll('.page').forEach(x => {
-        x.classList.remove('active');
-        x.style.display = 'none'; // Elle gizle (Garanti olsun)
-    }); 
+/* --- SAYFA GEÇİŞ FONKSİYONU (REFACTORED / TEMİZLENMİŞ) --- */
+function switchPage(pageId, btn) {
+    
+    // 1. SAYFA GÖRÜNÜMÜNÜ SIFIRLA VE YENİSİNİ AÇ
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+        page.style.display = 'none'; // Garanti gizleme
+    });
 
-    // 2. Hedef sayfayı göster
-    const targetPage = document.getElementById('page-' + p);
-    if(targetPage) {
-        targetPage.style.display = 'flex'; // Flex düzenini koru
-        // Ufak bir gecikmeyle active sınıfını ekle (Render hatasını önler)
+    const targetPage = document.getElementById('page-' + pageId);
+    if (targetPage) {
+        targetPage.style.display = 'flex'; // Flex yapısını koru
+        // Animasyonun tetiklenmesi için minik gecikme
         setTimeout(() => targetPage.classList.add('active'), 10);
     }
 
-    // 3. Alt Menü Butonlarını Güncelle
-    document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active')); 
-    if(btn) btn.classList.add('active'); 
-
-    // --- ÖZEL DÜZELTMELER ---
-
-    // Eğer PİYASA sayfasına girildiyse
-    if(p === 'market') {
-        if(!currentMarketTab) currentMarketTab = 'kripto';
-        loadMarketCategory(currentMarketTab);
+    // 2. ALT MENÜ BUTONLARINI GÜNCELLE
+    if (btn) {
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        btn.classList.add('active');
     }
 
-    // Eğer ANALİZ sayfasına girildiyse (Sorunun Çözümü Burada)
-    if(p === 'analysis') { 
-        if(typeof renderAnalyticsPage === 'function') renderAnalyticsPage(); 
-        
-        // Psikoloji sekmesi açıksa, düzenini zorla yenile (Repaint)
-        const psychoTab = document.getElementById('an-view-psycho');
-        if(psychoTab && psychoTab.classList.contains('active')) {
-            psychoTab.style.display = 'none';
-            setTimeout(() => { psychoTab.style.display = 'block'; }, 50);
-        }
-    } 
+    // 3. ARAYÜZ ELEMANLARINI YÖNET (Üst Bar, Geri Butonu vb.)
+    manageUIElements(pageId);
 
-        // Eğer HABER sayfasına girildiyse
-    if(p === 'news') {
-        // --- BURAYI EKLEDİK: Üst Barı Gizle ---
-        const topBar = document.querySelector('.top-bar');
-        if(topBar) topBar.style.display = 'none';
-        // -------------------------------------
+    // 4. SAYFAYA ÖZEL FONKSİYONLARI ÇALIŞTIR
+    runPageSpecificLogic(pageId);
+}
 
-        const tl = document.getElementById('newsTimeline');
-        if(tl && (tl.innerHTML.trim() === "" || tl.innerHTML.includes('Yükleniyor'))) {
-            if(typeof initNewsSystem === 'function') initNewsSystem();
-        } else { 
-            if(typeof startNewsTimer === 'function') startNewsTimer(); 
-        }
-    } else { 
-        // --- BURAYI EKLEDİK: Üst Barı Geri Getir ---
-        const topBar = document.querySelector('.top-bar');
-        if(topBar) topBar.style.display = 'flex'; // Orijinali flex olduğu için flex yaptık
-        // -----------------------------------------
-
-        // Haber sayfasından çıkılıyorsa zamanlayıcıyı durdur (Performans)
-        if(typeof newsInterval !== 'undefined') clearInterval(newsInterval); 
-    }
-    
-
-    // Eğer BİLDİRİM sayfasına girildiyse
-    if(p === 'notifications') renderNotifications(); 
-    
-    // Geri butonu kontrolü
+/* --- YARDIMCI: ARAYÜZ YÖNETİCİSİ --- */
+function manageUIElements(pageId) {
+    const topBar = document.querySelector('.top-bar');
     const backBtn = document.getElementById('manualBackBtn');
-    if(backBtn) backBtn.style.display = (p === 'portfolio') ? 'none' : 'flex';
+
+    // A) Üst Bar Yönetimi (Haberler ve Ayarlar'da Gizle)
+    if (pageId === 'news' || pageId === 'settings') {
+        if (topBar) topBar.style.display = 'none';
+    } else {
+        if (topBar) topBar.style.display = 'flex';
+    }
+
+    // B) Geri Butonu Yönetimi (Sadece Cüzdan'da Gizle)
+    if (backBtn) {
+        backBtn.style.display = (pageId === 'portfolio') ? 'none' : 'flex';
+    }
+}
+
+/* --- YARDIMCI: SAYFA MANTIK YÖNETİCİSİ --- */
+function runPageSpecificLogic(pageId) {
+    
+    // -- Önceki Haber Zamanlayıcısını Temizle (Her geçişte) --
+    if (typeof newsInterval !== 'undefined') clearInterval(newsInterval);
+
+    switch (pageId) {
+        
+        case 'market': // PİYASA
+            if (!currentMarketTab) currentMarketTab = 'kripto';
+            loadMarketCategory(currentMarketTab);
+            break;
+
+        case 'analysis': // ANALİZ
+            if (typeof renderAnalyticsPage === 'function') renderAnalyticsPage();
+            
+            // Psikoloji sekmesi render hatasını (glitch) düzelt
+            const psychoTab = document.getElementById('an-view-psycho');
+            if (psychoTab && psychoTab.classList.contains('active')) {
+                psychoTab.style.display = 'none';
+                setTimeout(() => { psychoTab.style.display = 'block'; }, 50);
+            }
+            break;
+
+        case 'news': // HABERLER
+            const tl = document.getElementById('newsTimeline');
+            // İçerik boşsa veya yükleniyorsa sistemi başlat, yoksa sadece sayacı başlat
+            if (tl && (tl.innerHTML.trim() === "" || tl.innerHTML.includes('Yükleniyor'))) {
+                if (typeof initNewsSystem === 'function') initNewsSystem();
+            } else {
+                if (typeof startNewsTimer === 'function') startNewsTimer();
+            }
+            break;
+
+        case 'notifications': // BİLDİRİMLER
+            renderNotifications();
+            break;
+            
+        // 'portfolio' veya 'settings' için özel bir JS çalışmasına gerek yoksa burası boş kalabilir.
+    }
 }
 
 /* ==========================================================
@@ -12552,126 +13226,127 @@ function resetTopBar() {
     }
 }
 
-/* ==========================================
-   DÜZELTME PAKETİ (Risk Hesaplama & Görünüm)
-   Bu kodları script'in en altına ekleyin.
-   ========================================== */
+/* ======================================================
+   DOLAR/TL UYUMLU RISK HESAPLAYICI & ÜST BAR YÖNETİMİ
+   ====================================================== */
 
-/* 1. RİSK HESAPLAMA MOTORU (VİRGÜL VE BOŞLUK HATASI GİDERİLDİ) */
+/* 1. RİSK HESAPLAMA MOTORU */
 window.calcLabRisk = function() {
-    // Türkçe virgüllü sayıları (Örn: 10,5) sisteme tanıtan yardımcı
-    function parseTR(val) {
+    // A) Sayı Okuma Yardımcısı (Türkçe/İngilizce uyumlu)
+    function parseNum(val) {
         if (!val) return 0;
         val = val.toString().trim();
-        // Hem nokta hem virgül varsa (10.000,50 gibi) -> Noktayı sil, virgülü nokta yap
+        // 1.000,50 formatı (TR) -> 1000.50
         if (val.includes('.') && val.includes(',')) {
             val = val.replace(/\./g, '').replace(',', '.');
         } 
-        // Sadece virgül varsa (10,5 gibi) -> Virgülü nokta yap
+        // 10,5 formatı (TR) -> 10.5
         else if (val.includes(',')) {
             val = val.replace(',', '.');
         }
         return parseFloat(val) || 0;
     }
 
-    // Değerleri güvenli şekilde al
-    let balance = parseTR(document.getElementById('riskBalance').value);
-    let riskPct = parseTR(document.getElementById('riskPct').value);
-    let entry = parseTR(document.getElementById('riskEntry').value);
-    let stop = parseTR(document.getElementById('riskStop').value);
+    // B) Değerleri Al
+    let balance = parseNum(document.getElementById('riskBalance').value);
+    let riskPct = parseNum(document.getElementById('riskPct').value);
+    let entry = parseNum(document.getElementById('riskEntry').value);
+    let stop = parseNum(document.getElementById('riskStop').value);
 
-    // Hata Kontrolü
-    if (balance <= 0) return alert("Lütfen geçerli bir Bakiye girin.");
-    if (entry <= 0 || stop <= 0) return alert("Giriş ve Stop fiyatı 0 olamaz.");
+    // C) Hata Kontrolleri
+    if (balance <= 0) return alert("Lütfen Kasa Bakiyesini girin.");
+    if (entry <= 0 || stop <= 0) return alert("Fiyatlar 0 olamaz.");
     if (entry === stop) return alert("Giriş ve Stop fiyatı aynı olamaz.");
 
-    // Hesaplama Matematigi
+    // D) Hesaplama
     let riskAmount = balance * (riskPct / 100); // Riske edilen para
-    let diffPerUnit = Math.abs(entry - stop);   // Birim başına fark
-    let qty = riskAmount / diffPerUnit;         // Alınacak adet
-    let totalPosSize = qty * entry;             // Toplam pozisyon büyüklüğü
-    let portfolioImpact = (totalPosSize / balance) * 100; // Kasaya etkisi (%)
+    let diff = Math.abs(entry - stop);          // Birim başına fark
+    let qty = riskAmount / diff;                // Adet
+    let totalSize = qty * entry;                // Toplam Pozisyon Büyüklüğü
 
-    // Sonuçları Ekrana Bas (TL veya Dolar simgesiyle)
-    let sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY') ? '₺' : '$';
-    
-    document.getElementById('resRiskQty').innerText = qty.toLocaleString(undefined, {maximumFractionDigits: 4});
-    document.getElementById('resRiskLoss').innerText = "-" + sym + riskAmount.toLocaleString(undefined, {maximumFractionDigits: 2});
-    document.getElementById('resPosSize').innerText = sym + totalPosSize.toLocaleString(undefined, {maximumFractionDigits: 2});
+    // E) PARA BİRİMİ TESPİTİ (ÖNEMLİ DÜZELTME BURADA)
+    let sym = '₺'; // Varsayılan TL
+    let currencyCode = 'TRY';
 
-    // Alt Bilgi Mesajını Güncelle
-    let ratioText = document.getElementById('riskRatioText');
-    if(ratioText) {
-        ratioText.innerHTML = `Bu işlem kasanın <b>%${portfolioImpact.toFixed(1)}</b> kadarını kullanır.`;
-        if(portfolioImpact > 100) {
-            ratioText.innerHTML += " <br><span style='color:#ef4444; font-weight:800;'>(YETERSİZ BAKİYE)</span>";
+    // 1. appSettings kontrolü
+    if (typeof appSettings !== 'undefined' && appSettings.currency) {
+        if (appSettings.currency === 'USD') {
+            sym = '$';
+            currencyCode = 'USD';
         }
+    } 
+    // 2. HTML dilinden yedek kontrol
+    else if (document.documentElement.lang === 'en') {
+        sym = '$';
+        currencyCode = 'USD';
     }
 
-    // Sonuç kutusunu görünür yap
+    // F) Sonuçları Ekrana Yazdır (Para birimine uygun formatta)
+    // Adet (Lot) her zaman düz sayıdır
+    document.getElementById('resRiskQty').innerText = qty.toLocaleString('tr-TR', {maximumFractionDigits: 4});
+    
+    // Para değerleri
+    document.getElementById('resRiskLoss').innerText = "-" + sym + riskAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    document.getElementById('resPosSize').innerText = sym + totalSize.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+    // Alt Bilgi
+    let ratio = (totalSize / balance) * 100;
+    let ratioText = document.getElementById('riskRatioText');
+    if(ratioText) {
+        ratioText.innerHTML = `Bu işlem kasanın <b>%${ratio.toFixed(1)}</b> kadarını kullanır.`;
+    }
+
+    // Sonuç kutusunu aç
     document.getElementById('riskResultBox').style.display = 'block';
 };
 
-/* 2. GÖRÜNÜM DÜZELTMESİ (ARGE ve HEDEFLER ÜST BAR SORUNU) */
-// Mevcut bozuk geçiş fonksiyonunu tamamen yenisiyle değiştiriyoruz.
-
-// Önceki fonksiyonu yedeklemeye gerek yok, doğrudan temiz bir versiyon yazıyoruz.
+/* 2. ÜST BAR YÖNETİMİ (KARIŞIKLIK ÖNLEYİCİ) */
 window.switchAnTab = function(tab, btn) {
-    // A) PRO Üyelik Kontrolü (Psikoloji Sekmesi İçin)
-    if (tab === 'psycho' && typeof MembershipSystem !== 'undefined' && !MembershipSystem.isPro()) {
-        MembershipSystem.showUpsell();
-        return;
-    }
-
-    // B) Sekme Değiştirme İşlemi
-    // 1. Tüm analiz sekmelerini gizle
+    // Sekmeleri yönet
     document.querySelectorAll('.an-view-section').forEach(el => el.style.display = 'none');
-    
-    // 2. İstenen sekmeyi aç
     const target = document.getElementById('an-view-' + tab);
     if(target) target.style.display = 'block';
     
-    // 3. Buton rengini aktif yap
+    // Buton aktifliği
     document.querySelectorAll('.s-tab').forEach(el => el.classList.remove('active'));
     if(btn) btn.classList.add('active');
 
-    // C) KRİTİK DÜZELTME: Üst Barı Gizle/Göster
-    const topBar = document.querySelector('.top-bar');
-    if (topBar) {
-        // Eğer Arge (lab) veya Hedefler (vision) ise üst barı YOK ET
+    // --- BAR GİZLEME OPERASYONU ---
+    // Eğer HTML'e id="mainTopBar" eklediysen onu kullanır, yoksa ilk .top-bar'ı bulur
+    const mainBar = document.getElementById('mainTopBar') || document.querySelector('.top-bar'); 
+    
+    if (mainBar) {
+        // Arge veya Hedefler açılırsa ANA BARI GİZLE (Kendi barları görünsün diye)
         if (tab === 'lab' || tab === 'vision') {
-            topBar.style.setProperty('display', 'none', 'important');
+            mainBar.style.setProperty('display', 'none', 'important');
         } else {
-            // Diğer sayfalarda geri getir
-            topBar.style.setProperty('display', 'flex', 'important');
+            // Diğerlerinde ANA BARI GERİ GETİR
+            mainBar.style.setProperty('display', 'flex', 'important');
         }
     }
 
-    // D) Sayfa İçi Verileri Yükle
+    // Veri yükleyiciler
     if(tab === 'vision' && typeof loadVisionData === 'function') loadVisionData();
-    if(tab === 'lab') {
-        if(typeof populateRiskAssets === 'function') populateRiskAssets();
-        // Lab açıldığında bakiyeyi otomatik doldurmayı dene
-        const netWorthEl = document.getElementById('anNetWorth');
-        const labStart = document.getElementById('labStart');
-        if(netWorthEl && labStart && !labStart.value) {
-            let val = parseFloat(netWorthEl.innerText.replace(/[^0-9,-]+/g,"").replace(',','.')) || 0;
-            if(val > 0) labStart.value = val;
-        }
-    }
-    if(tab === 'psycho' && typeof calcPsychoAnalysis === 'function') calcPsychoAnalysis();
+    if(tab === 'lab' && typeof populateRiskAssets === 'function') populateRiskAssets();
 };
 
-// Çıkış Butonlarını da Güncelliyoruz (Geri dönünce barın geri gelmesi için)
+/* 3. ÇIKIŞ FONKSİYONLARI */
 window.closeLabView = function() {
     document.getElementById('an-view-lab').style.display = 'none';
-    // Performans sekmesine geri dön (Bu işlem üst barı otomatik açacak)
+    
+    const mainBar = document.getElementById('mainTopBar') || document.querySelector('.top-bar');
+    if(mainBar) mainBar.style.setProperty('display', 'flex', 'important');
+    
     const perfBtn = document.querySelector(".s-tab[onclick*='perf']");
     if(perfBtn) window.switchAnTab('perf', perfBtn);
 };
 
 window.closeVisionView = function() {
     document.getElementById('an-view-vision').style.display = 'none';
+    
+    const mainBar = document.getElementById('mainTopBar') || document.querySelector('.top-bar');
+    if(mainBar) mainBar.style.setProperty('display', 'flex', 'important');
+    
     const perfBtn = document.querySelector(".s-tab[onclick*='perf']");
     if(perfBtn) window.switchAnTab('perf', perfBtn);
 };
@@ -12679,20 +13354,21 @@ window.closeVisionView = function() {
 </script>
 
 <script>
-/* 0. CSS STİLLERİ */
+/* ======================================================
+   TRADEVIA MASTER SİSTEM (LİMİTLER + VERİ GİZLEME + TEK ÖDEME)
+   ====================================================== */
+
+/* 0. STİL YÖNETİCİSİ */
 (function injectStyles() {
     const style = document.createElement('style');
     style.innerHTML = `
-        /* MEVCUT STİLLER */
         .profile-frame-free { border: 3px solid #475569 !important; }
         .profile-frame-pro { border: 3px solid #f59e0b !important; box-shadow: 0 0 15px rgba(245, 158, 11, 0.6) !important; animation: proGlow 2s infinite alternate; }
         @keyframes proGlow { from { box-shadow: 0 0 5px rgba(245, 158, 11, 0.4); border-color: #f59e0b; } to { box-shadow: 0 0 25px rgba(245, 158, 11, 0.9); border-color: #fbbf24; } }
-        
         .membership-card { border-radius: 16px; padding: 20px; margin-bottom: 20px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: all 0.3s ease; }
         .card-free { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #334155; }
         .card-pro { background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%); border: 1px solid #fbbf24; color: white; }
         .card-pro::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%); transform: rotate(45deg); pointer-events: none; }
-        
         .mc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .mc-title { font-size: 18px; font-weight: 800; letter-spacing: 1px; }
         .mc-badge { padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
@@ -12701,100 +13377,50 @@ window.closeVisionView = function() {
         .mc-dates { font-size: 11px; opacity: 0.9; margin-top: 10px; line-height: 1.6; }
         .mc-progress-bg { width: 100%; height: 6px; background: rgba(0,0,0,0.2); border-radius: 10px; margin-top: 15px; overflow: hidden; }
         .mc-progress-fill { height: 100%; background: white; border-radius: 10px; width: 0%; transition: width 1s ease; }
-
-        /* UPSELL MODAL (GÜZEL TASARIM) */
-        #upsell-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 20000;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            animation: fadeIn 0.3s ease;
-            background: url('https://images.unsplash.com/photo-1611974765270-ca12586343bb?q=80&w=1974&auto=format&fit=crop') no-repeat center center/cover;
-        }
-        #upsell-modal::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); z-index: -1;
-        }
-        .upsell-card {
-            background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px; padding: 40px 30px; width: 85%; max-width: 360px;
-            text-align: center; position: relative; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-        .upsell-card::after {
-            content: ''; position: absolute; inset: -2px; z-index: -2; border-radius: 26px; 
-            background: linear-gradient(45deg, #f59e0b, transparent, #fbbf24);
-            animation: rotateBorder 4s linear infinite; opacity: 0.6;
-        }
-        .upsell-content-mask { background: #1e293b; border-radius: 24px; position: absolute; inset: 0; z-index: -1; }
-        .uc-icon {
-            width: 80px; height: 80px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.05));
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 20px auto; border: 1px solid rgba(245, 158, 11, 0.3);
-            box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
-        }
-        .uc-icon i { font-size: 36px; color: #fbbf24; filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.5)); }
-        .uc-title { font-size: 26px; font-weight: 900; color: white; margin-bottom: 5px; letter-spacing: -0.5px; }
-        .uc-subtitle { font-size: 14px; color: #94a3b8; margin-bottom: 30px; font-weight: 500; }
-        .uc-features { text-align: left; margin-bottom: 30px; padding: 0 10px; }
-        .uc-item { display: flex; align-items: center; margin-bottom: 15px; font-size: 14px; color: #e2e8f0; font-weight: 500; }
-        .uc-item i { color: #f59e0b; margin-right: 15px; font-size: 18px; min-width: 20px; text-align: center; }
-        .uc-btn {
-            background: linear-gradient(90deg, #f59e0b, #d97706); color: white;
-            border: none; padding: 18px 0; width: 100%; border-radius: 14px;
-            font-size: 16px; font-weight: 800; cursor: pointer;
-            box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4); transition: transform 0.2s, box-shadow 0.2s;
-            text-transform: uppercase; letter-spacing: 0.5px;
-        }
-        .uc-btn:active { transform: scale(0.96); box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3); }
-        .uc-close { margin-top: 20px; background: none; border: none; color: #64748b; font-size: 13px; cursor: pointer; text-decoration: none; transition: color 0.3s; }
-        .uc-close:hover { color: #94a3b8; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
-        @keyframes rotateBorder { 0% { opacity: 0.3; } 50% { opacity: 0.8; } 100% { opacity: 0.3; } }
     `;
     document.head.appendChild(style);
 })();
 
-/* 1. ÜYELİK SİSTEMİ */
+/* 1. ÜYELİK YÖNETİM SİSTEMİ */
 const MembershipSystem = {
     isPro: function() { 
         this.checkExpiration();
         return localStorage.getItem('userPlan') === 'PRO'; 
     },
     
+    // --- ANA YÖNLENDİRİCİ ---
     showUpsell: function() {
-        if (document.getElementById('upsell-modal')) {
-            document.getElementById('upsell-modal').style.display = 'flex';
-            return;
-        }
-        const html = `
-            <div id="upsell-modal">
-                <div class="upsell-card">
-                    <div class="upsell-content-mask"></div>
-                    <div style="position:relative; z-index:1;">
-                        <div class="uc-icon"><i class="fas fa-crown"></i></div>
-                        <div class="uc-title">TRADEVIA PRO</div>
-                        <div class="uc-subtitle">Sınırları kaldır, piyasaya hükmet.</div>
-                        <div class="uc-features">
-                            <div class="uc-item"><i class="fas fa-brain"></i> <b>Zeka Merkezi:</b> Yapay zeka yatırımcı analizi</div>
-                            <div class="uc-item"><i class="fas fa-chart-line"></i> <b>FOMO Skor:</b> Duygusal işlem ölçümü</div>
-                            <div class="uc-item"><i class="fas fa-graduation-cap"></i> <b>Trader Karnesi:</b> Başarı puanın</div>
-                            <div class="uc-item"><i class="fas fa-history"></i> <b>Zaman Makinesi:</b> Sınırsız analiz</div>
-                            <div class="uc-item"><i class="fas fa-sync-alt"></i> <b>Otomatik Veri:</b> Tek tıkla aktarım</div>
-                        </div>
-                        <button class="uc-btn" onclick="MembershipSystem.processPayment()">PRO'YA GEÇ (49₺)</button>
-                        <button class="uc-close" onclick="document.getElementById('upsell-modal').style.display='none'">Belki Daha Sonra</button>
-                    </div>
-                </div>
-            </div>`;
-        document.body.insertAdjacentHTML('beforeend', html);
-        document.getElementById('upsell-modal').style.display = 'flex';
+        this.redirectToSettings();
     },
 
+    // --- AYARLARA GİT VE PENCEREYİ AÇ ---
+    redirectToSettings: function() {
+        const settingsBtn = document.querySelector(".nav-item:last-child"); 
+        if (typeof switchPage === 'function') switchPage('settings', settingsBtn || null);
+
+        setTimeout(() => {
+            if (typeof openPremiumModal === 'function') {
+                openPremiumModal();
+            } else {
+                const modal = document.getElementById('premiumModalOverlay');
+                if(modal) {
+                    modal.style.display = 'flex';
+                    setTimeout(() => modal.classList.add('active'), 10);
+                }
+            }
+        }, 300);
+    },
+
+    // --- ÖDEME İŞLEMİ (MERKEZİ) ---
     processPayment: function() {
-        document.getElementById('upsell-modal').style.display = 'none';
+        if (typeof closePremiumModal === 'function') closePremiumModal();
+        const modal = document.getElementById('premiumModalOverlay');
+        if(modal) { modal.classList.remove('active'); setTimeout(() => modal.style.display = 'none', 300); }
+
         if (window.Android && window.Android.buyPro) {
-            window.Android.buyPro();
+            window.Android.buyPro(); 
         } else {
-            if(confirm("🛠️ TEST MODU\n\nGoogle Play simülasyonu: Ödeme başarılı sayılsın mı?")) {
+            if(confirm("🛠️ TEST MODU: Google Play bağlantısı yok. Ödeme başarılı sayılsın mı?")) {
                 this.activatePro();
             }
         }
@@ -12804,11 +13430,9 @@ const MembershipSystem = {
         const now = new Date();
         const endDate = new Date();
         endDate.setDate(now.getDate() + 30); 
-
         localStorage.setItem('userPlan', 'PRO');
         localStorage.setItem('proStartDate', now.toISOString()); 
         localStorage.setItem('proEndDate', endDate.toISOString()); 
-        
         alert("🎉 TEBRİKLER! Ödeme Başarılı.\nPro üyeliğiniz 30 gün boyunca aktif!");
         location.reload();
     },
@@ -12834,32 +13458,45 @@ const MembershipSystem = {
         const now = new Date();
         const endDate = new Date(endDateStr);
         if (now > endDate) {
-            alert("⚠️ PRO ÜYELİK SÜRENİZ DOLDU.\n\nOtomatik olarak Free pakete geçirildiniz.");
+            alert("⚠️ PRO SÜRENİZ DOLDU.");
             this.setFree();
             location.reload();
         }
     },
     
+    // --- GÜNLÜK LİMİT KONTROLÜ (3 HAK) ---
     checkUsageLimit: function(featureName, maxLimit, title) {
-        if (this.isPro()) return true; 
+        if (this.isPro()) return true; // Pro ise limit yok
+        
         let today = new Date().toLocaleDateString();
         let key = 'limit_' + featureName;
         let usage = JSON.parse(localStorage.getItem(key)) || { date: today, count: 0 };
+        
+        // Gün değiştiyse sıfırla
         if (usage.date !== today) { usage = { date: today, count: 0 }; localStorage.setItem(key, JSON.stringify(usage)); }
+        
+        // LİMİT DOLDU MU? (3 HAK)
         if (usage.count >= maxLimit) {
-            alert(`🔒 GÜNLÜK LİMİT DOLDU!\n\nFree pakette '${title}' özelliğini günde ${maxLimit} kez kullanabilirsin.`);
+            alert(`🔒 GÜNLÜK LİMİT DOLDU!\n\nFree pakette '${title}' özelliğini günde ${maxLimit} kez kullanabilirsin.\nDevam etmek için yükselt.`);
+            this.showUpsell(); // Ayarlara yönlendir
             return false;
         }
-        usage.count++; localStorage.setItem(key, JSON.stringify(usage)); return true;
+        
+        // Kullanımı artır ve devam et
+        usage.count++; 
+        localStorage.setItem(key, JSON.stringify(usage)); 
+        return true;
     },
 
     refreshUI: function() {
         const isPro = this.isPro();
+        
         let img = document.getElementById('menuProfileImg');
         if(img) {
             img.classList.remove('profile-frame-free', 'profile-frame-pro');
             img.classList.add(isPro ? 'profile-frame-pro' : 'profile-frame-free');
         }
+        
         let badge = document.querySelector('.pbc-badge');
         if(badge) {
             if(isPro) {
@@ -12874,10 +13511,10 @@ const MembershipSystem = {
         let btnUp = document.getElementById('btnUpgrade');
         let btnDown = document.getElementById('btnDowngrade');
         
-        if(btnUp) btnUp.style.display = isPro ? 'none' : 'block';
+        if(btnUp) btnUp.style.display = isPro ? 'none' : 'flex';
         if(btnDown) btnDown.style.display = isPro ? 'block' : 'none';
         
-        if(btnUp) btnUp.onclick = () => this.showUpsell();
+        if(btnUp) btnUp.onclick = () => this.processPayment();
         if(btnDown) btnDown.onclick = () => this.downgrade();
 
         let statusContainer = document.getElementById('planStatusText');
@@ -12886,14 +13523,14 @@ const MembershipSystem = {
                 statusContainer.innerHTML = `
                     <div class="membership-card card-free">
                         <div class="mc-header"><div class="mc-title">FREE PLAN</div><div class="mc-badge badge-free">STANDART</div></div>
-                        <div style="font-size:12px; color:#cbd5e1; margin-bottom:10px;">Temel özelliklerle piyasayı takip et. Kısıtlı erişim.</div>
+                        <div style="font-size:12px; color:#cbd5e1; margin-bottom:10px;">Kısıtlı erişim.</div>
                         <div class="mc-progress-bg"><div class="mc-progress-fill" style="width:0%"></div></div>
                     </div>`;
             } else {
                 const start = new Date(localStorage.getItem('proStartDate'));
                 const end = new Date(localStorage.getItem('proEndDate'));
-                const now = new Date();
                 const formatDate = (d) => d.toLocaleDateString('tr-TR');
+                const now = new Date();
                 const diffTime = Math.abs(end - now);
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
                 let percent = ((30 - diffDays) / 30) * 100;
@@ -12903,9 +13540,7 @@ const MembershipSystem = {
                     <div class="membership-card card-pro">
                         <div class="mc-header"><div class="mc-title"><i class="fas fa-crown"></i> PRO MEMBER</div><div class="mc-badge badge-pro">PREMIUM</div></div>
                         <div class="mc-dates">
-                            <div style="display:flex; justify-content:space-between;"><span>📅 Başlangıç:</span> <b>${formatDate(start)}</b></div>
-                            <div style="display:flex; justify-content:space-between;"><span>⏳ Bitiş:</span> <b>${formatDate(end)}</b></div>
-                            <div style="margin-top:8px; font-size:13px; font-weight:bold; color:#fbbf24;">Kalan Süre: ${diffDays} Gün</div>
+                            <div style="margin-top:8px; font-size:13px; font-weight:bold; color:#fbbf24;">Kalan: ${diffDays} Gün</div>
                         </div>
                         <div class="mc-progress-bg"><div class="mc-progress-fill" style="width:${100 - percent}%"></div></div>
                     </div>`;
@@ -12916,24 +13551,30 @@ const MembershipSystem = {
 
 window.onPaymentSuccess = function() { MembershipSystem.activatePro(); };
 
-/* KISITLAMALAR */
+/* --- 1. PSİKOLOJİ KİLİDİ --- */
 if (!window.original_switchAnTab) window.original_switchAnTab = window.switchAnTab;
 window.switchAnTab = function(tabName, btn) {
     if (tabName === 'psycho' && !MembershipSystem.isPro()) {
-        MembershipSystem.showUpsell(); 
+        MembershipSystem.showUpsell(); // Yönlendir
         return; 
     }
     if(typeof window.original_switchAnTab === 'function') window.original_switchAnTab(tabName, btn);
 };
 
+/* --- 2. ZAMAN MAKİNESİ (3 HAK KURALI) --- */
 if (!window.original_runStatisticalAnalysis) window.original_runStatisticalAnalysis = window.runStatisticalAnalysis;
 window.runStatisticalAnalysis = async function() {
     let symbolInput = document.getElementById('statSymbol');
     if (!symbolInput || !symbolInput.value || symbolInput.value.trim() === "") { alert("⚠️ Lütfen sembol girin."); return; }
+    
+    // BURASI 3 HAKKI KONTROL EDER
+    // 3'ten az ise izin verir, 3 dolunca Ayarlara yönlendirir.
     if (!MembershipSystem.checkUsageLimit('timeMachine', 3, 'Zaman Makinesi')) return; 
+    
     if(typeof window.original_runStatisticalAnalysis === 'function') await window.original_runStatisticalAnalysis();
 };
 
+/* --- 3. TRADER KARNESİ (TAM KİLİT) --- */
 if (!window.original_calculateTraderScore) window.original_calculateTraderScore = window.calculateTraderScore;
 window.calculateTraderScore = function() {
     if (!MembershipSystem.isPro()) {
@@ -12945,7 +13586,8 @@ window.calculateTraderScore = function() {
             let overlay = document.createElement('div');
             overlay.className = 'pro-lock-overlay';
             overlay.style.cssText = `position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 16px; text-align: center; border:1px solid rgba(255,255,255,0.1); opacity: 1 !important;`;
-            overlay.innerHTML = `<div style="margin-bottom:15px;"><i class="fas fa-lock" style="font-size:28px; color:#f59e0b;"></i></div><div style="color:white; font-weight:800; font-size:16px; margin-bottom:8px;">KARNE KİLİTLİ</div><button onclick="MembershipSystem.showUpsell()" style="background: linear-gradient(90deg, #f59e0b, #d97706); color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 700; cursor: pointer;">PRO OL</button>`;
+            overlay.innerHTML = `<div style="margin-bottom:15px;"><i class="fas fa-lock" style="font-size:28px; color:#f59e0b;"></i></div><div style="color:white; font-weight:800; font-size:16px; margin-bottom:8px;">KARNE KİLİTLİ</div>
+            <button onclick="MembershipSystem.redirectToSettings()" style="background: linear-gradient(90deg, #f59e0b, #d97706); color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 700; cursor: pointer;">PRO OL</button>`;
             card.appendChild(overlay);
         }
         return; 
@@ -12954,6 +13596,7 @@ window.calculateTraderScore = function() {
     let locks = document.querySelectorAll('.pro-lock-overlay'); locks.forEach(l => l.remove());
 };
 
+/* --- 4. MALİYET SİHİRBAZI (VERİ GİZLEME) --- */
 if (!window.original_populateAdvAvgAssets) window.original_populateAdvAvgAssets = window.populateAdvAvgAssets;
 window.populateAdvAvgAssets = function() {
     const select = document.getElementById('advAvgSelect');
@@ -12961,18 +13604,38 @@ window.populateAdvAvgAssets = function() {
     select.innerHTML = '<option value="-1">Manuel Giriş Yap / Seçiniz</option>';
     let assets = JSON.parse(localStorage.getItem('myPF_final')) || [];
     assets.forEach((a, i) => {
-        let text = ""; let symbol = a.name || "Bilinmeyen"; let cost = parseFloat(a.buy); if(isNaN(cost)) cost = 0;
-        if (MembershipSystem.isPro()) { let sym = a.origin === 'USD' ? '$' : '₺'; text = `${symbol} (Ort: ${cost.toFixed(2)} ${sym})`; } else { text = `${symbol}`; }
+        let text = ""; let symbol = a.name || "Bilinmeyen"; 
+        
+        // SADECE PRO İSE FİYATI GÖSTER
+        if (MembershipSystem.isPro()) { 
+            let cost = parseFloat(a.buy); if(isNaN(cost)) cost = 0;
+            let sym = a.origin === 'USD' ? '$' : '₺'; 
+            text = `${symbol} (Ort: ${cost.toFixed(2)} ${sym})`; 
+        } else { 
+            // PRO DEĞİLSE FİYATI GİZLE
+            text = `${symbol} (🔒 Kilitli Veri)`; 
+        }
         select.innerHTML += `<option value="${i}">${text}</option>`;
     });
 };
 
+/* --- 5. MALİYET SİHİRBAZI (AUTO-FILL ENGELLEME) --- */
 if (!window.original_fillAdvAvgData) window.original_fillAdvAvgData = window.fillAdvAvgData;
 window.fillAdvAvgData = function(avg, amount, price) {
-    if (MembershipSystem.isPro()) { if(typeof window.original_fillAdvAvgData === 'function') window.original_fillAdvAvgData(avg, amount, price); return; }
-    MembershipSystem.showUpsell();
+    // Pro değilse engelle ve yönlendir
+    if (MembershipSystem.isPro()) { 
+        if(typeof window.original_fillAdvAvgData === 'function') window.original_fillAdvAvgData(avg, amount, price); 
+        return; 
+    }
+    
+    // Pro değilse:
+    MembershipSystem.showUpsell(); // Yönlendir
+    
+    // Inputları temizle ki kullanamasın
     if(document.getElementById('aaCurrentCost')) document.getElementById('aaCurrentCost').value = "";
     if(document.getElementById('aaCurrentAmount')) document.getElementById('aaCurrentAmount').value = "";
+    if(document.getElementById('aaOldQty')) document.getElementById('aaOldQty').value = "";
+    if(document.getElementById('aaOldPrice')) document.getElementById('aaOldPrice').value = "";
     let sel = document.getElementById('advAvgSelect'); if(sel) sel.value = "-1";
 };
 
@@ -12983,8 +13646,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if(typeof window.calculateTraderScore === 'function') window.calculateTraderScore(); 
         if(typeof window.populateAdvAvgAssets === 'function') window.populateAdvAvgAssets();
         
-        // 🔥 GÜNCELLEME: HERKES İÇİN HESAPLA (AMA GÖSTERME)
-        // Böylece Pro olduğunda beklemez.
         if(typeof window.calcPsychoAnalysis === 'function') {
             window.calcPsychoAnalysis();
         }
