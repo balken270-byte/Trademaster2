@@ -5153,66 +5153,84 @@ function closeVisionView() {
 
     <!-- ========== TIME MACHINE TOOL ========== -->
     <div id="lab-tool-time" class="lab-tool-container" style="display:none;">
-        <div class="lab-glass-card">
-            <div class="lab-tool-header">
-                <div class="lab-tool-icon violet"><i class="fas fa-clock-rotate-left"></i></div>
-                <div class="lab-tool-info">
-                    <h3>Zaman Makinesi</h3>
-                    <p>Geçmiş veri analizi & gelecek simülasyonu</p>
-                </div>
+    
+    <div class="lab-glass-card" style="border: 1px solid rgba(139, 92, 246, 0.3); background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(20, 10, 40, 0.95)); box-shadow: 0 0 40px rgba(139, 92, 246, 0.1);">
+        <div class="lab-tool-header" style="margin-bottom: 15px;">
+            <div class="lab-tool-icon violet" style="width:44px; height:44px; font-size:20px; box-shadow: 0 0 15px #8b5cf6;">
+                <i class="fas fa-atom fa-spin" style="--fa-animation-duration: 4s;"></i>
             </div>
+            <div class="lab-tool-info">
+                <h3 style="color: #e9d5ff; font-family: 'Inter', sans-serif; letter-spacing: 1px;">TIME MACHINE<span style="font-size:9px; color:#a78bfa; margin-left:5px; border:1px solid #a78bfa; padding:1px 4px; border-radius:4px;">PRO</span></h3>
+                <p style="color: #a78bfa;">Yapay Zeka Destekli Gelecek Simülasyonu</p>
+            </div>
+        </div>
 
-            <div style="margin-bottom: 14px;">
-                <label class="lab-form-label"><i class="fas fa-bolt"></i> Hızlı Analiz (Portföyden Seç)</label>
-                <select id="timeMachineSelect" class="lab-input lab-select" style="margin-top: 6px;" onchange="fillTimeMachineSymbol()">
-                    <option value="-1">Manuel Yazacağım</option>
+        <div style="display:flex; gap:10px; align-items:flex-end;">
+            <div style="flex:1;">
+                <label class="lab-form-label" style="color:#a78bfa; font-size:10px; margin-bottom:4px;">VARLIK SEÇ</label>
+                <select id="timeMachineSelect" class="lab-input lab-select" onchange="fillTimeMachineSymbol()" style="background:rgba(0,0,0,0.4); border-color:rgba(139,92,246,0.3); color:white;">
+                    <option value="-1">Manuel Giriş</option>
                 </select>
             </div>
-
-            <div style="display: flex; gap: 10px;">
-                <input type="text" id="statSymbol" class="lab-input" placeholder="Örn: BTC, ETH..." style="text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
-                <button onclick="runStatisticalAnalysis()" class="lab-btn-primary violet" style="width: auto; white-space: nowrap; padding: 12px 20px;">
-                    <i class="fas fa-search"></i> ANALİZ ET
-                </button>
+            <div style="flex:1;">
+                <label class="lab-form-label" style="color:#a78bfa; font-size:10px; margin-bottom:4px;">SEMBOL</label>
+                <input type="text" id="statSymbol" class="lab-input" placeholder="BTC..." style="background:rgba(0,0,0,0.4); border-color:rgba(139,92,246,0.3); color:#fff; font-weight:800; letter-spacing:1px; text-transform:uppercase;">
             </div>
-
-            <p style="font-size: 9px; color: var(--lab-text-muted); margin-top: 10px; text-align: center;">
-                * Veriler: CoinGecko (Öncelikli) > Binance (Yedek)
-            </p>
-        </div>
-
-        <!-- Statistical Results -->
-        <div id="statResult" style="display:none;">
-            <div class="lab-glass-card">
-                <div class="lab-section-label" style="color: var(--lab-accent-sky);">Gelecek 5 Yıl (Olasılık Bandı)</div>
-                <div id="projectionList"></div>
-            </div>
-
-            <div class="lab-glass-card" style="padding: 0; overflow: hidden;">
-                <div class="lab-section-label" style="padding: 14px 16px; margin: 0; background: rgba(0,0,0,0.2);">Geçmiş Performans</div>
-                <div style="overflow-x: auto;">
-                    <table class="lab-data-table">
-                        <thead>
-                            <tr>
-                                <th>YIL</th>
-                                <th>KAPANIŞ</th>
-                                <th style="color: var(--lab-accent-emerald);">YÜKSEK</th>
-                                <th style="color: var(--lab-accent-rose);">DÜŞÜK</th>
-                                <th style="color: var(--lab-accent-gold);">M.CAP</th>
-                                <th style="color: var(--lab-accent-sky);">HACİM</th>
-                                <th>REEL</th>
-                            </tr>
-                        </thead>
-                        <tbody id="statTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="lab-disclaimer">
-                ⚠️ Yasal Uyarı: Bu tablo bir yatırım tavsiyesi değildir. Geçmiş performans geleceği garanti etmez.
-            </div>
+            <button onclick="runStatisticalAnalysis()" class="lab-btn-primary violet" style="width:50px; height:46px; border-radius:12px; font-size:18px; padding:0; background: linear-gradient(135deg, #7c3aed, #db2777); box-shadow: 0 0 20px rgba(219, 39, 119, 0.4);">
+                <i class="fas fa-power-off"></i>
+            </button>
         </div>
     </div>
+
+    <div id="statResult" style="display:none; margin-top:20px; animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);">
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:20px;">
+            <div class="lab-glass-card" style="padding:15px; text-align:center; background:rgba(20,20,30,0.6); margin:0; border:1px solid rgba(255,255,255,0.05);">
+                <div style="font-size:10px; color:#94a3b8; letter-spacing:1px; margin-bottom:10px;">VOLATİLİTE RİSKİ</div>
+                <div style="position:relative; width:80px; height:40px; margin:0 auto; overflow:hidden;">
+                    <div id="gaugeRiskBg" style="width:80px; height:80px; background:conic-gradient(from 180deg, #10b981 0deg, #f59e0b 90deg, #ef4444 180deg); border-radius:50%;"></div>
+                    <div style="position:absolute; top:5px; left:5px; width:70px; height:70px; background:#131316; border-radius:50%;"></div>
+                    <div id="gaugeRiskNeedle" style="position:absolute; bottom:0; left:50%; width:2px; height:35px; background:white; transform-origin:bottom center; transform:rotate(-90deg); transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1);"></div>
+                </div>
+                <div id="gaugeRiskText" style="font-size:16px; font-weight:800; color:white; margin-top:5px;">--</div>
+            </div>
+
+            <div class="lab-glass-card" style="padding:15px; text-align:center; background:rgba(20,20,30,0.6); margin:0; border:1px solid rgba(255,255,255,0.05);">
+                <div style="font-size:10px; color:#94a3b8; letter-spacing:1px; margin-bottom:10px;">HACİM İLGİSİ</div>
+                <div style="position:relative; width:80px; height:40px; margin:0 auto; overflow:hidden;">
+                    <div id="gaugeVolBg" style="width:80px; height:80px; background:conic-gradient(from 180deg, #64748b 0deg, #3b82f6 90deg, #d946ef 180deg); border-radius:50%;"></div>
+                    <div style="position:absolute; top:5px; left:5px; width:70px; height:70px; background:#131316; border-radius:50%;"></div>
+                    <div id="gaugeVolNeedle" style="position:absolute; bottom:0; left:50%; width:2px; height:35px; background:white; transform-origin:bottom center; transform:rotate(-90deg); transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1);"></div>
+                </div>
+                <div id="gaugeVolText" style="font-size:16px; font-weight:800; color:white; margin-top:5px;">--</div>
+            </div>
+        </div>
+
+        <div class="lab-section-label" style="color:#d8b4fe; margin-left:10px;"><i class="fas fa-road"></i> OLASILIK YOLCULUĞU</div>
+        <div id="projectionList" style="position:relative; padding-left:20px; border-left:2px dashed rgba(139, 92, 246, 0.3); margin-left:10px;"></div>
+
+        <div class="lab-glass-card" style="margin-top:25px; padding:0; overflow:hidden;">
+            <div style="padding:10px 15px; background:rgba(255,255,255,0.03); font-size:10px; font-weight:700; color:#94a3b8;">
+                <i class="fas fa-database"></i> KARA KUTU VERİLERİ (GEÇMİŞ)
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="lab-data-table">
+                    <thead>
+                        <tr style="background:rgba(0,0,0,0.2);">
+                            <th style="color:#a78bfa;">YIL</th>
+                            <th style="color:#fff;">FİYAT</th>
+                            <th style="color:#10b981;">TEPE</th>
+                            <th style="color:#ef4444;">DİP</th>
+                            <th style="color:#f59e0b;">M.CAP</th> <th style="color:#38bdf8;">HACİM</th>
+                            <th style="color:#fff;">DEĞİŞİM</th> </tr>
+                    </thead>
+                    <tbody id="statTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
 
     <!-- ========== CHAOS TOOL (empty placeholder) ========== -->
     <div id="lab-tool-chaos" class="lab-tool-container" style="display:none;"></div>
@@ -6848,7 +6866,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "3.7"; 
+    const CURRENT_VERSION = "3.8"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -12784,7 +12802,7 @@ async function tryBinance(symbol) {
     processAndRenderCompact(prices, mcaps, volumes);
 }
 
-// 4. İŞLEME VE GÖRÜNTÜLEME MOTORU (HACİM + RİSK + ANOMALİ UYARISI)
+/* --- HİBRİT MOTOR: FULL VERİ SETİ (MCAP + DEĞİŞİM EKLENDİ) --- */
 function processAndRenderCompact(priceData, mcapData, volData) {
     const tableBody = document.getElementById('statTableBody');
     const projList = document.getElementById('projectionList');
@@ -12794,24 +12812,21 @@ function processAndRenderCompact(priceData, mcapData, volData) {
     let sym = isTR ? '₺' : '$';
 
     let yearlyStats = {};
-    let dailyChanges = []; // Anlık sapmaları yakalamak için
+    let dailyChanges = []; 
 
-    // --- A) VERİ İŞLEME VE ANOMALİ TESPİTİ ---
+    // --- 1. VERİ İŞLEME ---
     for(let i=0; i<priceData.length; i++) {
         let timestamp = priceData[i][0];
         let priceUSD = priceData[i][1]; 
         let mcapUSD = (mcapData && mcapData[i]) ? mcapData[i][1] : 0;
         let volUSD = (volData && volData[i]) ? volData[i][1] : 0;
         
-        // Günlük değişim hesapla (Sapma analizi için)
         if(i > 0) {
             let prevPrice = priceData[i-1][1];
-            let dailyChange = ((priceUSD - prevPrice) / prevPrice) * 100;
-            dailyChanges.push(dailyChange);
+            dailyChanges.push(((priceUSD - prevPrice) / prevPrice) * 100);
         }
 
         let year = new Date(timestamp).getFullYear();
-
         if(!yearlyStats[year]) {
             yearlyStats[year] = { 
                 close: priceUSD, high: priceUSD, low: priceUSD, 
@@ -12832,30 +12847,36 @@ function processAndRenderCompact(priceData, mcapData, volData) {
         }
     }
 
-    // --- SAPMA (ANOMALİ) HESAPLAMASI ---
-    // Standart Sapma: Fiyatın "norm"dan ne kadar saptığını bulur.
+    // --- 2. ANOMALİ VE RİSK ---
     let mean = dailyChanges.reduce((a,b)=>a+b, 0) / dailyChanges.length;
     let variance = dailyChanges.reduce((a,b)=>a + Math.pow(b-mean, 2), 0) / dailyChanges.length;
-    let stdDev = Math.sqrt(variance); // Standart Sapma Değeri
+    let stdDev = Math.sqrt(variance); 
 
-    // Anomali Sınırları (2 Sigma Kuralı: %95 ihtimalle fiyat bu aralıkta kalmalı)
     let shockThreshold = stdDev * 2; 
-    
-    // Geçmişte kaç kez "Şok" yaşanmış?
     let crashEvents = dailyChanges.filter(c => c < -shockThreshold).length;
     let pumpEvents = dailyChanges.filter(c => c > shockThreshold).length;
-    let riskLabel = "Düşük";
+
+    // UI: Risk İbresi
+    let riskAngle = -90;
+    let riskLabel = "DÜŞÜK";
     let riskColor = "#10b981";
+    if(stdDev > 5) { riskAngle = 90; riskLabel = "AŞIRI"; riskColor = "#ef4444"; }
+    else if(stdDev > 3) { riskAngle = 45; riskLabel = "YÜKSEK"; riskColor = "#f59e0b"; }
+    else if(stdDev > 1.5) { riskAngle = 0; riskLabel = "ORTA"; riskColor = "#3b82f6"; }
+    else { riskAngle = -45; }
 
-    if(stdDev > 5) { riskLabel = "Aşırı Yüksek"; riskColor = "#ef4444"; }
-    else if(stdDev > 3) { riskLabel = "Yüksek"; riskColor = "#f59e0b"; }
-    else if(stdDev > 1.5) { riskLabel = "Orta"; riskColor = "#3b82f6"; }
+    document.getElementById('gaugeRiskNeedle').style.transform = `rotate(${riskAngle}deg)`;
+    document.getElementById('gaugeRiskText').innerText = riskLabel;
+    document.getElementById('gaugeRiskText').style.color = riskColor;
 
-    // --- B) TABLO ÇİZİMİ ---
+    // --- 3. TABLO ÇİZİMİ (MCAP ve DEĞİŞİM EKLENDİ) ---
     let years = Object.keys(yearlyStats).sort((a,b) => b-a);
-    let html = "";
+    let htmlTable = "";
     let pullbacks = []; 
     let volumeTrend = [];
+
+    // Enflasyon Verisi (Dolar Bazlı)
+    const cpiData = { 2025: 2.5, 2024: 3.4, 2023: 3.4, 2022: 6.5, 2021: 7.0, 2020: 1.4, 2019: 2.3 };
 
     for (let i = 0; i < years.length - 1; i++) {
         let y = years[i];
@@ -12871,30 +12892,58 @@ function processAndRenderCompact(priceData, mcapData, volData) {
         let yearlyDrawdown = ((curr.high - curr.low) / curr.high); 
         pullbacks.push(yearlyDrawdown);
 
-        let inf = statCpiData[y] || 2.5;
+        // Reel Getiri Hesabı
+        let inf = cpiData[y] || 2.5;
         let realReturn = changePct - inf;
+        let realColor = realReturn >= 0 ? '#10b981' : '#ef4444';
 
         let displayClose = isTR ? curr.close * currencyRate : curr.close;
         let displayHigh = isTR ? curr.high * currencyRate : curr.high;
         let displayLow = isTR ? curr.low * currencyRate : curr.low;
+        
+        // Milyar/Milyon Formatlama
         let mcapStr = (curr.mcap > 1e9) ? (curr.mcap/1e9).toFixed(1)+"Mr" : (curr.mcap/1e6).toFixed(1)+"Mn";
         let volStr = (avgVol > 1e9) ? (avgVol/1e9).toFixed(1)+"Mr" : (avgVol/1e6).toFixed(1)+"Mn";
-        let realColor = realReturn >= 0 ? '#10b981' : '#ef4444';
-        
-        html += `
-        <tr style="border-bottom:1px solid rgba(255,255,255,0.05); text-align:right;">
-            <td style="padding:6px 4px; font-weight:700; text-align:left; color:#a78bfa;">${y}</td>
-            <td style="padding:6px 4px; color:white; font-weight:700;">${sym}${displayClose.toLocaleString(undefined, {maximumFractionDigits:2})}</td>
-            <td style="padding:6px 4px; color:#10b981;">${sym}${displayHigh.toLocaleString(undefined, {maximumFractionDigits:0})}</td>
-            <td style="padding:6px 4px; color:#ef4444;">${sym}${displayLow.toLocaleString(undefined, {maximumFractionDigits:0})}</td>
-            <td style="padding:6px 4px; color:#f59e0b; font-weight:600;">${mcapStr}</td>
-            <td style="padding:6px 4px; color:#38bdf8;">${volStr}</td>
-            <td style="padding:6px 4px; color:${realColor}; font-weight:700;">%${realReturn.toFixed(0)}</td>
-        </tr>`;
-    }
-    tableBody.innerHTML = html;
 
-    // --- C) GELECEK TAHMİNİ (MOTOR) ---
+        htmlTable += `
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.05); font-size:11px;">
+            <td style="padding:8px; font-weight:700; color:#a78bfa;">${y}</td>
+            <td style="padding:8px; color:white; font-weight:700;">${sym}${displayClose.toLocaleString(undefined,{maximumFractionDigits:2})}</td>
+            <td style="padding:8px; color:#10b981;">${sym}${parseInt(displayHigh).toLocaleString()}</td>
+            <td style="padding:8px; color:#ef4444;">${sym}${parseInt(displayLow).toLocaleString()}</td>
+            <td style="padding:8px; color:#f59e0b; font-weight:700;">${mcapStr}</td> <td style="padding:8px; color:#38bdf8;">${volStr}</td>
+            <td style="padding:8px; color:${realColor}; font-weight:800;">%${realReturn.toFixed(0)}</td> </tr>`;
+    }
+    tableBody.innerHTML = htmlTable;
+
+    // --- 4. HACİM UI GÜNCELLEME ---
+    let volumeSentiment = 1.0; 
+    let volAngle = -90;
+    let volText = "NÖTR";
+    let volColor = "#94a3b8";
+
+    if(volumeTrend.length >= 3) {
+        let recentVol = (volumeTrend[0] + volumeTrend[1]) / 2; 
+        let pastVol = 0;
+        for(let k=2; k<volumeTrend.length; k++) pastVol += volumeTrend[k];
+        pastVol = pastVol / (volumeTrend.length - 2); 
+
+        if(pastVol > 0) {
+            let ratio = recentVol / pastVol;
+            if(ratio > 1.5) { 
+                volumeSentiment = 1.15; volAngle = 60; volText = "YÜKSEK"; volColor = "#d946ef"; 
+            } else if(ratio < 0.5) { 
+                volumeSentiment = 0.85; volAngle = -60; volText = "DÜŞÜK"; volColor = "#64748b"; 
+            } else if(ratio >= 0.8 && ratio <= 1.2) { 
+                volumeSentiment = 1.05; volAngle = 0; volText = "STABİL"; volColor = "#3b82f6"; 
+            }
+        }
+    }
+    document.getElementById('gaugeVolNeedle').style.transform = `rotate(${volAngle}deg)`;
+    document.getElementById('gaugeVolText').innerText = volText;
+    document.getElementById('gaugeVolText').style.color = volColor;
+
+    // --- 5. GELECEK TAHMİNİ ---
     let lastData = yearlyStats[years[0]]; 
     let firstData = yearlyStats[years[years.length-1]]; 
     let totalYears = years.length;
@@ -12908,22 +12957,6 @@ function processAndRenderCompact(priceData, mcapData, volData) {
         cagr = (Math.pow((lastData.close / firstData.close), (1 / totalYears)) - 1) * 100;
     }
 
-    let volumeSentiment = 1.0; 
-    let sentimentLabel = "Nötr";
-    if(volumeTrend.length >= 3) {
-        let recentVol = (volumeTrend[0] + volumeTrend[1]) / 2; 
-        let pastVol = 0;
-        for(let k=2; k<volumeTrend.length; k++) pastVol += volumeTrend[k];
-        pastVol = pastVol / (volumeTrend.length - 2); 
-
-        if(pastVol > 0) {
-            let ratio = recentVol / pastVol;
-            if(ratio > 1.5) { volumeSentiment = 1.15; sentimentLabel = "Hacim İlgisi Yüksek"; }
-            else if(ratio < 0.5) { volumeSentiment = 0.85; sentimentLabel = "İlgi Kaybı / Hacim Düşük"; }
-            else if(ratio >= 0.8 && ratio <= 1.2) { volumeSentiment = 1.05; sentimentLabel = "İstikrarlı / Toplama"; }
-        }
-    }
-
     if(lastData.mcap > 500000000000) cagr *= 0.60; 
     else if(lastData.mcap > 50000000000) cagr *= 0.80; 
     
@@ -12933,28 +12966,13 @@ function processAndRenderCompact(priceData, mcapData, volData) {
 
     let avgGrowth = cagr;
 
-    // --- D) UI BİLGİ KUTULARI (EXTRA UYARI) ---
-    // Anomali ve Risk Bilgisini Liste Başına Basıyoruz
+    // --- 6. TIMELINE ---
     let warningHtml = `
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
-        <div style="background:rgba(255,255,255,0.05); padding:8px; border-radius:8px; text-align:center;">
-            <div style="font-size:9px; color:var(--text-sub);">HACİM ANALİZİ</div>
-            <div style="font-size:11px; font-weight:700; color:${volumeSentiment > 1 ? '#10b981' : (volumeSentiment < 1 ? '#ef4444' : '#f59e0b')}">${sentimentLabel}</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.05); padding:8px; border-radius:8px; text-align:center;">
-            <div style="font-size:9px; color:var(--text-sub);">ANLIK SAPMA RİSKİ</div>
-            <div style="font-size:11px; font-weight:700; color:${riskColor};">${riskLabel} (σ:${stdDev.toFixed(1)})</div>
-        </div>
-    </div>
-    
-    <div style="background:rgba(239,68,68,0.1); border:1px dashed rgba(239,68,68,0.3); padding:8px; border-radius:8px; font-size:10px; color:#fca5a5; margin-bottom:10px; line-height:1.4;">
-        <i class="fas fa-exclamation-circle"></i> <b>Sapma Uyarısı:</b> Geçmişte ${crashEvents} kez ani çöküş, ${pumpEvents} kez ani fırlama (Anomali) yaşanmış. Tahminlerde bu sapmaları dikkate alınız.
-    </div>
-    `;
-
+    <div style="background:rgba(239,68,68,0.1); border:1px dashed rgba(239,68,68,0.3); padding:8px; border-radius:8px; font-size:10px; color:#fca5a5; margin-bottom:15px; margin-left:10px;">
+        <i class="fas fa-exclamation-circle"></i> <b>Sapma Uyarısı:</b> Geçmişte ${crashEvents} kez çöküş, ${pumpEvents} kez fırlama (Anomali) tespit edildi.
+    </div>`;
     projList.innerHTML = warningHtml;
 
-    // --- E) PROJEKSİYON DÖNGÜSÜ ---
     let basePriceUSD = lastData.close;
     let currentYear = new Date().getFullYear();
     let projHTML = "";
@@ -12975,22 +12993,35 @@ function processAndRenderCompact(priceData, mcapData, volData) {
         let displayLow = isTR ? lowPriceUSD * currencyRate : lowPriceUSD;
 
         projHTML += `
-        <div style="background:rgba(255,255,255,0.03); padding:8px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <div style="display:flex; align-items:center; gap:8px;">
-                <div style="font-weight:700; color:#60a5fa; font-size:12px;">${fYear}</div>
-                <div style="font-size:9px; color:#94a3b8;">
-                    <span style="display:block; color:#10b981;">Üst: ${sym}${parseInt(displayHigh).toLocaleString()}</span>
-                    <span style="display:block; color:#ef4444;">Alt: ${sym}${parseInt(displayLow).toLocaleString()}</span>
+        <div style="position:relative; margin-bottom:20px;">
+            <div style="position:absolute; left:-26px; top:15px; width:12px; height:12px; background:#d8b4fe; border-radius:50%; box-shadow:0 0 10px #8b5cf6;"></div>
+            
+            <div class="lab-glass-card" style="margin:0; padding:12px; background:linear-gradient(90deg, rgba(139,92,246,0.1), transparent); border-left:3px solid #d8b4fe;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <div style="font-size:14px; font-weight:800; color:#fff;">${fYear}</div>
+                    <div style="font-size:10px; color:#a78bfa; background:rgba(167,139,250,0.1); padding:2px 8px; border-radius:10px;">Beklenti</div>
                 </div>
-            </div>
-            <div style="text-align:right;">
-                <div style="font-size:10px; color:#94a3b8; margin-bottom:1px;">Olası Merkez</div>
-                <div style="font-weight:800; font-size:13px; color:white;">${sym}${parseInt(displayBase).toLocaleString()}</div>
+                
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-size:9px; color:#10b981;">ZİRVE</div>
+                        <div style="font-size:11px; font-weight:700; color:#fff;">${sym}${parseInt(displayHigh).toLocaleString()}</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div style="font-size:9px; color:#facc15;">MERKEZ</div>
+                        <div style="font-size:14px; font-weight:900; color:#facc15; text-shadow:0 0 10px rgba(250,204,21,0.3);">${sym}${parseInt(displayBase).toLocaleString()}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:9px; color:#ef4444;">DİP</div>
+                        <div style="font-size:11px; font-weight:700; color:#fff;">${sym}${parseInt(displayLow).toLocaleString()}</div>
+                    </div>
+                </div>
             </div>
         </div>`;
     }
     projList.insertAdjacentHTML('beforeend', projHTML);
 }
+
 /* --- BÜYÜME (STRATEJİ TESTİ) HESAPLAMA MOTORU --- */
 function runLabTest() {
     // 1. Girdileri Al
@@ -13176,55 +13207,122 @@ function analyzeTraderDNA(history, currentBalance) {
     }
 }, 300000);
 
-/* --- AR-GE (LAB) ve HEDEFLERİM ÜST BAR GİZLEME MODÜLÜ --- */
+/* --- GLOBAL NAVİGASYON, ÜST BAR VE VERİ YENİLEME MODÜLÜ (FİNAL V3) --- */
 
-// 1. Mevcut switchAnTab fonksiyonunu sarmalıyoruz
-const originalSwitchAnTab = window.switchAnTab || function(){};
-
-window.switchAnTab = function(tab, btn) {
-    // Önce orijinal geçiş işlemini yap
-    originalSwitchAnTab(tab, btn);
-
-    const topBar = document.querySelector('.top-bar');
+document.addEventListener("DOMContentLoaded", () => {
     
-    // DEĞİŞİKLİK BURADA: Eğer sekme 'lab' VEYA 'vision' ise gizle
-    if (tab === 'lab' || tab === 'vision') {
-        if(topBar) topBar.style.display = 'none';
-    } else {
-        // Diğer sekmelerde göster
-        if(topBar) topBar.style.display = 'flex';
+    // 1. Orijinal Fonksiyonların Yedeğini Al (Çakışmayı önlemek için güvenli yöntem)
+    if (!window.originalSwitchPageRef) window.originalSwitchPageRef = window.switchPage || function(){};
+    if (!window.originalSwitchAnTabRef) window.originalSwitchAnTabRef = window.switchAnTab || function(){};
+
+    const originalSwitchPage = window.originalSwitchPageRef;
+    const originalSwitchAnTab = window.originalSwitchAnTabRef;
+
+    // 2. Analiz Verilerini Tazeleme Motoru (YENİ)
+    function refreshAnalysisData() {
+        // Eğer "Hedeflerim" (Vision) sekmesi açıksa verileri güncelle
+        const visionTab = document.getElementById('an-view-vision');
+        if (visionTab && visionTab.style.display !== 'none') {
+            console.log("♻️ Hedeflerim Verisi Yenileniyor...");
+            if(typeof window.loadVisionData === 'function') window.loadVisionData();
+            if(typeof window.renderDailyChart === 'function') window.renderDailyChart();
+            if(typeof window.updateGoalVisuals === 'function') window.updateGoalVisuals();
+        }
     }
-};
 
-// 2. AR-GE ekranından çıkış (Aynı kaldı)
-window.closeLabView = function() {
-    document.getElementById('an-view-lab').style.display = 'none';
-    document.getElementById('an-view-lab').classList.remove('active');
-    resetTopBar();
-};
+    // 3. Merkezi Kontrol: Üst Bar Görünmeli mi?
+    function updateTopBarState(targetPageId = null) {
+        const topBar = document.querySelector('.top-bar'); 
+        if (!topBar) return;
 
-// 3. YENİ EKLENEN: Hedeflerim ekranından çıkış
-window.closeVisionView = function() {
-    // Hedeflerim ekranını gizle (ID: an-view-vision)
-    document.getElementById('an-view-vision').style.display = 'none';
-    document.getElementById('an-view-vision').classList.remove('active');
-    resetTopBar();
-};
+        let activePageID = targetPageId;
+        if (!activePageID) {
+            const activePage = document.querySelector('.page.active');
+            activePageID = activePage ? activePage.id : '';
+        }
 
-// Ortak toparlama fonksiyonu (Kod tekrarını önlemek için)
-function resetTopBar() {
-    // Üst barı tekrar görünür yap
-    const topBar = document.querySelector('.top-bar');
-    if(topBar) topBar.style.display = 'flex';
+        let cleanID = activePageID;
+        if (cleanID && !cleanID.startsWith('page-')) {
+            cleanID = 'page-' + cleanID;
+        }
 
-    // Varsayılan olarak Performans sekmesine geri dön
-    const perfBtn = document.querySelector(".s-tab.seg-style"); 
-    if (perfBtn) {
-        switchAnTab('perf', perfBtn);
-        document.querySelectorAll('.s-tab').forEach(t => t.classList.remove('active'));
-        perfBtn.classList.add('active');
+        /* --- KURAL SETİ --- */
+        // Ayarlar veya Haberler ise GİZLE
+        if (cleanID === 'page-settings' || cleanID === 'page-news') {
+            topBar.style.display = 'none';
+        }
+        // Analiz ise ve Lab/Vision açıksa GİZLE
+        else if (cleanID === 'page-analysis') {
+            const isLabActive = document.getElementById('an-view-lab') && document.getElementById('an-view-lab').style.display !== 'none';
+            const isVisionActive = document.getElementById('an-view-vision') && document.getElementById('an-view-vision').style.display !== 'none';
+            
+            if (isLabActive || isVisionActive) {
+                topBar.style.display = 'none';
+            } else {
+                topBar.style.display = 'flex';
+            }
+        } 
+        // Diğerlerinde GÖSTER
+        else {
+            topBar.style.display = 'flex';
+        }
     }
-}
+
+    // 4. Alt Navigasyon (SwitchPage) Sarmalayıcısı
+    window.switchPage = function(pageId, btn) {
+        originalSwitchPage(pageId, btn);
+        
+        // 1. Bar durumunu güncelle
+        updateTopBarState(pageId);
+
+        // 2. Analiz sayfasına dönüldüyse verileri ANINDA tazele
+        if (pageId === 'analysis' || pageId === 'page-analysis') {
+            setTimeout(refreshAnalysisData, 50); 
+        }
+    };
+
+    // 5. Analiz İçi Sekme (SwitchAnTab) Sarmalayıcısı
+    window.switchAnTab = function(tab, btn) {
+        originalSwitchAnTab(tab, btn);
+        
+        const topBar = document.querySelector('.top-bar');
+        if(topBar) {
+            if (tab === 'lab' || tab === 'vision') {
+                topBar.style.display = 'none';
+            } else {
+                updateTopBarState(); 
+            }
+        }
+    };
+
+    // 6. Kapatma Helper'ı
+    function closeOverlayAndReset(elementId) {
+        const el = document.getElementById(elementId);
+        if (el) {
+            el.style.display = 'none';
+            el.classList.remove('active');
+        }
+
+        // Varsayılan sekmeye (Performans) dön
+        const perfBtn = document.querySelector(".s-tab.seg-style"); 
+        if (perfBtn) {
+            document.querySelectorAll('.s-tab').forEach(t => t.classList.remove('active'));
+            perfBtn.classList.add('active');
+            if(typeof window.switchAnTab === 'function') {
+                 originalSwitchAnTab('perf', perfBtn);
+            }
+        }
+        updateTopBarState('page-analysis');
+    }
+
+    window.closeLabView = function() {
+        closeOverlayAndReset('an-view-lab');
+    };
+
+    window.closeVisionView = function() {
+        closeOverlayAndReset('an-view-vision');
+    };
+});
 
 /* ======================================================
    DOLAR/TL UYUMLU RISK HESAPLAYICI & ÜST BAR YÖNETİMİ
