@@ -9,7 +9,8 @@
     
     
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
    <title>TradeVia (Live Edition)</title>
    
    <link rel="manifest" href="manifest.json">
@@ -1740,7 +1741,85 @@ button:active,
     height:
 
 
-    </style>
+    <style>
+    /* 1. Ekranı Kilitle (Android/iOS Çubuklarını Yoksay) */
+    html, body {
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important; /* Android Chrome adres çubuğu sorunu çözücü */
+        overflow: hidden !important; /* Sayfa asla kaymasın */
+        margin: 0 !important;
+        padding: 0 !important;
+        position: fixed !important; /* Ekranı dondur */
+        inset: 0 !important;
+    }
+
+    /* 2. İçerik Alanı (Sadece burası kaysın) */
+    .content-area, .page {
+        position: absolute !important;
+        top: 60px !important; /* Üst bar payı */
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 70px !important; /* Alt menü payı */
+        height: auto !important;
+        width: 100% !important;
+        overflow-y: auto !important; /* İçerik kaydırmayı aç */
+        -webkit-overflow-scrolling: touch !important; /* iPhone yağ gibi kaydırma */
+        z-index: 1 !important;
+        padding-bottom: env(safe-area-inset-bottom) !important;
+    }
+
+    /* 3. Üst Barı Tepeye Çivile */
+    .top-bar {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 60px !important;
+        z-index: 9999 !important;
+        padding-top: env(safe-area-inset-top) !important; /* Çentik payı */
+        background: #0b0f19 !important; /* Senin arka plan rengin */
+    }
+
+    /* 4. Alt Menüyü Dibe Çivile (Hem eski hem yeni sınıfı hedefliyoruz) */
+    .nav-container, .bottom-nav {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 70px !important;
+        z-index: 99999 !important;
+        padding-bottom: env(safe-area-inset-bottom) !important; /* iPhone alt çizgi payı */
+        background: rgba(21, 27, 43, 0.95) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-around !important;
+        margin: 0 !important;
+        border-top: 1px solid rgba(255,255,255,0.1) !important;
+    }
+    
+    /* Eğer eski bottom-nav varsa onu gizle, çakışmasın */
+    .bottom-nav { 
+        display: none !important; 
+    }
+    /* Sadece bizim kullandığımız nav-container görünsün */
+    .nav-container {
+        display: flex !important;
+    }
+</style>
+
+<script>
+    (function(){
+        let meta = document.querySelector('meta[name="viewport"]');
+        if (!meta) {
+            meta = document.createElement('meta');
+            meta.name = "viewport";
+            document.head.appendChild(meta);
+        }
+        meta.content = "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover";
+    })();
+</script>
+
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5912166843737955"
      crossorigin="anonymous"></script>
@@ -6885,7 +6964,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
