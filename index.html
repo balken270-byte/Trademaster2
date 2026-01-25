@@ -1806,6 +1806,8 @@ button:active,
     .nav-container {
         display: flex !important;
     }
+    
+
 </style>
 
 <script>
@@ -6964,7 +6966,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.3"; 
+    const CURRENT_VERSION = "1.4"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -11301,70 +11303,280 @@ function switchAnTab(tab, btn) {
     }, 100); 
 }
 
-/* --- HEDEFLERİM (VİZYON) MODÜLÜ - (FİNAL TAMİR) --- */
+/* ==========================================================================
+   HEDEFLER (VİZYON) MODÜLÜ - FINAL V6 (TL FİKSİ & ANİMASYONLU)
+   ========================================================================== */
 
-// 1. Grafik Nesnesini Güvenli Tanımla
-if (typeof window.visionChartInstance === 'undefined') {
-    window.visionChartInstance = null;
-}
+(function() { 
 
-// YARDIMCI: Türkçe Sayı Düzeltici (50.000 -> 50000 / 50,5 -> 50.5)
-function parseTurkishInput(val) {
-    if (!val) return 0;
-    let str = val.toString();
-    // 1. Sadece nokta var (Örn: 50.000) -> Noktayı sil (Binlik)
-    if (str.includes('.') && !str.includes(',')) {
-        str = str.replace(/\./g, '');
+    // YARDIMCI: GÜNCEL PARA BİRİMİ SİMGESİNİ BUL
+    function getCurrencySymbol() {
+        // En garantisi: Direkt hafızadan oku
+        let settings = JSON.parse(localStorage.getItem('tm_settings')) || { currency: 'TRY' };
+        return settings.currency === 'TRY' ? '₺' : '$';
     }
-    // 2. Hem nokta hem virgül var (Örn: 50.000,50) -> Noktayı sil, virgülü nokta yap
-    else if (str.includes('.') && str.includes(',')) {
-        str = str.replace(/\./g, '').replace(',', '.');
-    }
-    // 3. Sadece virgül var -> Nokta yap
-    else {
-        str = str.replace(',', '.');
-    }
-    return parseFloat(str) || 0;
-}
 
-// 2. Ayarları Yükle
-function loadVisionData() {
-    try {
-        // İki anahtarı da kontrol et (Eski/Yeni uyumluluğu)
-        let data = JSON.parse(localStorage.getItem('tm_vision_settings')) || 
-                   JSON.parse(localStorage.getItem('tm_vision_data')) || 
-                   { rate: 5, add: 1000 };
+    // 1. BAKİYE HESAPLAYICI (Güvenli Mod & Kur Dönüşümlü)
+    function getSafeBalance() {
+        try {
+            let cash = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
+            let pf = JSON.parse(localStorage.getItem('myPF_final')) || [];
+            
+            // Kurlar ve Ayarlar (Hafızadan)
+            let settings = JSON.parse(localStorage.getItem('tm_settings')) || { currency: 'TRY' };
+            let currentUsd = (typeof window.usdTryRate !== 'undefined') ? window.usdTryRate : 36.50; 
+            
+            let total = 0;
+            pf.forEach(item => {
+                let p = (item.curr && item.curr > 0) ? item.curr : item.buy;
+                
+                if(settings.currency === 'TRY') {
+                    // Uygulama TL ise:
+                    total += (item.origin === 'USD') ? (p * item.amt * currentUsd) : (p * item.amt);
+                } else {
+                    // Uygulama USD ise:
+                    total += (item.origin === 'TRY') ? ((p * item.amt) / currentUsd) : (p * item.amt);
+                }
+            });
+            return total + cash;
+        } catch(e) {
+            return 0;
+        }
+    }
+
+    // 2. GLOBAL FONKSİYONLAR
+    
+    window.checkAndLogDaily = function() {
+        let currentTotal = getSafeBalance();
+        let logs = JSON.parse(localStorage.getItem('tm_daily_tracking')) || [];
+        let today = new Date().toLocaleDateString('tr-TR');
         
+        let lastLog = logs.length > 0 ? logs[logs.length - 1] : null;
+        
+        if (!lastLog || lastLog.date !== today) {
+            logs.push({ date: today, val: currentTotal });
+            if(logs.length > 30) logs.shift();
+        } else {
+            lastLog.val = currentTotal;
+        }
+        
+        localStorage.setItem('tm_daily_tracking', JSON.stringify(logs));
+        return logs;
+    };
+
+    window.manualUpdateVision = function() {
         const elRate = document.getElementById('visionRate');
         const elAdd = document.getElementById('visionAdd');
+        if(!elRate || !elAdd) return;
 
+        let rateVal = parseFloat(elRate.value) || 0;
+        let addVal = parseFloat(elAdd.value) || 0;
+
+        localStorage.setItem('tm_vision_settings', JSON.stringify({ rate: rateVal, add: addVal }));
+        
+        window.loadVisionData();
+        
+        if(typeof addNotification === 'function') addNotification('success', 'Güncellendi', 'Grafik yenilendi.');
+    };
+
+    window.editTargetGoal = function() {
+        let current = localStorage.getItem('tradevia_main_goal') || 1000000;
+        let val = prompt("Yeni Hedef Tutarınız:", current);
+        if(val && !isNaN(parseFloat(val))) {
+            localStorage.setItem('tradevia_main_goal', parseFloat(val));
+            window.loadVisionData();
+        }
+    };
+
+    // ANA YÜKLEYİCİ
+    window.loadVisionData = function() {
+        let data = JSON.parse(localStorage.getItem('tm_vision_settings')) || { rate: 5, add: 1000 };
+        const elRate = document.getElementById('visionRate');
+        const elAdd = document.getElementById('visionAdd');
         if(elRate) elRate.value = data.rate;
         if(elAdd) elAdd.value = data.add;
-    } catch(e) { console.error(e); }
-}
 
-// 3. Buton Fonksiyonu (Hem kaydeder hem çizer)
-function manualUpdateVision() {
-    const elRate = document.getElementById('visionRate');
-    const elAdd = document.getElementById('visionAdd');
+        let logs = window.checkAndLogDaily();
+        
+        renderListSafe(logs);
+        updateBarSafe();
+        renderChartSafe(logs, data.rate, data.add);
+    };
 
-    if(!elRate || !elAdd) return;
+    // --- GÜVENLİ ÇİZİM FONKSİYONLARI ---
 
-    // Türkçe karakter temizliği yaparak al
-    let rateVal = parseTurkishInput(elRate.value);
-    let addVal = parseTurkishInput(elAdd.value);
+    function renderListSafe(logs) {
+        const list = document.getElementById('dailyLogList');
+        if(!list) return;
+        
+        let html = "";
+        let sym = getCurrencySymbol(); // TL/USD Düzeltmesi
 
-    // Ayarları kaydet (Standart anahtar: tm_vision_settings)
-    let data = { rate: rateVal, add: addVal };
-    localStorage.setItem('tm_vision_settings', JSON.stringify(data));
+        for (let i = logs.length - 1; i >= 0; i--) {
+            let curr = logs[i];
+            let prev = (i > 0) ? logs[i-1] : null;
+            let diffHtml = '<span style="color:var(--text-sub); font-size:11px;">(Başlangıç)</span>';
+            
+            if(prev) {
+                let diff = curr.val - prev.val;
+                let color = diff >= 0 ? '#10b981' : '#ef4444';
+                let sign = diff > 0 ? '+' : '';
+                diffHtml = `<span style="color:${color}; font-weight:800; font-size:13px;">${sign}${sym}${diff.toLocaleString(undefined, {maximumFractionDigits:0})}</span>`;
+            }
 
-    // Grafiği çiz
-    renderDailyChart(null, rateVal, addVal); 
-    
-    if(typeof addNotification === 'function') {
-        addNotification('success', 'Hesaplandı', `Eklenen: ${addVal.toLocaleString()} | Kâr: %${rateVal}`);
+            html += `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                        <span style="color:var(--text-sub); font-weight:600;">${curr.date}</span>
+                        ${diffHtml}
+                     </div>`;
+        }
+        
+        if(html === "") html = "<div style='padding:15px; text-align:center; color:#64748b;'>Kayıt yok.</div>";
+        list.innerHTML = html;
     }
-}
+
+    function updateBarSafe() {
+        let target = parseFloat(localStorage.getItem('tradevia_main_goal')) || 1000000;
+        let total = getSafeBalance();
+        let sym = getCurrencySymbol(); // TL/USD Düzeltmesi
+        
+        let pct = target > 0 ? (total / target) * 100 : 0;
+        if(pct > 100) pct = 100; if(pct < 0) pct = 0;
+
+        const bar = document.getElementById('dynamicGoalBar');
+        const txtL = document.getElementById('goalCurrentText');
+        const txtR = document.getElementById('goalTargetTextRight');
+        
+        if(bar) {
+            // CSS transition tetiklensin diye
+            bar.style.width = "0%"; 
+            setTimeout(() => { bar.style.width = pct + "%"; }, 50);
+
+            bar.className = 'goal-strip-fill';
+            if(pct < 33) bar.classList.add('gs-red');
+            else if(pct < 66) bar.classList.add('gs-yellow');
+            else bar.classList.add('gs-green');
+        }
+        if(txtL) txtL.innerText = `%${pct.toFixed(1)} (${sym}${total.toLocaleString(undefined,{maximumFractionDigits:0})})`;
+        if(txtR) txtR.innerText = `HEDEF: ${sym}${target.toLocaleString(undefined,{maximumFractionDigits:0})}`;
+
+        // Kart İçi Bilgiler
+        const vCurr = document.getElementById('visionCurrentValue');
+        const vRem = document.getElementById('visionRemainingValue');
+        if(vCurr) vCurr.innerText = sym + total.toLocaleString(undefined,{maximumFractionDigits:0});
+        if(vRem) vRem.innerText = sym + Math.max(0, target - total).toLocaleString(undefined,{maximumFractionDigits:0});
+    }
+
+    let myChart = null; 
+
+    function renderChartSafe(logs, mRate, mAdd) {
+        const ctx = document.getElementById('visionChart');
+        if(!ctx || typeof Chart === 'undefined') return;
+
+        let startBal = (logs.length > 0) ? logs[logs.length-1].val : getSafeBalance();
+        if(startBal <= 0) startBal = 0;
+
+        // Tahmin Verileri
+        let dailyRate = mRate / 30;
+        let dailyAdd = mAdd / 30;
+        
+        let labels = logs.map(l => l.date.substring(0,5));
+        let dataReal = logs.map(l => l.val);
+        
+        if(labels.length === 0) {
+            labels.push("Başlangıç");
+            dataReal.push(startBal);
+        }
+
+        let dataProj = [];
+        let dataPrinc = [];
+        let simBal = startBal;
+        let princBal = startBal;
+
+        for(let i=1; i<=30; i++) {
+            princBal += dailyAdd;
+            simBal = simBal * (1 + (dailyRate/100)) + dailyAdd;
+            dataProj.push(simBal);
+            dataPrinc.push(princBal);
+            
+            if(i===1) labels.push("Yarın");
+            else if(i%10===0) labels.push("+"+i+"g");
+            else labels.push("");
+        }
+
+        let finalReal = [...dataReal, ...Array(30).fill(null)];
+        let finalProj = [...Array(Math.max(0, dataReal.length-1)).fill(null), (dataReal.length>0?dataReal[dataReal.length-1]:startBal), ...dataProj];
+        let finalPrinc = [...Array(Math.max(0, dataReal.length-1)).fill(null), (dataReal.length>0?dataReal[dataReal.length-1]:startBal), ...dataPrinc];
+        
+        let target = parseFloat(localStorage.getItem('tradevia_main_goal')) || 1000000;
+        let finalTarget = Array(labels.length).fill(target);
+
+        // Süre Tahmini
+        let monthsLeft = "--";
+        if((mAdd > 0 || mRate > 0) && startBal < target) {
+            let tb = startBal; let m = 0;
+            while(tb < target && m < 600) { tb = tb*(1+(mRate/100))+mAdd; m++; }
+            monthsLeft = m < 600 ? m + " Ay" : "50+ Yıl";
+        }
+        const elMonths = document.getElementById('visionMonthsLeft');
+        if(elMonths) elMonths.innerText = monthsLeft;
+
+        if(myChart) myChart.destroy();
+
+        // ANİMASYONLU GRAFİK AYARLARI
+        myChart = new Chart(ctx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: 'Gerçek', data: finalReal, borderColor: '#3b82f6', backgroundColor:'rgba(59,130,246,0.1)', borderWidth:3, fill:true, pointRadius:3 },
+                    { label: 'Hedef', data: finalProj, borderColor: '#d946ef', borderWidth:3, borderDash:[3,3], pointRadius:0, tension:0.4 },
+                    { label: 'Anapara', data: finalPrinc, borderColor: '#f97316', borderWidth:2, borderDash:[5,5], pointRadius:0 },
+                    { label: 'Limit', data: finalTarget, borderColor: '#10b981', borderWidth:1, borderDash:[2,2], pointRadius:0 }
+                ]
+            },
+            options: {
+                responsive: true, 
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 2000, // 2 Saniyelik açılış animasyonu
+                    easing: 'easeOutQuart'
+                },
+                plugins: { legend: {display:false} },
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                    x: { grid: {display:false}, ticks: {color:'#64748b', maxTicksLimit:6} },
+                    y: { 
+                        grid: {color:'rgba(255,255,255,0.05)'}, 
+                        ticks: {
+                            color:'#64748b',
+                            callback: function(val) {
+                                if(val >= 1000000) return (val/1000000).toFixed(1) + 'M';
+                                if(val >= 1000) return (val/1000).toFixed(0) + 'k';
+                                return val;
+                            }
+                        } 
+                    }
+                }
+            }
+        });
+    }
+
+    // 3. SEKME GEÇİŞİNİ YAKALA
+    const originalSwitch = window.switchAnTab || function(){};
+    window.switchAnTab = function(tab, btn) {
+        originalSwitch(tab, btn);
+        if(tab === 'vision') {
+            setTimeout(window.loadVisionData, 50);
+            setTimeout(window.loadVisionData, 300); // Garanti çizim
+        }
+    };
+
+    // 4. BAŞLAT
+    document.addEventListener("DOMContentLoaded", () => {
+        setTimeout(window.loadVisionData, 500);
+    });
+
+})();
 
 /* --- GÜNCELLENMİŞ VE AYRIŞTIRILMIŞ GRAFİK MOTORU --- */
 let dailyChartInstance = null;
@@ -13574,6 +13786,72 @@ window.closeVisionView = function() {
     const perfBtn = document.querySelector(".s-tab[onclick*='perf']");
     if(perfBtn) window.switchAnTab('perf', perfBtn);
 };
+
+/* --- NAVİGASYON RENK ZORLAYICI (SOFT DARK MOD) --- */
+
+function forceNavColor() {
+    const nav = document.querySelector('.nav-container');
+    const settingsPage = document.getElementById('page-settings');
+    
+    if (!nav || !settingsPage) return;
+
+    // Ayarlar sayfası açık mı?
+    const isSettingsOpen = settingsPage.classList.contains('active') || 
+                           settingsPage.style.display === 'flex' || 
+                           settingsPage.style.display === 'block';
+
+    if (isSettingsOpen) {
+        // === AYARLAR MODU (YUMUŞAK KOYU & GOLD) ===
+        
+        // 1. Arka Plan: Simsiyah (5,5,5) yerine "Koyu Gri/Antrasit" (20,20,25) yaptık.
+        // Şeffaflığı 0.90 yaptık ki cam efekti belli olsun.
+        nav.style.setProperty('background', 'rgba(20, 20, 25, 0.95)', 'important');
+        
+        // 2. Çizgi: Gold rengini koruduk ama biraz incelttik.
+        nav.style.setProperty('border-top', '1px solid rgba(245, 158, 11, 0.2)', 'important');
+        
+        // 3. Gölge: Daha hafif bir altın ışıltısı.
+        nav.style.setProperty('box-shadow', '0 -5px 30px rgba(245, 158, 11, 0.08)', 'important');
+        
+        // 4. İkonlar: Gold
+        const activeItem = nav.querySelector('.nav-item.active');
+        if (activeItem) {
+            activeItem.style.setProperty('color', '#f59e0b', 'important');
+            activeItem.style.textShadow = '0 0 15px rgba(245, 158, 11, 0.4)';
+            
+            const icon = activeItem.querySelector('i');
+            if(icon) icon.style.setProperty('color', '#f59e0b', 'important');
+        }
+
+    } else {
+        // === VARSAYILAN MOD (LACİVERT/OKYANUS) ===
+        // Burası uygulamanın ana rengi, buraya dokunmadık.
+        nav.style.setProperty('background', 'rgba(21, 27, 43, 0.95)', 'important');
+        nav.style.setProperty('border-top', '1px solid rgba(255, 255, 255, 0.08)', 'important');
+        nav.style.setProperty('box-shadow', '0 -5px 20px rgba(0, 0, 0, 0.3)', 'important');
+        
+        // İkonları normale döndür
+        const activeItem = nav.querySelector('.nav-item.active');
+        if (activeItem) {
+            activeItem.style.removeProperty('color');
+            activeItem.style.removeProperty('text-shadow');
+            const icon = activeItem.querySelector('i');
+            if(icon) icon.style.removeProperty('color');
+        }
+    }
+}
+
+// 1. Sayfa geçişini yakala
+if (typeof window.switchPage === 'function') {
+    const originalSwitch = window.switchPage;
+    window.switchPage = function(pageId, btn) {
+        originalSwitch(pageId, btn);
+        setTimeout(forceNavColor, 50);
+    };
+}
+
+// 2. Sürekli kontrol (Hata payını sıfırlar)
+setInterval(forceNavColor, 500);
 
 </script>
 
