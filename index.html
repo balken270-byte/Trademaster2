@@ -6885,7 +6885,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "4.1"; 
+    const CURRENT_VERSION = "4.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -13795,59 +13795,57 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 
 <script>
-    /* --- SERVICE WORKER KAYDI --- */
+    /* --- 1. SERVICE WORKER KAYDI (PWA ve Bildirim İçin Şart) --- */
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
             navigator.serviceWorker.register('sw.js')
             .then(function(registration) {
-                console.log('✅ Service Worker başarıyla yüklendi. Kapsam:', registration.scope);
+                console.log('✅ Service Worker yüklendi:', registration.scope);
             }, function(err) {
                 console.log('❌ Service Worker hatası:', err);
             });
         });
     }
-    
-    <script>
-/* --- AYARLAR SAYFASI: TEST BİLDİRİM BUTONU --- */
-document.addEventListener("DOMContentLoaded", () => {
-    
-    // 1. Butonu ID'sine göre bul
-    const testBtn = document.getElementById('btnTestNotify');
 
-    // 2. Eğer buton bulunduysa tıklama özelliği ekle
-    if (testBtn) {
-        testBtn.onclick = function() {
-            
-            // A. Önce İzin Kontrolü Yap
-            if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
-                Notification.requestPermission().then(permission => {
-                    if (permission === "granted") {
-                        sendDemo(); // İzin verildiyse gönder
+    /* --- 2. AYARLAR SAYFASI: TEST BİLDİRİM BUTONU --- */
+    document.addEventListener("DOMContentLoaded", () => {
+        // Butonu bul
+        const testBtn = document.getElementById('btnTestNotify');
+
+        if (testBtn) {
+            // Tıklama olayını ekle
+            testBtn.onclick = function() {
+                // İzin kontrolü
+                if ("Notification" in window) {
+                    if (Notification.permission === "granted") {
+                        sendDemo(); 
+                    } else if (Notification.permission !== "denied") {
+                        Notification.requestPermission().then(permission => {
+                            if (permission === "granted") sendDemo();
+                        });
                     } else {
-                        alert("⚠️ Bildirim izni reddedildi. Tarayıcı ayarlarından izin verin.");
+                        alert("⚠️ Bildirim izni tarayıcıdan engellenmiş. Ayarlardan izin verin.");
                     }
-                });
-            } else {
-                // B. İzin zaten varsa veya yoksa direkt gönder (addNotification içindeki yapı halleder)
-                sendDemo();
-            }
-        };
-    }
-
-    // Demo Gönderme Fonksiyonu
-    function sendDemo() {
-        // Rastgele ses çıksın diye 'success' veya 'info' kullanıyoruz
-        if(typeof addNotification === 'function') {
-            addNotification('success', '🔔 Demo Bildirim', 'Harika! Bildirim sisteminiz sorunsuz çalışıyor.');
-        } else {
-            alert("HATA: addNotification fonksiyonu bulunamadı.");
+                } else {
+                    alert("Tarayıcınız bildirim desteklemiyor.");
+                }
+            };
         }
-    }
-});
-</script>
 
+        // Demo Gönderme Fonksiyonu
+        function sendDemo() {
+            if(typeof addNotification === 'function') {
+                // Hem uygulama içine hem telefona bildirim yolla
+                addNotification('success', '🔔 Test Başarılı', 'Bildirim sistemi sorunsuz çalışıyor!');
+            } else {
+                alert("HATA: addNotification fonksiyonu bulunamadı.");
+            }
+        }
+    });
 </script>
 
 </body>
 </html>
+
+
 
