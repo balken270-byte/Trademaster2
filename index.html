@@ -6964,7 +6964,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.3"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -13336,30 +13336,28 @@ function analyzeTraderDNA(history, currentBalance) {
     }
 }, 300000);
 
-/* --- GLOBAL NAVİGASYON, ÜST BAR VE VERİ YENİLEME MODÜLÜ (FİNAL V3) --- */
+/* --- GLOBAL NAVİGASYON, ÜST BAR VE VERİ YENİLEME MODÜLÜ (FİNAL V4 - PİYASA EKLENDİ) --- */
 
 document.addEventListener("DOMContentLoaded", () => {
     
-    // 1. Orijinal Fonksiyonların Yedeğini Al (Çakışmayı önlemek için güvenli yöntem)
+    // 1. Orijinal Fonksiyonların Yedeğini Al
     if (!window.originalSwitchPageRef) window.originalSwitchPageRef = window.switchPage || function(){};
     if (!window.originalSwitchAnTabRef) window.originalSwitchAnTabRef = window.switchAnTab || function(){};
 
     const originalSwitchPage = window.originalSwitchPageRef;
     const originalSwitchAnTab = window.originalSwitchAnTabRef;
 
-    // 2. Analiz Verilerini Tazeleme Motoru (YENİ)
+    // 2. Analiz Verilerini Tazeleme Motoru
     function refreshAnalysisData() {
-        // Eğer "Hedeflerim" (Vision) sekmesi açıksa verileri güncelle
         const visionTab = document.getElementById('an-view-vision');
         if (visionTab && visionTab.style.display !== 'none') {
-            console.log("♻️ Hedeflerim Verisi Yenileniyor...");
             if(typeof window.loadVisionData === 'function') window.loadVisionData();
             if(typeof window.renderDailyChart === 'function') window.renderDailyChart();
             if(typeof window.updateGoalVisuals === 'function') window.updateGoalVisuals();
         }
     }
 
-    // 3. Merkezi Kontrol: Üst Bar Görünmeli mi?
+    // 3. MERKEZİ KONTROL: Üst Bar Görünmeli mi?
     function updateTopBarState(targetPageId = null) {
         const topBar = document.querySelector('.top-bar'); 
         if (!topBar) return;
@@ -13375,25 +13373,26 @@ document.addEventListener("DOMContentLoaded", () => {
             cleanID = 'page-' + cleanID;
         }
 
-        /* --- KURAL SETİ --- */
-        // Ayarlar veya Haberler ise GİZLE
-        if (cleanID === 'page-settings' || cleanID === 'page-news') {
-            topBar.style.display = 'none';
+        /* --- KURAL SETİ (GÜNCELLENDİ) --- */
+        
+        // KURAL 1: Piyasa, Ayarlar veya Haberler ise KESİN GİZLE
+        if (cleanID === 'page-market' || cleanID === 'page-settings' || cleanID === 'page-news') {
+            topBar.style.setProperty('display', 'none', 'important');
         }
-        // Analiz ise ve Lab/Vision açıksa GİZLE
+        // KURAL 2: Analiz sayfası ise ve Alt Modüller (Lab/Vision) açıksa GİZLE
         else if (cleanID === 'page-analysis') {
             const isLabActive = document.getElementById('an-view-lab') && document.getElementById('an-view-lab').style.display !== 'none';
             const isVisionActive = document.getElementById('an-view-vision') && document.getElementById('an-view-vision').style.display !== 'none';
             
             if (isLabActive || isVisionActive) {
-                topBar.style.display = 'none';
+                topBar.style.setProperty('display', 'none', 'important');
             } else {
-                topBar.style.display = 'flex';
+                topBar.style.setProperty('display', 'flex', 'important');
             }
         } 
-        // Diğerlerinde GÖSTER
+        // KURAL 3: Diğer durumlarda (Cüzdan vb.) GÖSTER
         else {
-            topBar.style.display = 'flex';
+            topBar.style.setProperty('display', 'flex', 'important');
         }
     }
 
@@ -13404,7 +13403,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // 1. Bar durumunu güncelle
         updateTopBarState(pageId);
 
-        // 2. Analiz sayfasına dönüldüyse verileri ANINDA tazele
+        // 2. Analiz sayfasına dönüldüyse verileri tazele
         if (pageId === 'analysis' || pageId === 'page-analysis') {
             setTimeout(refreshAnalysisData, 50); 
         }
@@ -13413,15 +13412,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 5. Analiz İçi Sekme (SwitchAnTab) Sarmalayıcısı
     window.switchAnTab = function(tab, btn) {
         originalSwitchAnTab(tab, btn);
-        
-        const topBar = document.querySelector('.top-bar');
-        if(topBar) {
-            if (tab === 'lab' || tab === 'vision') {
-                topBar.style.display = 'none';
-            } else {
-                updateTopBarState(); 
-            }
-        }
+        updateTopBarState(); // Sekme değişince barı kontrol et
     };
 
     // 6. Kapatma Helper'ı
@@ -13431,7 +13422,6 @@ document.addEventListener("DOMContentLoaded", () => {
             el.style.display = 'none';
             el.classList.remove('active');
         }
-
         // Varsayılan sekmeye (Performans) dön
         const perfBtn = document.querySelector(".s-tab.seg-style"); 
         if (perfBtn) {
@@ -13441,7 +13431,8 @@ document.addEventListener("DOMContentLoaded", () => {
                  originalSwitchAnTab('perf', perfBtn);
             }
         }
-        updateTopBarState('page-analysis');
+        // Kapatınca bar durumunu güncelle
+        setTimeout(() => updateTopBarState('page-analysis'), 50);
     }
 
     window.closeLabView = function() {
@@ -13451,6 +13442,12 @@ document.addEventListener("DOMContentLoaded", () => {
     window.closeVisionView = function() {
         closeOverlayAndReset('an-view-vision');
     };
+    
+    // Açılışta kontrol et (Direkt Piyasa sayfası açılırsa diye)
+    setTimeout(() => {
+        const active = document.querySelector('.page.active');
+        if(active) updateTopBarState(active.id);
+    }, 100);
 });
 
 /* ======================================================
