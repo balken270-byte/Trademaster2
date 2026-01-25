@@ -6198,10 +6198,10 @@ function openLabFullscreen() {
                     </div>
                 </div>
 
-                <button class="ps-btn" style="width:100%" onclick="testNotification()">
-                    <i class="fas fa-bell"></i> Test Bildirimi Gönder
-                </button>
-            </div>
+                <button id="btnTestNotify" class="ps-btn" style="width:100%">
+    <i class="fas fa-bell"></i> Test Bildirimi Gönder
+</button>
+
 
             <!-- ===== KASA & GEÇMİŞ SAYFASI ===== -->
             <div id="set-history" class="settings-content" style="display:none;">
@@ -6885,7 +6885,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "3.9"; 
+    const CURRENT_VERSION = "4.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -8712,19 +8712,17 @@ async function loadNews(query) {
 
     function toggleTradeMenu() { const content = document.getElementById('tradeContent'); const chevron = document.getElementById('tradeChevron'); const card = document.getElementById('tradeCard'); if (content.classList.contains('collapsed')) { content.classList.remove('collapsed'); chevron.classList.add('rotated'); card.classList.add('open'); } else { content.classList.add('collapsed'); chevron.classList.remove('rotated'); card.classList.remove('open'); } }
     function toggleAssetDetails(id) { const content = document.getElementById('asset-content-' + id); const chevron = document.getElementById('asset-chevron-' + id); if (content.classList.contains('collapsed')) { content.classList.remove('collapsed'); chevron.classList.add('rotated'); } else { content.classList.add('collapsed'); chevron.classList.remove('rotated'); } }
-/* --- YENİ GELİŞMİŞ BİLDİRİM SİSTEMİ (TEK VE DÜZELTİLMİŞ HALİ) --- */
+/* --- YENİ GELİŞMİŞ BİLDİRİM SİSTEMİ (DÜZELTİLMİŞ & TELEFON UYUMLU) --- */
 function addNotification(type, title, msg) {
-    // 1. GİZLİ MOD KONTROLÜ (EN BAŞTA)
-    // Eğer Gizli Mod açıksa ve bu mesaj aç/kapa mesajı değilse, durdur.
+    // 1. GİZLİ MOD KONTROLÜ
     const isSecretMode = localStorage.getItem('tm_secret_mode') === 'true';
     if (isSecretMode && title !== 'Gizli Mod Kapalı' && title !== 'Gizli Mod Aktif') {
-        return; // Fonksiyonu burada durdur, bildirim gösterme.
+        return; 
     }
 
-    // 2. UYGULAMA İÇİ KAYIT (MEVCUT SİSTEM)
+    // 2. UYGULAMA İÇİ KAYIT
     let n = { type: type, title: title, msg: msg, time: new Date().toLocaleTimeString(), read: false };
     
-    // Notifications dizisi tanımlı mı diye kontrol edelim (Hata almamak için)
     if(typeof notifications !== 'undefined') {
         notifications.unshift(n);
         if(notifications.length > 50) notifications.pop();
@@ -8739,11 +8737,10 @@ function addNotification(type, title, msg) {
     }
 
     // 3. KATEGORİ AYARLARI KONTROLÜ
-    let category = 'trade'; // Varsayılan
+    let category = 'trade'; 
     if(title.includes('Alarm') || title.includes('HEDEF') || title.includes('DİKKAT')) category = 'price';
     else if(title.includes('Haber')) category = 'news';
     
-    // Ayar nesnesi varsa kontrol et, yoksa devam et
     if(typeof notifySettings !== 'undefined' && !notifySettings[category]) return;
 
     // 4. SES VE TİTREŞİM
@@ -8752,36 +8749,63 @@ function addNotification(type, title, msg) {
     }
 
     if(typeof notifySettings !== 'undefined' && notifySettings.vibrate && navigator.vibrate) {
-        if(type === 'danger') navigator.vibrate([100, 50, 100, 50, 100]); // 3 kere titret (Hata)
-        else navigator.vibrate(200); // Tek titret (Normal)
+        if(type === 'danger') navigator.vibrate([100, 50, 100, 50, 100]); 
+        else navigator.vibrate(200); 
     }
 
-    // 5. BROWSER / TELEFON BİLDİRİMİ (PUSH)
+    // 5. BROWSER / TELEFON BİLDİRİMİ (TELEFON İÇİN GÜÇLENDİRİLDİ)
+    
+    // YÖNTEM A: Eğer APK içindeyse (Android Native Köprüsü)
+    // Telefonun tepesine %100 düşmesini sağlayan en garanti yöntem budur.
+    if(window.Android && window.Android.showNotification) {
+        window.Android.showNotification(title, msg);
+        return; // Android halletti, buradan çık.
+    }
+
+    // YÖNTEM B: Web / Mobil Tarayıcı (Service Worker veya Klasik)
     if ("Notification" in window && Notification.permission === "granted") {
+        
         let iconUrl = "https://cdn-icons-png.flaticon.com/512/3429/3429170.png"; 
         if(type === 'danger') iconUrl = "https://cdn-icons-png.flaticon.com/512/190/190406.png"; 
-
-        // Titreşim ayarı varsa bildirime de ekle
         let vibPattern = (typeof notifySettings !== 'undefined' && notifySettings.vibrate) ? [200, 100, 200] : [];
 
-        try {
-            const notif = new Notification(title, {
-                body: msg,
-                icon: iconUrl,
-                vibrate: vibPattern
+        // ÖNCE SERVICE WORKER DENE (Mobil Chrome'da tepeye düşmesi için bu şarttır)
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.ready.then(function(registration) {
+                registration.showNotification(title, {
+                    body: msg,
+                    icon: iconUrl,
+                    vibrate: vibPattern,
+                    tag: 'tradevia-alert' // Bildirimleri gruplamak için
+                });
+            }).catch(function(err) {
+                console.log("SW Bildirim Hatası, klasike geçiliyor:", err);
+                // SW hata verirse aşağıdakini dener
+                classicNotification(title, msg, iconUrl, vibPattern);
             });
-
-            // Bildirime tıklayınca uygulamaya odaklan
-            notif.onclick = function() {
-                window.focus();
-                notif.close();
-                // Bildirim sayfasına yönlendir
-                let notifBtn = document.querySelectorAll('.nav-item')[3]; 
-                if(notifBtn && typeof switchPage === 'function') switchPage('notifications', notifBtn);
-            };
-        } catch(e) {
-            console.log("Bildirim oluşturma hatası:", e);
+        } else {
+            // SW yoksa klasik yöntemi dene
+            classicNotification(title, msg, iconUrl, vibPattern);
         }
+    }
+}
+
+// Yardımcı Fonksiyon: Klasik Bildirim (Masaüstü vb. için)
+function classicNotification(title, msg, iconUrl, vibPattern) {
+    try {
+        const notif = new Notification(title, {
+            body: msg,
+            icon: iconUrl,
+            vibrate: vibPattern
+        });
+        notif.onclick = function() {
+            window.focus();
+            notif.close();
+            let notifBtn = document.querySelectorAll('.nav-item')[3]; 
+            if(notifBtn && typeof switchPage === 'function') switchPage('notifications', notifBtn);
+        };
+    } catch(e) {
+        console.warn("Bildirim oluşturulamadı:", e);
     }
 }
 
@@ -13770,6 +13794,59 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
+<script>
+    /* --- SERVICE WORKER KAYDI --- */
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('sw.js')
+            .then(function(registration) {
+                console.log('✅ Service Worker başarıyla yüklendi. Kapsam:', registration.scope);
+            }, function(err) {
+                console.log('❌ Service Worker hatası:', err);
+            });
+        });
+    }
+    
+    <script>
+/* --- AYARLAR SAYFASI: TEST BİLDİRİM BUTONU --- */
+document.addEventListener("DOMContentLoaded", () => {
+    
+    // 1. Butonu ID'sine göre bul
+    const testBtn = document.getElementById('btnTestNotify');
+
+    // 2. Eğer buton bulunduysa tıklama özelliği ekle
+    if (testBtn) {
+        testBtn.onclick = function() {
+            
+            // A. Önce İzin Kontrolü Yap
+            if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        sendDemo(); // İzin verildiyse gönder
+                    } else {
+                        alert("⚠️ Bildirim izni reddedildi. Tarayıcı ayarlarından izin verin.");
+                    }
+                });
+            } else {
+                // B. İzin zaten varsa veya yoksa direkt gönder (addNotification içindeki yapı halleder)
+                sendDemo();
+            }
+        };
+    }
+
+    // Demo Gönderme Fonksiyonu
+    function sendDemo() {
+        // Rastgele ses çıksın diye 'success' veya 'info' kullanıyoruz
+        if(typeof addNotification === 'function') {
+            addNotification('success', '🔔 Demo Bildirim', 'Harika! Bildirim sisteminiz sorunsuz çalışıyor.');
+        } else {
+            alert("HATA: addNotification fonksiyonu bulunamadı.");
+        }
+    }
+});
+</script>
+
+</script>
 
 </body>
 </html>
