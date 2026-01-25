@@ -6885,7 +6885,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "4.3"; 
+    const CURRENT_VERSION = "4.4"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -8712,151 +8712,107 @@ async function loadNews(query) {
 
     function toggleTradeMenu() { const content = document.getElementById('tradeContent'); const chevron = document.getElementById('tradeChevron'); const card = document.getElementById('tradeCard'); if (content.classList.contains('collapsed')) { content.classList.remove('collapsed'); chevron.classList.add('rotated'); card.classList.add('open'); } else { content.classList.add('collapsed'); chevron.classList.remove('rotated'); card.classList.remove('open'); } }
     function toggleAssetDetails(id) { const content = document.getElementById('asset-content-' + id); const chevron = document.getElementById('asset-chevron-' + id); if (content.classList.contains('collapsed')) { content.classList.remove('collapsed'); chevron.classList.add('rotated'); } else { content.classList.add('collapsed'); chevron.classList.remove('rotated'); } }
-/* --- PREMIUM BİLDİRİM SİSTEMİ (V10 - İKONLU & SW DESTEKLİ) --- */
-
-// 1. Veritabanını Yükle
-var notifications = JSON.parse(localStorage.getItem('tm_notifications')) || [];
-
-// Sayfa açılınca listeyi ve rozeti güncelle
-document.addEventListener("DOMContentLoaded", () => {
-    updateBadge(); 
-    renderNotifications();
-    
-    // İzin iste (Sessizce)
-    if ("Notification" in window && Notification.permission !== "granted") {
-        try { Notification.requestPermission(); } catch(e){}
-    }
-});
-
-// 2. ANA FONKSİYON: Bildirim Ekle
+/* --- YENİ GELİŞMİŞ BİLDİRİM SİSTEMİ (DÜZELTİLMİŞ & TELEFON UYUMLU) --- */
 function addNotification(type, title, msg) {
-    // A. Listeye Ekle ve Kaydet
-    let newNotif = { 
-        type: type, 
-        title: title, 
-        msg: msg, 
-        time: new Date().toLocaleTimeString(), 
-        read: false 
-    };
+    // 1. GİZLİ MOD KONTROLÜ
+    const isSecretMode = localStorage.getItem('tm_secret_mode') === 'true';
+    if (isSecretMode && title !== 'Gizli Mod Kapalı' && title !== 'Gizli Mod Aktif') {
+        return; 
+    }
+
+    // 2. UYGULAMA İÇİ KAYIT
+    let n = { type: type, title: title, msg: msg, time: new Date().toLocaleTimeString(), read: false };
     
-    notifications.unshift(newNotif); // En başa ekle
-    if(notifications.length > 50) notifications.pop(); // 50 tane tut
-    localStorage.setItem('tm_notifications', JSON.stringify(notifications));
-
-    // B. EKRANI GÜNCELLE (Uygulama İçi Görünüm İçin ŞART)
-    renderNotifications(); 
-    updateBadge();
-
-    // C. TELEFON BİLDİRİMİ GÖNDER (System Tray)
-    sendSystemNotification(title, msg);
-}
-
-// 3. GÖRÜNTÜLEME: Listeyi Ekrana Bas
-function renderNotifications() {
-    const listElement = document.getElementById('notificationList');
-    if (!listElement) return; // HTML'de liste yeri yoksa dur.
-
-    listElement.innerHTML = ""; // Önce temizle
-    
-    if (notifications.length === 0) {
-        listElement.innerHTML = "<div style='text-align:center; padding:20px; color:#888;'>Bildirim Yok</div>";
-        return;
-    }
-
-    notifications.forEach(n => {
-        let colorClass = n.type === 'danger' ? 'border-red-500' : 'border-green-500';
-        let icon = n.type === 'danger' ? '❌' : '✅';
+    if(typeof notifications !== 'undefined') {
+        notifications.unshift(n);
+        if(notifications.length > 50) notifications.pop();
+        localStorage.setItem('tm_notifications', JSON.stringify(notifications));
         
-        let html = `
-            <div style="background:rgba(255,255,255,0.05); margin-bottom:10px; padding:10px; border-radius:8px; border-left:4px solid ${n.type === 'danger' ? 'red' : 'green'};">
-                <div style="font-weight:bold; font-size:14px; color:white;">${icon} ${n.title}</div>
-                <div style="font-size:12px; color:#ccc; margin-top:4px;">${n.msg}</div>
-                <div style="font-size:10px; color:#666; text-align:right; margin-top:5px;">${n.time}</div>
-            </div>
-        `;
-        listElement.innerHTML += html;
-    });
-}
-
-// 4. ROZET GÜNCELLEME
-function updateBadge() {
-    const badge = document.getElementById('navNotificationBadge');
-    if (!badge) return;
-    const count = notifications.filter(n => !n.read).length;
-    if (count > 0) {
-        badge.innerText = count;
-        badge.style.display = 'block';
-    } else {
-        badge.style.display = 'none';
-    }
-}
-
-// 5. SİSTEM BİLDİRİMİ (GÜNCELLENEN PREMIUM KISIM)
-function sendSystemNotification(title, msg) {
-    // A. Android Native Kontrolü
-    if(window.Android && window.Android.showNotification) {
-        window.Android.showNotification(title, msg);
-        return;
-    }
-
-    // B. Web Bildirimi Kontrolü
-    if (!("Notification" in window)) return;
-
-    // --- İKON AYARLARI ---
-    const logoIcon = "ikon.png"; // Klasördeki dosya
-    const badgeIcon = "https://cdn-icons-png.flaticon.com/512/9370/9370252.png"; // Küçük tepe ikonu
-
-    if (Notification.permission === "granted") {
+        if(typeof updateBadge === 'function') updateBadge();
         
-        // Service Worker Varsa (En Kaliteli Yöntem)
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-            navigator.serviceWorker.ready.then(function(registration) {
-                registration.showNotification(title, {
-                    body: msg,
-                    icon: logoIcon,
-                    badge: badgeIcon,
-                    vibrate: [200, 100, 200],
-                    tag: 'tradevia-alert'
-                });
-            });
-        } 
-        // Service Worker Yoksa (Klasik Yöntem)
-        else {
-            try {
-                new Notification(title, {
-                    body: msg,
-                    icon: logoIcon,
-                    vibrate: [200, 100, 200]
-                });
-            } catch (e) { console.log("Bildirim hatası:", e); }
+        let pageNotif = document.getElementById('page-notifications');
+        if(pageNotif && pageNotif.classList.contains('active') && typeof renderNotifications === 'function') {
+            renderNotifications();
         }
-    } 
-    // İzin Yoksa İste
-    else if (Notification.permission !== "denied") {
-        Notification.requestPermission().then(p => {
-            if(p === "granted") sendSystemNotification(title, msg);
-        });
     }
+
+    // 3. KATEGORİ AYARLARI KONTROLÜ
+    let category = 'trade'; 
+    if(title.includes('Alarm') || title.includes('HEDEF') || title.includes('DİKKAT')) category = 'price';
+    else if(title.includes('Haber')) category = 'news';
+    
+    if(typeof notifySettings !== 'undefined' && !notifySettings[category]) return;
+
+    // 4. SES VE TİTREŞİM
+    if(typeof notifySettings !== 'undefined' && notifySettings.sound && typeof playNotificationSound === 'function') {
+        playNotificationSound(type);
+    }
+
+    if(typeof notifySettings !== 'undefined' && notifySettings.vibrate && navigator.vibrate) {
+        if(type === 'danger') navigator.vibrate([100, 50, 100, 50, 100]); 
+        else navigator.vibrate(200); 
+    }
+
+// 5. BROWSER / TELEFON BİLDİRİMİ (TELEFON İÇİN GÜÇLENDİRİLDİ & İKONLU)
+if (window.Android && window.Android.showNotification) {
+    window.Android.showNotification(title, msg);
+    return; // Android halletti, buradan çık.
 }
 
+// YÖNTEM B: Web / Mobil Tarayıcı (Service Worker veya Klasik)
+if ("Notification" in window && Notification.permission === "granted") {
+    
+    // --- DEĞİŞİKLİK BURADA: Senin ikonunu tanımladık ---
+    let iconUrl = "ikon.png"; 
+    
+    // Hata durumunda (Danger) kırmızı ikon yerine senin ikonun kalsın istersen burayı silebilirsin
+    // veya danger.png gibi bir dosyan varsa onu yazabilirsin.
+    if(type === 'danger') iconUrl = "ikon.png"; 
+
+    // Android tepesi için küçük ikon (Şart)
+    let badgeIcon = "https://cdn-icons-png.flaticon.com/512/9370/9370252.png"; 
+
+    let vibPattern = (typeof notifySettings !== 'undefined' && notifySettings.vibrate) ? [200, 100, 200] : [];
+
+    // ÖNCE SERVICE WORKER DENE (Mobil Chrome'da tepeye düşmesi için bu şarttır)
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.ready.then(function(registration) {
+            registration.showNotification(title, {
+                body: msg,
+                icon: iconUrl,    // Senin logon
+                badge: badgeIcon, // Tepe ikonu
+                vibrate: vibPattern,
+                tag: 'tradevia-alert' // Bildirimleri gruplamak için
+            });
+        }).catch(function(err) {
+            console.log("SW Bildirim Hatası, klasike geçiliyor:", err);
+            // SW hata verirse aşağıdakini dener
+            classicNotification(title, msg, iconUrl, vibPattern);
+        });
+    } else {
+        // SW yoksa klasik yöntemi dene
+        classicNotification(title, msg, iconUrl, vibPattern);
+    }
+}
+}
 
 // Yardımcı Fonksiyon: Klasik Bildirim (Masaüstü vb. için)
 function classicNotification(title, msg, iconUrl, vibPattern) {
-    try {
-        const notif = new Notification(title, {
-            body: msg,
-            icon: iconUrl,
-            vibrate: vibPattern
-        });
-        notif.onclick = function() {
-            window.focus();
-            notif.close();
-            let notifBtn = document.querySelectorAll('.nav-item')[3]; 
-            if(notifBtn && typeof switchPage === 'function') switchPage('notifications', notifBtn);
-        };
-    } catch(e) {
-        console.warn("Bildirim oluşturulamadı:", e);
-    }
+try {
+    const notif = new Notification(title, {
+        body: msg,
+        icon: iconUrl, // Buraya da senin ikonun gelecek
+        vibrate: vibPattern
+    });
+    notif.onclick = function() {
+        window.focus();
+        notif.close();
+        let notifBtn = document.querySelectorAll('.nav-item')[3]; 
+        if(notifBtn && typeof switchPage === 'function') switchPage('notifications', notifBtn);
+    };
+} catch(e) {
+    console.warn("Bildirim oluşturulamadı:", e);
+}
 }
 
     function renderNotifications(){ let l = document.getElementById('notificationList'); l.innerHTML = ""; if(notifications.length === 0){ l.innerHTML = "<div style='text-align:center; padding:30px; color:var(--text-sub); opacity:0.6;'><i class='fas fa-bell-slash' style='font-size:24px; margin-bottom:10px;'></i><br>Bildirim Yok</div>"; return; } notifications.forEach(n => { let icon = 'info-circle'; let cls = 'n-info'; if(n.type === 'success') { icon = 'check-circle'; cls = 'n-success'; } if(n.type === 'danger') { icon = 'exclamation-circle'; cls = 'n-danger'; } if(n.type === 'warn') { icon = 'bell'; cls = 'n-warn'; } l.innerHTML += `<div class="notif-card ${cls} ${n.read ? '' : 'unread'}"><div class="notif-icon-box"><i class="fas fa-${icon}"></i></div><div class="notif-content"><div class="notif-title">${n.title}</div><div class="notif-msg">${n.msg}</div></div><div class="notif-time">${n.time}</div></div>`; }); notifications.forEach(n => n.read = true); localStorage.setItem('tm_notifications', JSON.stringify(notifications)); updateBadge(); }
