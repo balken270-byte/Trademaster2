@@ -6211,7 +6211,8 @@ function openLabFullscreen() {
                         </button>
                         <label class="ps-btn btn-main btn-sec" style="cursor:pointer; margin:0;">
                             <i class="fas fa-upload"></i> Yükle
-                            <input type="file" id="excelInput" style="display:none" onchange="uploadBackup(this)" accept=".xlsx, .xls">
+                            <input type="file" id="excelInput" style="display:none" onchange="importExcelBackup(this)" accept=".xlsx, .xls">
+                            
                             
                         </label>
                     </div>
@@ -7008,7 +7009,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.7"; 
+    const CURRENT_VERSION = "1.8"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -9030,7 +9031,97 @@ onerror="this.outerHTML=\`<div style='width:40px;height:40px;background:${color}
     function closeModal(id){document.getElementById(id).style.display='none';} function openModal(id){document.getElementById(id).style.display='flex';}
     function editNote(i){ let as=JSON.parse(localStorage.getItem('myPF_final')); let n=prompt("Not:",as[i].note||""); if(n!==null){as[i].note=n; localStorage.setItem('myPF_final',JSON.stringify(as)); loadPF();} }
     function downloadBackup(){ const d=localStorage.getItem('myPF_final'); const b=new Blob([d],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='yedek.json'; a.click(); }
-    function uploadBackup(i){ const f=i.files[0]; const r=new FileReader(); r.onload=function(e){localStorage.setItem('myPF_final',e.target.result); location.reload();}; r.readAsText(f); }
+    /* --- YENİ GELİŞMİŞ EXCEL YÜKLEME MOTORU --- */
+function importExcelBackup(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, {type: 'array'});
+
+        // 1. VARLIKLARIM SAYFASINI BUL VE YÜKLE
+        if (workbook.Sheets["Varlıklarım"]) {
+            const assetsSheet = workbook.Sheets["Varlıklarım"];
+            const assetsJson = XLSX.utils.sheet_to_json(assetsSheet);
+            
+            let newPortfolio = [];
+            
+            assetsJson.forEach(row => {
+                // Excel başlıklarını uygulama verisine çevir
+                // Başlıklar: "Varlık", "Adet", "Ort. Maliyet"
+                if(row["Varlık"] && row["Adet"]) {
+                    // Para birimini tahmin et (Sembol uzunluğuna göre basit mantık veya varsayılan TRY)
+                    let origin = 'TRY';
+                    let name = row["Varlık"].toString().trim();
+                    if(name.includes('USD') || name.endsWith('USDT')) origin = 'USD';
+
+                    newPortfolio.push({
+                        name: name,
+                        amt: parseFloat(row["Adet"]),
+                        buy: parseFloat(row["Ort. Maliyet"]),
+                        curr: parseFloat(row["Güncel Fiyat"] || row["Ort. Maliyet"]), // Güncel yoksa maliyeti koy
+                        origin: origin,
+                        image: null,
+                        source: 'EXCEL'
+                    });
+                }
+            });
+
+            if(newPortfolio.length > 0) {
+                localStorage.setItem('myPF_final', JSON.stringify(newPortfolio));
+                console.log("Portföy yüklendi: " + newPortfolio.length + " varlık.");
+            }
+        }
+
+        // 2. İŞLEM DEFTERİ SAYFASINI BUL VE YÜKLE
+        if (workbook.Sheets["İşlem Defteri"]) {
+            const historySheet = workbook.Sheets["İşlem Defteri"];
+            const historyJson = XLSX.utils.sheet_to_json(historySheet);
+            
+            let newHistory = [];
+
+            historyJson.forEach(row => {
+                // Başlıklar: "Tarih", "Saat", "İşlem Türü", "Sembol", "Miktar", "Fiyat", "Toplam Tutar"
+                newHistory.push({
+                    date: row["Tarih"],
+                    time: row["Saat"] || "00:00",
+                    type: row["İşlem Türü"],
+                    sym: row["Sembol"],
+                    qty: parseFloat(row["Miktar"]) || 0,
+                    price: parseFloat(row["Fiyat"]) || 0,
+                    total: parseFloat(row["Toplam Tutar"]) || 0,
+                    desc: 'Excel Yedeği',
+                    curr: 'TRY', // Varsayılan
+                    pnl: parseFloat(row["İşlem Sonucu (PnL)"]) || 0
+                });
+            });
+
+            if(newHistory.length > 0) {
+                // Tarihe göre sırala (Yeniden eskiye)
+                newHistory.reverse(); 
+                localStorage.setItem('tm_full_trade_history', JSON.stringify(newHistory));
+                console.log("Geçmiş yüklendi: " + newHistory.length + " işlem.");
+            }
+        }
+
+        // 3. MUHASEBE ÖZETİNDEN NAKİTİ BULMAYA ÇALIŞ (Opsiyonel)
+        if (workbook.Sheets["Muhasebe Özeti"]) {
+            const summarySheet = workbook.Sheets["Muhasebe Özeti"];
+            // Bu sayfayı düz metin gibi tarayıp "Kasadaki Nakit" satırını bulmaya çalışırız
+            // Ancak riskli olabilir, o yüzden şimdilik nakiti manuel girmenizi öneririm veya 0 başlar.
+        }
+
+        alert("Excel yedeği başarıyla yüklendi! Sayfa yenileniyor...");
+        location.reload();
+    };
+
+    // KRİTİK NOKTA: Binary okuma yapıyoruz, Text değil!
+    reader.readAsArrayBuffer(file);
+}
+
     function exportComprehensiveReport() {
     // --- GÜVENLİK KONTROLÜ (İnternet yavaşsa uygulama çökmesin diye) ---
     if (typeof XLSX === 'undefined') {
