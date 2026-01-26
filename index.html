@@ -42,6 +42,8 @@
 
 
 
+
+
     <style>
                     .bottom-nav {
             position: fixed;       /* Ekrana çivile */
@@ -1845,7 +1847,7 @@ button:active,
         -webkit-overflow-scrolling: touch; /* iPhone'da akıcı kaydırma */
         padding: 15px;
     }
-    
+
 </style>
 
 <script>
@@ -6211,9 +6213,9 @@ function openLabFullscreen() {
                         </button>
                         <label class="ps-btn btn-main btn-sec" style="cursor:pointer; margin:0;">
                             <i class="fas fa-upload"></i> Yükle
-                            <input type="file" id="excelInput" style="display:none" onchange="importExcelBackup(this)" accept=".xlsx, .xls">
+                            <input type="file" id="excelInput" style="display:none" onchange="baslatExcelYukleme(this)" accept=".xlsx, .xls">
                             
-                            
+                    
                         </label>
                     </div>
                     <button class="ps-btn btn-main btn-sec" style="width:100%" onclick="exportComprehensiveReport()">
@@ -7009,7 +7011,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -9031,154 +9033,270 @@ onerror="this.outerHTML=\`<div style='width:40px;height:40px;background:${color}
     function closeModal(id){document.getElementById(id).style.display='none';} function openModal(id){document.getElementById(id).style.display='flex';}
     function editNote(i){ let as=JSON.parse(localStorage.getItem('myPF_final')); let n=prompt("Not:",as[i].note||""); if(n!==null){as[i].note=n; localStorage.setItem('myPF_final',JSON.stringify(as)); loadPF();} }
     function downloadBackup(){ const d=localStorage.getItem('myPF_final'); const b=new Blob([d],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='yedek.json'; a.click(); }
-/* --- V4: HATA AFFEDİCİ AKILLI YÜKLEYİCİ --- */
-function importExcelBackup(input) {
+/* --- V20 FINAL: GECKO & MASSIVE ÖNCELİKLİ YÜKLEYİCİ --- */
+function baslatExcelYukleme(input) {
     const file = input.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
+    // --- LOADER EKRANI ---
+    if (!document.getElementById('tm_loader_style')) {
+        const css = `
+            #tm_overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; backdrop-filter:blur(5px); }
+            #tm_box { width:90%; max-width:400px; background:#1e293b; padding:25px; border-radius:20px; border:1px solid rgba(255,255,255,0.1); text-align:center; box-shadow:0 0 50px rgba(0,0,0,0.5); }
+            #tm_bar_bg { width:100%; height:8px; background:#334155; border-radius:10px; margin:20px 0; overflow:hidden; }
+            #tm_bar_fill { height:100%; width:0%; background:#8b5cf6; transition:width 0.3s; }
+            #tm_log { color:#94a3b8; font-size:11px; margin-top:15px; height:120px; overflow-y:auto; text-align:left; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; font-family:monospace; border:1px solid rgba(255,255,255,0.05); }
+        `;
+        const style = document.createElement('style');
+        style.id = 'tm_loader_style';
+        style.innerHTML = css;
+        document.head.appendChild(style);
+        
+        const html = `<div id="tm_overlay"><div id="tm_box"><div style="font-size:40px; margin-bottom:10px;">🧬</div><h3 style="color:white; margin:0;">Gecko & Massive Modu</h3><div id="tm_bar_bg"><div id="tm_bar_fill"></div></div><div id="tm_msg" style="color:white; font-weight:bold;">Analiz Başlıyor...</div><div id="tm_log"></div></div></div>`;
+        document.body.insertAdjacentHTML('beforeend', html);
+    }
 
+    const overlay = document.getElementById('tm_overlay');
+    const bar = document.getElementById('tm_bar_fill');
+    const log = document.getElementById('tm_log');
+    
+    overlay.style.display = 'flex';
+    bar.style.width = '10%';
+    log.innerHTML = "Dosya okunuyor...<br>";
+    
+    const addLog = (text) => { log.innerHTML += `> ${text}<br>`; log.scrollTop = log.scrollHeight; };
+    
+    // Gelişmiş Para Temizleyici
+    const parseMoney = (val) => {
+        if (!val) return 0;
+        let str = val.toString().trim();
+        if(str === '-') return 0;
+        // Sadece sayı, nokta, virgül ve eksi bırak
+        str = str.replace(/[^0-9.,-]/g, '');
+        // 1.000,50 -> 1000.50
+        if(str.includes('.') && str.includes(',')) str = str.replace(/\./g, '').replace(',', '.');
+        else if(str.includes(',')) str = str.replace(',', '.');
+        return parseFloat(str) || 0;
+    };
+
+    // ABD Hisseleri Listesi (Otomatik Massive Etiketi İçin)
+    const usStocks = ['AAPL','TSLA','AMZN','MSFT','GOOGL','META','NVDA','AMD','NFLX','COIN','GME','INTC','PLTR','MSTR','HOOD','BABA','UBER','DIS','V','JPM'];
+
+    const reader = new FileReader();
     reader.onload = function(e) {
         try {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, {type: 'array'});
             
-            let portfolioCount = 0;
-            let historyCount = 0;
             let newPortfolio = [];
             let newHistory = [];
+            let foundCash = null;
 
-            // Tüm sayfaları gez
+            bar.style.width = '30%';
+
             workbook.SheetNames.forEach(sheetName => {
-                const sheet = workbook.Sheets[sheetName];
-                const jsonData = XLSX.utils.sheet_to_json(sheet);
+                const sheetLower = sheetName.toLocaleLowerCase('tr');
+                const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {header: 1});
+                if(rows.length === 0) return;
 
-                if (jsonData.length > 0) {
-                    // İlk satırın anahtarlarını (başlıklarını) al
-                    const firstRow = jsonData[0];
-                    const keys = Object.keys(firstRow);
+                // A) NAKİT BULMA
+                if (sheetLower.includes("muhasebe") || sheetLower.includes("özet")) {
+                    rows.forEach(row => {
+                        let rowStr = row.join(" ").toLocaleLowerCase('tr');
+                        if (rowStr.includes("kasadaki nakit")) {
+                            row.forEach(cell => {
+                                if (cell && /[0-9]/.test(cell.toString()) && !cell.toString().toLocaleLowerCase('tr').includes("nakit")) {
+                                    foundCash = parseMoney(cell);
+                                    addLog(`Nakit: ${foundCash}`);
+                                }
+                            });
+                        }
+                    });
+                }
 
-                    // --- SÜTUN BULUCU (Akıllı Eşleştirme) ---
-                    // Başlık isminin içinde "Varlık" geçiyorsa o sütunu yakalar
-                    const keyVarlik = keys.find(k => k.toLowerCase().includes("varlık") || k.toLowerCase().includes("varlik"));
-                    const keyAdet = keys.find(k => k.toLowerCase().includes("adet") || k.toLowerCase().includes("miktar"));
-                    const keyMaliyet = keys.find(k => k.toLowerCase().includes("maliyet") || k.toLowerCase().includes("alış"));
-                    const keyGuncel = keys.find(k => k.toLowerCase().includes("güncel") || k.toLowerCase().includes("fiyat"));
+                // B) VARLIKLARIM (Portföy) - ÖNCELİKLİ MOD
+                if (sheetLower.includes("varlık")) {
+                    let headIdx = -1;
+                    let map = { name:-1, amt:-1, unitCost:-1, totalCost:-1, curr:-1, origin:-1, source:-1 };
 
-                    const keyIslemTuru = keys.find(k => k.toLowerCase().includes("tür") || k.toLowerCase().includes("tip"));
-                    const keySembol = keys.find(k => k.toLowerCase().includes("sembol"));
-                    const keyTarih = keys.find(k => k.toLowerCase().includes("tarih"));
-
-                    // --- 1. PORTFÖY VERİSİ Mİ? ---
-                    if (keyVarlik && keyAdet) {
-                        console.log("Cüzdan sayfası bulundu: " + sheetName);
-                        jsonData.forEach(row => {
-                            // Değerleri güvenli şekilde al
-                            let rawName = row[keyVarlik];
-                            let rawAdet = row[keyAdet];
-                            let rawMaliyet = row[keyMaliyet];
-                            let rawGuncel = row[keyGuncel];
-
-                            if(rawName && rawAdet) {
-                                let origin = 'TRY';
-                                let name = rawName.toString().trim().toUpperCase();
+                    // Sütunları Bul
+                    for(let i=0; i<Math.min(rows.length, 10); i++) {
+                        let r = rows[i].map(x => x ? x.toString().toLocaleLowerCase('tr') : "");
+                        if(r.some(c => c.includes("varlık") || c.includes("sembol"))) {
+                            headIdx = i;
+                            r.forEach((c, idx) => {
+                                if(c.includes("varlık") || c.includes("sembol")) map.name = idx;
+                                if(c.includes("adet") || c.includes("miktar")) map.amt = idx;
                                 
-                                // Para birimi tahmini
-                                if(name.includes('USD') || name.endsWith('USDT') || name === 'USD') origin = 'USD';
+                                // Birim Maliyet (Öncelikli)
+                                if((c.includes("maliyet") || c.includes("birim") || c.includes("ort")) && !c.includes("tutar") && !c.includes("toplam")) {
+                                    map.unitCost = idx;
+                                }
+                                // Toplam Maliyet (Yedek)
+                                if(c.includes("maliyet") && (c.includes("tutar") || c.includes("toplam"))) map.totalCost = idx;
 
-                                newPortfolio.push({
-                                    name: name,
-                                    amt: parseFloat(rawAdet),
-                                    buy: parseFloat(rawMaliyet || 0),
-                                    curr: parseFloat(rawGuncel || rawMaliyet || 0),
-                                    origin: origin,
-                                    image: null,
-                                    source: 'EXCEL'
-                                });
-                                portfolioCount++;
-                            }
-                        });
+                                if(c.includes("güncel")) map.curr = idx;
+                                if(c.includes("para") || c.includes("döviz")) map.origin = idx;
+                                if(c.includes("kaynak") || c.includes("etiket")) map.source = idx;
+                            });
+                            break;
+                        }
                     }
 
-                    // --- 2. GEÇMİŞ İŞLEM VERİSİ Mİ? ---
-                    else if (keyIslemTuru && (keySembol || keyVarlik)) {
-                        console.log("Geçmiş sayfası bulundu: " + sheetName);
-                        let symKey = keySembol || keyVarlik;
-                        let priceKey = keyGuncel || keyMaliyet || keys.find(k => k.toLowerCase().includes("fiyat"));
-                        let totalKey = keys.find(k => k.toLowerCase().includes("tutar") || k.toLowerCase().includes("toplam"));
-                        let pnlKey = keys.find(k => k.toLowerCase().includes("pnl") || k.toLowerCase().includes("sonuç"));
+                    if(headIdx !== -1 && map.name !== -1) {
+                        for(let j=headIdx+1; j<rows.length; j++) {
+                            let r = rows[j];
+                            if(!r || !r[map.name]) continue;
+                            
+                            let pName = r[map.name].toString().trim().toUpperCase();
+                            let pAmt = parseMoney(r[map.amt]);
+                            
+                            // MALİYET MANTIĞI: Önce Birimi Oku, Yoksa Hesapla
+                            let finalCost = 0;
+                            let rawUnit = (map.unitCost !== -1) ? parseMoney(r[map.unitCost]) : 0;
+                            let rawTotal = (map.totalCost !== -1) ? parseMoney(r[map.totalCost]) : 0;
 
-                        jsonData.forEach(row => {
-                            newHistory.push({
-                                date: row[keyTarih] || new Date().toLocaleDateString(),
-                                time: row["Saat"] || "00:00",
-                                type: row[keyIslemTuru] || "BİLİNMEYEN",
-                                sym: row[symKey] || "NAKİT",
-                                qty: parseFloat(row[keyAdet] || 0),
-                                price: parseFloat(row[priceKey] || 0),
-                                total: parseFloat(row[totalKey] || 0),
-                                desc: 'Yedek Yüklemesi',
-                                curr: 'TRY',
-                                pnl: parseFloat(row[pnlKey] || 0)
+                            if(rawUnit > 0) finalCost = rawUnit;
+                            else if(rawTotal > 0 && pAmt > 0) finalCost = rawTotal / pAmt;
+
+                            // KAYNAK (SOURCE) MANTIĞI - ÖNCELİK AYARI
+                            let pOrigin = (map.origin !== -1 && r[map.origin]) ? r[map.origin].toString().trim().toUpperCase() : '';
+                            let pSource = (map.source !== -1 && r[map.source]) ? r[map.source].toString().trim().toUpperCase() : '';
+
+                            // 1. Etiket Boşsa veya Manuel ise Otomatik Ata
+                            if (!pSource || pSource === 'MANUEL' || pSource === 'YEDEK') {
+                                if (usStocks.includes(pName)) {
+                                    pSource = 'MASSIVE'; // ABD Hissesi -> Massive
+                                    pOrigin = 'USD';
+                                } else if (pName.endsWith('.IS')) {
+                                    pSource = 'BIST'; // Türk Hissesi -> BIST
+                                    pOrigin = 'TRY';
+                                } else if (pName.includes('USD') || pName.includes('EUR') || pName.includes('ONS')) {
+                                    pSource = 'FOREX';
+                                    pOrigin = 'USD';
+                                } else {
+                                    pSource = 'CG'; // Kripto -> CoinGecko (Öncelikli)
+                                    pOrigin = 'USD';
+                                }
+                            }
+                            
+                            // 2. Para Birimi Boşsa Tahmin Et
+                            if (!pOrigin) {
+                                pOrigin = (pName.includes('USD') || pName.endsWith('USDT') || pSource === 'CG' || pSource === 'MASSIVE') ? 'USD' : 'TRY';
+                            }
+
+                            if(pName && pAmt > 0) {
+                                newPortfolio.push({
+                                    name: pName, 
+                                    amt: pAmt, 
+                                    buy: finalCost, 
+                                    curr: parseMoney(r[map.curr]), 
+                                    origin: pOrigin, 
+                                    image: null, 
+                                    source: pSource // CG veya MASSIVE olarak kaydedilecek
+                                });
+                            }
+                        }
+                        addLog(`${newPortfolio.length} varlık işlendi (Gecko/Massive aktif).`);
+                    }
+                }
+
+                // C) İŞLEM DEFTERİ (Geçmiş)
+                if (sheetLower.includes("işlem") || sheetLower.includes("defter")) {
+                    let headIdx = -1;
+                    let map = { date:-1, time:-1, type:-1, sym:-1, qty:-1, price:-1, pnl:-1 };
+
+                    for(let i=0; i<Math.min(rows.length, 10); i++) {
+                        let r = rows[i].map(x => x ? x.toString().toLocaleLowerCase('tr') : "");
+                        if(r.some(c => c.includes("tür")) && r.some(c => c.includes("tarih"))) {
+                            headIdx = i;
+                            r.forEach((c, idx) => {
+                                if(c.includes("tarih")) map.date = idx;
+                                if(c.includes("saat")) map.time = idx;
+                                if(c.includes("tür")) map.type = idx;
+                                if(c.includes("sembol") || c.includes("varlık")) map.sym = idx;
+                                if(c.includes("miktar") || c.includes("adet")) map.qty = idx;
+                                if(c.includes("fiyat")) map.price = idx;
+                                if(c.includes("sonuç") || c.includes("pnl")) map.pnl = idx;
                             });
-                            historyCount++;
-                        });
+                            break;
+                        }
+                    }
+
+                    if(headIdx !== -1) {
+                        for(let j=headIdx+1; j<rows.length; j++) {
+                            let r = rows[j];
+                            if(!r || !r[map.type]) continue;
+                            
+                            let dVal = r[map.date];
+                            let fDate = new Date().toLocaleDateString("tr-TR");
+                            if(typeof dVal === 'number') {
+                                fDate = new Date(Math.round((dVal - 25569)*86400*1000)).toLocaleDateString("tr-TR");
+                            } else if(dVal) fDate = dVal.toString().trim();
+
+                            newHistory.push({
+                                date: fDate, 
+                                time: (map.time!==-1 && r[map.time]) ? r[map.time] : "00:00",
+                                type: r[map.type].toString().toUpperCase().trim(),
+                                sym: (map.sym!==-1 && r[map.sym]) ? r[map.sym].toString().toUpperCase().trim() : "NAKİT",
+                                qty: (map.qty!==-1) ? parseMoney(r[map.qty]) : 0,
+                                price: (map.price!==-1) ? parseMoney(r[map.price]) : 0,
+                                total: 0,
+                                desc: 'Yedek',
+                                curr: 'TRY',
+                                pnl: (map.pnl!==-1) ? parseMoney(r[map.pnl]) : 0
+                            });
+                            newHistory[newHistory.length-1].total = newHistory[newHistory.length-1].qty * newHistory[newHistory.length-1].price;
+                        }
+                        addLog(`${newHistory.length} işlem kaydı yüklendi.`);
                     }
                 }
             });
 
-            // --- KAYDETME VE SONUÇ ---
-            if (portfolioCount > 0) {
-                localStorage.setItem('myPF_final', JSON.stringify(newPortfolio));
-            }
+            bar.style.width = '100%';
             
-            if (historyCount > 0) {
-                // Tarihe göre sırala (Yeniden eskiye)
-                newHistory.reverse();
+            if (foundCash !== null) localStorage.setItem('tm_cash_balance', foundCash);
+            if (newPortfolio.length > 0) localStorage.setItem('myPF_final', JSON.stringify(newPortfolio));
+            if (newHistory.length > 0) {
+                newHistory.sort((a,b) => {
+                    let pa = a.date.split('.'), pb = b.date.split('.');
+                    return new Date(pa[2], pa[1]-1, pa[0]) - new Date(pb[2], pb[1]-1, pb[0]);
+                });
                 localStorage.setItem('tm_full_trade_history', JSON.stringify(newHistory));
             }
 
-            if(portfolioCount === 0 && historyCount === 0) {
-                alert("HATA: Dosya okundu ama uygun sütunlar (Varlık, Adet vb.) bulunamadı.\nLütfen Excel dosyanızın başlıklarının doğru olduğundan emin olun.");
-            } else {
-                alert(`✅ YÜKLEME BAŞARILI!\n\n📦 ${portfolioCount} adet varlık yüklendi.\n📜 ${historyCount} adet işlem geçmişi yüklendi.\n\nSayfa yenileniyor...`);
-                location.reload();
-            }
+            document.getElementById('tm_msg').innerText = "BAŞARILI!";
+            addLog("Sayfa yenileniyor...");
+            setTimeout(() => location.reload(), 1500);
 
         } catch (err) {
-            console.error(err);
-            alert("Kritik Hata: Dosya okunamadı. Lütfen geçerli bir .xlsx dosyası seçin.");
+            document.getElementById('tm_msg').innerText = "HATA";
+            document.getElementById('tm_msg').style.color = "#ef4444";
+            addLog("Hata: " + err.message);
         }
     };
-
     reader.readAsArrayBuffer(file);
 }
 
-    function exportComprehensiveReport() {
-    // --- GÜVENLİK KONTROLÜ (İnternet yavaşsa uygulama çökmesin diye) ---
+
+    /* --- GÜNCELLENMİŞ EXCEL RAPORLAMA (V16 - ETİKET VE BİRİM FİYAT DESTEKLİ) --- */
+function exportComprehensiveReport() {
     if (typeof XLSX === 'undefined') {
-        alert("Excel kütüphanesi henüz yüklenmedi! Lütfen internet bağlantınızı kontrol edip 5 saniye sonra tekrar deneyin.");
+        alert("Excel kütüphanesi hazır değil. Lütfen bekleyin.");
         return; 
     }
 
-    // ---------------------------------------------------------
-    // 1. VERİLERİ TOPLA
-    // ---------------------------------------------------------
+    // 1. VERİLERİ HAZIRLA
     const pf = JSON.parse(localStorage.getItem('myPF_final')) || [];
     const history = JSON.parse(localStorage.getItem('tm_full_trade_history')) || [];
     const cash = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
     const realizedPnL = parseFloat(localStorage.getItem('tm_realized_pnl')) || 0;
-    
-    // Uygulama Ayarları (Para Birimi vb.)
     const settings = JSON.parse(localStorage.getItem('tm_settings')) || { currency: 'TRY' };
     const mainSym = settings.currency === 'TRY' ? '₺' : '$';
 
-    // ---------------------------------------------------------
-    // 2. SAYFA 1: MUHASEBE VE PERFORMANS ÖZETİ
-    // ---------------------------------------------------------
-    let totalInvested = 0; // İçeri giren net para (Yatırma - Çekme)
-    let totalSalary = 0;   // Çekilen Maaşlar
-    
+    // 2. SAYFA 1: ÖZET
+    let totalInvested = 0; 
+    let totalSalary = 0;   
     history.forEach(t => {
         let val = parseFloat(t.total) || 0;
         if (t.type === 'YATIRMA') totalInvested += val;
@@ -9186,109 +9304,80 @@ function importExcelBackup(input) {
         else if (t.type === 'MAAŞ') totalSalary += val;
     });
 
-    // Portföy Değeri Hesapla
     let portfolioValue = 0;
-    let portfolioCost = 0;
     pf.forEach(item => {
         let p = item.curr || item.buy;
         portfolioValue += (p * item.amt);
-        portfolioCost += (item.buy * item.amt);
     });
 
-    let totalEquity = cash + portfolioValue; // Toplam Özkaynak
-    let unrealizedPnL = portfolioValue - portfolioCost; // Açık İşlem Kârı
-    let netPnL = totalEquity - totalInvested; // Net Kâr (Her şey dahil)
-
-    // Excel İçin Özet Verisi
     let summaryData = [
         ["RAPOR TARİHİ", new Date().toLocaleString('tr-TR')],
         ["", ""],
         ["--- FİNANSAL DURUM ---", "--- DEĞER ---"],
-        ["Toplam Varlık (Nakit + Mal)", totalEquity.toFixed(2) + " " + mainSym],
+        ["Toplam Varlık", (cash + portfolioValue).toFixed(2) + " " + mainSym],
         ["Kasadaki Nakit", cash.toFixed(2) + " " + mainSym],
-        ["Portföy Değeri (Mallar)", portfolioValue.toFixed(2) + " " + mainSym],
         ["", ""],
-        ["--- MUHASEBE ANALİZİ ---", ""],
-        ["Toplam Yatırılan Sermaye", totalInvested.toFixed(2) + " " + mainSym],
-        ["Realize Edilen (Cebine Giren) Kâr", realizedPnL.toFixed(2) + " " + mainSym],
-        ["Açık İşlem Kârı (Satılmamış)", unrealizedPnL.toFixed(2) + " " + mainSym],
-        ["Çekilen Maaşlar (Kâr Dağıtımı)", totalSalary.toFixed(2) + " " + mainSym],
-        ["NET KÂR/ZARAR DURUMU", netPnL.toFixed(2) + " " + mainSym]
+        ["--- MUHASEBE ---", ""],
+        ["Yatırılan Sermaye", totalInvested.toFixed(2) + " " + mainSym],
+        ["Realize Kâr", realizedPnL.toFixed(2) + " " + mainSym],
+        ["Çekilen Maaşlar", totalSalary.toFixed(2) + " " + mainSym]
     ];
 
-    // ---------------------------------------------------------
-    // 3. SAYFA 2: AKTİF PORTFÖY LİSTESİ
-    // ---------------------------------------------------------
+    // 3. SAYFA 2: VARLIKLARIM (DÜZELTİLDİ: Para Birimi ve Kaynak Eklendi)
     let portfolioData = [];
-    // Başlıklar
-    portfolioData.push(["Varlık", "Adet", "Ort. Maliyet", "Güncel Fiyat", "Toplam Değer", "Maliyet Tutarı", "Kâr/Zarar", "Durum"]);
+    portfolioData.push(["Varlık", "Adet", "Birim Maliyet", "Para Birimi", "Kaynak", "Güncel Fiyat", "Toplam Değer", "Kâr/Zarar"]);
 
     pf.forEach(p => {
         let currentPrice = p.curr || p.buy;
         let totalVal = p.amt * currentPrice;
         let totalCost = p.amt * p.buy;
         let pnl = totalVal - totalCost;
-        let status = pnl >= 0 ? "KÂRDA" : "ZARARDA";
 
         portfolioData.push([
-            p.name.replace('.IS','').replace('BINANCE:',''), // İsim
-            p.amt, // Adet
-            parseFloat(p.buy.toFixed(2)), // Maliyet
-            parseFloat(currentPrice.toFixed(2)), // Güncel
-            parseFloat(totalVal.toFixed(2)), // Toplam Değer
-            parseFloat(totalCost.toFixed(2)), // Maliyet Tutarı
-            parseFloat(pnl.toFixed(2)), // PnL
-            status // Durum
+            p.name,           // Varlık Adı
+            p.amt,            // Adet
+            p.buy,            // Birim Maliyet (Eskiden toplam yazıyordu, düzeldi)
+            p.origin || 'TRY',// Para Birimi (USD/TRY) - YENİ
+            p.source || 'MANUEL', // Kaynak (Binance/BIST) - YENİ
+            currentPrice,     // Güncel Fiyat
+            totalVal,         // Toplam Değer
+            pnl               // Kâr/Zarar
         ]);
     });
 
-    // ---------------------------------------------------------
-    // 4. SAYFA 3: İŞLEM GEÇMİŞİ (DEFTER)
-    // ---------------------------------------------------------
+    // 4. SAYFA 3: İŞLEM GEÇMİŞİ (DÜZELTİLDİ: Para Birimi Eklendi)
     let historyData = [];
-    historyData.push(["Tarih", "Saat", "İşlem Türü", "Sembol", "Miktar", "Fiyat", "Toplam Tutar", "İşlem Sonucu (PnL)"]);
+    historyData.push(["Tarih", "Saat", "Tür", "Sembol", "Miktar", "Fiyat", "Toplam", "Sonuç", "Para Birimi"]);
 
-    // Geçmişi tersine çevir (Yeniden eskiye)
     [...history].reverse().forEach(h => {
-        let pnlText = h.pnl ? parseFloat(h.pnl).toFixed(2) : "-";
-        
         historyData.push([
             h.date,
             h.time || "00:00",
-            h.type, // ALIM, SATIM, YATIRMA...
+            h.type,
             h.sym || "NAKİT",
             h.qty || "-",
             h.price || "-",
             parseFloat(h.total).toFixed(2),
-            pnlText
+            h.pnl ? parseFloat(h.pnl).toFixed(2) : "-",
+            h.curr || "TRY" // İşlemin para birimi - YENİ
         ]);
     });
 
-    // ---------------------------------------------------------
-    // 5. EXCEL DOSYASINI OLUŞTUR (WORKBOOK)
-    // ---------------------------------------------------------
+    // 5. DOSYAYI OLUŞTUR
     const wb = XLSX.utils.book_new();
-
-    // Sayfa 1: Özet
+    
     const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
-    wsSummary['!cols'] = [{wch: 30}, {wch: 20}]; // Sütun genişlikleri
     XLSX.utils.book_append_sheet(wb, wsSummary, "Muhasebe Özeti");
 
-    // Sayfa 2: Portföy
     const wsPortfolio = XLSX.utils.aoa_to_sheet(portfolioData);
-    wsPortfolio['!cols'] = [{wch:15}, {wch:10}, {wch:12}, {wch:12}, {wch:15}, {wch:15}, {wch:12}, {wch:10}];
+    wsPortfolio['!cols'] = [{wch:15}, {wch:10}, {wch:12}, {wch:10}, {wch:12}, {wch:12}, {wch:15}, {wch:12}];
     XLSX.utils.book_append_sheet(wb, wsPortfolio, "Varlıklarım");
 
-    // Sayfa 3: Geçmiş
     const wsHistory = XLSX.utils.aoa_to_sheet(historyData);
-    wsHistory['!cols'] = [{wch:12}, {wch:8}, {wch:12}, {wch:12}, {wch:10}, {wch:12}, {wch:15}, {wch:15}];
     XLSX.utils.book_append_sheet(wb, wsHistory, "İşlem Defteri");
 
-    // ---------------------------------------------------------
-    // 6. İNDİR
-    // ---------------------------------------------------------
     let dateStr = new Date().toLocaleDateString('tr-TR').replace(/\./g, '-');
-    XLSX.writeFile(wb, `TradeVia_Kapsamli_Rapor_${dateStr}.xlsx`);
+    XLSX.writeFile(wb, `TradeVia_Yedek_${dateStr}.xlsx`);
 }
 
     function loadProfile() { document.getElementById('displayProfileName').innerText = userProfile.name; document.getElementById('profileNameInput').value = userProfile.name; document.getElementById('displayProfileBio').innerText = userProfile.bio; document.getElementById('profileBioInput').value = userProfile.bio; document.getElementById('profileJoinDate').innerText = userProfile.joinDate; document.getElementById('profileTradeCount').innerText = tradeHistory.length; if(userProfile.img) document.getElementById('displayProfileImg').src = userProfile.img; }
@@ -11879,14 +11968,25 @@ function switchAnTab(tab, btn) {
 
 })();
 
-/* --- GÜNCELLENMİŞ VE AYRIŞTIRILMIŞ GRAFİK MOTORU --- */
-let dailyChartInstance = null;
+/* --- GÜNCELLENMİŞ VE HATA KORUMALI GRAFİK MOTORU (CANVAS REUSE FIX) --- */
+let dailyChartInstance = null; // Değişkeni yine de tanımlayalım, zarar gelmez.
 
 function renderDailyChart(logs, monthlyRate, monthlyAdd) {
-    const ctx = document.getElementById('visionChart');
-    if(!ctx) return; 
+    const canvas = document.getElementById('visionChart');
+    if(!canvas) return; 
 
-    const context = ctx.getContext('2d');
+    // --- KRİTİK DÜZELTME BAŞLANGICI ---
+    // Eğer bu canvas üzerinde daha önce çizilmiş bir grafik varsa, onu bul ve YOK ET.
+    // Bu sayede "Canvas is already in use" hatası asla almazsınız.
+    if (typeof Chart !== 'undefined') {
+        const existingChart = Chart.getChart(canvas); // Canvas üzerindeki grafiği bul
+        if (existingChart) {
+            existingChart.destroy(); // Varsa yok et
+        }
+    }
+    // --- KRİTİK DÜZELTME BİTİŞİ ---
+
+    const context = canvas.getContext('2d');
 
     // --- 1. Geçmiş Verileri Hazırla ---
     if(!logs) logs = JSON.parse(localStorage.getItem('tm_daily_tracking')) || [];
@@ -11955,9 +12055,8 @@ function renderDailyChart(logs, monthlyRate, monthlyAdd) {
     let targetData = Array(labels.length).fill(target);
 
     // --- 6. Çizim ---
-    if(dailyChartInstance) dailyChartInstance.destroy();
-
-    dailyChartInstance = new Chart(context, {
+    // Artık değişken atamamıza gerek yok, Chart.js canvas'a bağlı çalışıyor.
+    new Chart(context, {
         type: 'line',
         data: {
             labels: labels,
@@ -12061,7 +12160,6 @@ document.addEventListener("DOMContentLoaded", function() {
         renderDailyChart(null, parseTurkishInput(r), parseTurkishInput(a));
     }, 1500);
 });
-
 
 /* ==========================================================================
    AR-GE (LAB) MASTER MODÜLÜ - (FİNAL SÜRÜM)
@@ -14169,51 +14267,6 @@ if (typeof window.switchPage === 'function') {
 // 2. Sürekli kontrol (Hata payını sıfırlar)
 setInterval(forceNavColor, 500);
 
-/* === FİNAL EXCEL YÜKLEME KODU (ID İLE NOKTA ATIŞI) === */
-
-var excelButonu = document.getElementById('excelInput');
-
-if (excelButonu) {
-    // Mevcut 'onchange' olayını ezip kendi temiz kodumuzu çalıştırıyoruz
-    excelButonu.onchange = function(e) {
-        var files = e.target.files;
-        if(files.length === 0) return;
-
-        var reader = new FileReader();
-
-        reader.onload = function(e) {
-            var data = new Uint8Array(e.target.result);
-            var workbook = XLSX.read(data, {type: 'array'});
-
-            /* HEDEF SAYFAYI BUL (Rapor sayfasını atla) */
-            var hedefSayfa = "İşlem Defteri"; 
-            
-            if (!workbook.Sheets[hedefSayfa]) {
-                hedefSayfa = "Varlıklarım";
-            }
-            if (!workbook.Sheets[hedefSayfa]) {
-                hedefSayfa = workbook.SheetNames[0]; // Mecbur ilk sayfayı al
-            }
-
-            /* VERİYİ OKU */
-            var worksheet = workbook.Sheets[hedefSayfa];
-            var jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-            if (jsonData.length > 0) {
-                // Veriyi kaydet
-                localStorage.setItem('tradeData', JSON.stringify(jsonData));
-                alert("Yedek başarıyla yüklendi! Sayfa yenileniyor...");
-                location.reload(); 
-            } else {
-                alert("Dosya boş veya uygun formatta değil.");
-            }
-        };
-
-        reader.readAsArrayBuffer(files[0]);
-    };
-} else {
-    console.error("HATA: 'excelInput' ID'li buton bulunamadı. HTML kodunu düzelttin mi?");
-}
 
 
 </script>
@@ -14569,7 +14622,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 </script>
-
 </body>
 </html>
 
