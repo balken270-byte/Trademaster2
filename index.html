@@ -1785,7 +1785,7 @@ button:active,
         border-bottom: 1px solid rgba(255,255,255,0.05) !important;
     }
 
-    /* 4. ALT MENÜ (NAV BAR) - Home Çubuğu Payı */
+    /* 4. ALT MENÜ - iPhone Ana Ekran Düzeltmesi */
     .nav-container, .bottom-nav {
         position: fixed !important;
         bottom: 0 !important;
@@ -1793,10 +1793,13 @@ button:active,
         width: 100% !important;
         z-index: 99999 !important;
 
-        /* Yükseklik = Normal Bar (70px) + iPhone Alt Çizgi Boşluğu */
-        height: calc(70px + env(safe-area-inset-bottom)) !important;
+        /* Yükseklik Hesabı: 70px (Menü) + Güvenli Alan */
+        height: 70px !important; /* Fallback */
+        height: calc(70px + constant(safe-area-inset-bottom)) !important; /* iOS < 11.2 */
+        height: calc(70px + env(safe-area-inset-bottom)) !important; /* iOS 11.2+ */
         
-        /* İkonları yukarı it (Çizginin altında kalmasınlar) */
+        /* İçerik Hizalama: İkonları yukarı it */
+        padding-bottom: constant(safe-area-inset-bottom) !important;
         padding-bottom: env(safe-area-inset-bottom) !important;
         
         background: rgba(21, 27, 43, 0.98) !important;
@@ -1804,10 +1807,10 @@ button:active,
         border-top: 1px solid rgba(255,255,255,0.08) !important;
         
         display: flex !important;
-        align-items: center !important; /* Dikey ortala */
+        align-items: center !important;
         justify-content: space-around !important;
     }
-
+    
     /* 5. İKONLARIN EZİLMESİNİ ENGELLE */
     .nav-item {
         flex: 1 !important;
@@ -7012,7 +7015,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.8"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
