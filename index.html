@@ -7009,7 +7009,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.9"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -9031,7 +9031,7 @@ onerror="this.outerHTML=\`<div style='width:40px;height:40px;background:${color}
     function closeModal(id){document.getElementById(id).style.display='none';} function openModal(id){document.getElementById(id).style.display='flex';}
     function editNote(i){ let as=JSON.parse(localStorage.getItem('myPF_final')); let n=prompt("Not:",as[i].note||""); if(n!==null){as[i].note=n; localStorage.setItem('myPF_final',JSON.stringify(as)); loadPF();} }
     function downloadBackup(){ const d=localStorage.getItem('myPF_final'); const b=new Blob([d],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='yedek.json'; a.click(); }
-    /* --- AKILLI EXCEL/CSV YÜKLEME MOTORU (V3 - FINAL) --- */
+/* --- V4: HATA AFFEDİCİ AKILLI YÜKLEYİCİ --- */
 function importExcelBackup(input) {
     const file = input.files[0];
     if (!file) return;
@@ -9043,91 +9043,111 @@ function importExcelBackup(input) {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, {type: 'array'});
             
-            let portfolioFound = false;
-            let historyFound = false;
-            
-            // Tüm sayfaları tek tek gez ve ne olduğunu anla
+            let portfolioCount = 0;
+            let historyCount = 0;
+            let newPortfolio = [];
+            let newHistory = [];
+
+            // Tüm sayfaları gez
             workbook.SheetNames.forEach(sheetName => {
                 const sheet = workbook.Sheets[sheetName];
                 const jsonData = XLSX.utils.sheet_to_json(sheet);
 
                 if (jsonData.length > 0) {
-                    // İlk satırın başlıklarını kontrol et
+                    // İlk satırın anahtarlarını (başlıklarını) al
                     const firstRow = jsonData[0];
                     const keys = Object.keys(firstRow);
 
-                    // --- SENARYO 1: PORTFÖY SAYFASI MI? ---
-                    // İçinde "Varlık" ve "Adet" sütunu varsa bu Portföydür
-                    if (keys.some(k => k.includes("Varlık")) && keys.some(k => k.includes("Adet"))) {
-                        let newPortfolio = [];
+                    // --- SÜTUN BULUCU (Akıllı Eşleştirme) ---
+                    // Başlık isminin içinde "Varlık" geçiyorsa o sütunu yakalar
+                    const keyVarlik = keys.find(k => k.toLowerCase().includes("varlık") || k.toLowerCase().includes("varlik"));
+                    const keyAdet = keys.find(k => k.toLowerCase().includes("adet") || k.toLowerCase().includes("miktar"));
+                    const keyMaliyet = keys.find(k => k.toLowerCase().includes("maliyet") || k.toLowerCase().includes("alış"));
+                    const keyGuncel = keys.find(k => k.toLowerCase().includes("güncel") || k.toLowerCase().includes("fiyat"));
+
+                    const keyIslemTuru = keys.find(k => k.toLowerCase().includes("tür") || k.toLowerCase().includes("tip"));
+                    const keySembol = keys.find(k => k.toLowerCase().includes("sembol"));
+                    const keyTarih = keys.find(k => k.toLowerCase().includes("tarih"));
+
+                    // --- 1. PORTFÖY VERİSİ Mİ? ---
+                    if (keyVarlik && keyAdet) {
+                        console.log("Cüzdan sayfası bulundu: " + sheetName);
                         jsonData.forEach(row => {
-                            if(row["Varlık"] && row["Adet"]) {
+                            // Değerleri güvenli şekilde al
+                            let rawName = row[keyVarlik];
+                            let rawAdet = row[keyAdet];
+                            let rawMaliyet = row[keyMaliyet];
+                            let rawGuncel = row[keyGuncel];
+
+                            if(rawName && rawAdet) {
                                 let origin = 'TRY';
-                                let name = row["Varlık"].toString().trim();
+                                let name = rawName.toString().trim().toUpperCase();
+                                
+                                // Para birimi tahmini
                                 if(name.includes('USD') || name.endsWith('USDT') || name === 'USD') origin = 'USD';
 
                                 newPortfolio.push({
                                     name: name,
-                                    amt: parseFloat(row["Adet"]),
-                                    buy: parseFloat(row["Ort. Maliyet"] || 0),
-                                    curr: parseFloat(row["Güncel Fiyat"] || row["Ort. Maliyet"] || 0),
+                                    amt: parseFloat(rawAdet),
+                                    buy: parseFloat(rawMaliyet || 0),
+                                    curr: parseFloat(rawGuncel || rawMaliyet || 0),
                                     origin: origin,
                                     image: null,
                                     source: 'EXCEL'
                                 });
+                                portfolioCount++;
                             }
                         });
-                        
-                        if(newPortfolio.length > 0) {
-                            localStorage.setItem('myPF_final', JSON.stringify(newPortfolio));
-                            portfolioFound = true;
-                        }
                     }
 
-                    // --- SENARYO 2: GEÇMİŞ SAYFASI MI? ---
-                    // İçinde "İşlem Türü" varsa bu Geçmiş Defteridir
-                    if (keys.some(k => k.includes("İşlem Türü"))) {
-                        let newHistory = [];
+                    // --- 2. GEÇMİŞ İŞLEM VERİSİ Mİ? ---
+                    else if (keyIslemTuru && (keySembol || keyVarlik)) {
+                        console.log("Geçmiş sayfası bulundu: " + sheetName);
+                        let symKey = keySembol || keyVarlik;
+                        let priceKey = keyGuncel || keyMaliyet || keys.find(k => k.toLowerCase().includes("fiyat"));
+                        let totalKey = keys.find(k => k.toLowerCase().includes("tutar") || k.toLowerCase().includes("toplam"));
+                        let pnlKey = keys.find(k => k.toLowerCase().includes("pnl") || k.toLowerCase().includes("sonuç"));
+
                         jsonData.forEach(row => {
                             newHistory.push({
-                                date: row["Tarih"] || new Date().toLocaleDateString(),
+                                date: row[keyTarih] || new Date().toLocaleDateString(),
                                 time: row["Saat"] || "00:00",
-                                type: row["İşlem Türü"],
-                                sym: row["Sembol"] || "NAKİT",
-                                qty: parseFloat(row["Miktar"]) || 0,
-                                price: parseFloat(row["Fiyat"]) || 0,
-                                total: parseFloat(row["Toplam Tutar"]) || 0,
+                                type: row[keyIslemTuru] || "BİLİNMEYEN",
+                                sym: row[symKey] || "NAKİT",
+                                qty: parseFloat(row[keyAdet] || 0),
+                                price: parseFloat(row[priceKey] || 0),
+                                total: parseFloat(row[totalKey] || 0),
                                 desc: 'Yedek Yüklemesi',
                                 curr: 'TRY',
-                                pnl: parseFloat(row["İşlem Sonucu (PnL)"]) || 0
+                                pnl: parseFloat(row[pnlKey] || 0)
                             });
+                            historyCount++;
                         });
-
-                        if(newHistory.length > 0) {
-                            // Tarihe göre sıralayıp kaydet
-                            newHistory.reverse(); 
-                            localStorage.setItem('tm_full_trade_history', JSON.stringify(newHistory));
-                            historyFound = true;
-                        }
                     }
                 }
             });
 
-            // --- SONUÇ BİLDİRİMİ ---
-            let msg = "";
-            if(portfolioFound) msg += "✅ Cüzdan yüklendi.\n";
-            if(historyFound) msg += "✅ İşlem geçmişi yüklendi.\n";
+            // --- KAYDETME VE SONUÇ ---
+            if (portfolioCount > 0) {
+                localStorage.setItem('myPF_final', JSON.stringify(newPortfolio));
+            }
             
-            if(!portfolioFound && !historyFound) {
-                alert("HATA: Dosya okundu ama uygun veri bulunamadı.\nLütfen 'TradeVia_Kapsamli_Rapor' dosyasını yüklediğinizden emin olun.");
+            if (historyCount > 0) {
+                // Tarihe göre sırala (Yeniden eskiye)
+                newHistory.reverse();
+                localStorage.setItem('tm_full_trade_history', JSON.stringify(newHistory));
+            }
+
+            if(portfolioCount === 0 && historyCount === 0) {
+                alert("HATA: Dosya okundu ama uygun sütunlar (Varlık, Adet vb.) bulunamadı.\nLütfen Excel dosyanızın başlıklarının doğru olduğundan emin olun.");
             } else {
-                alert(msg + "\nSayfa yenileniyor...");
+                alert(`✅ YÜKLEME BAŞARILI!\n\n📦 ${portfolioCount} adet varlık yüklendi.\n📜 ${historyCount} adet işlem geçmişi yüklendi.\n\nSayfa yenileniyor...`);
                 location.reload();
             }
 
         } catch (err) {
             console.error(err);
-            alert("Dosya okuma hatası! Lütfen geçerli bir Excel (.xlsx) dosyası seçin.");
+            alert("Kritik Hata: Dosya okunamadı. Lütfen geçerli bir .xlsx dosyası seçin.");
         }
     };
 
