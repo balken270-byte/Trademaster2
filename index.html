@@ -6211,7 +6211,8 @@ function openLabFullscreen() {
                         </button>
                         <label class="ps-btn btn-main btn-sec" style="cursor:pointer; margin:0;">
                             <i class="fas fa-upload"></i> Yükle
-                            <input type="file" style="display:none" onchange="uploadBackup(this)">
+                            <input type="file" id="excelInput" style="display:none" onchange="uploadBackup(this)" accept=".xlsx, .xls">
+                            
                         </label>
                     </div>
                     <button class="ps-btn btn-main btn-sec" style="width:100%" onclick="exportComprehensiveReport()">
@@ -7007,7 +7008,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.6"; 
+    const CURRENT_VERSION = "1.7"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -14044,6 +14045,53 @@ if (typeof window.switchPage === 'function') {
 
 // 2. Sürekli kontrol (Hata payını sıfırlar)
 setInterval(forceNavColor, 500);
+
+/* === FİNAL EXCEL YÜKLEME KODU (ID İLE NOKTA ATIŞI) === */
+
+var excelButonu = document.getElementById('excelInput');
+
+if (excelButonu) {
+    // Mevcut 'onchange' olayını ezip kendi temiz kodumuzu çalıştırıyoruz
+    excelButonu.onchange = function(e) {
+        var files = e.target.files;
+        if(files.length === 0) return;
+
+        var reader = new FileReader();
+
+        reader.onload = function(e) {
+            var data = new Uint8Array(e.target.result);
+            var workbook = XLSX.read(data, {type: 'array'});
+
+            /* HEDEF SAYFAYI BUL (Rapor sayfasını atla) */
+            var hedefSayfa = "İşlem Defteri"; 
+            
+            if (!workbook.Sheets[hedefSayfa]) {
+                hedefSayfa = "Varlıklarım";
+            }
+            if (!workbook.Sheets[hedefSayfa]) {
+                hedefSayfa = workbook.SheetNames[0]; // Mecbur ilk sayfayı al
+            }
+
+            /* VERİYİ OKU */
+            var worksheet = workbook.Sheets[hedefSayfa];
+            var jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+            if (jsonData.length > 0) {
+                // Veriyi kaydet
+                localStorage.setItem('tradeData', JSON.stringify(jsonData));
+                alert("Yedek başarıyla yüklendi! Sayfa yenileniyor...");
+                location.reload(); 
+            } else {
+                alert("Dosya boş veya uygun formatta değil.");
+            }
+        };
+
+        reader.readAsArrayBuffer(files[0]);
+    };
+} else {
+    console.error("HATA: 'excelInput' ID'li buton bulunamadı. HTML kodunu düzelttin mi?");
+}
+
 
 </script>
 
