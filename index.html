@@ -7011,7 +7011,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.3"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -9033,54 +9033,46 @@ onerror="this.outerHTML=\`<div style='width:40px;height:40px;background:${color}
     function closeModal(id){document.getElementById(id).style.display='none';} function openModal(id){document.getElementById(id).style.display='flex';}
     function editNote(i){ let as=JSON.parse(localStorage.getItem('myPF_final')); let n=prompt("Not:",as[i].note||""); if(n!==null){as[i].note=n; localStorage.setItem('myPF_final',JSON.stringify(as)); loadPF();} }
     function downloadBackup(){ const d=localStorage.getItem('myPF_final'); const b=new Blob([d],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='yedek.json'; a.click(); }
-/* --- V20 FINAL: GECKO & MASSIVE ÖNCELİKLİ YÜKLEYİCİ --- */
-function baslatExcelYukleme(input) {
+/* --- DÜZELTİLMİŞ VE KORUMALI EXCEL YÜKLEYİCİ (V22) --- */
+
+// 1. Gelişmiş Sayı Okuma (Hata Payını Sıfırlar)
+const safeParseFloat = (val) => {
+    if (val === undefined || val === null || val === '') return 0;
+    if (typeof val === 'number') return val; // Zaten sayıysa elleme
+    
+    let str = val.toString().trim();
+    if (str === '-') return 0;
+
+    // Sadece rakam, nokta, virgül ve eksi işaretini bırak
+    str = str.replace(/[^0-9.,-]/g, '');
+
+    // 1.250,50 (TR) ile 1,250.50 (US) ayrımı
+    if (str.includes('.') && str.includes(',')) {
+        // Hem nokta hem virgül varsa: Noktaları sil, virgülü nokta yap
+        str = str.replace(/\./g, '').replace(',', '.');
+    } else if (str.includes(',')) {
+        // Sadece virgül varsa (kuruş ayracı ise): Noktaya çevir
+        str = str.replace(',', '.');
+    }
+    
+    return parseFloat(str) || 0;
+};
+
+// 2. Düzeltilmiş Yükleme Fonksiyonu
+window.baslatExcelYukleme = function(input) {
     const file = input.files[0];
     if (!file) return;
 
-    // --- LOADER EKRANI ---
-    if (!document.getElementById('tm_loader_style')) {
-        const css = `
-            #tm_overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; backdrop-filter:blur(5px); }
-            #tm_box { width:90%; max-width:400px; background:#1e293b; padding:25px; border-radius:20px; border:1px solid rgba(255,255,255,0.1); text-align:center; box-shadow:0 0 50px rgba(0,0,0,0.5); }
-            #tm_bar_bg { width:100%; height:8px; background:#334155; border-radius:10px; margin:20px 0; overflow:hidden; }
-            #tm_bar_fill { height:100%; width:0%; background:#8b5cf6; transition:width 0.3s; }
-            #tm_log { color:#94a3b8; font-size:11px; margin-top:15px; height:120px; overflow-y:auto; text-align:left; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; font-family:monospace; border:1px solid rgba(255,255,255,0.05); }
-        `;
-        const style = document.createElement('style');
-        style.id = 'tm_loader_style';
-        style.innerHTML = css;
-        document.head.appendChild(style);
-        
-        const html = `<div id="tm_overlay"><div id="tm_box"><div style="font-size:40px; margin-bottom:10px;">🧬</div><h3 style="color:white; margin:0;">Gecko & Massive Modu</h3><div id="tm_bar_bg"><div id="tm_bar_fill"></div></div><div id="tm_msg" style="color:white; font-weight:bold;">Analiz Başlıyor...</div><div id="tm_log"></div></div></div>`;
-        document.body.insertAdjacentHTML('beforeend', html);
+    // Loader Göster
+    if (!document.getElementById('tm_loader')) {
+        const d = document.createElement('div');
+        d.id = 'tm_loader';
+        d.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white;";
+        d.innerHTML = `<i class="fas fa-sync fa-spin" style="font-size:40px; margin-bottom:20px; color:#3b82f6;"></i><h3>Yedek Dosyası İşleniyor...</h3><div id='tm_log' style='font-size:12px; color:#94a3b8; margin-top:10px;'></div>`;
+        document.body.appendChild(d);
     }
-
-    const overlay = document.getElementById('tm_overlay');
-    const bar = document.getElementById('tm_bar_fill');
-    const log = document.getElementById('tm_log');
-    
-    overlay.style.display = 'flex';
-    bar.style.width = '10%';
-    log.innerHTML = "Dosya okunuyor...<br>";
-    
-    const addLog = (text) => { log.innerHTML += `> ${text}<br>`; log.scrollTop = log.scrollHeight; };
-    
-    // Gelişmiş Para Temizleyici
-    const parseMoney = (val) => {
-        if (!val) return 0;
-        let str = val.toString().trim();
-        if(str === '-') return 0;
-        // Sadece sayı, nokta, virgül ve eksi bırak
-        str = str.replace(/[^0-9.,-]/g, '');
-        // 1.000,50 -> 1000.50
-        if(str.includes('.') && str.includes(',')) str = str.replace(/\./g, '').replace(',', '.');
-        else if(str.includes(',')) str = str.replace(',', '.');
-        return parseFloat(str) || 0;
-    };
-
-    // ABD Hisseleri Listesi (Otomatik Massive Etiketi İçin)
-    const usStocks = ['AAPL','TSLA','AMZN','MSFT','GOOGL','META','NVDA','AMD','NFLX','COIN','GME','INTC','PLTR','MSTR','HOOD','BABA','UBER','DIS','V','JPM'];
+    document.getElementById('tm_loader').style.display = 'flex';
+    const log = (msg) => document.getElementById('tm_log').innerText = msg;
 
     const reader = new FileReader();
     reader.onload = function(e) {
@@ -9092,7 +9084,7 @@ function baslatExcelYukleme(input) {
             let newHistory = [];
             let foundCash = null;
 
-            bar.style.width = '30%';
+            log("Sayfalar taranıyor...");
 
             workbook.SheetNames.forEach(sheetName => {
                 const sheetLower = sheetName.toLocaleLowerCase('tr');
@@ -9103,41 +9095,38 @@ function baslatExcelYukleme(input) {
                 if (sheetLower.includes("muhasebe") || sheetLower.includes("özet")) {
                     rows.forEach(row => {
                         let rowStr = row.join(" ").toLocaleLowerCase('tr');
-                        if (rowStr.includes("kasadaki nakit")) {
+                        if (rowStr.includes("kasadaki nakit") || rowStr.includes("nakit")) {
                             row.forEach(cell => {
-                                if (cell && /[0-9]/.test(cell.toString()) && !cell.toString().toLocaleLowerCase('tr').includes("nakit")) {
-                                    foundCash = parseMoney(cell);
-                                    addLog(`Nakit: ${foundCash}`);
+                                if (cell && /[0-9]/.test(cell.toString()) && !cell.toString().toLowerCase().includes("nakit")) {
+                                    foundCash = safeParseFloat(cell);
                                 }
                             });
                         }
                     });
                 }
 
-                // B) VARLIKLARIM (Portföy) - ÖNCELİKLİ MOD
+                // B) VARLIKLARIM (Portföy) - KRİTİK KISIM
                 if (sheetLower.includes("varlık")) {
                     let headIdx = -1;
                     let map = { name:-1, amt:-1, unitCost:-1, totalCost:-1, curr:-1, origin:-1, source:-1 };
 
-                    // Sütunları Bul
-                    for(let i=0; i<Math.min(rows.length, 10); i++) {
-                        let r = rows[i].map(x => x ? x.toString().toLocaleLowerCase('tr') : "");
+                    // Başlıkları bul
+                    for(let i=0; i<Math.min(rows.length, 15); i++) {
+                        let r = rows[i].map(x => x ? x.toString().toLocaleLowerCase('tr').trim() : "");
                         if(r.some(c => c.includes("varlık") || c.includes("sembol"))) {
                             headIdx = i;
                             r.forEach((c, idx) => {
                                 if(c.includes("varlık") || c.includes("sembol")) map.name = idx;
-                                if(c.includes("adet") || c.includes("miktar")) map.amt = idx;
+                                if(c === "adet" || c.includes("miktar")) map.amt = idx;
                                 
-                                // Birim Maliyet (Öncelikli)
-                                if((c.includes("maliyet") || c.includes("birim") || c.includes("ort")) && !c.includes("tutar") && !c.includes("toplam")) {
+                                // Maliyet Sütunu (Birim ve Toplam ayrımı)
+                                if((c.includes("maliyet") || c.includes("birim") || c.includes("ort")) && !c.includes("toplam") && !c.includes("tutar")) {
                                     map.unitCost = idx;
                                 }
-                                // Toplam Maliyet (Yedek)
-                                if(c.includes("maliyet") && (c.includes("tutar") || c.includes("toplam"))) map.totalCost = idx;
+                                if(c.includes("toplam") && (c.includes("değer") || c.includes("maliyet") || c.includes("tutar"))) map.totalCost = idx;
 
-                                if(c.includes("güncel")) map.curr = idx;
                                 if(c.includes("para") || c.includes("döviz")) map.origin = idx;
-                                if(c.includes("kaynak") || c.includes("etiket")) map.source = idx;
+                                if(c.includes("kaynak")) map.source = idx;
                             });
                             break;
                         }
@@ -9149,70 +9138,49 @@ function baslatExcelYukleme(input) {
                             if(!r || !r[map.name]) continue;
                             
                             let pName = r[map.name].toString().trim().toUpperCase();
-                            let pAmt = parseMoney(r[map.amt]);
+                            let pAmt = safeParseFloat(r[map.amt]);
                             
-                            // MALİYET MANTIĞI: Önce Birimi Oku, Yoksa Hesapla
+                            // MALİYET HESABI: Önce Birim, Yoksa Toplam/Adet
                             let finalCost = 0;
-                            let rawUnit = (map.unitCost !== -1) ? parseMoney(r[map.unitCost]) : 0;
-                            let rawTotal = (map.totalCost !== -1) ? parseMoney(r[map.totalCost]) : 0;
-
-                            if(rawUnit > 0) finalCost = rawUnit;
-                            else if(rawTotal > 0 && pAmt > 0) finalCost = rawTotal / pAmt;
-
-                            // KAYNAK (SOURCE) MANTIĞI - ÖNCELİK AYARI
-                            let pOrigin = (map.origin !== -1 && r[map.origin]) ? r[map.origin].toString().trim().toUpperCase() : '';
-                            let pSource = (map.source !== -1 && r[map.source]) ? r[map.source].toString().trim().toUpperCase() : '';
-
-                            // 1. Etiket Boşsa veya Manuel ise Otomatik Ata
-                            if (!pSource || pSource === 'MANUEL' || pSource === 'YEDEK') {
-                                if (usStocks.includes(pName)) {
-                                    pSource = 'MASSIVE'; // ABD Hissesi -> Massive
-                                    pOrigin = 'USD';
-                                } else if (pName.endsWith('.IS')) {
-                                    pSource = 'BIST'; // Türk Hissesi -> BIST
-                                    pOrigin = 'TRY';
-                                } else if (pName.includes('USD') || pName.includes('EUR') || pName.includes('ONS')) {
-                                    pSource = 'FOREX';
-                                    pOrigin = 'USD';
-                                } else {
-                                    pSource = 'CG'; // Kripto -> CoinGecko (Öncelikli)
-                                    pOrigin = 'USD';
-                                }
-                            }
+                            if (map.unitCost !== -1) finalCost = safeParseFloat(r[map.unitCost]);
                             
-                            // 2. Para Birimi Boşsa Tahmin Et
-                            if (!pOrigin) {
-                                pOrigin = (pName.includes('USD') || pName.endsWith('USDT') || pSource === 'CG' || pSource === 'MASSIVE') ? 'USD' : 'TRY';
+                            if (finalCost === 0 && map.totalCost !== -1 && pAmt > 0) {
+                                let totalVal = safeParseFloat(r[map.totalCost]);
+                                if(totalVal > 0) finalCost = totalVal / pAmt;
                             }
+
+                            // Kaynak ve Para Birimi Tahmini
+                            let pOrigin = (map.origin !== -1 && r[map.origin]) ? r[map.origin].toString().trim().toUpperCase() : 'TRY';
+                            if (pName.includes('USD') || pName.includes('USDT') || pName.includes('USDC')) pOrigin = 'USD';
+                            
+                            let pSource = (map.source !== -1 && r[map.source]) ? r[map.source].toString().trim().toUpperCase() : 'MANUEL';
 
                             if(pName && pAmt > 0) {
                                 newPortfolio.push({
                                     name: pName, 
                                     amt: pAmt, 
-                                    buy: finalCost, 
-                                    curr: parseMoney(r[map.curr]), 
+                                    buy: finalCost, // MALİYET BURADA KESİNLEŞİR
+                                    curr: finalCost, // Geçici olarak güncel fiyatı maliyet yapıyoruz (Sonra güncellenir)
                                     origin: pOrigin, 
                                     image: null, 
-                                    source: pSource // CG veya MASSIVE olarak kaydedilecek
+                                    source: pSource 
                                 });
                             }
                         }
-                        addLog(`${newPortfolio.length} varlık işlendi (Gecko/Massive aktif).`);
                     }
                 }
 
-                // C) İŞLEM DEFTERİ (Geçmiş)
+                // C) İŞLEM GEÇMİŞİ
                 if (sheetLower.includes("işlem") || sheetLower.includes("defter")) {
                     let headIdx = -1;
-                    let map = { date:-1, time:-1, type:-1, sym:-1, qty:-1, price:-1, pnl:-1 };
+                    let map = { date:-1, type:-1, sym:-1, qty:-1, price:-1, pnl:-1 };
 
-                    for(let i=0; i<Math.min(rows.length, 10); i++) {
+                    for(let i=0; i<Math.min(rows.length, 15); i++) {
                         let r = rows[i].map(x => x ? x.toString().toLocaleLowerCase('tr') : "");
                         if(r.some(c => c.includes("tür")) && r.some(c => c.includes("tarih"))) {
                             headIdx = i;
                             r.forEach((c, idx) => {
                                 if(c.includes("tarih")) map.date = idx;
-                                if(c.includes("saat")) map.time = idx;
                                 if(c.includes("tür")) map.type = idx;
                                 if(c.includes("sembol") || c.includes("varlık")) map.sym = idx;
                                 if(c.includes("miktar") || c.includes("adet")) map.qty = idx;
@@ -9228,6 +9196,7 @@ function baslatExcelYukleme(input) {
                             let r = rows[j];
                             if(!r || !r[map.type]) continue;
                             
+                            // Tarih Düzeltme
                             let dVal = r[map.date];
                             let fDate = new Date().toLocaleDateString("tr-TR");
                             if(typeof dVal === 'number') {
@@ -9236,47 +9205,85 @@ function baslatExcelYukleme(input) {
 
                             newHistory.push({
                                 date: fDate, 
-                                time: (map.time!==-1 && r[map.time]) ? r[map.time] : "00:00",
+                                time: "00:00",
                                 type: r[map.type].toString().toUpperCase().trim(),
-                                sym: (map.sym!==-1 && r[map.sym]) ? r[map.sym].toString().toUpperCase().trim() : "NAKİT",
-                                qty: (map.qty!==-1) ? parseMoney(r[map.qty]) : 0,
-                                price: (map.price!==-1) ? parseMoney(r[map.price]) : 0,
-                                total: 0,
-                                desc: 'Yedek',
+                                sym: (map.sym !== -1 && r[map.sym]) ? r[map.sym].toString().toUpperCase().trim() : "NAKİT",
+                                qty: (map.qty !== -1) ? safeParseFloat(r[map.qty]) : 0,
+                                price: (map.price !== -1) ? safeParseFloat(r[map.price]) : 0,
+                                total: 0, 
                                 curr: 'TRY',
-                                pnl: (map.pnl!==-1) ? parseMoney(r[map.pnl]) : 0
+                                pnl: (map.pnl !== -1) ? safeParseFloat(r[map.pnl]) : 0
                             });
-                            newHistory[newHistory.length-1].total = newHistory[newHistory.length-1].qty * newHistory[newHistory.length-1].price;
+                            let last = newHistory[newHistory.length-1];
+                            last.total = last.qty * last.price;
                         }
-                        addLog(`${newHistory.length} işlem kaydı yüklendi.`);
                     }
                 }
             });
 
-            bar.style.width = '100%';
-            
+            // --- KAYDETME ---
             if (foundCash !== null) localStorage.setItem('tm_cash_balance', foundCash);
             if (newPortfolio.length > 0) localStorage.setItem('myPF_final', JSON.stringify(newPortfolio));
             if (newHistory.length > 0) {
                 newHistory.sort((a,b) => {
                     let pa = a.date.split('.'), pb = b.date.split('.');
-                    return new Date(pa[2], pa[1]-1, pa[0]) - new Date(pb[2], pb[1]-1, pb[0]);
+                    if(pa.length === 3 && pb.length === 3) return new Date(pa[2], pa[1]-1, pa[0]) - new Date(pb[2], pb[1]-1, pb[0]);
+                    return 0;
                 });
                 localStorage.setItem('tm_full_trade_history', JSON.stringify(newHistory));
             }
 
-            document.getElementById('tm_msg').innerText = "BAŞARILI!";
-            addLog("Sayfa yenileniyor...");
-            setTimeout(() => location.reload(), 1500);
+            log("TAMAMLANDI! Sayfa yenileniyor...");
+            setTimeout(() => location.reload(), 1000);
 
         } catch (err) {
-            document.getElementById('tm_msg').innerText = "HATA";
-            document.getElementById('tm_msg').style.color = "#ef4444";
-            addLog("Hata: " + err.message);
+            alert("Hata: " + err.message);
+            document.getElementById('tm_loader').style.display = 'none';
         }
     };
     reader.readAsArrayBuffer(file);
-}
+};
+
+// 3. YENİLEME KORUMASI (Maliyetin Silinmesini Engeller)
+// Bu fonksiyon, otomatik yenileme sırasında sadece 'curr' (Güncel Fiyat) değerini değiştirir, 'buy' (Maliyet) değerine DOKUNMAZ.
+const originalLoadPF = window.loadPF;
+window.loadPF = async function(refreshData = false) {
+    if(!refreshData) {
+        if(originalLoadPF) originalLoadPF(false);
+        return;
+    }
+
+    let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
+    if (as.length === 0) {
+        if(originalLoadPF) originalLoadPF(false);
+        return;
+    }
+
+    // Fiyatları güncelle ama MALİYETİ koru
+    let updatedAssets = [];
+    for (let i = 0; i < as.length; i++) {
+        let a = as[i];
+        // Eski maliyeti yedekle (Garanti olsun)
+        let safeBuy = a.buy; 
+        
+        try {
+            if(typeof getPrice === 'function') {
+                let live = await getPrice(a.name);
+                if (live && live.price > 0) {
+                    a.curr = live.price; // Sadece fiyatı güncelle
+                }
+            }
+        } catch (err) { console.log(err); }
+        
+        // Maliyeti geri yükle (Eğer yanlışlıkla silindiyse)
+        if(!a.buy || a.buy === 0) a.buy = safeBuy;
+        
+        updatedAssets.push(a);
+    }
+
+    localStorage.setItem('myPF_final', JSON.stringify(updatedAssets));
+    renderPortfolioHTML(updatedAssets);
+};
 
 
     /* --- GÜNCELLENMİŞ EXCEL RAPORLAMA (V16 - ETİKET VE BİRİM FİYAT DESTEKLİ) --- */
