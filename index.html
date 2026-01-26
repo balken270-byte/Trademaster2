@@ -1741,72 +1741,111 @@ button:active,
     height:
 
 
-    <style>
-    /* 1. Ekranı Kilitle (Android/iOS Çubuklarını Yoksay) */
+ 
+    /* 1.(TAM EKRAN FOKSİYONU) TÜM KUTULARI RESETLE (Ölçü hatalarını önler) */
+    * {
+        box-sizing: border-box !important;
+    }
+
+    /* 2. ANA GÖVDEYİ SABİTLE */
     html, body {
         width: 100vw !important;
-        height: 100vh !important;
-        height: 100dvh !important; /* Android Chrome adres çubuğu sorunu çözücü */
-        overflow: hidden !important; /* Sayfa asla kaymasın */
+        height: 100dvh !important; /* Dinamik yükseklik (Adres çubuğu sorunu için) */
+        overflow: hidden !important;
         margin: 0 !important;
         padding: 0 !important;
-        position: fixed !important; /* Ekranı dondur */
+        position: fixed !important;
         inset: 0 !important;
+        background-color: #0b0f19 !important; /* Arka plan rengini sabitle */
     }
 
-    /* 2. İçerik Alanı (Sadece burası kaysın) */
-    .content-area, .page {
-        position: absolute !important;
-        top: 60px !important; /* Üst bar payı */
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 70px !important; /* Alt menü payı */
-        height: auto !important;
-        width: 100% !important;
-        overflow-y: auto !important; /* İçerik kaydırmayı aç */
-        -webkit-overflow-scrolling: touch !important; /* iPhone yağ gibi kaydırma */
-        z-index: 1 !important;
-        padding-bottom: env(safe-area-inset-bottom) !important;
-    }
-
-    /* 3. Üst Barı Tepeye Çivile */
+    /* 3. ÜST BAR (TOP BAR) - Çentik Payı */
     .top-bar {
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
         width: 100% !important;
-        height: 60px !important;
         z-index: 9999 !important;
-        padding-top: env(safe-area-inset-top) !important; /* Çentik payı */
-        background: #0b0f19 !important; /* Senin arka plan rengin */
+        
+        /* Yükseklik = Normal Bar (60px) + Çentik Boşluğu */
+        height: calc(60px + env(safe-area-inset-top)) !important;
+        
+        /* İçeriği çentiğin altına it */
+        padding-top: env(safe-area-inset-top) !important; 
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+        
+        display: flex !important;
+        align-items: center !important;
+        background: #0b0f19 !important; /* Renk */
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
     }
 
-    /* 4. Alt Menüyü Dibe Çivile (Hem eski hem yeni sınıfı hedefliyoruz) */
+    /* 4. ALT MENÜ (NAV BAR) - Home Çubuğu Payı */
     .nav-container, .bottom-nav {
         position: fixed !important;
         bottom: 0 !important;
         left: 0 !important;
         width: 100% !important;
-        height: 70px !important;
         z-index: 99999 !important;
-        padding-bottom: env(safe-area-inset-bottom) !important; /* iPhone alt çizgi payı */
-        background: rgba(21, 27, 43, 0.95) !important;
+
+        /* Yükseklik = Normal Bar (70px) + iPhone Alt Çizgi Boşluğu */
+        height: calc(70px + env(safe-area-inset-bottom)) !important;
+        
+        /* İkonları yukarı it (Çizginin altında kalmasınlar) */
+        padding-bottom: env(safe-area-inset-bottom) !important;
+        
+        background: rgba(21, 27, 43, 0.98) !important;
+        backdrop-filter: blur(15px) !important;
+        border-top: 1px solid rgba(255,255,255,0.08) !important;
+        
         display: flex !important;
-        align-items: center !important;
+        align-items: center !important; /* Dikey ortala */
         justify-content: space-around !important;
-        margin: 0 !important;
-        border-top: 1px solid rgba(255,255,255,0.1) !important;
     }
-    
-    /* Eğer eski bottom-nav varsa onu gizle, çakışmasın */
-    .bottom-nav { 
-        display: none !important; 
-    }
-    /* Sadece bizim kullandığımız nav-container görünsün */
-    .nav-container {
+
+    /* 5. İKONLARIN EZİLMESİNİ ENGELLE */
+    .nav-item {
+        flex: 1 !important;
+        height: 100% !important;
         display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important; /* Ortala */
+        align-items: center !important;
+    }
+
+    /* 6. ORTA İÇERİK ALANI (SCROLL EDİLECEK ALAN) */
+    .content-area, .page {
+        position: absolute !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        
+        /* Üst Barın bittiği yerden başla */
+        top: calc(60px + env(safe-area-inset-top)) !important;
+        
+        /* Alt Menünün başladığı yerde bitir */
+        bottom: calc(70px + env(safe-area-inset-bottom)) !important;
+        
+        height: auto !important; /* Yüksekliği otomatik yap */
+        overflow-y: auto !important; /* Sadece burası kaysın */
+        -webkit-overflow-scrolling: touch !important; /* iPhone'da yağ gibi kaydırma */
+        padding: 15px !important;
+        padding-bottom: 20px !important; /* İçerik en altta yapışmasın diye ekstra pay */
+    }
+
+    /* 7. MODALLAR VE TAM EKRAN PENCERELER İÇİN DÜZELTME */
+    .modal-overlay {
+        padding-top: env(safe-area-inset-top) !important;
+        padding-bottom: env(safe-area-inset-bottom) !important;
     }
     
+    /* PWA ve Tam Ekran Modunda Beyaz Boşlukları Önle */
+    body {
+        background-color: #0b0f19 !important; /* Çentik arkası rengi */
+    }
+
+
 
 </style>
 
@@ -6457,6 +6496,7 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
     <div class="nav-item" onclick="switchPage('news', this)"><i class="far fa-newspaper"></i><span data-lang="nav_news">Haber</span></div>
     <div class="nav-item" onclick="switchPage('settings', this)"><i class="fas fa-cog"></i><span data-lang="nav_settings">Ayarlar</span></div>
 </div>
+
 <div id="sellModal" class="modal-overlay">
     <div class="modal">
         <div class="sell-header-row">
@@ -6966,7 +7006,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.4"; 
+    const CURRENT_VERSION = "1.5"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
