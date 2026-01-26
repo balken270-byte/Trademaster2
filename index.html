@@ -1,40 +1,38 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
     
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
 
+    
+    
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="TradeVia">
+   <title>TradeVia (Live Edition)</title>
+   
+   <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TradeVia">
 
-    <title>TradeVia (Live Edition)</title>
-    
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0b0f19">
-    <link rel="icon" type="image/svg+xml" href="/icon.svg">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b0f19">
+
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-    
-    <script src="https://apis.google.com/js/api.js"></script>
+
+        <script src="https://apis.google.com/js/api.js"></script>
     <script src="https://accounts.google.com/gsi/client"></script>
 
-    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
 
-    <style>
-        /* ...CSS kodların burada devam edecek... */
-    </style>
-</head>
 
 
     <style>
@@ -1752,115 +1750,97 @@ button:active,
 
 
  
-    /* 1.(TAM EKRAN FOKSİYONU) TÜM KUTULARI RESETLE (Ölçü hatalarını önler) */
-    * {
-        box-sizing: border-box !important;
-    }
+/* ========== 1. GLOBAL RESET ========== */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-    /* 2. ANA GÖVDEYİ SABİTLE */
-    html, body {
-        width: 100vw !important;
-        height: 100dvh !important; /* Dinamik yükseklik (Adres çubuğu sorunu için) */
-        overflow: hidden !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        position: fixed !important;
-        inset: 0 !important;
-        background-color: #0b0f19 !important; /* Arka plan rengini sabitle */
-    }
+/* ========== 2. HTML & BODY (TAM EKRAN) ========== */
+html,
+body {
+    width: 100%;
+    height: 100dvh;
+    overflow: hidden;
+    background-color: #0b0f19;
+}
 
-    /* 3. ÜST BAR (TOP BAR) - Çentik Payı */
-    .top-bar {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        z-index: 9999 !important;
-        
-        /* Yükseklik = Normal Bar (60px) + Çentik Boşluğu */
-        height: calc(60px + env(safe-area-inset-top)) !important;
-        
-        /* İçeriği çentiğin altına it */
-        padding-top: env(safe-area-inset-top) !important; 
-        padding-left: 20px !important;
-        padding-right: 20px !important;
-        
-        display: flex !important;
-        align-items: center !important;
-        background: #0b0f19 !important; /* Renk */
-        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
-    }
+/* ========== 3. ÜST BAR (SAFE AREA UYUMLU) ========== */
+.top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10000;
 
-    /* 4. ALT MENÜ - HİZALAMA DÜZELTMESİ (Simgeler Ortada) */
-    .nav-container, .bottom-nav {
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        z-index: 99999 !important;
+    height: 60px;
+    padding-top: env(safe-area-inset-top);
+    padding-left: 20px;
+    padding-right: 20px;
 
-        /* Sadece telefonun kendi güvenli alanı kadar uzasın */
-        height: calc(70px + env(safe-area-inset-bottom)) !important;
-        
-        /* Simgeleri aşağıdan it, ama çok sıkıştırma */
-        padding-bottom: env(safe-area-inset-bottom) !important;
-        
-        /* Eğer iPhone değilse (env=0 ise) normal görünsün */
-        min-height: 70px !important;
+    display: flex;
+    align-items: center;
 
-        background: rgba(21, 27, 43, 0.98) !important;
-        backdrop-filter: blur(15px) !important;
-        border-top: 1px solid rgba(255,255,255,0.08) !important;
-        
-        display: flex !important;
-        align-items: center !important; /* Dikey olarak tam ortala */
-        justify-content: space-around !important;
-        margin: 0 !important;
-    }
+    background-color: #0b0f19;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
 
-    
-    /* 5. İKONLARIN EZİLMESİNİ ENGELLE */
-    .nav-item {
-        flex: 1 !important;
-        height: 100% !important;
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: center !important; /* Ortala */
-        align-items: center !important;
-    }
+/* ========== 4. ALT MENÜ (HOME BAR UYUMLU) ========== */
+.bottom-nav,
+.nav-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10000;
 
-    /* 6. ORTA İÇERİK ALANI (SCROLL EDİLECEK ALAN) */
-    .content-area, .page {
-        position: absolute !important;
-        left: 0 !important;
-        right: 0 !important;
-        width: 100% !important;
-        
-        /* Üst Barın bittiği yerden başla */
-        top: calc(60px + env(safe-area-inset-top)) !important;
-        
-        /* Alt Menünün başladığı yerde bitir */
-        bottom: calc(70px + env(safe-area-inset-bottom)) !important;
-        
-        height: auto !important; /* Yüksekliği otomatik yap */
-        overflow-y: auto !important; /* Sadece burası kaysın */
-        -webkit-overflow-scrolling: touch !important; /* iPhone'da yağ gibi kaydırma */
-        padding: 15px !important;
-        padding-bottom: 20px !important; /* İçerik en altta yapışmasın diye ekstra pay */
-    }
+    height: 70px;
+    padding-bottom: env(safe-area-inset-bottom);
 
-    /* 7. MODALLAR VE TAM EKRAN PENCERELER İÇİN DÜZELTME */
-    .modal-overlay {
-        padding-top: env(safe-area-inset-top) !important;
-        padding-bottom: env(safe-area-inset-bottom) !important;
-    }
-    
-    /* PWA ve Tam Ekran Modunda Beyaz Boşlukları Önle */
-    body {
-        background-color: #0b0f19 !important; /* Çentik arkası rengi */
-    }
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
 
+    background: rgba(21, 27, 43, 0.98);
+    backdrop-filter: blur(15px);
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
 
+/* ========== 5. ALT MENÜ İKONLARI ========== */
+.nav-item {
+    flex: 1;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ========== 6. ORTA İÇERİK (SCROLL ALANI) ========== */
+.content-area,
+.page {
+    position: absolute;
+    left: 0;
+    right: 0;
+
+    top: calc(60px + env(safe-area-inset-top));
+    bottom: calc(70px + env(safe-area-inset-bottom));
+
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+
+    padding: 15px;
+}
+
+/* ========== 7. MODAL / OVERLAY DÜZELTMESİ ========== */
+.modal-overlay {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+}
 
 </style>
 
@@ -7023,7 +7003,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
