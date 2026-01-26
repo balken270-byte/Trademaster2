@@ -1754,7 +1754,97 @@ button:active,
     width: 50px;
     height:
 
+    /* 1. TÜM KUTULARI SIFIRLA (Ölçü hatası olmaması için şart) */
+    *, *::before, *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
 
+    /* 2. EKRANI SABİTLE (Lastik etkisini ve beyaz boşlukları önler) */
+    html, body {
+        width: 100%;
+        height: 100dvh; /* Adres çubuğu olsa bile tam ekran yapar */
+        overflow: hidden; /* Sayfanın kendisi kaymaz */
+        position: fixed;
+        inset: 0;
+        background-color: #0b0f19;
+    }
+
+    /* 3. ÜST BAR (iPhone Çentiğine Göre Ayarlanır) */
+    .top-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 10000;
+        
+        /* Çentik varsa otomatik aşağı iner, yoksa 0 ekler */
+        padding-top: env(safe-area-inset-top); 
+        
+        /* Barın yüksekliği: 60px + Çentik Boşluğu */
+        height: calc(60px + env(safe-area-inset-top));
+        
+        display: flex;
+        align-items: center;
+        padding-left: 20px;
+        padding-right: 20px;
+        
+        background-color: #0b0f19;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    /* 4. ALT MENÜ (DÜZELTİLMİŞ VERSİYON - Kayma Yapmaz) */
+    .bottom-nav, .nav-container {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        z-index: 10000;
+
+        /* KRİTİK DÜZELTME: Yükseklik = 70px + Siyah Çizgi */
+        /* Böylece ikonların yeri daralmaz */
+        height: calc(70px + env(safe-area-inset-bottom));
+        
+        /* İkonları siyah çizginin üzerine it */
+        padding-bottom: env(safe-area-inset-bottom);
+        
+        display: flex;
+        align-items: center; /* İkonları dikeyde tam ortalar */
+        justify-content: space-around;
+        
+        background: rgba(21, 27, 43, 0.98);
+        backdrop-filter: blur(15px);
+        border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* 5. MENÜ İKONLARI */
+    .nav-item {
+        flex: 1;
+        height: 100%; /* Bulunduğu alanın tamamını kaplar */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* 6. ORTA İÇERİK (Sadece burası kayar) */
+    .content-area, .page {
+        position: absolute;
+        left: 0;
+        right: 0;
+        
+        /* Üst barın bittiği yerden başla */
+        top: calc(60px + env(safe-area-inset-top));
+        
+        /* Alt menünün başladığı yerde bitir */
+        bottom: calc(70px + env(safe-area-inset-bottom));
+        
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch; /* iPhone'da akıcı kaydırma */
+        padding: 15px;
+    }
+    
 </style>
 
 <script>
@@ -6916,7 +7006,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.4"; 
+    const CURRENT_VERSION = "1.5"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
