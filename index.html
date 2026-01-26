@@ -27,7 +27,8 @@
         <script src="https://apis.google.com/js/api.js"></script>
     <script src="https://accounts.google.com/gsi/client"></script>
 
-<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+
 
 
     <style>
@@ -6219,8 +6220,9 @@ function openLabFullscreen() {
                         </label>
                     </div>
                     <button class="ps-btn btn-main btn-sec" style="width:100%" onclick="exportComprehensiveReport()">
-    <i class="fas fa-file-invoice-dollar"></i> Kapsamlı Muhasebe Raporu (A-Z)
+    <i class="fas fa-file-invoice-dollar"></i> Kapsamlı Excel Raporu
 </button>
+
 
 
                     <div class="ps-drive-section">
@@ -7010,7 +7012,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.7"; 
+    const CURRENT_VERSION = "1.8"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -9034,6 +9036,12 @@ onerror="this.outerHTML=\`<div style='width:40px;height:40px;background:${color}
     function downloadBackup(){ const d=localStorage.getItem('myPF_final'); const b=new Blob([d],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='yedek.json'; a.click(); }
     function uploadBackup(i){ const f=i.files[0]; const r=new FileReader(); r.onload=function(e){localStorage.setItem('myPF_final',e.target.result); location.reload();}; r.readAsText(f); }
     function exportComprehensiveReport() {
+    // --- GÜVENLİK KONTROLÜ (İnternet yavaşsa uygulama çökmesin diye) ---
+    if (typeof XLSX === 'undefined') {
+        alert("Excel kütüphanesi henüz yüklenmedi! Lütfen internet bağlantınızı kontrol edip 5 saniye sonra tekrar deneyin.");
+        return; 
+    }
+
     // ---------------------------------------------------------
     // 1. VERİLERİ TOPLA
     // ---------------------------------------------------------
@@ -9101,7 +9109,6 @@ onerror="this.outerHTML=\`<div style='width:40px;height:40px;background:${color}
         let totalVal = p.amt * currentPrice;
         let totalCost = p.amt * p.buy;
         let pnl = totalVal - totalCost;
-        let pnlRate = (pnl / totalCost) * 100;
         let status = pnl >= 0 ? "KÂRDA" : "ZARARDA";
 
         portfolioData.push([
@@ -12785,6 +12792,21 @@ function renderDailyList(logs) {
     
     if(html === "") html = "<div style='text-align:center; padding:15px; color:var(--text-sub); font-size:11px;'>Henüz kayıt yok.</div>";
     list.innerHTML = html;
+}
+
+// Sayı Okuma Yardımcısı (Türkçe virgül/nokta sorununu çözer)
+function parseTurkishInput(val) {
+    if (!val) return 0;
+    val = val.toString().trim();
+    // Hem nokta hem virgül varsa (Örn: 1.000,50) -> Noktayı sil, virgülü nokta yap
+    if (val.includes('.') && val.includes(',')) {
+        val = val.replace(/\./g, '').replace(',', '.');
+    } 
+    // Sadece virgül varsa (Örn: 10,5) -> Virgülü nokta yap
+    else if (val.includes(',')) {
+        val = val.replace(',', '.');
+    }
+    return parseFloat(val) || 0;
 }
 
 
