@@ -6215,9 +6215,10 @@ function openLabFullscreen() {
                             <input type="file" style="display:none" onchange="uploadBackup(this)">
                         </label>
                     </div>
-                    <button class="ps-btn btn-main btn-sec" style="width:100%" onclick="exportExcel()">
-                        <i class="fas fa-file-excel"></i> Excel Raporu
-                    </button>
+                    <button class="ps-btn btn-main btn-sec" style="width:100%" onclick="exportComprehensiveReport()">
+    <i class="fas fa-file-invoice-dollar"></i> Kapsamlı Muhasebe Raporu (A-Z)
+</button>
+
 
                     <div class="ps-drive-section">
                         <div class="ps-drive-header">
@@ -7006,7 +7007,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.5"; 
+    const CURRENT_VERSION = "1.6"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -9029,7 +9030,138 @@ onerror="this.outerHTML=\`<div style='width:40px;height:40px;background:${color}
     function editNote(i){ let as=JSON.parse(localStorage.getItem('myPF_final')); let n=prompt("Not:",as[i].note||""); if(n!==null){as[i].note=n; localStorage.setItem('myPF_final',JSON.stringify(as)); loadPF();} }
     function downloadBackup(){ const d=localStorage.getItem('myPF_final'); const b=new Blob([d],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='yedek.json'; a.click(); }
     function uploadBackup(i){ const f=i.files[0]; const r=new FileReader(); r.onload=function(e){localStorage.setItem('myPF_final',e.target.result); location.reload();}; r.readAsText(f); }
-    function exportExcel(){const as=JSON.parse(localStorage.getItem('myPF_final'))||[];let c="Sembol,Adet,Maliyet\n";as.forEach(r=>{c+=`${r.name},${r.amt},${r.buy}\n`});const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURI(c);a.download='portfoy.csv';a.click();}
+    function exportComprehensiveReport() {
+    // ---------------------------------------------------------
+    // 1. VERİLERİ TOPLA
+    // ---------------------------------------------------------
+    const pf = JSON.parse(localStorage.getItem('myPF_final')) || [];
+    const history = JSON.parse(localStorage.getItem('tm_full_trade_history')) || [];
+    const cash = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
+    const realizedPnL = parseFloat(localStorage.getItem('tm_realized_pnl')) || 0;
+    
+    // Uygulama Ayarları (Para Birimi vb.)
+    const settings = JSON.parse(localStorage.getItem('tm_settings')) || { currency: 'TRY' };
+    const mainSym = settings.currency === 'TRY' ? '₺' : '$';
+
+    // ---------------------------------------------------------
+    // 2. SAYFA 1: MUHASEBE VE PERFORMANS ÖZETİ
+    // ---------------------------------------------------------
+    let totalInvested = 0; // İçeri giren net para (Yatırma - Çekme)
+    let totalSalary = 0;   // Çekilen Maaşlar
+    
+    history.forEach(t => {
+        let val = parseFloat(t.total) || 0;
+        if (t.type === 'YATIRMA') totalInvested += val;
+        else if (t.type === 'ÇEKME') totalInvested -= val;
+        else if (t.type === 'MAAŞ') totalSalary += val;
+    });
+
+    // Portföy Değeri Hesapla
+    let portfolioValue = 0;
+    let portfolioCost = 0;
+    pf.forEach(item => {
+        let p = item.curr || item.buy;
+        portfolioValue += (p * item.amt);
+        portfolioCost += (item.buy * item.amt);
+    });
+
+    let totalEquity = cash + portfolioValue; // Toplam Özkaynak
+    let unrealizedPnL = portfolioValue - portfolioCost; // Açık İşlem Kârı
+    let netPnL = totalEquity - totalInvested; // Net Kâr (Her şey dahil)
+
+    // Excel İçin Özet Verisi
+    let summaryData = [
+        ["RAPOR TARİHİ", new Date().toLocaleString('tr-TR')],
+        ["", ""],
+        ["--- FİNANSAL DURUM ---", "--- DEĞER ---"],
+        ["Toplam Varlık (Nakit + Mal)", totalEquity.toFixed(2) + " " + mainSym],
+        ["Kasadaki Nakit", cash.toFixed(2) + " " + mainSym],
+        ["Portföy Değeri (Mallar)", portfolioValue.toFixed(2) + " " + mainSym],
+        ["", ""],
+        ["--- MUHASEBE ANALİZİ ---", ""],
+        ["Toplam Yatırılan Sermaye", totalInvested.toFixed(2) + " " + mainSym],
+        ["Realize Edilen (Cebine Giren) Kâr", realizedPnL.toFixed(2) + " " + mainSym],
+        ["Açık İşlem Kârı (Satılmamış)", unrealizedPnL.toFixed(2) + " " + mainSym],
+        ["Çekilen Maaşlar (Kâr Dağıtımı)", totalSalary.toFixed(2) + " " + mainSym],
+        ["NET KÂR/ZARAR DURUMU", netPnL.toFixed(2) + " " + mainSym]
+    ];
+
+    // ---------------------------------------------------------
+    // 3. SAYFA 2: AKTİF PORTFÖY LİSTESİ
+    // ---------------------------------------------------------
+    let portfolioData = [];
+    // Başlıklar
+    portfolioData.push(["Varlık", "Adet", "Ort. Maliyet", "Güncel Fiyat", "Toplam Değer", "Maliyet Tutarı", "Kâr/Zarar", "Durum"]);
+
+    pf.forEach(p => {
+        let currentPrice = p.curr || p.buy;
+        let totalVal = p.amt * currentPrice;
+        let totalCost = p.amt * p.buy;
+        let pnl = totalVal - totalCost;
+        let pnlRate = (pnl / totalCost) * 100;
+        let status = pnl >= 0 ? "KÂRDA" : "ZARARDA";
+
+        portfolioData.push([
+            p.name.replace('.IS','').replace('BINANCE:',''), // İsim
+            p.amt, // Adet
+            parseFloat(p.buy.toFixed(2)), // Maliyet
+            parseFloat(currentPrice.toFixed(2)), // Güncel
+            parseFloat(totalVal.toFixed(2)), // Toplam Değer
+            parseFloat(totalCost.toFixed(2)), // Maliyet Tutarı
+            parseFloat(pnl.toFixed(2)), // PnL
+            status // Durum
+        ]);
+    });
+
+    // ---------------------------------------------------------
+    // 4. SAYFA 3: İŞLEM GEÇMİŞİ (DEFTER)
+    // ---------------------------------------------------------
+    let historyData = [];
+    historyData.push(["Tarih", "Saat", "İşlem Türü", "Sembol", "Miktar", "Fiyat", "Toplam Tutar", "İşlem Sonucu (PnL)"]);
+
+    // Geçmişi tersine çevir (Yeniden eskiye)
+    [...history].reverse().forEach(h => {
+        let pnlText = h.pnl ? parseFloat(h.pnl).toFixed(2) : "-";
+        
+        historyData.push([
+            h.date,
+            h.time || "00:00",
+            h.type, // ALIM, SATIM, YATIRMA...
+            h.sym || "NAKİT",
+            h.qty || "-",
+            h.price || "-",
+            parseFloat(h.total).toFixed(2),
+            pnlText
+        ]);
+    });
+
+    // ---------------------------------------------------------
+    // 5. EXCEL DOSYASINI OLUŞTUR (WORKBOOK)
+    // ---------------------------------------------------------
+    const wb = XLSX.utils.book_new();
+
+    // Sayfa 1: Özet
+    const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+    wsSummary['!cols'] = [{wch: 30}, {wch: 20}]; // Sütun genişlikleri
+    XLSX.utils.book_append_sheet(wb, wsSummary, "Muhasebe Özeti");
+
+    // Sayfa 2: Portföy
+    const wsPortfolio = XLSX.utils.aoa_to_sheet(portfolioData);
+    wsPortfolio['!cols'] = [{wch:15}, {wch:10}, {wch:12}, {wch:12}, {wch:15}, {wch:15}, {wch:12}, {wch:10}];
+    XLSX.utils.book_append_sheet(wb, wsPortfolio, "Varlıklarım");
+
+    // Sayfa 3: Geçmiş
+    const wsHistory = XLSX.utils.aoa_to_sheet(historyData);
+    wsHistory['!cols'] = [{wch:12}, {wch:8}, {wch:12}, {wch:12}, {wch:10}, {wch:12}, {wch:15}, {wch:15}];
+    XLSX.utils.book_append_sheet(wb, wsHistory, "İşlem Defteri");
+
+    // ---------------------------------------------------------
+    // 6. İNDİR
+    // ---------------------------------------------------------
+    let dateStr = new Date().toLocaleDateString('tr-TR').replace(/\./g, '-');
+    XLSX.writeFile(wb, `TradeVia_Kapsamli_Rapor_${dateStr}.xlsx`);
+}
+
     function loadProfile() { document.getElementById('displayProfileName').innerText = userProfile.name; document.getElementById('profileNameInput').value = userProfile.name; document.getElementById('displayProfileBio').innerText = userProfile.bio; document.getElementById('profileBioInput').value = userProfile.bio; document.getElementById('profileJoinDate').innerText = userProfile.joinDate; document.getElementById('profileTradeCount').innerText = tradeHistory.length; if(userProfile.img) document.getElementById('displayProfileImg').src = userProfile.img; }
     function saveProfileData() { let name = document.getElementById('profileNameInput').value; let bio = document.getElementById('profileBioInput').value; if(name) userProfile.name = name; if(bio) userProfile.bio = bio; localStorage.setItem('tm_user_profile', JSON.stringify(userProfile)); loadProfile(); addNotification('success', 'Profil', 'Bilgileriniz güncellendi.'); }
     function uploadProfileImg(input) { if (input.files && input.files[0]) { var reader = new FileReader(); reader.onload = function (e) { try { userProfile.img = e.target.result; localStorage.setItem('tm_user_profile', JSON.stringify(userProfile)); document.getElementById('displayProfileImg').src = userProfile.img; addNotification('success', 'Fotoğraf', 'Profil fotoğrafı yüklendi.'); } catch (error) { addNotification('danger', 'Hata', 'Fotoğraf boyutu çok büyük!'); } }; reader.readAsDataURL(input.files[0]); } }
