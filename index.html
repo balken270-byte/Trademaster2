@@ -7009,7 +7009,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.8"; 
+    const CURRENT_VERSION = "1.9"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -9031,7 +9031,7 @@ onerror="this.outerHTML=\`<div style='width:40px;height:40px;background:${color}
     function closeModal(id){document.getElementById(id).style.display='none';} function openModal(id){document.getElementById(id).style.display='flex';}
     function editNote(i){ let as=JSON.parse(localStorage.getItem('myPF_final')); let n=prompt("Not:",as[i].note||""); if(n!==null){as[i].note=n; localStorage.setItem('myPF_final',JSON.stringify(as)); loadPF();} }
     function downloadBackup(){ const d=localStorage.getItem('myPF_final'); const b=new Blob([d],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='yedek.json'; a.click(); }
-    /* --- YENİ GELİŞMİŞ EXCEL YÜKLEME MOTORU --- */
+    /* --- AKILLI EXCEL/CSV YÜKLEME MOTORU (V3 - FINAL) --- */
 function importExcelBackup(input) {
     const file = input.files[0];
     if (!file) return;
@@ -9039,86 +9039,98 @@ function importExcelBackup(input) {
     const reader = new FileReader();
 
     reader.onload = function(e) {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, {type: 'array'});
-
-        // 1. VARLIKLARIM SAYFASINI BUL VE YÜKLE
-        if (workbook.Sheets["Varlıklarım"]) {
-            const assetsSheet = workbook.Sheets["Varlıklarım"];
-            const assetsJson = XLSX.utils.sheet_to_json(assetsSheet);
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
             
-            let newPortfolio = [];
+            let portfolioFound = false;
+            let historyFound = false;
             
-            assetsJson.forEach(row => {
-                // Excel başlıklarını uygulama verisine çevir
-                // Başlıklar: "Varlık", "Adet", "Ort. Maliyet"
-                if(row["Varlık"] && row["Adet"]) {
-                    // Para birimini tahmin et (Sembol uzunluğuna göre basit mantık veya varsayılan TRY)
-                    let origin = 'TRY';
-                    let name = row["Varlık"].toString().trim();
-                    if(name.includes('USD') || name.endsWith('USDT')) origin = 'USD';
+            // Tüm sayfaları tek tek gez ve ne olduğunu anla
+            workbook.SheetNames.forEach(sheetName => {
+                const sheet = workbook.Sheets[sheetName];
+                const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-                    newPortfolio.push({
-                        name: name,
-                        amt: parseFloat(row["Adet"]),
-                        buy: parseFloat(row["Ort. Maliyet"]),
-                        curr: parseFloat(row["Güncel Fiyat"] || row["Ort. Maliyet"]), // Güncel yoksa maliyeti koy
-                        origin: origin,
-                        image: null,
-                        source: 'EXCEL'
-                    });
+                if (jsonData.length > 0) {
+                    // İlk satırın başlıklarını kontrol et
+                    const firstRow = jsonData[0];
+                    const keys = Object.keys(firstRow);
+
+                    // --- SENARYO 1: PORTFÖY SAYFASI MI? ---
+                    // İçinde "Varlık" ve "Adet" sütunu varsa bu Portföydür
+                    if (keys.some(k => k.includes("Varlık")) && keys.some(k => k.includes("Adet"))) {
+                        let newPortfolio = [];
+                        jsonData.forEach(row => {
+                            if(row["Varlık"] && row["Adet"]) {
+                                let origin = 'TRY';
+                                let name = row["Varlık"].toString().trim();
+                                if(name.includes('USD') || name.endsWith('USDT') || name === 'USD') origin = 'USD';
+
+                                newPortfolio.push({
+                                    name: name,
+                                    amt: parseFloat(row["Adet"]),
+                                    buy: parseFloat(row["Ort. Maliyet"] || 0),
+                                    curr: parseFloat(row["Güncel Fiyat"] || row["Ort. Maliyet"] || 0),
+                                    origin: origin,
+                                    image: null,
+                                    source: 'EXCEL'
+                                });
+                            }
+                        });
+                        
+                        if(newPortfolio.length > 0) {
+                            localStorage.setItem('myPF_final', JSON.stringify(newPortfolio));
+                            portfolioFound = true;
+                        }
+                    }
+
+                    // --- SENARYO 2: GEÇMİŞ SAYFASI MI? ---
+                    // İçinde "İşlem Türü" varsa bu Geçmiş Defteridir
+                    if (keys.some(k => k.includes("İşlem Türü"))) {
+                        let newHistory = [];
+                        jsonData.forEach(row => {
+                            newHistory.push({
+                                date: row["Tarih"] || new Date().toLocaleDateString(),
+                                time: row["Saat"] || "00:00",
+                                type: row["İşlem Türü"],
+                                sym: row["Sembol"] || "NAKİT",
+                                qty: parseFloat(row["Miktar"]) || 0,
+                                price: parseFloat(row["Fiyat"]) || 0,
+                                total: parseFloat(row["Toplam Tutar"]) || 0,
+                                desc: 'Yedek Yüklemesi',
+                                curr: 'TRY',
+                                pnl: parseFloat(row["İşlem Sonucu (PnL)"]) || 0
+                            });
+                        });
+
+                        if(newHistory.length > 0) {
+                            // Tarihe göre sıralayıp kaydet
+                            newHistory.reverse(); 
+                            localStorage.setItem('tm_full_trade_history', JSON.stringify(newHistory));
+                            historyFound = true;
+                        }
+                    }
                 }
             });
 
-            if(newPortfolio.length > 0) {
-                localStorage.setItem('myPF_final', JSON.stringify(newPortfolio));
-                console.log("Portföy yüklendi: " + newPortfolio.length + " varlık.");
-            }
-        }
-
-        // 2. İŞLEM DEFTERİ SAYFASINI BUL VE YÜKLE
-        if (workbook.Sheets["İşlem Defteri"]) {
-            const historySheet = workbook.Sheets["İşlem Defteri"];
-            const historyJson = XLSX.utils.sheet_to_json(historySheet);
+            // --- SONUÇ BİLDİRİMİ ---
+            let msg = "";
+            if(portfolioFound) msg += "✅ Cüzdan yüklendi.\n";
+            if(historyFound) msg += "✅ İşlem geçmişi yüklendi.\n";
             
-            let newHistory = [];
-
-            historyJson.forEach(row => {
-                // Başlıklar: "Tarih", "Saat", "İşlem Türü", "Sembol", "Miktar", "Fiyat", "Toplam Tutar"
-                newHistory.push({
-                    date: row["Tarih"],
-                    time: row["Saat"] || "00:00",
-                    type: row["İşlem Türü"],
-                    sym: row["Sembol"],
-                    qty: parseFloat(row["Miktar"]) || 0,
-                    price: parseFloat(row["Fiyat"]) || 0,
-                    total: parseFloat(row["Toplam Tutar"]) || 0,
-                    desc: 'Excel Yedeği',
-                    curr: 'TRY', // Varsayılan
-                    pnl: parseFloat(row["İşlem Sonucu (PnL)"]) || 0
-                });
-            });
-
-            if(newHistory.length > 0) {
-                // Tarihe göre sırala (Yeniden eskiye)
-                newHistory.reverse(); 
-                localStorage.setItem('tm_full_trade_history', JSON.stringify(newHistory));
-                console.log("Geçmiş yüklendi: " + newHistory.length + " işlem.");
+            if(!portfolioFound && !historyFound) {
+                alert("HATA: Dosya okundu ama uygun veri bulunamadı.\nLütfen 'TradeVia_Kapsamli_Rapor' dosyasını yüklediğinizden emin olun.");
+            } else {
+                alert(msg + "\nSayfa yenileniyor...");
+                location.reload();
             }
-        }
 
-        // 3. MUHASEBE ÖZETİNDEN NAKİTİ BULMAYA ÇALIŞ (Opsiyonel)
-        if (workbook.Sheets["Muhasebe Özeti"]) {
-            const summarySheet = workbook.Sheets["Muhasebe Özeti"];
-            // Bu sayfayı düz metin gibi tarayıp "Kasadaki Nakit" satırını bulmaya çalışırız
-            // Ancak riskli olabilir, o yüzden şimdilik nakiti manuel girmenizi öneririm veya 0 başlar.
+        } catch (err) {
+            console.error(err);
+            alert("Dosya okuma hatası! Lütfen geçerli bir Excel (.xlsx) dosyası seçin.");
         }
-
-        alert("Excel yedeği başarıyla yüklendi! Sayfa yenileniyor...");
-        location.reload();
     };
 
-    // KRİTİK NOKTA: Binary okuma yapıyoruz, Text değil!
     reader.readAsArrayBuffer(file);
 }
 
