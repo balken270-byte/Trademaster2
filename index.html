@@ -6937,6 +6937,7 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
     </div>
 </div>
 
+
 <div id="newsRedirectModal" class="modal-overlay" style="align-items: center; justify-content: center; backdrop-filter: blur(5px);">
     
     <div class="modal market-sheet" style="padding: 0; width: 90%; max-width: 360px; height: 65vh; border-radius: 24px; overflow: hidden; display: flex; flex-direction: column; background: #151b2b; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 20px 40px rgba(0,0,0,0.6);">
@@ -7142,7 +7143,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.3"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -10189,6 +10190,7 @@ function openMarketDetail(rawSymbol) {
     });
 }
 
+
 // 2. Modalı Kapatan Fonksiyon
 function closeMarketDetail() {
     document.getElementById('marketDetailModal').style.display = 'none';
@@ -10315,10 +10317,11 @@ function initMdChart(rawSymbol) {
     });
 }
 
-// DETAYLARI EKRANA BASAN FONKSİYON
+// DETAYLARI EKRANA BASAN FONKSİYON (DÜZELTİLMİŞ KUR HESAPLAMALI)
 function renderMdUI(d, title) {
     let sym = (currentCategory === 'kripto' || currentCategory === 'altin') ? '$' : '₺';
     
+    // Üst Başlık ve Fiyatlar
     document.getElementById('mdSymbolTitle').innerText = title;
     document.getElementById('mdBigPrice').innerText = sym + d.price.toLocaleString(undefined, {minimumFractionDigits:2});
     
@@ -10337,6 +10340,7 @@ function renderMdUI(d, title) {
         hero.className = 'md-header-hero down';
     }
 
+    // Range Bar (Günlük Aralık)
     let rangePercent = 50;
     if(d.high > d.low) {
         rangePercent = ((d.price - d.low) / (d.high - d.low)) * 100;
@@ -10347,10 +10351,12 @@ function renderMdUI(d, title) {
     document.getElementById('mdLow').innerText = sym + d.low.toLocaleString();
     document.getElementById('mdHigh').innerText = sym + d.high.toLocaleString();
 
+    // İstatistikler
     document.getElementById('mdVol').innerText = formatVolume(d.vol, sym);
     document.getElementById('mdVwap').innerText = sym + d.vwap.toLocaleString(undefined, {maximumFractionDigits:2});
     document.getElementById('mdType').innerText = currentCategory.toUpperCase();
 
+    // Yasal Uyarı Metni
     let disclaimer = document.getElementById('mdDisclaimer');
     if(disclaimer) {
         if(currentCategory === 'hisse' || currentCategory === 'altin' || currentCategory === 'doviz') {
@@ -10364,12 +10370,43 @@ function renderMdUI(d, title) {
         }
     }
 
-    let myCash = cashBalance;
-    let maxBuy = d.price > 0 ? (myCash / d.price) : 0;
-    let balanceSym = appSettings.currency === 'TRY' ? '₺' : '$';
+    // --- [HESAPLAMA DÜZELTMESİ BAŞLANGIÇ] ---
     
-    document.getElementById('mdUserBalance').innerText = balanceSym + myCash.toLocaleString();
-    document.getElementById('mdMaxBuy').innerText = maxBuy.toFixed(4) + " Adet";
+    let myCash = cashBalance; // Global cüzdan bakiyesi
+    let currentUsd = (typeof usdTryRate !== 'undefined') ? usdTryRate : 36.50;
+    let appCurr = (typeof appSettings !== 'undefined') ? appSettings.currency : 'TRY';
+
+    // 1. Varlığın Para Birimini Tespit Et
+    // Kripto, Ons Altın ve Bazı Döviz çiftleri USD bazlıdır.
+    let isAssetUsd = (currentCategory === 'kripto' || 
+                      (currentCategory === 'altin' && (title.includes('ONS') || title.includes('GOLD') || title.includes('GC=F'))) ||
+                      (currentCategory === 'doviz' && title.includes('/USD'))); // EUR/USD gibi
+
+    // 2. Fiyatı Cüzdan Para Birimine Çevir (Normalize Et)
+    let normalizedPrice = d.price;
+
+    if (appCurr === 'TRY' && isAssetUsd) {
+        // Cüzdan TL, Varlık Dolar -> Varlık Fiyatını TL'ye çevir (Örn: BTC $100k -> 3.65M TL)
+        normalizedPrice = d.price * currentUsd;
+    } 
+    else if (appCurr === 'USD' && !isAssetUsd) {
+        // Cüzdan Dolar, Varlık TL -> Varlık Fiyatını Dolara çevir (Örn: THYAO 300 TL -> $8.2)
+        normalizedPrice = d.price / currentUsd;
+    }
+
+    // 3. Doğru Bölme İşlemi (Bakiye / Kurulanmış Fiyat)
+    let maxBuy = normalizedPrice > 0 ? (myCash / normalizedPrice) : 0;
+    
+    let balanceSym = appCurr === 'TRY' ? '₺' : '$';
+    
+    // Ekrana Yazdır
+    document.getElementById('mdUserBalance').innerText = balanceSym + myCash.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+    
+    // Adet gösterimini akıllı yap (Kripto ise 6 hane, Hisse ise 0 hane)
+    let precision = (currentCategory === 'kripto') ? 6 : 0;
+    document.getElementById('mdMaxBuy').innerText = maxBuy.toLocaleString(undefined, {maximumFractionDigits: precision}) + " Adet";
+
+    // --- [HESAPLAMA DÜZELTMESİ BİTİŞ] ---
 }
 
 // ANA MARKET DETAY FONKSİYONU
