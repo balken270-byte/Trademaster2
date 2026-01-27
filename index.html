@@ -90,19 +90,7 @@
 
         /* ÜST BAR */
 .top-bar {
-    /* --- Değişen Kısımlar --- */
-    /* iPhone çentiği varsa o kadar yukarıdan boşluk bırak: */
-    padding-top: env(safe-area-inset-top);
-    
-    /* Yüksekliği 60px + çentik payı kadar ayarla: */
-    height: calc(60px + env(safe-area-inset-top));
-    
-    /* Sağdan soldan 20px boşluk (padding: 0 20px yerine bunu kullanıyoruz) */
-    padding-left: 20px;
-    padding-right: 20px;
-    padding-bottom: 0;
-    /* ------------------------ */
-
+    /* --- SENİN MEVCUT ÖZELLİKLERİN --- */
     flex-shrink: 0;
     background: var(--bg-body);
     border-bottom: 1px solid rgba(255,255,255,0.05);
@@ -110,7 +98,20 @@
     justify-content: space-between;
     align-items: center;
     z-index: 50;
+
+    /* --- GÜNCELLENEN KISIM --- */
+    /* Sağ ve Soldan 20px boşluk */
+    padding-left: 20px;
+    padding-right: 20px;
+    
+    /* Üstten boşluk: Android'de 0px olur, iPhone'da çentik kadar olur */
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: 0;
+
+    /* Yükseklik: Android'de 60px olur, iPhone'da 60px + çentik olur */
+    height: calc(60px + env(safe-area-inset-top, 0px));
 }
+
 
         .icon-btn { position: relative; width: 38px; height: 38px; border-radius: 10px; background: var(--bg-input); color: var(--text-main); border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
         .icon-btn:active { transform: scale(0.95); }
@@ -7141,7 +7142,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.3"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -14291,7 +14292,7 @@ document.addEventListener("DOMContentLoaded", () => {
         /* --- KURAL SETİ (GÜNCELLENDİ) --- */
         
         // KURAL 1: Piyasa, Ayarlar veya Haberler ise KESİN GİZLE
-        if (cleanID === 'page-market' || cleanID === 'page-settings' || cleanID === 'page-news') {
+        if (cleanID === '' || cleanID === 'page-settings' || cleanID === 'page-news') {
             topBar.style.setProperty('display', 'none', 'important');
         }
         // KURAL 2: Analiz sayfası ise ve Alt Modüller (Lab/Vision) açıksa GİZLE
