@@ -13,6 +13,7 @@
     
     
     
+    
    <title>TradeVia (Live Edition)</title>
    
    <meta charset="UTF-8">
@@ -47,6 +48,13 @@
 
 
     <style>
+        /* --- HD GÖRÜNTÜ VE NET YAZILAR --- */
+body {
+    -webkit-font-smoothing: antialiased; /* iOS/Mac için */
+    -moz-osx-font-smoothing: grayscale;  /* Firefox için */
+    text-rendering: optimizeLegibility;  /* Okunabilirlik optimizasyonu */
+}
+
                     .bottom-nav {
             position: fixed;       /* Ekrana çivile */
             bottom: 0 !important;  /* Kesinlikle en altta olsun */
@@ -66,70 +74,56 @@
         }
 
         
-/* --- GELİŞMİŞ TEMA MOTORU (V3 - KONTRAST DÜZELTMELİ) --- */
+/* --- TEMALAR & DEĞİŞKENLER (ORİJİNAL - EKRAN GÖRÜNTÜSÜNDEN) --- */
 :root {
-    /* Varsayılan (OKYANUS) */
+    /* ORİJİNAL OKYANUS (VARSAYILAN) */
     --bg-body: #0b0f19;
-    --bg-card: rgba(21, 27, 43, 0.7);
-    --bg-input: rgba(30, 41, 59, 0.5);
+    --bg-card: #151b2b;
+    --bg-input: #1e2538;
     --text-main: #ffffff;
     --text-sub: #94a3b8;
     --accent: #3b82f6;
+    --success: #10b981;
+    --danger: #ef4444;
+    --gold: #f59e0b;
+    --kap: #8b5cf6;
+    --radius: 16px;
     --accent-glow: rgba(59, 130, 246, 0.5);
+
+    /* Yeni sistemin çalışması için orijinalden türetilen ekler */
     --nav-bg: rgba(21, 27, 43, 0.95);
     --border-color: rgba(255, 255, 255, 0.05);
-    
-    /* YENİ: Buton üzerindeki yazı rengi (Varsayılan Beyaz) */
-    --text-on-accent: #ffffff; 
-}
-
-/* 1. SİBER (Mor & Neon) */
-[data-theme="cyber"] {
-    --bg-body: #0f0518;
-    --bg-card: rgba(26, 11, 46, 0.7);
-    --bg-input: rgba(45, 20, 80, 0.5);
-    --text-sub: #a78bfa;
-    --accent: #d946ef;
-    --accent-glow: rgba(217, 70, 239, 0.6);
-    --nav-bg: rgba(20, 5, 30, 0.95);
-    --border-color: rgba(217, 70, 239, 0.2);
     --text-on-accent: #ffffff;
 }
 
-/* 2. ZİFİRİ (OLED - DÜZELTİLMİŞ) */
-[data-theme="oled"] {
+/* MOR (PURPLE) TEMA */
+[data-theme="purple"] {
+    --bg-body: #0f0718;
+    --bg-card: #1a0b2e;
+    --bg-input: #261245;
+    --accent: #8b5cf6;
+    --text-sub: #a78bfa;
+    --accent-glow: rgba(139, 92, 246, 0.5);
+    
+    /* Uyumluluk ekleri */
+    --nav-bg: rgba(26, 11, 46, 0.95);
+    --border-color: rgba(139, 92, 246, 0.2);
+    --text-on-accent: #ffffff;
+}
+
+/* KOYU (DARK) TEMA */
+[data-theme="dark"] {
     --bg-body: #000000;
-    
-    /* Kartları gri yerine TAM SİYAH yaptık, kenarlığı belirginleştirdik */
-    --bg-card: #000000; 
-    --bg-input: #111111;
-    --text-sub: #888888;
-    
-    --accent: #ffffff;       /* Buton Beyaz */
+    --bg-card: #111111;
+    --bg-input: #222222;
+    --accent: #ffffff;
+    --text-sub: #666666;
     --accent-glow: rgba(255, 255, 255, 0.3);
-    --nav-bg: #000000;
-    --border-color: #333333; /* Kenarlıklar daha belirgin */
     
-    /* KRİTİK DÜZELTME: Beyaz buton üstüne SİYAH yazı */
-    --text-on-accent: #000000; 
-}
-
-/* 3. LÜKS (Altın) */
-[data-theme="luxury"] {
-    --bg-body: #1c1917;
-    --bg-card: rgba(41, 37, 36, 0.7);
-    --bg-input: rgba(60, 50, 40, 0.5);
-    --text-sub: #d6d3d1;
-    --accent: #f59e0b;
-    --accent-glow: rgba(245, 158, 11, 0.5);
-    --nav-bg: rgba(28, 25, 23, 0.95);
-    --border-color: rgba(245, 158, 11, 0.2);
-    --text-on-accent: #000000; /* Altın üstüne siyah daha iyi okunur */
-}
-
-/* Genel Geçiş Efekti (Yumuşak Değişim) */
-body, .card, .nav-container, .top-bar, .modern-input {
-    transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease;
+    /* Uyumluluk ekleri */
+    --nav-bg: rgba(17, 17, 17, 0.95);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --text-on-accent: #000000; /* Beyaz buton üstüne siyah yazı */
 }
 
         
@@ -6439,7 +6433,7 @@ function openLabFullscreen() {
                     <div class="ps-setting-row setting-item">
     <div class="ps-setting-info">
         <span class="ps-setting-title">Açılış Sayfası</span>
-        <span class="ps-setting-desc">Uygulama açılınca burası gelsin</span>
+        <span class="ps-setting-desc"> </span>
     </div>
     <select id="startPageSelect" class="ps-select setting-select" style="width:auto;" onchange="changeStartPage(this.value)">
         <option value="portfolio">Cüzdan</option>
@@ -7287,7 +7281,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.3"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
