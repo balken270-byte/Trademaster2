@@ -7508,7 +7508,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -12988,409 +12988,305 @@ function switchAnTab(tab, btn) {
 }
 
 /* ==========================================================================
-   HEDEFLER (VİZYON) MODÜLÜ - FINAL V6 (TL FİKSİ & ANİMASYONLU)
+   HEDEFLER (VİZYON) MODÜLÜ - FINAL (DÜZELTİLMİŞ & ÇAKIŞMA YOK)
    ========================================================================== */
 
-(function() { 
+// 1. YARDIMCI FONKSİYONLAR
+function getCurrencySymbol() {
+    let settings = JSON.parse(localStorage.getItem('tm_settings')) || { currency: 'TRY' };
+    return settings.currency === 'TRY' ? '₺' : '$';
+}
 
-    // YARDIMCI: GÜNCEL PARA BİRİMİ SİMGESİNİ BUL
-    function getCurrencySymbol() {
-        // En garantisi: Direkt hafızadan oku
+function parseTurkishInput(val) {
+    if (!val) return 0;
+    val = val.toString().trim();
+    if (val.includes('.') && val.includes(',')) {
+        val = val.replace(/\./g, '').replace(',', '.');
+    } else if (val.includes(',')) {
+        val = val.replace(',', '.');
+    }
+    return parseFloat(val) || 0;
+}
+
+// 2. GÜVENLİ BAKİYE HESAPLAYICI
+function getSafeBalance() {
+    try {
+        let cash = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
+        let pf = JSON.parse(localStorage.getItem('myPF_final')) || [];
         let settings = JSON.parse(localStorage.getItem('tm_settings')) || { currency: 'TRY' };
-        return settings.currency === 'TRY' ? '₺' : '$';
-    }
-
-    // 1. BAKİYE HESAPLAYICI (Güvenli Mod & Kur Dönüşümlü)
-    function getSafeBalance() {
-        try {
-            let cash = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
-            let pf = JSON.parse(localStorage.getItem('myPF_final')) || [];
-            
-            // Kurlar ve Ayarlar (Hafızadan)
-            let settings = JSON.parse(localStorage.getItem('tm_settings')) || { currency: 'TRY' };
-            let currentUsd = (typeof window.usdTryRate !== 'undefined') ? window.usdTryRate : 36.50; 
-            
-            let total = 0;
-            pf.forEach(item => {
-                let p = (item.curr && item.curr > 0) ? item.curr : item.buy;
-                
-                if(settings.currency === 'TRY') {
-                    // Uygulama TL ise:
-                    total += (item.origin === 'USD') ? (p * item.amt * currentUsd) : (p * item.amt);
-                } else {
-                    // Uygulama USD ise:
-                    total += (item.origin === 'TRY') ? ((p * item.amt) / currentUsd) : (p * item.amt);
-                }
-            });
-            return total + cash;
-        } catch(e) {
-            return 0;
-        }
-    }
-
-    // 2. GLOBAL FONKSİYONLAR
-    
-    window.checkAndLogDaily = function() {
-        let currentTotal = getSafeBalance();
-        let logs = JSON.parse(localStorage.getItem('tm_daily_tracking')) || [];
-        let today = new Date().toLocaleDateString('tr-TR');
+        let currentUsd = (typeof window.usdTryRate !== 'undefined') ? window.usdTryRate : 36.50; 
         
-        let lastLog = logs.length > 0 ? logs[logs.length - 1] : null;
-        
-        if (!lastLog || lastLog.date !== today) {
-            logs.push({ date: today, val: currentTotal });
-            if(logs.length > 30) logs.shift();
-        } else {
-            lastLog.val = currentTotal;
-        }
-        
-        localStorage.setItem('tm_daily_tracking', JSON.stringify(logs));
-        return logs;
-    };
-
-    window.manualUpdateVision = function() {
-        const elRate = document.getElementById('visionRate');
-        const elAdd = document.getElementById('visionAdd');
-        if(!elRate || !elAdd) return;
-
-        let rateVal = parseFloat(elRate.value) || 0;
-        let addVal = parseFloat(elAdd.value) || 0;
-
-        localStorage.setItem('tm_vision_settings', JSON.stringify({ rate: rateVal, add: addVal }));
-        
-        window.loadVisionData();
-        
-        if(typeof addNotification === 'function') addNotification('success', 'Güncellendi', 'Grafik yenilendi.');
-    };
-
-    window.editTargetGoal = function() {
-        let current = localStorage.getItem('tradevia_main_goal') || 1000000;
-        let val = prompt("Yeni Hedef Tutarınız:", current);
-        if(val && !isNaN(parseFloat(val))) {
-            localStorage.setItem('tradevia_main_goal', parseFloat(val));
-            window.loadVisionData();
-        }
-    };
-
-    // ANA YÜKLEYİCİ
-    window.loadVisionData = function() {
-        let data = JSON.parse(localStorage.getItem('tm_vision_settings')) || { rate: 5, add: 1000 };
-        const elRate = document.getElementById('visionRate');
-        const elAdd = document.getElementById('visionAdd');
-        if(elRate) elRate.value = data.rate;
-        if(elAdd) elAdd.value = data.add;
-
-        let logs = window.checkAndLogDaily();
-        
-        renderListSafe(logs);
-        updateBarSafe();
-        renderChartSafe(logs, data.rate, data.add);
-    };
-
-    // --- GÜVENLİ ÇİZİM FONKSİYONLARI ---
-
-    function renderListSafe(logs) {
-        const list = document.getElementById('dailyLogList');
-        if(!list) return;
-        
-        let html = "";
-        let sym = getCurrencySymbol(); // TL/USD Düzeltmesi
-
-        for (let i = logs.length - 1; i >= 0; i--) {
-            let curr = logs[i];
-            let prev = (i > 0) ? logs[i-1] : null;
-            let diffHtml = '<span style="color:var(--text-sub); font-size:11px;">(Başlangıç)</span>';
-            
-            if(prev) {
-                let diff = curr.val - prev.val;
-                let color = diff >= 0 ? '#10b981' : '#ef4444';
-                let sign = diff > 0 ? '+' : '';
-                diffHtml = `<span style="color:${color}; font-weight:800; font-size:13px;">${sign}${sym}${diff.toLocaleString(undefined, {maximumFractionDigits:0})}</span>`;
-            }
-
-            html += `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid rgba(255,255,255,0.05);">
-                        <span style="color:var(--text-sub); font-weight:600;">${curr.date}</span>
-                        ${diffHtml}
-                     </div>`;
-        }
-        
-        if(html === "") html = "<div style='padding:15px; text-align:center; color:#64748b;'>Kayıt yok.</div>";
-        list.innerHTML = html;
-    }
-
-    function updateBarSafe() {
-        let target = parseFloat(localStorage.getItem('tradevia_main_goal')) || 1000000;
-        let total = getSafeBalance();
-        let sym = getCurrencySymbol(); // TL/USD Düzeltmesi
-        
-        let pct = target > 0 ? (total / target) * 100 : 0;
-        if(pct > 100) pct = 100; if(pct < 0) pct = 0;
-
-        const bar = document.getElementById('dynamicGoalBar');
-        const txtL = document.getElementById('goalCurrentText');
-        const txtR = document.getElementById('goalTargetTextRight');
-        
-        if(bar) {
-            // CSS transition tetiklensin diye
-            bar.style.width = "0%"; 
-            setTimeout(() => { bar.style.width = pct + "%"; }, 50);
-
-            bar.className = 'goal-strip-fill';
-            if(pct < 33) bar.classList.add('gs-red');
-            else if(pct < 66) bar.classList.add('gs-yellow');
-            else bar.classList.add('gs-green');
-        }
-        if(txtL) txtL.innerText = `%${pct.toFixed(1)} (${sym}${total.toLocaleString(undefined,{maximumFractionDigits:0})})`;
-        if(txtR) txtR.innerText = `HEDEF: ${sym}${target.toLocaleString(undefined,{maximumFractionDigits:0})}`;
-
-        // Kart İçi Bilgiler
-        const vCurr = document.getElementById('visionCurrentValue');
-        const vRem = document.getElementById('visionRemainingValue');
-        if(vCurr) vCurr.innerText = sym + total.toLocaleString(undefined,{maximumFractionDigits:0});
-        if(vRem) vRem.innerText = sym + Math.max(0, target - total).toLocaleString(undefined,{maximumFractionDigits:0});
-    }
-
-    let myChart = null; 
-
-    function renderChartSafe(logs, mRate, mAdd) {
-        const ctx = document.getElementById('visionChart');
-        if(!ctx || typeof Chart === 'undefined') return;
-
-        let startBal = (logs.length > 0) ? logs[logs.length-1].val : getSafeBalance();
-        if(startBal <= 0) startBal = 0;
-
-        // Tahmin Verileri
-        let dailyRate = mRate / 30;
-        let dailyAdd = mAdd / 30;
-        
-        let labels = logs.map(l => l.date.substring(0,5));
-        let dataReal = logs.map(l => l.val);
-        
-        if(labels.length === 0) {
-            labels.push("Başlangıç");
-            dataReal.push(startBal);
-        }
-
-        let dataProj = [];
-        let dataPrinc = [];
-        let simBal = startBal;
-        let princBal = startBal;
-
-        for(let i=1; i<=30; i++) {
-            princBal += dailyAdd;
-            simBal = simBal * (1 + (dailyRate/100)) + dailyAdd;
-            dataProj.push(simBal);
-            dataPrinc.push(princBal);
-            
-            if(i===1) labels.push("Yarın");
-            else if(i%10===0) labels.push("+"+i+"g");
-            else labels.push("");
-        }
-
-        let finalReal = [...dataReal, ...Array(30).fill(null)];
-        let finalProj = [...Array(Math.max(0, dataReal.length-1)).fill(null), (dataReal.length>0?dataReal[dataReal.length-1]:startBal), ...dataProj];
-        let finalPrinc = [...Array(Math.max(0, dataReal.length-1)).fill(null), (dataReal.length>0?dataReal[dataReal.length-1]:startBal), ...dataPrinc];
-        
-        let target = parseFloat(localStorage.getItem('tradevia_main_goal')) || 1000000;
-        let finalTarget = Array(labels.length).fill(target);
-
-        // Süre Tahmini
-        let monthsLeft = "--";
-        if((mAdd > 0 || mRate > 0) && startBal < target) {
-            let tb = startBal; let m = 0;
-            while(tb < target && m < 600) { tb = tb*(1+(mRate/100))+mAdd; m++; }
-            monthsLeft = m < 600 ? m + " Ay" : "50+ Yıl";
-        }
-        const elMonths = document.getElementById('visionMonthsLeft');
-        if(elMonths) elMonths.innerText = monthsLeft;
-
-        if(myChart) myChart.destroy();
-
-        // ANİMASYONLU GRAFİK AYARLARI
-        myChart = new Chart(ctx.getContext('2d'), {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    { label: 'Gerçek', data: finalReal, borderColor: '#3b82f6', backgroundColor:'rgba(59,130,246,0.1)', borderWidth:3, fill:true, pointRadius:3 },
-                    { label: 'Hedef', data: finalProj, borderColor: '#d946ef', borderWidth:3, borderDash:[3,3], pointRadius:0, tension:0.4 },
-                    { label: 'Anapara', data: finalPrinc, borderColor: '#f97316', borderWidth:2, borderDash:[5,5], pointRadius:0 },
-                    { label: 'Limit', data: finalTarget, borderColor: '#10b981', borderWidth:1, borderDash:[2,2], pointRadius:0 }
-                ]
-            },
-            options: {
-                responsive: true, 
-                maintainAspectRatio: false,
-                animation: {
-                    duration: 2000, // 2 Saniyelik açılış animasyonu
-                    easing: 'easeOutQuart'
-                },
-                plugins: { legend: {display:false} },
-                interaction: { mode: 'index', intersect: false },
-                scales: {
-                    x: { grid: {display:false}, ticks: {color:'#64748b', maxTicksLimit:6} },
-                    y: { 
-                        grid: {color:'rgba(255,255,255,0.05)'}, 
-                        ticks: {
-                            color:'#64748b',
-                            callback: function(val) {
-                                if(val >= 1000000) return (val/1000000).toFixed(1) + 'M';
-                                if(val >= 1000) return (val/1000).toFixed(0) + 'k';
-                                return val;
-                            }
-                        } 
-                    }
-                }
+        let total = 0;
+        pf.forEach(item => {
+            let p = (item.curr && item.curr > 0) ? item.curr : item.buy;
+            if(settings.currency === 'TRY') {
+                total += (item.origin === 'USD') ? (p * item.amt * currentUsd) : (p * item.amt);
+            } else {
+                total += (item.origin === 'TRY') ? ((p * item.amt) / currentUsd) : (p * item.amt);
             }
         });
+        return total + cash;
+    } catch(e) { return 0; }
+}
+
+// 3. GÜNLÜK KAYIT SİSTEMİ
+window.checkAndLogDaily = function() {
+    let currentTotal = getSafeBalance();
+    let logs = JSON.parse(localStorage.getItem('tm_daily_tracking')) || [];
+    let today = new Date().toLocaleDateString('tr-TR');
+    
+    let lastLog = logs.length > 0 ? logs[logs.length - 1] : null;
+    
+    if (!lastLog || lastLog.date !== today) {
+        logs.push({ date: today, val: currentTotal });
+        if(logs.length > 30) logs.shift();
+    } else {
+        lastLog.val = currentTotal;
     }
+    
+    localStorage.setItem('tm_daily_tracking', JSON.stringify(logs));
+    return logs;
+};
 
-    // 3. SEKME GEÇİŞİNİ YAKALA
-    const originalSwitch = window.switchAnTab || function(){};
-    window.switchAnTab = function(tab, btn) {
-        originalSwitch(tab, btn);
-        if(tab === 'vision') {
-            setTimeout(window.loadVisionData, 50);
-            setTimeout(window.loadVisionData, 300); // Garanti çizim
+// 4. BUTON AKSİYONU (GÜNCELLEME)
+window.manualUpdateVision = function() {
+    const elRate = document.getElementById('visionRate');
+    const elAdd = document.getElementById('visionAdd');
+    
+    if(!elRate || !elAdd) return;
+
+    let rateVal = parseTurkishInput(elRate.value);
+    let addVal = parseTurkishInput(elAdd.value);
+
+    // Ayarları kaydet
+    localStorage.setItem('tm_vision_settings', JSON.stringify({ rate: rateVal, add: addVal }));
+    
+    // Yükleme fonksiyonunu çağır
+    window.loadVisionData();
+    
+    if(typeof addNotification === 'function') addNotification('success', 'Güncellendi', 'Grafik yeni ayarlara göre çizildi.');
+};
+
+// 5. HEDEF DÜZENLEME
+window.editTargetGoal = function() {
+    let current = localStorage.getItem('tradevia_main_goal') || 1000000;
+    let val = prompt("Yeni Hedef Tutarınız:", current);
+    if(val && !isNaN(parseFloat(val))) {
+        localStorage.setItem('tradevia_main_goal', parseFloat(val));
+        window.loadVisionData();
+    }
+};
+
+// 6. ANA YÜKLEYİCİ (HER ŞEYİ ÇAĞIRIR)
+window.loadVisionData = function() {
+    let data = JSON.parse(localStorage.getItem('tm_vision_settings')) || { rate: 5, add: 1000 };
+    
+    // Inputları doldur (Eğer boşsa)
+    const elRate = document.getElementById('visionRate');
+    const elAdd = document.getElementById('visionAdd');
+    if(elRate && document.activeElement !== elRate) elRate.value = data.rate;
+    if(elAdd && document.activeElement !== elAdd) elAdd.value = data.add;
+
+    let logs = window.checkAndLogDaily();
+    
+    renderListSafe(logs);
+    updateBarSafe();
+    
+    // Grafiği çiz (Gecikmeli çağırarak DOM'un hazır olmasını bekle)
+    setTimeout(() => {
+        renderDailyChart(logs, data.rate, data.add);
+    }, 50);
+};
+
+// 7. LİSTE RENDER
+function renderListSafe(logs) {
+    const list = document.getElementById('dailyLogList');
+    if(!list) return;
+    
+    let html = "";
+    let sym = getCurrencySymbol();
+
+    for (let i = logs.length - 1; i >= 0; i--) {
+        let curr = logs[i];
+        let prev = (i > 0) ? logs[i-1] : null;
+        let diffHtml = '<span style="color:var(--text-sub); font-size:11px;">(Başlangıç)</span>';
+        
+        if(prev) {
+            let diff = curr.val - prev.val;
+            let color = diff >= 0 ? '#10b981' : '#ef4444';
+            let sign = diff > 0 ? '+' : '';
+            diffHtml = `<span style="color:${color}; font-weight:800; font-size:13px;">${sign}${sym}${diff.toLocaleString(undefined, {maximumFractionDigits:0})}</span>`;
         }
-    };
 
-    // 4. BAŞLAT
-    document.addEventListener("DOMContentLoaded", () => {
-        setTimeout(window.loadVisionData, 500);
-    });
+        html += `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <span style="color:var(--text-sub); font-weight:600;">${curr.date}</span>
+                    ${diffHtml}
+                 </div>`;
+    }
+    
+    if(html === "") html = "<div style='padding:15px; text-align:center; color:#64748b;'>Kayıt yok.</div>";
+    list.innerHTML = html;
+}
 
-})();
+// 8. PROGRESS BAR GÜNCELLEME
+function updateBarSafe() {
+    let target = parseFloat(localStorage.getItem('tradevia_main_goal')) || 1000000;
+    let total = getSafeBalance();
+    let sym = getCurrencySymbol();
+    
+    let pct = target > 0 ? (total / target) * 100 : 0;
+    if(pct > 100) pct = 100; if(pct < 0) pct = 0;
 
-/* --- GÜNCELLENMİŞ VE HATA KORUMALI GRAFİK MOTORU (CANVAS REUSE FIX) --- */
-let dailyChartInstance = null; // Değişkeni yine de tanımlayalım, zarar gelmez.
+    const bar = document.getElementById('dynamicGoalBar');
+    const txtL = document.getElementById('goalCurrentText');
+    const txtR = document.getElementById('goalTargetTextRight');
+    
+    if(bar) {
+        bar.style.width = "0%"; 
+        setTimeout(() => { bar.style.width = pct + "%"; }, 50);
+        
+        bar.className = 'goal-strip-fill';
+        if(pct < 33) bar.classList.add('gs-red');
+        else if(pct < 66) bar.classList.add('gs-yellow');
+        else bar.classList.add('gs-green');
+    }
+    
+    if(txtL) txtL.innerText = `%${pct.toFixed(1)} (${sym}${total.toLocaleString(undefined,{maximumFractionDigits:0})})`;
+    if(txtR) txtR.innerText = `HEDEF: ${sym}${target.toLocaleString(undefined,{maximumFractionDigits:0})}`;
 
-function renderDailyChart(logs, monthlyRate, monthlyAdd) {
+    const vCurr = document.getElementById('visionCurrentValue');
+    const vRem = document.getElementById('visionRemainingValue');
+    if(vCurr) vCurr.innerText = sym + total.toLocaleString(undefined,{maximumFractionDigits:0});
+    if(vRem) vRem.innerText = sym + Math.max(0, target - total).toLocaleString(undefined,{maximumFractionDigits:0});
+}
+
+// 5. Grafik Çizim Motoru (NEON LINE / TRADINGVIEW STYLE)
+window.renderDailyChart = function(logs, monthlyRate, monthlyAdd) {
     const canvas = document.getElementById('visionChart');
     if(!canvas) return; 
 
-    // --- KRİTİK DÜZELTME BAŞLANGICI ---
-    // Eğer bu canvas üzerinde daha önce çizilmiş bir grafik varsa, onu bul ve YOK ET.
-    // Bu sayede "Canvas is already in use" hatası asla almazsınız.
+    // --- ESKİ GRAFİĞİ YOK ET ---
     if (typeof Chart !== 'undefined') {
-        const existingChart = Chart.getChart(canvas); // Canvas üzerindeki grafiği bul
-        if (existingChart) {
-            existingChart.destroy(); // Varsa yok et
-        }
+        const existingChart = Chart.getChart(canvas); 
+        if (existingChart) existingChart.destroy(); 
     }
-    // --- KRİTİK DÜZELTME BİTİŞİ ---
 
-    const context = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d');
 
-    // --- 1. Geçmiş Verileri Hazırla ---
+    // --- NEON GLOW GRADYANLARI (Çizginin altına hafif sis verir) ---
+    
+    // 1. Pembe/Kırmızı (Hedef Çizgisi İçin)
+    let gradPink = ctx.createLinearGradient(0, 0, 0, 400);
+    gradPink.addColorStop(0, 'rgba(244, 63, 94, 0.4)');   // Neon Kırmızı
+    gradPink.addColorStop(1, 'rgba(244, 63, 94, 0.0)');   // Saydam
+
+    // 2. Mavi/Cyan (Mevcut Durum İçin)
+    let gradCyan = ctx.createLinearGradient(0, 0, 0, 400);
+    gradCyan.addColorStop(0, 'rgba(34, 211, 238, 0.4)');  // Neon Mavi
+    gradCyan.addColorStop(1, 'rgba(34, 211, 238, 0.0)');
+
+    // 3. Mor (Anapara İçin)
+    let gradPurple = ctx.createLinearGradient(0, 0, 0, 400);
+    gradPurple.addColorStop(0, 'rgba(139, 92, 246, 0.2)');
+    gradPurple.addColorStop(1, 'rgba(139, 92, 246, 0.0)');
+
+    // --- VERİ HAZIRLIĞI ---
     if(!logs) logs = JSON.parse(localStorage.getItem('tm_daily_tracking')) || [];
+    
+    if (monthlyRate === undefined) {
+        let saved = JSON.parse(localStorage.getItem('tm_vision_settings')) || { rate: 5 };
+        monthlyRate = saved.rate;
+    }
+    if (monthlyAdd === undefined) {
+        let saved = JSON.parse(localStorage.getItem('tm_vision_settings')) || { add: 1000 };
+        monthlyAdd = saved.add;
+    }
+
     let labels = logs.map(l => l.date.substring(0, 5));
     let actualData = logs.map(l => l.val);
-
-    // --- 2. Parametreleri Al ---
-    if (monthlyRate === undefined || monthlyRate === null) {
-        const elRate = document.getElementById('visionRate');
-        monthlyRate = elRate ? parseTurkishInput(elRate.value) : 5;
-    }
-    if (monthlyAdd === undefined || monthlyAdd === null) {
-        const elAdd = document.getElementById('visionAdd');
-        monthlyAdd = elAdd ? parseTurkishInput(elAdd.value) : 1000;
+    
+    let startBalance = actualData.length > 0 ? actualData[actualData.length - 1] : 0;
+    if(startBalance === 0) {
+        let netWorthText = document.getElementById('anNetWorth') ? document.getElementById('anNetWorth').innerText : "0";
+        startBalance = parseFloat(netWorthText.replace(/[^0-9.-]+/g,"")) || 0;
+        if(labels.length === 0) { labels.push("Bugün"); actualData.push(startBalance); }
     }
 
-    // --- 3. Başlangıç Değerini Belirle ---
-    let startBalance = 0;
-    if (actualData.length > 0) {
-        startBalance = actualData[actualData.length - 1];
-    } else {
-        try {
-            const nwEl = document.getElementById('anNetWorth');
-            if(nwEl) startBalance = parseTurkishInput(nwEl.innerText.replace('₺', '').replace('$', ''));
-        } catch(e) {}
-        if(startBalance <= 0) startBalance = 1000; 
-        
-        labels.push("Bugün");
-        actualData.push(startBalance);
-    }
-
-    // --- 4. AYRIŞTIRILMIŞ HESAPLAMA (30 GÜNLÜK) ---
-    const dailyRate = monthlyRate / 30; 
-    const dailyAdd = monthlyAdd / 30;
-
-    let projectedData = []; // Mor Çizgi (Kâr + Anapara)
-    let principalData = []; // Turuncu Çizgi (Sadece Anapara + Ekleme)
-
-    let simBalance = startBalance;      // Bileşik faizli büyüyecek
-    let principalBalance = startBalance; // Sadece ekleme ile büyüyecek (Faizsiz)
+    let dailyRate = monthlyRate / 30; 
+    let dailyAdd = monthlyAdd / 30;
+    let projectedData = [];
+    let principalData = [];
+    let simBal = startBalance;
+    let princBal = startBalance;
 
     for(let i=1; i<=30; i++) {
-        // A) Sadece Anapara Hesabı (Kârı katma, sadece ekleneni topla)
-        principalBalance = principalBalance + dailyAdd;
-
-        // B) Toplam Büyüme Hesabı (Kârı da ekle, eklemeyi de ekle)
-        simBalance = simBalance * (1 + (dailyRate/100)) + dailyAdd;
+        princBal += dailyAdd;
+        simBal = simBal * (1 + (dailyRate/100)) + dailyAdd;
+        projectedData.push(simBal);
+        principalData.push(princBal);
         
-        projectedData.push(simBalance);
-        principalData.push(principalBalance);
-
         if(i === 1) labels.push("Yarın");
-        else if(i % 5 === 0) labels.push("+" + i + " Gün");
+        else if(i % 5 === 0) labels.push("+" + i + "g");
         else labels.push(""); 
     }
 
-    // --- 5. Grafik Verilerini Birleştir ---
-    // Actual Data bittiği yerden diğerleri başlasın diye null ekliyoruz
     let chartDataActual = [...actualData, ...Array(projectedData.length).fill(null)];
+    let chartDataProjected = [...Array(actualData.length-1).fill(null), startBalance, ...projectedData];
+    let chartDataPrincipal = [...Array(actualData.length-1).fill(null), startBalance, ...principalData];
     
-    // Tahmin çizgileri, son gerçek veriden başlayarak devam etsin
-    let chartDataProjected = [...Array(actualData.length-1).fill(null), actualData[actualData.length-1], ...projectedData];
-    let chartDataPrincipal = [...Array(actualData.length-1).fill(null), actualData[actualData.length-1], ...principalData];
-
     let target = parseFloat(localStorage.getItem('tradevia_main_goal')) || 1000000;
     let targetData = Array(labels.length).fill(target);
 
-    // --- 6. Çizim ---
-    // Artık değişken atamamıza gerek yok, Chart.js canvas'a bağlı çalışıyor.
-    new Chart(context, {
+    // --- ÇİZİM ---
+    new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
             datasets: [
                 {
-                    label: 'Mevcut Durum',
-                    data: chartDataActual,
-                    borderColor: '#3b82f6', // Mavi
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    borderWidth: 3,
-                    pointRadius: 3,
-                    fill: true,
-                    order: 1
-                },
-                {
-                    label: 'Toplam Hedef (Kâr Dahil)',
+                    // TAHMİNİ HEDEF (KIRMIZI/PEMBE - REFERANS GÖRSELDEKİ GİBİ)
+                    label: 'Potansiyel',
                     data: chartDataProjected,
-                    borderColor: '#d946ef', // Mor (En üstte)
-                    backgroundColor: 'rgba(217, 70, 239, 0.15)', // Mor Alan
-                    borderWidth: 3,
+                    borderColor: '#f43f5e', // Neon Rose
+                    backgroundColor: gradPink,
+                    borderWidth: 2,         // İnce ve Keskin
                     pointRadius: 0,
-                    fill: true, // Altını boya
-                    tension: 0.4,
+                    fill: true,
+                    tension: 0.2,           // Daha sert hatlar (HFT Havası)
                     order: 2
                 },
                 {
-                    label: 'Sadece Anapara (Kârsız)',
+                    // MEVCUT DURUM (MAVİ - PARLAYAN)
+                    label: 'Mevcut',
+                    data: chartDataActual,
+                    borderColor: '#22d3ee', // Neon Cyan
+                    backgroundColor: gradCyan,
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#000',
+                    pointBorderColor: '#22d3ee',
+                    pointBorderWidth: 2,
+                    fill: true,
+                    tension: 0.2,
+                    order: 1 // En önde
+                },
+                {
+                    // ANAPARA (MOR - ALTYAPI)
+                    label: 'Anapara',
                     data: chartDataPrincipal,
-                    borderColor: '#f97316', // Turuncu (Ortada)
+                    borderColor: '#8b5cf6', // Mor
+                    backgroundColor: gradPurple,
                     borderWidth: 2,
-                    borderDash: [5, 5], // Kesikli Çizgi
                     pointRadius: 0,
-                    fill: false,
-                    tension: 0.1,
+                    fill: true,
+                    tension: 0.2,
                     order: 3
                 },
                 {
+                    // HEDEF ÇİZGİSİ (SİLİK REHBER)
                     label: 'Hedef',
                     data: targetData,
-                    borderColor: '#10b981', // Yeşil
+                    borderColor: 'rgba(255, 255, 255, 0.1)', 
                     borderWidth: 1,
                     borderDash: [2, 2],
                     pointRadius: 0,
@@ -13402,58 +13298,67 @@ function renderDailyChart(logs, monthlyRate, monthlyAdd) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: {
+                duration: 1500,
+                easing: 'easeOutExpo' // Hızlı başlayıp yavaşlayan teknik animasyon
+            },
+            layout: {
+                padding: { top: 10, right: 10, left: 0, bottom: 0 }
+            },
             interaction: {
                 mode: 'index',
                 intersect: false,
             },
-            plugins: {
-                legend: { display: false },
+            plugins: { 
+                legend: { display: false }, 
                 tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#94a3b8',
+                    bodyColor: '#fff',
+                    borderColor: '#334155',
+                    borderWidth: 1,
+                    padding: 10,
+                    displayColors: true,
+                    usePointStyle: true,
                     callbacks: {
                         label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (label) label += ': ';
-                            if (context.parsed.y !== null) {
-                                label += context.parsed.y.toLocaleString('tr-TR', {maximumFractionDigits: 0});
+                            let val = context.parsed.y;
+                            if(val !== null) {
+                                return ' ' + val.toLocaleString('tr-TR', {maximumFractionDigits: 0});
                             }
-                            return label;
+                            return '';
                         }
                     }
                 }
             },
             scales: {
-                x: { grid: { display: false }, ticks: { color: '#64748b', font:{size:9}, maxTicksLimit: 7 } },
+                x: { 
+                    // Dikey Çizgiler (Zaman)
+                    grid: { 
+                        color: 'rgba(255,255,255,0.03)', 
+                        drawBorder: false 
+                    }, 
+                    ticks: { color: '#475569', font:{size:9}, maxTicksLimit: 6 } 
+                },
                 y: { 
-                    grid: { color: 'rgba(255,255,255,0.05)' }, 
-                    ticks: { 
-                        color: '#64748b', 
-                        font:{size:10},
-                        callback: function(value) {
-                            if(value >= 1000000) return (value/1000000).toFixed(1) + 'M';
-                            if(value >= 1000) return (value/1000).toFixed(0) + 'k';
-                            return value;
-                        }
-                    } 
+                    // Yatay Çizgiler (Fiyat)
+                    grid: { 
+                        color: 'rgba(255,255,255,0.05)', 
+                        borderDash: [4, 4] // Kesikli Grid (Teknik Analiz Havası)
+                    }, 
+                    ticks: { display: false } // Rakamlar gizli, sadece çizgi var
                 }
             }
         }
     });
-}
+};
 
-// 5. Uyumluluk (Eski isimler hata vermesin)
-window.calcVision = renderDailyChart;
-window.saveVisionData = manualUpdateVision;
-
-// 6. Başlatma
+// 10. BAŞLATICI
 document.addEventListener("DOMContentLoaded", function() {
-    loadVisionData();
-    // Sayfa tam oturunca grafiği çiz
-    setTimeout(() => {
-        let r = document.getElementById('visionRate') ? document.getElementById('visionRate').value : 5;
-        let a = document.getElementById('visionAdd') ? document.getElementById('visionAdd').value : 0;
-        renderDailyChart(null, parseTurkishInput(r), parseTurkishInput(a));
-    }, 1500);
+    // Sayfa tamamen yüklendiğinde çalıştır
+    setTimeout(window.loadVisionData, 500);
 });
+
 
 /* ==========================================================================
    AR-GE (LAB) MASTER MODÜLÜ - (FİNAL SÜRÜM)
