@@ -2258,6 +2258,25 @@ button:active,
         inset 0 -10px 20px -10px rgba(0,0,0,0.5) /* Sadece alta doğru hafif gölge */
         !important;
 }
+/* --- AKTİF ALARM GÖRSELİ --- */
+.alarm-active-icon {
+    color: #fbbf24 !important; /* Altın Sarısı */
+    text-shadow: 0 0 10px rgba(251, 191, 36, 0.6);
+    animation: alarmPulse 2s infinite ease-in-out;
+}
+
+@keyframes alarmPulse {
+    0% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); text-shadow: 0 0 20px rgba(251, 191, 36, 0.9); }
+    100% { opacity: 0.6; transform: scale(1); }
+}
+
+/* Bildirim Sayfası Sekmeleri */
+.notif-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px; }
+.notif-tab-btn { flex: 1; padding: 10px; background: none; border: none; color: #888; border-bottom: 2px solid transparent; font-weight: 600; cursor: pointer; }
+.notif-tab-btn.active { color: #fbbf24; border-bottom-color: #fbbf24; }
+.notif-panel { display: none; }
+.notif-panel.active { display: block; animation: fadeIn 0.3s; }
 
 </style>
 
@@ -2496,7 +2515,32 @@ button:active,
         <div id="portfolioList"></div>
     </div>
 
-    <div id="page-notifications" class="page"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;"><div class="ac-title" style="font-weight:800; font-size:16px; color:white;">BİLDİRİMLER</div><button class="tool-btn" onclick="clearNotifications()" style="font-size:11px; color:var(--text-sub);">TEMİZLE</button></div><div id="notificationList"></div></div>
+    <div id="page-notifications" class="page">
+    <div class="main-header">
+        <h1>Bildirim Merkezi</h1>
+    </div>
+
+    <div class="notif-tabs">
+        <button class="notif-tab-btn active" onclick="showNotifTab('history')">
+            <i class="fas fa-history"></i> GEÇMİŞ
+        </button>
+        <button class="notif-tab-btn" onclick="showNotifTab('alarms')">
+            <i class="fas fa-bell"></i> BEKLEYENLER
+        </button>
+    </div>
+
+    <div id="panel-history" class="notif-panel active">
+        <ul class="notification-list" id="notificationList">
+            <div class="empty-state">Henüz bildirim yok</div>
+        </ul>
+    </div>
+
+    <div id="panel-alarms" class="notif-panel">
+        <ul class="notification-list" id="activeAlarmsList">
+            </ul>
+    </div>
+</div>
+
     
     <div id="page-market" class="page" style="padding: 0; padding-bottom: 80px;">
     
@@ -7464,7 +7508,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.7"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -8250,6 +8294,8 @@ function renderPortfolioHTML(as) {
             
             sourceBadge = `<span style="font-size:8px; font-weight:800; background:${sColor}20; color:${sColor}; padding:2px 6px; border-radius:4px; margin-left:6px; letter-spacing:0.5px;">${sText}</span>`;
         }
+        
+        
         // ----------------------------------
 
         htmlBuilder += `<div class="${cardColorClass}" id="card_bg_${a.originalIndex}"><div class="asset-header collapsible-header" onclick="toggleAssetDetails(${a.originalIndex})"><div class="asset-left">${logoHtml}<div><span class="asset-name">${a.name.replace('.IS','')}${sourceBadge}</span><div class="asset-meta">${a.amt} Adet</div></div></div><div style="display:flex; align-items:center; gap:10px;"><div class="asset-pnl ${cls}" id="live_pnl_badge_${a.originalIndex}">${percentBadge}${sym}<span id="live_pnl_val_${a.originalIndex}">${a.pnl.toFixed(0)}</span></div><i id="asset-chevron-${a.originalIndex}" class="fas fa-chevron-down rotate-icon" style="font-size:12px; color:var(--text-sub);"></i></div></div><div id="asset-content-${a.originalIndex}" class="collapsible-content collapsed"><div class="asset-body-content"><div class="asset-details-grid"><div class="detail-item"><span class="detail-label">Ortalama</span><span class="detail-val">${a.buy.toFixed(2)} ${a.origin==='USD'?'$':'₺'}</span></div><div class="detail-item" style="text-align:right;"><span class="detail-label">Güncel</span><span class="detail-val accent">${priceUnit}</span></div><div class="detail-item"><span class="detail-label">Maliyet</span><span class="detail-val">${sym}${a.dCost.toFixed(0)}</span></div><div class="detail-item" style="text-align:right;"><span class="detail-label">Toplam Değer</span><span class="detail-val" id="live_total_val_${a.originalIndex}">${sym}${a.dVal.toFixed(0)}</span></div></div>${a.note ? `<div class="asset-note"><i class="fas fa-sticky-note"></i> ${a.note}</div>` : ''}<div class="asset-footer"><button class="tool-btn" onclick="toggleAssetChart('${a.name}', '${chartId}', this)"><i class="fas fa-chart-area"></i></button><button class="tool-btn ${a.alarm?'active-alarm':''}" onclick="openAlarmModal(${a.originalIndex})"><i class="fas fa-bell"></i></button><button class="tool-btn active-sim" onclick="openSimulator(${a.originalIndex})"><i class="fas fa-magic"></i></button><button class="tool-btn" onclick="editNote(${a.originalIndex})"><i class="fas fa-edit"></i></button><button class="tool-btn" onclick="openSell(${a.originalIndex})"><i class="fas fa-coins"></i></button><button class="tool-btn" onclick="delAsset(${a.originalIndex})"><i class="fas fa-trash"></i></button></div><div id="${chartId}" class="asset-mini-chart"></div></div></div></div>`; 
@@ -8996,11 +9042,572 @@ function toggleAssetChart(symbol, id, btn) {
     }
 }
 
-    function openAlarmModal(i){ let as = JSON.parse(localStorage.getItem('myPF_final')) || []; let asset = as[i]; if(!asset) return; document.getElementById('alarmIdx').value = i; document.getElementById('alarmAssetTitle').innerText = `${asset.name} Alarmları`; document.getElementById('alarmUpper').value = asset.alarmUpper || ""; document.getElementById('alarmLower').value = asset.alarmLower || ""; document.getElementById('alarmPctUp').value = asset.alarmPctUp || ""; document.getElementById('alarmPctDown').value = asset.alarmPctDown || ""; switchAlarmTab('price', document.querySelector('.sim-tab-group .sim-tab')); document.getElementById('alarmModal').style.display='flex'; } 
-    function switchAlarmTab(mode, btn) { document.querySelectorAll('.alarm-pane').forEach(el => el.style.display = 'none'); document.getElementById('alarm-pane-' + mode).style.display = 'block'; const group = btn.parentElement; group.querySelectorAll('.sim-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); }
-    function saveAlarm(){ let i = document.getElementById('alarmIdx').value; let as = JSON.parse(localStorage.getItem('myPF_final')); let up = parseFloat(document.getElementById('alarmUpper').value); let low = parseFloat(document.getElementById('alarmLower').value); let pUp = parseFloat(document.getElementById('alarmPctUp').value); let pDown = parseFloat(document.getElementById('alarmPctDown').value); as[i].alarmUpper = up || null; as[i].alarmLower = low || null; as[i].alarmPctUp = pUp || null; as[i].alarmPctDown = pDown || null; delete as[i].alarm; localStorage.setItem('myPF_final', JSON.stringify(as)); document.getElementById('alarmModal').style.display='none'; addNotification('success', 'Alarm Kuruldu', `${as[i].name} için bekçiler aktif.`); loadPF(true); } 
-    function clearAssetAlarms() { let i = document.getElementById('alarmIdx').value; let as = JSON.parse(localStorage.getItem('myPF_final')); as[i].alarmUpper = null; as[i].alarmLower = null; as[i].alarmPctUp = null; as[i].alarmPctDown = null; localStorage.setItem('myPF_final', JSON.stringify(as)); document.getElementById('alarmUpper').value = ""; document.getElementById('alarmLower').value = ""; document.getElementById('alarmPctUp').value = ""; document.getElementById('alarmPctDown').value = ""; addNotification('info', 'Temizlendi', 'Alarmlar kaldırıldı.'); }
-    async function checkAllAlarms(){ let as = JSON.parse(localStorage.getItem('myPF_final')) || []; let updated=false; for(let asset of as){ if(!asset.alarmUpper && !asset.alarmLower && !asset.alarmPctUp && !asset.alarmPctDown) continue; let currentPrice = asset.curr || 0; if(currentPrice === 0) { let p = await getPrice(asset.name); currentPrice = p.price; } if(currentPrice > 0){ if(asset.alarmUpper && currentPrice >= asset.alarmUpper){ addNotification('success', 'HEDEF GELDİ! 🚀', `${asset.name} yükseldi: ${currentPrice}`); asset.alarmUpper = null; updated = true; } if(asset.alarmLower && currentPrice <= asset.alarmLower){ addNotification('danger', 'DÜŞÜŞ UYARISI 🔻', `${asset.name} düştü: ${currentPrice}`); asset.alarmLower = null; updated = true; } let cost = asset.buy; if(cost > 0) { let percentChange = ((currentPrice - cost) / cost) * 100; if(asset.alarmPctUp && percentChange >= asset.alarmPctUp) { addNotification('success', `TEBRİKLER (%${percentChange.toFixed(1)}) 🚀`, `${asset.name} hedef kârına ulaştı.`); asset.alarmPctUp = null; updated = true; } if(asset.alarmPctDown && percentChange <= -(asset.alarmPctDown)) { addNotification('warn', `DİKKAT (%${percentChange.toFixed(1)}) ⚠️`, `${asset.name} zarar limitine indi.`); asset.alarmPctDown = null; updated = true; } } } } if(updated) { localStorage.setItem('myPF_final', JSON.stringify(as)); let l = document.getElementById('portfolioList'); if(l && l.innerHTML !== "") loadPF(); } }
+    /* --- GÜNCELLENMİŞ ALARM KONTROLÜ (30 GÜNLÜK GERÇEK ANALİZ) --- */
+async function checkAllAlarms() {
+    let alarms = JSON.parse(localStorage.getItem('tradeVia_alarms')) || [];
+    if (alarms.length === 0) return;
+
+    let updated = false;
+    let pf = JSON.parse(localStorage.getItem('myPF_final')) || [];
+
+    for (let alarm of alarms) {
+        if (!alarm.active) continue;
+
+        // Fiyatı Bul (Portföyden hızlıca)
+        let currentPrice = 0;
+        let asset = pf.find(p => p.name === alarm.symbol);
+        
+        // Eğer portföyde güncel fiyat varsa al, yoksa pas geç (Hız için)
+        if (asset && asset.curr) currentPrice = asset.curr;
+        else continue; 
+
+        let triggered = false;
+        let triggerMsg = "";
+        let triggerIcon = "";
+
+        // --- 1. FİYAT HEDEFİ KONTROLÜ (Klasik) ---
+        if (alarm.type === 'PRICE') {
+            if (alarm.direction === 'UP' && currentPrice >= alarm.target) {
+                triggerMsg = `HEDEF GELDİ: $${currentPrice}`; triggerIcon = "🚀"; triggered = true;
+            }
+            if (alarm.direction === 'DOWN' && currentPrice <= alarm.target) {
+                triggerMsg = `DÜŞÜŞ LİMİTİ: $${currentPrice}`; triggerIcon = "🔻"; triggered = true;
+            }
+        }
+
+        // --- 2. VOLATİLİTE KONTROLÜ (Ani Hareket) ---
+        else if (alarm.type === 'VOLATILITY') {
+            let rawChange = ((currentPrice - alarm.basePrice) / alarm.basePrice) * 100;
+            
+            if ((alarm.direction === 'UP' || alarm.direction === 'BOTH') && rawChange >= alarm.percent) {
+                triggerMsg = `ANİ YÜKSELİŞ: +%${rawChange.toFixed(2)} 🚀`; triggerIcon = "⚡"; triggered = true;
+            }
+            if ((alarm.direction === 'DOWN' || alarm.direction === 'BOTH') && rawChange <= -alarm.percent) {
+                triggerMsg = `ANİ ÇÖKÜŞ: %${rawChange.toFixed(2)} 🔻`; triggerIcon = "📉"; triggered = true;
+            }
+        }
+
+        // --- 3. İNDİKATÖR (AKILLI 30 GÜNLÜK ANALİZ) ---
+        else if (alarm.type === 'RSI') {
+            // Sadece Kripto paralar için Binance verisi çekebiliriz (Şimdilik)
+            if (asset.name.includes('USDT') || (!asset.name.includes('.') && asset.name.length <= 5)) {
+                try {
+                    // API YÜKÜNÜ AZALTMAK İÇİN: Sadece %10 ihtimalle veya her 5 dakikada bir kontrol edilebilir.
+                    // Şimdilik her döngüde kontrol ediyoruz ama "try/catch" ile koruyoruz.
+                    
+                    let cleanSym = asset.name.replace('BINANCE:','').replace('USDT','') + "USDT";
+                    
+                    // BINANCE KLINES (MUM) VERİSİ: 1 Günlük mumlardan son 30 tanesini getir
+                    let res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${cleanSym}&interval=1d&limit=30`);
+                    
+                    if(res.ok) {
+                        let candles = await res.json();
+                        
+                        // Son 30 günün EN YÜKSEK ve EN DÜŞÜK değerini bul
+                        let high30 = -Infinity;
+                        let low30 = Infinity;
+                        
+                        // Binance Mum Formatı: [Time, Open, High, Low, Close, ...]
+                        // High = index 2, Low = index 3
+                        candles.forEach(c => {
+                            let h = parseFloat(c[2]);
+                            let l = parseFloat(c[3]);
+                            if(h > high30) high30 = h;
+                            if(l < low30) low30 = l;
+                        });
+
+                        // Stochastic Mantığı: Fiyat bu aralığın neresinde? (0 - 100 arası)
+                        // 0 = 30 günün en dibinde, 100 = 30 günün en tepesinde
+                        let location = ((currentPrice - low30) / (high30 - low30)) * 100;
+                        
+                        // ALT SINIR (DİP FIRSATI - UCUZLUK) -> %10'un altındaysa
+                        if (location < 10) { 
+                            triggerMsg = `AYLIK DİP FIRSATI! ($${currentPrice})`;
+                            triggerIcon = "💎"; // Elmas (Fırsat)
+                            triggered = true;
+                        }
+                        
+                        // ÜST SINIR (TEPE NOKTASI - PAHALILIK) -> %90'ın üzerindeyse
+                        if (location > 90) { 
+                            triggerMsg = `AYLIK ZİRVE! SATIŞ BÖLGESİ ($${currentPrice})`;
+                            triggerIcon = "⚠️"; 
+                            triggered = true;
+                        }
+                    }
+                } catch(e) {
+                    // API hatası olursa sessizce geç, sonraki turda tekrar dener
+                    console.log("RSI Check Error:", e);
+                }
+            }
+        }
+
+        // --- TETİKLEME AKSİYONU ---
+        if (triggered) {
+            alarm.active = false; // Tekrar tekrar ötmesin diye kapatıyoruz
+            updated = true;
+            
+            let color = triggerIcon.includes('🚀') || triggerIcon.includes('💎') ? 'success' : 'danger';
+            
+            // Uygulama İçi Bildirim
+            addNotification(color, `${alarm.symbol} ${triggerIcon}`, triggerMsg);
+
+            // Telefon Bildirimi (Android/iOS)
+            if (window.Android && window.Android.showNotification) {
+                window.Android.showNotification("TradeVia Sinyal", `${alarm.symbol}: ${triggerMsg}`);
+            } else if ("Notification" in window && Notification.permission === "granted") {
+                new Notification(`TradeVia: ${alarm.symbol}`, { body: triggerMsg, icon: 'ikon.png' });
+            }
+        }
+    }
+
+    if (updated) {
+        let activeAlarms = alarms.filter(a => a.active); 
+        localStorage.setItem('tradeVia_alarms', JSON.stringify(activeAlarms));
+        if(typeof renderActiveAlarmsList === 'function') renderActiveAlarmsList();
+    }
+}
+/* ==========================================================================
+   FİNAL ALARM SİSTEMİ (HATASIZ & MODERN ARAYÜZ)
+   ========================================================================== */
+
+// 1. MODAL AÇMA VE ARAYÜZ (UI) - FİNAL DÜZELTİLMİŞ HALİ
+function openAlarmModal(i) {
+    let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
+    let asset = as[i];
+    
+    if (!asset) {
+        if(typeof addNotification === 'function') addNotification('danger', 'Hata', 'Varlık bulunamadı!');
+        return;
+    }
+
+    // Mevcut fiyatı al
+    let currentPrice = asset.curr || asset.buy;
+    let priceText = currentPrice > 0 ? currentPrice.toFixed(2) : "0.00";
+
+    // --- ÖZEL CSS STİLLERİ ---
+    const customStyles = `
+        <style>
+            .alarm-tabs { display: flex; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 4px; margin-bottom: 20px; }
+            .a-tab { flex: 1; text-align: center; padding: 10px; font-size: 12px; font-weight: 700; color: #64748b; cursor: pointer; border-radius: 8px; transition: 0.3s; }
+            .a-tab.active { background: var(--bg-card); color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+            .a-tab.active i { transform: scale(1.2); }
+            
+            .alarm-input-box { position: relative; margin-bottom: 15px; }
+            .alarm-input-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-sub); }
+            .alarm-fancy-input { width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 14px 14px 14px 40px; border-radius: 12px; color: white; font-weight: 700; font-size: 16px; outline: none; transition: 0.3s; }
+            .alarm-fancy-input:focus { border-color: var(--accent); background: rgba(59,130,246,0.05); }
+            
+            .dir-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+            .dir-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 12px 5px; border-radius: 10px; color: var(--text-sub); font-size: 10px; font-weight: 700; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; transition: 0.2s; }
+            .dir-btn i { font-size: 16px; margin-bottom: 2px; }
+            .dir-btn.active { border-color: var(--accent); background: rgba(59,130,246,0.15); color: white; }
+            .dir-btn.up.active { border-color: #10b981; background: rgba(16,185,129,0.15); color: #10b981; }
+            .dir-btn.down.active { border-color: #ef4444; background: rgba(239,68,68,0.15); color: #ef4444; }
+            
+            .ai-pulse-container { position: relative; width: 80px; height: 80px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; }
+            .ai-core { width: 50px; height: 50px; background: linear-gradient(135deg, #8b5cf6, #3b82f6); border-radius: 50%; z-index: 2; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(139, 92, 246, 0.6); }
+            .ai-core i { font-size: 22px; color: white; }
+            .ai-ripple { position: absolute; width: 100%; height: 100%; border: 2px solid rgba(139, 92, 246, 0.5); border-radius: 50%; opacity: 0; animation: ripple 2s infinite cubic-bezier(0, 0.2, 0.8, 1); }
+            .ai-ripple:nth-child(2) { animation-delay: -0.5s; }
+            @keyframes ripple { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+            
+            .rsi-label { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-sub); font-weight: 700; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; }
+        </style>
+    `;
+
+    // --- HTML İÇERİĞİ ---
+    let modalInner = `
+        ${customStyles}
+        
+        <input type="hidden" id="alarmIdx" value="${i}">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <div style="font-size: 18px; font-weight: 800; color: white;">${asset.name}</div>
+            <div style="font-size: 12px; color: var(--text-sub);">Şu Anki Fiyat: <span style="color:var(--accent); font-weight:700;">${priceText}</span></div>
+        </div>
+
+        <div class="alarm-tabs">
+            <div class="a-tab active" onclick="switchNewTab('price', this)"><i class="fas fa-crosshairs"></i> Fiyat</div>
+            <div class="a-tab" onclick="switchNewTab('volatility', this)"><i class="fas fa-bolt"></i> Volatilite</div>
+            <div class="a-tab" onclick="switchNewTab('rsi', this)"><i class="fas fa-wave-square"></i> İndikatör</div>
+        </div>
+
+        <div id="tab-content-price" class="alarm-tab-content">
+            <div style="font-size:11px; color:var(--text-sub); margin-bottom:8px; font-weight:600;">HEDEF FİYAT (YUKARI)</div>
+            <div class="alarm-input-box">
+                <i class="fas fa-arrow-up" style="color:#10b981"></i>
+                <input type="number" id="alarmUpper" class="alarm-fancy-input" placeholder="Örn: ${ (currentPrice * 1.05).toFixed(2) }">
+            </div>
+
+            <div style="font-size:11px; color:var(--text-sub); margin-bottom:8px; font-weight:600;">STOP / DÜŞÜŞ (AŞAĞI)</div>
+            <div class="alarm-input-box">
+                <i class="fas fa-arrow-down" style="color:#ef4444"></i>
+                <input type="number" id="alarmLower" class="alarm-fancy-input" placeholder="Örn: ${ (currentPrice * 0.95).toFixed(2) }">
+            </div>
+            
+            <button class="btn-main" onclick="saveAlarm('PRICE')">ALARM KUR</button>
+        </div>
+
+        <div id="tab-content-volatility" class="alarm-tab-content" style="display:none;">
+            <div style="background:rgba(245,158,11,0.1); padding:12px; border-radius:12px; font-size:11px; color:#fbbf24; margin-bottom:15px; border:1px solid rgba(245,158,11,0.2);">
+                <i class="fas fa-info-circle"></i> <b>Ani Hareket Yakalayıcı:</b><br>
+                Fiyat aniden sert bir hareket yaparsa (Pump veya Dump) seni uyarır.
+            </div>
+
+            <div style="font-size:11px; color:var(--text-sub); margin-bottom:8px; font-weight:600;">TAKİP YÖNÜ</div>
+            <div class="dir-grid">
+                <div class="dir-btn up" onclick="selectDirection('UP', this)"><i class="fas fa-rocket"></i> Ralli</div>
+                <div class="dir-btn active" onclick="selectDirection('BOTH', this)"><i class="fas fa-arrows-alt-v"></i> Farketmez</div>
+                <div class="dir-btn down" onclick="selectDirection('DOWN', this)"><i class="fas fa-crash"></i> Çöküş</div>
+            </div>
+            <input type="hidden" id="volDirection" value="BOTH">
+
+            <div style="font-size:11px; color:var(--text-sub); margin-bottom:8px; font-weight:600;">YÜZDE KAÇ OYNARSA?</div>
+            <div class="alarm-input-box">
+                <i class="fas fa-percent" style="color:#fbbf24"></i>
+                <input type="number" id="alarmPctUp" class="alarm-fancy-input" placeholder="%5">
+            </div>
+            
+            <div style="display:flex; gap:8px; justify-content:center; margin-bottom:15px;">
+                <button class="ratio-btn" onclick="document.getElementById('alarmPctUp').value=3">%3</button>
+                <button class="ratio-btn" onclick="document.getElementById('alarmPctUp').value=5">%5</button>
+                <button class="ratio-btn" onclick="document.getElementById('alarmPctUp').value=10">%10</button>
+            </div>
+
+            <button class="btn-main" onclick="saveAlarm('VOLATILITY')">TAKİBİ BAŞLAT</button>
+        </div>
+
+        <div id="tab-content-rsi" class="alarm-tab-content" style="display:none;">
+            <div style="text-align:center; padding:10px 0;">
+                
+                <div class="ai-pulse-container">
+                    <div class="ai-ripple"></div>
+                    <div class="ai-ripple"></div>
+                    <div class="ai-core">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                </div>
+
+                <div style="font-size:15px; font-weight:800; color:white;">AI Trend Analizi</div>
+                <p style="font-size:11px; color:var(--text-sub); margin:10px 0; line-height:1.6;">
+                    Yapay zeka, <b>${asset.name}</b> fiyatının <b>son 30 günün</b> zirve ve dip noktalarına göre konumunu izler.<br>Fırsat oluştuğunda otomatik bildirir.
+                </p>
+                
+                <div class="rsi-label">
+                    <span style="color:#10b981"><i class="fas fa-arrow-down"></i> AYLIK DİP</span>
+                    <span style="color:#ef4444">AYLIK ZİRVE <i class="fas fa-arrow-up"></i></span>
+                </div>
+            </div>
+            
+            <button class="btn-main" onclick="saveAlarm('RSI')" style="margin-top:20px; background:linear-gradient(135deg, #8b5cf6, #3b82f6); box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);">
+                <i class="fas fa-magic"></i> ANALİZİ BAŞLAT
+            </button>
+        </div>
+        
+        <div style="margin-top:15px; text-align:center;">
+            <button onclick="closeModal('alarmModal')" style="background:none; border:none; color:var(--text-sub); font-size:12px; cursor:pointer;">Vazgeç</button>
+        </div>
+    `;
+
+    // Eski modalın içini temizle ve yenisini bas
+    let modalEl = document.querySelector('#alarmModal .modal');
+    if(modalEl) {
+        modalEl.innerHTML = modalInner;
+        document.getElementById('alarmModal').style.display = 'flex';
+    } else {
+        console.error("Alarm Modal HTML yapısı bulunamadı!");
+    }
+}
+
+// Sekme Değiştirme
+function switchNewTab(tabName, btn) {
+    document.querySelectorAll('.alarm-tab-content').forEach(el => el.style.display = 'none');
+    let target = document.getElementById('tab-content-' + tabName);
+    if(target) target.style.display = 'block';
+    
+    document.querySelectorAll('.a-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+// Yön Seçimi
+function selectDirection(dir, btn) {
+    document.getElementById('volDirection').value = dir;
+    document.querySelectorAll('.dir-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+// 2. KAYIT VE UNDEFINED HATASINI ÖNLEYEN FONKSİYON
+function saveAlarm(type) {
+    let idxElement = document.getElementById('alarmIdx');
+    if (!idxElement) {
+        alert("Sistem hatası: Index bulunamadı.");
+        return;
+    }
+    
+    let idx = idxElement.value;
+    let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
+    let asset = as[idx];
+
+    // --- UNDEFINED HATASI ÇÖZÜMÜ ---
+    if (!asset) {
+        alert("Varlık bilgisi alınamadı! Lütfen sayfayı yenileyip tekrar deneyin.");
+        return;
+    }
+
+    let alarms = JSON.parse(localStorage.getItem('tradeVia_alarms')) || [];
+    let addedCount = 0;
+
+    // A) FİYAT ALARMI
+    if (type === 'PRICE') {
+        let upInput = document.getElementById('alarmUpper');
+        let downInput = document.getElementById('alarmLower');
+        
+        let up = upInput ? parseFloat(upInput.value) : 0;
+        let down = downInput ? parseFloat(downInput.value) : 0;
+        
+        if (!up && !down) return addNotification('warn', 'Eksik', 'Lütfen en az bir fiyat girin.');
+
+        if (up) {
+            alarms.push({ id: Date.now() + 1, symbol: asset.name, target: up, direction: 'UP', type: 'PRICE', active: true });
+            addedCount++;
+        }
+        if (down) {
+            alarms.push({ id: Date.now() + 2, symbol: asset.name, target: down, direction: 'DOWN', type: 'PRICE', active: true });
+            addedCount++;
+        }
+    }
+
+    // B) VOLATİLİTE ALARMI
+    else if (type === 'VOLATILITY') {
+        let pctInput = document.getElementById('alarmPctUp');
+        let dirInput = document.getElementById('volDirection');
+        
+        let pct = pctInput ? parseFloat(pctInput.value) : 0;
+        let dir = dirInput ? dirInput.value : 'BOTH';
+        let basePrice = asset.curr || asset.buy;
+
+        if (!pct) return addNotification('warn', 'Eksik', 'Yüzde değeri giriniz.');
+
+        alarms.push({ 
+            id: Date.now() + 3, 
+            symbol: asset.name, 
+            basePrice: basePrice, 
+            percent: pct, 
+            direction: dir, 
+            type: 'VOLATILITY', 
+            active: true 
+        });
+        addedCount++;
+    }
+
+    // C) RSI ALARMI
+    else if (type === 'RSI') {
+        // Zaten var mı kontrolü
+        let exists = alarms.find(a => a.symbol === asset.name && a.type === 'RSI' && a.active);
+        if (exists) return addNotification('info', 'Zaten Var', 'Bu varlık zaten takip ediliyor.');
+
+        alarms.push({ 
+            id: Date.now() + 4, 
+            symbol: asset.name, 
+            type: 'RSI', 
+            active: true 
+        });
+        addedCount++;
+    }
+
+    // KAYDETME İŞLEMİ
+    if (addedCount > 0) {
+        localStorage.setItem('tradeVia_alarms', JSON.stringify(alarms));
+        
+        // Karttaki zili yakmak için flag ekle
+        asset.alarm = true;
+        localStorage.setItem('myPF_final', JSON.stringify(as));
+
+        addNotification('success', 'Alarm Kuruldu', `${asset.name} için ${addedCount} kural aktif.`);
+        document.getElementById('alarmModal').style.display = 'none';
+        
+        // Arayüzü yenile
+        if(typeof loadPF === 'function') loadPF(false);
+        if(typeof renderActiveAlarmsList === 'function') renderActiveAlarmsList();
+    }
+}
+
+// 3. SİLME FONKSİYONU
+function removeAlarm(id) {
+    if(!confirm("Bu alarmı silmek istiyor musunuz?")) return;
+    let alarms = JSON.parse(localStorage.getItem('tradeVia_alarms')) || [];
+    let deletedAlarm = alarms.find(a => a.id === id);
+    
+    alarms = alarms.filter(a => a.id !== id);
+    localStorage.setItem('tradeVia_alarms', JSON.stringify(alarms));
+    
+    // Eğer bu varlığa ait başka alarm kalmadıysa, karttaki zili söndür
+    if(deletedAlarm) {
+        let remaining = alarms.filter(a => a.symbol === deletedAlarm.symbol);
+        if(remaining.length === 0) {
+            let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
+            let asset = as.find(a => a.name === deletedAlarm.symbol);
+            if(asset) {
+                delete asset.alarm;
+                localStorage.setItem('myPF_final', JSON.stringify(as));
+                if(typeof loadPF === 'function') loadPF(false);
+            }
+        }
+    }
+
+    if(typeof renderActiveAlarmsList === 'function') renderActiveAlarmsList();
+}
+
+/* --- GÜNCELLENMİŞ ALARM KONTROLÜ (ÖNCELİK: COINGECKO -> YEDEK: BINANCE) --- */
+async function checkAllAlarms() {
+    let alarms = JSON.parse(localStorage.getItem('tradeVia_alarms')) || [];
+    if (alarms.length === 0) return;
+
+    let updated = false;
+    let pf = JSON.parse(localStorage.getItem('myPF_final')) || [];
+
+    // Döngü her alarm için çalışır
+    for (let alarm of alarms) {
+        if (!alarm.active) continue;
+
+        let asset = pf.find(p => p.name === alarm.symbol);
+        if (!asset || !asset.curr) continue; 
+
+        let currentPrice = asset.curr;
+        let triggered = false;
+        let triggerMsg = "";
+        let triggerIcon = "";
+
+        // --- 1. FİYAT ALARMI ---
+        if (alarm.type === 'PRICE') {
+            if (alarm.direction === 'UP' && currentPrice >= alarm.target) {
+                triggerMsg = `HEDEF GELDİ: ${currentPrice}`; triggerIcon = "🚀"; triggered = true;
+            }
+            if (alarm.direction === 'DOWN' && currentPrice <= alarm.target) {
+                triggerMsg = `DÜŞÜŞ LİMİTİ: ${currentPrice}`; triggerIcon = "🔻"; triggered = true;
+            }
+        }
+
+        // --- 2. VOLATİLİTE ALARMI ---
+        else if (alarm.type === 'VOLATILITY') {
+            let rawChange = ((currentPrice - alarm.basePrice) / alarm.basePrice) * 100;
+            
+            if ((alarm.direction === 'UP' || alarm.direction === 'BOTH') && rawChange >= alarm.percent) {
+                triggerMsg = `ANİ YÜKSELİŞ: +%${rawChange.toFixed(2)} 🚀`; triggerIcon = "⚡"; triggered = true;
+            }
+            if ((alarm.direction === 'DOWN' || alarm.direction === 'BOTH') && rawChange <= -alarm.percent) {
+                triggerMsg = `ANİ ÇÖKÜŞ: %${rawChange.toFixed(2)} 🔻`; triggerIcon = "📉"; triggered = true;
+            }
+        }
+
+        // --- 3. AI TREND / İNDİKATÖR (30 GÜNLÜK ANALİZ) ---
+        else if (alarm.type === 'RSI') {
+            
+            // API yükünü dengelemek için %20 şansla çalıştır (Saniyede bir sorgu atmasın diye)
+            if(Math.random() > 0.8) { 
+                // Sembolü temizle (Örn: BINANCE:BTCUSDT -> BTC)
+                let cleanSym = asset.name.replace('BINANCE:','').replace('USDT','').replace('TRY','').trim();
+                let high30 = -Infinity; 
+                let low30 = Infinity;
+                let dataFound = false;
+
+                // --- PLAN A: COINGECKO ---
+                try {
+                    if(!coingeckoApiKey) throw new Error("No Key");
+
+                    // 1. Arama yapıp ID bul
+                    const searchRes = await fetch(`https://api.coingecko.com/api/v3/search?query=${cleanSym}&x_cg_demo_api_key=${coingeckoApiKey}`);
+                    const searchData = await searchRes.json();
+                    
+                    if(searchData.coins && searchData.coins.length > 0) {
+                        // En iyi eşleşmeyi al
+                        let coinId = searchData.coins[0].id;
+                        let exact = searchData.coins.find(c => c.symbol.toUpperCase() === cleanSym.toUpperCase());
+                        if(exact) coinId = exact.id;
+
+                        // 2. 30 Günlük Market Chart Çek
+                        const chartRes = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=30&x_cg_demo_api_key=${coingeckoApiKey}`);
+                        const chartData = await chartRes.json();
+
+                        if(chartData.prices && chartData.prices.length > 0) {
+                            // Fiyatları tara
+                            chartData.prices.forEach(p => {
+                                let val = p[1];
+                                if(val > high30) high30 = val;
+                                if(val < low30) low30 = val;
+                            });
+                            dataFound = true;
+                        }
+                    }
+                } catch(cgError) {
+                    // CoinGecko hatası olursa sessizce Binance'e geç (Plan B)
+                }
+
+                // --- PLAN B: BINANCE (YEDEK) ---
+                if (!dataFound) {
+                    try {
+                        let binSym = cleanSym.toUpperCase() + "USDT";
+                        let res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${binSym}&interval=1d&limit=30`);
+                        if(res.ok) {
+                            let candles = await res.json();
+                            // Binance formatı: [Time, Open, High, Low, Close...]
+                            candles.forEach(c => {
+                                let h = parseFloat(c[2]); let l = parseFloat(c[3]);
+                                if(h > high30) high30 = h; 
+                                if(l < low30) low30 = l;
+                            });
+                            dataFound = true;
+                        }
+                    } catch(binError) {
+                        // İkisi de çalışmazsa bu seferlik pas geç
+                    }
+                }
+
+                // --- SONUÇ DEĞERLENDİRME ---
+                if (dataFound && high30 !== -Infinity) {
+                    // Konum Hesapla (0 = Dip, 100 = Zirve)
+                    let loc = ((currentPrice - low30) / (high30 - low30)) * 100;
+                    
+                    if (loc < 10) { 
+                        triggerMsg = `DİP FIRSATI (Aylık)`; 
+                        triggerIcon = "💎"; 
+                        triggered = true; 
+                    }
+                    if (loc > 90) { 
+                        triggerMsg = `TEPE NOKTASI (Aylık)`; 
+                        triggerIcon = "⚠️"; 
+                        triggered = true; 
+                    }
+                }
+            }
+        }
+
+        // --- BİLDİRİM GÖNDERME ---
+        if (triggered) {
+            alarm.active = false; 
+            updated = true;
+            let color = triggerIcon.includes('🚀') || triggerIcon.includes('💎') ? 'success' : 'danger';
+            
+            // 1. Uygulama İçi
+            if(typeof addNotification === 'function') addNotification(color, `${alarm.symbol} ${triggerIcon}`, triggerMsg);
+            
+            // 2. Android WebView (Varsa)
+            if (window.Android && window.Android.showNotification) {
+                window.Android.showNotification("TradeVia AI", `${asset.name}: ${triggerMsg}`);
+            } 
+            // 3. Web Tarayıcı
+            else if ("Notification" in window && Notification.permission === "granted") {
+                new Notification(`TradeVia AI: ${alarm.symbol}`, { body: triggerMsg, icon: 'ikon.png' });
+            }
+        }
+    }
+
+    if (updated) {
+        let activeAlarms = alarms.filter(a => a.active); 
+        localStorage.setItem('tradeVia_alarms', JSON.stringify(activeAlarms));
+        if(typeof renderActiveAlarmsList === 'function') renderActiveAlarmsList();
+    }
+}
+
     function toggleExitCurrency() { exitCurrency = (exitCurrency === 'TRY') ? 'USD' : 'TRY'; let btn = document.getElementById('sellCurrencyToggle'); if(exitCurrency === 'TRY') { btn.innerText = '₺'; btn.className = 'currency-toggle-btn active-try'; } else { btn.innerText = '$'; btn.className = 'currency-toggle-btn active-usd'; } calcSellPreview(); }
     
     function openSell(i) { let as = JSON.parse(localStorage.getItem('myPF_final')) || []; let asset = as[i]; if(!asset) return; document.getElementById('sellIdx').value = i; document.getElementById('sellMaxAmt').innerText = asset.amt; document.getElementById('sellAmt').value = ""; exitCurrency = asset.origin; let btn = document.getElementById('sellCurrencyToggle'); if(exitCurrency === 'TRY') { btn.innerText = '₺'; btn.className = 'currency-toggle-btn active-try'; } else { btn.innerText = '$'; btn.className = 'currency-toggle-btn active-usd'; } let currentP = asset.curr || asset.buy; document.getElementById('sellPrice').value = currentP.toFixed(2); document.getElementById('sellSummaryBox').style.display = 'none'; document.getElementById('sellModal').style.display = 'flex'; calcSellPreview(); }
@@ -14954,6 +15561,102 @@ if (typeof window.switchPage === 'function') {
 // 2. Sürekli kontrol (Hata payını sıfırlar)
 setInterval(forceNavColor, 500);
 
+/* --- YENİ ALARM YÖNETİM SİSTEMİ --- */
+
+// 1. Sekme Değiştirme
+function showNotifTab(tab) {
+    // Başlıkları Ayarla
+    document.querySelectorAll('.notif-tab-btn').forEach(b => b.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+
+    // Panelleri Ayarla
+    document.querySelectorAll('.notif-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + tab).classList.add('active');
+
+    // Eğer "Bekleyenler" açıldıysa listeyi yenile
+    if (tab === 'alarms') renderActiveAlarmsList();
+}
+
+// 2. Kurulu Alarmları Listele (SİLME BUTONLU) - TASARIM DÜZELTİLDİ
+function renderActiveAlarmsList() {
+    const list = document.getElementById('activeAlarmsList');
+    const alarms = JSON.parse(localStorage.getItem('tradeVia_alarms')) || [];
+
+    list.innerHTML = '';
+
+    if (alarms.length === 0) {
+        list.innerHTML = `
+            <div style="text-align:center; padding:40px; color:var(--text-sub);">
+                <i class="fas fa-bell-slash" style="font-size:30px; margin-bottom:10px; opacity:0.5;"></i><br>
+                Aktif alarm bulunmuyor.
+            </div>`;
+        return;
+    }
+
+    alarms.forEach(alarm => {
+        let icon = alarm.direction === 'UP' ? 'fa-arrow-up' : 'fa-arrow-down';
+        let color = alarm.direction === 'UP' ? '#10b981' : '#ef4444';
+        
+        let descriptionText = "";
+        
+        if (alarm.type === 'PRICE') {
+            descriptionText = `Hedef: <span style="color:${color}; font-weight:bold;">$${alarm.target}</span>`;
+        } 
+        else if (alarm.type === 'VOLATILITY') {
+            icon = 'fa-bolt'; 
+            color = '#f59e0b'; 
+            descriptionText = `Ani Hareket: <span style="color:${color}; font-weight:bold;">%${alarm.percent}</span>`;
+        } 
+        else if (alarm.type === 'RSI') {
+            icon = 'fa-brain'; 
+            color = '#8b5cf6'; 
+            descriptionText = `<span style="color:${color}; font-weight:bold;">AI Trend Analizi (30G)</span>`;
+        }
+
+        const li = document.createElement('li');
+        
+        // --- DÜZELTME BURADA ---
+        // 'deep-inset' sınıfını kaldırdım.
+        // 'notif-card' sınıfını ekledim (Diğer bildirimlerle aynı görünüm için).
+        li.className = 'notif-card'; 
+        
+        // Hizalama ayarları
+        li.style.display = 'flex';
+        li.style.justifyContent = 'space-between';
+        li.style.alignItems = 'center';
+        li.style.marginBottom = '10px'; // Kartlar birbirine yapışmasın
+
+        li.innerHTML = `
+            <div>
+                <strong style="color:#fff; font-size:15px;">${alarm.symbol}</strong>
+                <div style="font-size:12px; color:var(--text-sub); margin-top:2px;">
+                    ${descriptionText} 
+                    <i class="fas ${icon}" style="font-size:10px; color:${color}; margin-left:5px;"></i>
+                </div>
+            </div>
+            <button onclick="removeAlarm(${alarm.id})" style="background:rgba(239, 68, 68, 0.1); border:none; width:36px; height:36px; border-radius:10px; color:#ef4444; cursor:pointer;">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        list.appendChild(li);
+    });
+}
+
+// 3. Alarm Silme
+function removeAlarm(id) {
+    if(!confirm("Bu alarmı silmek istiyor musunuz?")) return;
+
+    let alarms = JSON.parse(localStorage.getItem('tradeVia_alarms')) || [];
+    alarms = alarms.filter(a => a.id !== id);
+    localStorage.setItem('tradeVia_alarms', JSON.stringify(alarms));
+    
+    // Listeyi yenile
+    renderActiveAlarmsList();
+    
+    // Cüzdandaki ikonun sönmesi için sayfayı yenilemek gerekebilir veya UI update çağrılır
+    // Eğer cüzdan sayfası açıksa updatePortfolioUI() çağırabilirsin.
+    if(typeof updatePortfolioUI === 'function') updatePortfolioUI(); 
+}
 
 
 </script>
