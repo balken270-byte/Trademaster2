@@ -2153,6 +2153,36 @@ button:active,
         inset 0 5px 15px rgba(0, 0, 0, 0.7)
         !important;
 }
+/* --- PİYASA LİSTESİ (DİPSİZ KUYU EFEKTİ) --- */
+.infinite-item {
+    /* 1. Eski dış kabarıklığı sıfırla */
+    box-shadow: none !important;
+
+    /* 2. İÇE DOĞRU DERİNLİK (Kuyu Hissi) */
+    /* Üstten ve soldan içeri giren koyu gölge */
+    box-shadow: 
+        inset 3px 3px 8px rgba(0, 0, 0, 0.8),     /* Ana derinlik */
+        inset -1px -1px 2px rgba(255, 255, 255, 0.03), /* Sağ alttan çok hafif parlama */
+        0 1px 0 rgba(255, 255, 255, 0.02)         /* En alta incecik çizgi */
+        !important;
+
+    /* 3. Kenarlık Işıklandırması */
+    border: none !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.6) !important;   /* Üst taraf karanlık */
+    border-left: 1px solid rgba(0, 0, 0, 0.4) !important;  /* Sol taraf karanlık */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important; /* Alt taraf aydınlık */
+
+    /* Geçişleri yumuşat */
+    transition: transform 0.1s, background 0.3s !important;
+}
+
+/* Tıklayınca gömülme efekti */
+.infinite-item:active {
+    transform: scale(0.98) !important;
+    background: var(--bg-input) !important; /* Tıklanınca hafif renk değişimi */
+    box-shadow: 
+        inset 5px 5px 12px rgba(0, 0, 0, 0.95) !important;
+}
 
 </style>
 
@@ -7357,7 +7387,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.3"; 
+    const CURRENT_VERSION = "1.4"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
