@@ -2183,6 +2183,33 @@ button:active,
     box-shadow: 
         inset 5px 5px 12px rgba(0, 0, 0, 0.95) !important;
 }
+/* --- VARLIK & HIZLI İŞLEM (DİPSİZ KUYU EFEKTİ) --- */
+.deep-inset {
+    /* 1. Varsa dış gölgeyi kaldır */
+    box-shadow: none !important;
+    
+    /* 2. İÇE DOĞRU DERİNLİK (GÜÇLÜ) */
+    box-shadow: 
+        inset 5px 5px 15px rgba(0, 0, 0, 0.8),    /* Sol/Üst Derinlik */
+        inset -1px -1px 2px rgba(255, 255, 255, 0.05), /* Sağ/Alt Işık */
+        0 1px 0 rgba(255, 255, 255, 0.02)         /* Alt Çizgi */
+        !important;
+
+    /* 3. Kenarlıklar (Işık yönüne göre) */
+    border: none !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.6) !important;
+    border-left: 1px solid rgba(0, 0, 0, 0.5) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    
+    /* Orijinal renkleri koru ama yapıyı bozma */
+    overflow: hidden !important; /* Taşmaları engelle */
+    transition: transform 0.2s;
+}
+
+/* Tıklanırsa (Örn: Hızlı İşlem açılırken) tepki ver */
+.deep-inset:active {
+    transform: scale(0.99);
+}
 
 </style>
 
@@ -2363,7 +2390,7 @@ button:active,
 
 <div class="content-area">
     <div id="page-portfolio" class="page active">
-        <div class="balance-hero">
+       <div class="balance-hero deep-inset">
             <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:5px;">
                 <span class="lbl-sm" data-lang="total_assets">TOPLAM VARLIK</span>
                 <button onclick="togglePrivacy()" style="background:none; border:none; color:var(--text-sub); cursor:pointer;"><i class="fas fa-eye"></i></button>
@@ -2380,8 +2407,8 @@ button:active,
             </div>
         </div>
 
-        <div class="trade-card" id="tradeCard">
-            <div class="trade-header collapsible-header" onclick="toggleTradeMenu()">
+        <div class="trade-card deep-inset" id="tradeCard">
+    <div class="trade-header collapsible-header" onclick="toggleTradeMenu()">
                 <div class="trade-title">
                     <i class="fas fa-chevron-down rotate-icon" id="tradeChevron" style="font-size:12px; margin-right:5px; color:var(--text-sub);"></i>
                     <i class="fas fa-bolt" style="color:var(--gold)"></i> Hızlı İşlem
@@ -7387,7 +7414,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.4"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
