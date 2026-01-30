@@ -569,6 +569,340 @@ body {
         @keyframes drawArrowOriginal { from { opacity: 0; transform: translate(-20px, 20px) scale(0.8); } to { opacity: 1; transform: translate(0, 0) scale(1); } }
         @keyframes loadingMove { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
 
+        /* === KİLİT EKRANI (LOCK SCREEN) === */
+        #lock-screen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            z-index: 99999999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.4s ease-out, visibility 0.4s;
+            padding: 20px;
+        }
+        #lock-screen.active { display: flex; }
+        #lock-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+        .lock-logo-mini {
+            width: 80px; height: 80px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 10px 30px rgba(59, 130, 246, 0.4));
+            animation: lockPulse 3s ease-in-out infinite;
+        }
+        @keyframes lockPulse {
+            0%, 100% { filter: drop-shadow(0 10px 30px rgba(59, 130, 246, 0.4)); }
+            50% { filter: drop-shadow(0 10px 40px rgba(59, 130, 246, 0.6)); }
+        }
+
+        .lock-title {
+            font-family: 'Inter', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+        .lock-subtitle {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 35px;
+            font-weight: 500;
+        }
+
+        /* PIN Girişi */
+        .pin-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .pin-dots {
+            display: flex;
+            gap: 18px;
+            margin-bottom: 35px;
+        }
+        .pin-dot {
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .pin-dot.filled {
+            background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+            border-color: transparent;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+            transform: scale(1.1);
+        }
+        .pin-dot.error {
+            background: #ef4444;
+            border-color: #ef4444;
+            animation: pinShake 0.5s ease;
+        }
+        @keyframes pinShake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        /* Numpad */
+        .pin-numpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            width: 100%;
+            max-width: 280px;
+        }
+        .numpad-btn {
+            width: 75px; height: 75px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            backdrop-filter: blur(10px);
+        }
+        .numpad-btn:active {
+            background: rgba(59, 130, 246, 0.3);
+            border-color: rgba(59, 130, 246, 0.5);
+            transform: scale(0.95);
+        }
+        .numpad-btn.action {
+            background: transparent;
+            border-color: transparent;
+            font-size: 22px;
+            color: #94a3b8;
+        }
+        .numpad-btn.action:active {
+            color: #ffffff;
+            background: transparent;
+        }
+        .numpad-btn.action i { font-size: 20px; }
+
+        .lock-error-msg {
+            color: #ef4444;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 20px;
+            min-height: 20px;
+            text-align: center;
+        }
+
+        .lock-forgot-link {
+            margin-top: 30px;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .lock-forgot-link:hover { color: rgba(255, 255, 255, 0.7); }
+
+        /* Şifre Ayarlama Modalı */
+        .pin-setup-modal {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 99999998;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .pin-setup-modal.active { display: flex; }
+
+        .pin-setup-card {
+            background: linear-gradient(165deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 30px 25px;
+            width: 100%;
+            max-width: 340px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .pin-setup-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+        .pin-setup-desc {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        .pin-setup-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .pin-setup-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        /* Ayarlar Sayfası - Güvenlik Bölümü */
+        .security-setting-card {
+            background: linear-gradient(165deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        .security-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .security-icon {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #3b82f6;
+        }
+        .security-info h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: white;
+            margin: 0 0 3px 0;
+        }
+        .security-info p {
+            font-size: 12px;
+            color: #94a3b8;
+            margin: 0;
+        }
+        .security-toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .security-toggle-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+        .security-btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .security-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .security-btn.primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border: none;
+        }
+        .security-btn.danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .security-btn:active { transform: scale(0.98); }
+
+        .pin-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .pin-status-badge.active {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+        .pin-status-badge.inactive {
+            background: rgba(148, 163, 184, 0.15);
+            color: #94a3b8;
+        }
+
+        /* Premium Toggle Switch */
+        .premium-switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+        }
+        .premium-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .premium-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(148, 163, 184, 0.3);
+            border-radius: 34px;
+            transition: 0.3s;
+        }
+        .premium-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .premium-switch input:checked + .premium-slider {
+            background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+        }
+        .premium-switch input:checked + .premium-slider:before {
+            transform: translateX(24px);
+        }
+
         /* === PREMIUM PERFORMANCE DASHBOARD v2 === */
         
         /* Performance Section Container */
@@ -2807,6 +3141,78 @@ button:active,
 .notif-tab-btn.active { color: #fbbf24; border-bottom-color: #fbbf24; }
 .notif-panel { display: none; }
 .notif-panel.active { display: block; animation: fadeIn 0.3s; }
+/* --- GÜVENLİK / KİLİT EKRANI STİLLERİ --- */
+#lockScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #0b0f19; /* Ana tema rengi */
+    z-index: 99999; /* Her şeyin üstünde olsun */
+    display: none; /* Varsayılan olarak gizli */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+.lock-icon {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    color: #00e5ff;
+}
+
+.pin-dots {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 40px;
+}
+
+.pin-dot {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background-color: rgba(255,255,255,0.2);
+    transition: all 0.2s ease;
+}
+
+.pin-dot.filled {
+    background-color: #00e5ff;
+    box-shadow: 0 0 10px #00e5ff;
+}
+
+.numpad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    width: 280px;
+}
+
+.num-btn {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background-color: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.num-btn:active {
+    background-color: rgba(0, 229, 255, 0.2);
+}
+
+.num-btn.dummy {
+    background: transparent;
+    border: none;
+    cursor: default;
+}
 
 </style>
 
@@ -2959,6 +3365,88 @@ button:active,
 
 
     
+</div>
+
+<!-- === KİLİT EKRANI (LOCK SCREEN) === -->
+<div id="lock-screen">
+    <!-- Mini Logo -->
+    <svg class="lock-logo-mini" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+        <defs>
+            <linearGradient id="lockGrad1" x1="0" y1="240" x2="240" y2="0" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#0f172a"/> <stop offset="50%" stop-color="#1e3a8a"/> <stop offset="100%" stop-color="#3b82f6"/> 
+            </linearGradient>
+            <linearGradient id="lockGrad2" x1="0" y1="100" x2="240" y2="100" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#3b82f6"/>
+                <stop offset="50%" stop-color="#06b6d4"/> <stop offset="100%" stop-color="#10b981"/> 
+            </linearGradient>
+            <filter id="lockGlow" height="300%" width="300%" x="-75%" y="-75%">
+                <feMorphology operator="dilate" radius="2" in="SourceAlpha" result="thicken" />
+                <feGaussianBlur in="thicken" stdDeviation="6" result="blurred" />
+                <feFlood flood-color="rgba(59, 130, 246, 0.5)" result="glowColor" />
+                <feComposite in="glowColor" in2="blurred" operator="in" result="softGlow_colored" />
+                <feMerge>
+                    <feMergeNode in="softGlow_colored"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+        </defs>
+        <path d="M120 30 L 190 80 L 190 160 L 120 210 L 50 160 L 50 80 Z" fill="url(#lockGrad1)" stroke="rgba(59, 130, 246, 0.3)" stroke-width="2"/>
+        <g filter="url(#lockGlow)">
+            <path d="M75 150 L 110 170 L 150 140 L 150 70 L 185 40" stroke="url(#lockGrad2)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </g>
+        <circle cx="185" cy="40" r="5" fill="#ffffff">
+            <animate attributeName="r" values="5;7;5" dur="2s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="1;0.7;1" dur="2s" repeatCount="indefinite"/>
+        </circle>
+    </svg>
+
+    <div class="lock-title">TradeVia Kilitli</div>
+    <div class="lock-subtitle">Devam etmek için PIN kodunuzu girin</div>
+
+    <div class="pin-container">
+        <!-- PIN Noktaları -->
+        <div class="pin-dots" id="pinDots">
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+        </div>
+
+        <!-- Numpad -->
+        <div class="pin-numpad">
+            <button class="numpad-btn" onclick="AppLock.enterDigit('1')">1</button>
+            <button class="numpad-btn" onclick="AppLock.enterDigit('2')">2</button>
+            <button class="numpad-btn" onclick="AppLock.enterDigit('3')">3</button>
+            <button class="numpad-btn" onclick="AppLock.enterDigit('4')">4</button>
+            <button class="numpad-btn" onclick="AppLock.enterDigit('5')">5</button>
+            <button class="numpad-btn" onclick="AppLock.enterDigit('6')">6</button>
+            <button class="numpad-btn" onclick="AppLock.enterDigit('7')">7</button>
+            <button class="numpad-btn" onclick="AppLock.enterDigit('8')">8</button>
+            <button class="numpad-btn" onclick="AppLock.enterDigit('9')">9</button>
+            <button class="numpad-btn action" onclick="AppLock.forgotPin()"><i class="fas fa-question-circle"></i></button>
+            <button class="numpad-btn" onclick="AppLock.enterDigit('0')">0</button>
+            <button class="numpad-btn action" onclick="AppLock.deleteDigit()"><i class="fas fa-backspace"></i></button>
+        </div>
+
+        <div class="lock-error-msg" id="lockErrorMsg"></div>
+    </div>
+
+    <div class="lock-forgot-link" onclick="AppLock.forgotPin()">
+        <i class="fas fa-info-circle"></i> Şifremi unuttum
+    </div>
+</div>
+
+<!-- === ŞİFRE AYARLAMA MODALI === -->
+<div class="pin-setup-modal" id="pinSetupModal">
+    <button class="pin-setup-close" onclick="AppLock.closeSetupModal()">
+        <i class="fas fa-times"></i>
+    </button>
+    
+    <div class="pin-setup-card">
+        <div id="pinSetupContent">
+            <!-- İçerik JS ile doldurulacak -->
+        </div>
+    </div>
 </div>
 
 <div class="top-bar" id="mainTopBar">
@@ -7054,6 +7542,19 @@ function openLabFullscreen() {
             <!-- Uygulama Ayarları -->
             <div class="ps-section-label">Uygulama Ayarları</div>
             <div class="ps-menu-list">
+                <!-- YENİ: Güvenlik -->
+                <div class="ps-menu-item" onclick="openSubPage('security')">
+                    <div class="ps-menu-icon cyan"><i class="fas fa-lock"></i></div>
+                    <div class="ps-menu-text">
+                        <div class="ps-menu-title">Güvenlik</div>
+                        <div class="ps-menu-subtitle">
+                            <span id="securityStatusBadge">
+                                <!-- JS ile doldurulacak -->
+                            </span>
+                        </div>
+                    </div>
+                    <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
+                </div>
                 <div class="ps-menu-item" onclick="openSubPage('general')">
                     <div class="ps-menu-icon blue"><i class="fas fa-sliders-h"></i></div>
                     <div class="ps-menu-text">
@@ -7470,6 +7971,75 @@ function openLabFullscreen() {
                 <button class="ps-btn-trash trash-btn" onclick="openTrashModal()">
                     <i class="fas fa-trash-restore"></i> SİLİNEN KAYITLAR (<span id="trashCount">0</span>)
                 </button>
+            </div>
+
+            <!-- ===== GÜVENLİK SAYFASI ===== -->
+            <div id="set-security" class="settings-content" style="display:none;">
+                
+                <!-- Güvenlik Hero Kartı -->
+                <div class="security-setting-card">
+                    <div class="security-header">
+                        <div class="security-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="security-info">
+                            <h3>Uygulama Kilidi</h3>
+                            <p>PIN koduyla uygulamanızı koruyun</p>
+                        </div>
+                    </div>
+
+                    <!-- Durum Göstergesi -->
+                    <div id="pinStatusDisplay" style="margin-bottom: 15px;">
+                        <!-- JS ile doldurulacak -->
+                    </div>
+
+                    <!-- Toggle Satırı -->
+                    <div class="security-toggle-row">
+                        <span class="security-toggle-label">Uygulama Kilidi</span>
+                        <label class="premium-switch" style="position:relative;">
+                            <input type="checkbox" id="appLockToggle" onchange="AppLock.toggleLock(this.checked)">
+                            <span class="premium-slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Butonlar -->
+                    <div class="security-btn-row" id="securityBtnRow" style="display: none;">
+                        <button class="security-btn primary" onclick="AppLock.openChangePin()">
+                            <i class="fas fa-key"></i> PIN Değiştir
+                        </button>
+                        <button class="security-btn danger" onclick="AppLock.removePin()">
+                            <i class="fas fa-trash-alt"></i> Kaldır
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Güvenlik İpuçları -->
+                <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; padding: 15px; margin-top: 15px;">
+                    <div style="display: flex; align-items: flex-start; gap: 12px;">
+                        <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(59, 130, 246, 0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i class="fas fa-info-circle" style="color: #3b82f6; font-size: 14px;"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 13px; font-weight: 600; color: #e2e8f0; margin-bottom: 6px;">Güvenlik İpuçları</div>
+                            <ul style="font-size: 12px; color: #94a3b8; margin: 0; padding-left: 16px; line-height: 1.6;">
+                                <li>Kolay tahmin edilebilir PIN'ler kullanmayın (1234, 0000)</li>
+                                <li>PIN kodunuzu kimseyle paylaşmayın</li>
+                                <li>PIN'inizi unutursanız verilerinizi sıfırlamanız gerekebilir</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Uyarı Mesajı -->
+                <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 12px; padding: 15px; margin-top: 12px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-exclamation-triangle" style="color: #f59e0b; font-size: 16px;"></i>
+                        <div style="font-size: 12px; color: #fbbf24; font-weight: 500;">
+                            PIN'inizi unutursanız, uygulamaya erişmek için tüm verileri sıfırlamanız gerekecektir.
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
         </div>
@@ -8074,6 +8644,35 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
     </div>
 </div>
 
+<div id="lockScreen">
+    <div class="lock-icon">
+        <i class="fas fa-shield-alt"></i>
+    </div>
+    <h3 id="lockTitle" style="margin-bottom: 10px; font-weight: 500;">TradeVia Güvenlik</h3>
+    <p id="lockSub" style="color: #8899a6; margin-bottom: 30px; font-size: 0.9rem;">Giriş yapmak için şifrenizi girin</p>
+
+    <div class="pin-dots">
+        <div class="pin-dot" id="dot1"></div>
+        <div class="pin-dot" id="dot2"></div>
+        <div class="pin-dot" id="dot3"></div>
+        <div class="pin-dot" id="dot4"></div>
+    </div>
+
+    <div class="numpad">
+        <div class="num-btn" onclick="pressKey(1)">1</div>
+        <div class="num-btn" onclick="pressKey(2)">2</div>
+        <div class="num-btn" onclick="pressKey(3)">3</div>
+        <div class="num-btn" onclick="pressKey(4)">4</div>
+        <div class="num-btn" onclick="pressKey(5)">5</div>
+        <div class="num-btn" onclick="pressKey(6)">6</div>
+        <div class="num-btn" onclick="pressKey(7)">7</div>
+        <div class="num-btn" onclick="pressKey(8)">8</div>
+        <div class="num-btn" onclick="pressKey(9)">9</div>
+        <div class="num-btn dummy"></div> <div class="num-btn" onclick="pressKey(0)">0</div>
+        <div class="num-btn" onclick="clearPin()" style="font-size: 1.2rem;"><i class="fas fa-backspace"></i></div>
+    </div>
+</div>
+
 </body>
 
 
@@ -8142,7 +8741,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -13038,7 +13637,7 @@ function openSubPage(pageId) {
     document.getElementById('set-' + pageId).style.display = 'block';
 
     // Başlığı güncelle
-    let titles = { 'profile': 'Profilim', 'general': 'Genel Ayarlar', 'notify': 'Bildirimler', 'history': 'Geçmiş İşlemler' };
+    let titles = { 'profile': 'Profilim', 'general': 'Genel Ayarlar', 'notify': 'Bildirimler', 'history': 'Geçmiş İşlemler', 'security': 'Güvenlik' };
     document.getElementById('subPageTitle').innerText = titles[pageId] || 'Detay';
 }
 
@@ -16688,6 +17287,530 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
     });
+</script>
+
+<!-- === UYGULAMA KİLİDİ SİSTEMİ === -->
+<script>
+const AppLock = {
+    // Sabitler
+    PIN_KEY: 'tradevia_app_pin',
+    LOCK_ENABLED_KEY: 'tradevia_lock_enabled',
+    MAX_ATTEMPTS: 5,
+    LOCKOUT_TIME: 30000, // 30 saniye
+    
+    // Durum
+    enteredPin: '',
+    attempts: 0,
+    isLocked: false,
+    setupMode: null, // 'new', 'change', 'verify'
+    tempPin: '',
+    
+    // === BAŞLATMA ===
+    init: function() {
+        // Sayfa yüklendiğinde kilit kontrolü
+        if (this.isLockEnabled() && this.hasPin()) {
+            this.showLockScreen();
+        }
+        
+        // Ayarlar sayfası UI'ını güncelle
+        this.updateSettingsUI();
+        this.updateSecurityBadge();
+    },
+    
+    // === KİLİT DURUMU ===
+    isLockEnabled: function() {
+        return localStorage.getItem(this.LOCK_ENABLED_KEY) === 'true';
+    },
+    
+    hasPin: function() {
+        return localStorage.getItem(this.PIN_KEY) !== null;
+    },
+    
+    getStoredPin: function() {
+        return localStorage.getItem(this.PIN_KEY);
+    },
+    
+    // === KİLİT EKRANI ===
+    showLockScreen: function() {
+        const lockScreen = document.getElementById('lock-screen');
+        if (lockScreen) {
+            lockScreen.classList.add('active');
+            this.isLocked = true;
+            this.enteredPin = '';
+            this.updatePinDots();
+            document.getElementById('lockErrorMsg').innerText = '';
+        }
+    },
+    
+    hideLockScreen: function() {
+        const lockScreen = document.getElementById('lock-screen');
+        if (lockScreen) {
+            lockScreen.classList.add('hidden');
+            setTimeout(() => {
+                lockScreen.classList.remove('active', 'hidden');
+            }, 400);
+            this.isLocked = false;
+            this.enteredPin = '';
+            this.attempts = 0;
+        }
+    },
+    
+    // === PIN GİRİŞİ ===
+    enterDigit: function(digit) {
+        if (this.enteredPin.length >= 4) return;
+        
+        // Haptic feedback
+        if (navigator.vibrate) navigator.vibrate(10);
+        
+        this.enteredPin += digit;
+        this.updatePinDots();
+        
+        // 4 hane girilince kontrol et
+        if (this.enteredPin.length === 4) {
+            setTimeout(() => this.verifyPin(), 200);
+        }
+    },
+    
+    deleteDigit: function() {
+        if (this.enteredPin.length > 0) {
+            if (navigator.vibrate) navigator.vibrate(10);
+            this.enteredPin = this.enteredPin.slice(0, -1);
+            this.updatePinDots();
+        }
+    },
+    
+    updatePinDots: function() {
+        const dots = document.querySelectorAll('#pinDots .pin-dot');
+        dots.forEach((dot, index) => {
+            dot.classList.remove('filled', 'error');
+            if (index < this.enteredPin.length) {
+                dot.classList.add('filled');
+            }
+        });
+    },
+    
+    verifyPin: function() {
+        const storedPin = this.getStoredPin();
+        
+        if (this.enteredPin === storedPin) {
+            // Doğru PIN
+            if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+            this.hideLockScreen();
+            this.attempts = 0;
+        } else {
+            // Yanlış PIN
+            this.attempts++;
+            this.showPinError();
+            
+            if (this.attempts >= this.MAX_ATTEMPTS) {
+                this.handleLockout();
+            }
+        }
+    },
+    
+    showPinError: function() {
+        const dots = document.querySelectorAll('#pinDots .pin-dot');
+        dots.forEach(dot => dot.classList.add('error'));
+        
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        
+        const remaining = this.MAX_ATTEMPTS - this.attempts;
+        document.getElementById('lockErrorMsg').innerText = 
+            remaining > 0 ? `Yanlış PIN! ${remaining} deneme hakkınız kaldı.` : '';
+        
+        setTimeout(() => {
+            this.enteredPin = '';
+            this.updatePinDots();
+        }, 500);
+    },
+    
+    handleLockout: function() {
+        document.getElementById('lockErrorMsg').innerText = 
+            `Çok fazla yanlış deneme! ${this.LOCKOUT_TIME / 1000} saniye bekleyin.`;
+        
+        // Numpad'i devre dışı bırak
+        document.querySelectorAll('.numpad-btn').forEach(btn => {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+        });
+        
+        setTimeout(() => {
+            this.attempts = 0;
+            document.querySelectorAll('.numpad-btn').forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            });
+            document.getElementById('lockErrorMsg').innerText = '';
+        }, this.LOCKOUT_TIME);
+    },
+    
+    // === ŞİFREMİ UNUTTUM ===
+    forgotPin: function() {
+        const confirmed = confirm(
+            '⚠️ DİKKAT!\n\n' +
+            'PIN\'inizi sıfırlamak için tüm uygulama verilerinizi silmeniz gerekecektir.\n\n' +
+            'Portföy, işlem geçmişi ve tüm ayarlarınız kalıcı olarak silinecektir.\n\n' +
+            'Devam etmek istiyor musunuz?'
+        );
+        
+        if (confirmed) {
+            const doubleConfirm = confirm(
+                '🚨 SON UYARI!\n\n' +
+                'Bu işlem geri alınamaz. Tüm verileriniz silinecek.\n\n' +
+                'Emin misiniz?'
+            );
+            
+            if (doubleConfirm) {
+                // Tüm verileri sil
+                localStorage.clear();
+                sessionStorage.clear();
+                alert('✅ Veriler silindi. Uygulama yeniden başlatılıyor...');
+                location.reload();
+            }
+        }
+    },
+    
+    // === AYARLAR SAYFASI ===
+    toggleLock: function(enabled) {
+        if (enabled) {
+            // Kilit açılıyor, PIN oluştur
+            if (!this.hasPin()) {
+                this.openSetupModal('new');
+            } else {
+                localStorage.setItem(this.LOCK_ENABLED_KEY, 'true');
+                this.updateSettingsUI();
+                this.updateSecurityBadge();
+            }
+        } else {
+            // Kilit kapatılıyor, PIN'i doğrula
+            if (this.hasPin()) {
+                this.openSetupModal('verify-disable');
+            } else {
+                localStorage.setItem(this.LOCK_ENABLED_KEY, 'false');
+                this.updateSettingsUI();
+                this.updateSecurityBadge();
+            }
+        }
+    },
+    
+    openChangePin: function() {
+        this.openSetupModal('change');
+    },
+    
+    removePin: function() {
+        this.openSetupModal('verify-remove');
+    },
+    
+    // === SETUP MODAL ===
+    openSetupModal: function(mode) {
+        // Sadece yeni bir akış başlıyorsa tempPin'i sıfırla
+        // confirm moduna geçerken tempPin'i KORUMALIYZ
+        if (mode !== 'confirm') {
+            this.setupMode = mode;
+        } else {
+            this.setupMode = 'confirm';
+        }
+        
+        // enteredPin her zaman sıfırlanmalı (yeni giriş için)
+        this.enteredPin = '';
+        
+        // tempPin sadece 'new' modunda sıfırlanmalı
+        if (mode === 'new') {
+            this.tempPin = '';
+        }
+        
+        const modal = document.getElementById('pinSetupModal');
+        const content = document.getElementById('pinSetupContent');
+        
+        let title, desc, dotsCount = 4;
+        
+        switch(mode) {
+            case 'new':
+                title = '🔐 Yeni PIN Oluştur';
+                desc = 'Uygulamanızı korumak için 4 haneli bir PIN belirleyin.';
+                break;
+            case 'confirm':
+                title = '✓ PIN\'i Onayla';
+                desc = 'PIN kodunuzu tekrar girin.';
+                break;
+            case 'change':
+                title = '🔑 Mevcut PIN';
+                desc = 'Önce mevcut PIN kodunuzu girin.';
+                break;
+            case 'new-after-verify':
+                title = '🆕 Yeni PIN';
+                desc = 'Yeni PIN kodunuzu girin.';
+                break;
+            case 'verify-disable':
+                title = '🔓 PIN Doğrula';
+                desc = 'Kilidi kapatmak için PIN kodunuzu girin.';
+                break;
+            case 'verify-remove':
+                title = '🗑️ PIN Doğrula';
+                desc = 'PIN\'i kaldırmak için mevcut kodunuzu girin.';
+                break;
+        }
+        
+        content.innerHTML = `
+            <div style="font-size: 32px; margin-bottom: 15px;">${title.split(' ')[0]}</div>
+            <div class="pin-setup-title">${title.substring(title.indexOf(' ') + 1)}</div>
+            <div class="pin-setup-desc">${desc}</div>
+            
+            <div class="pin-dots" id="setupPinDots" style="justify-content: center; margin: 25px 0;">
+                ${Array(dotsCount).fill('<div class="pin-dot"></div>').join('')}
+            </div>
+            
+            <div class="pin-numpad" style="max-width: 240px; margin: 0 auto;">
+                <button class="numpad-btn" onclick="AppLock.setupEnterDigit('1')">1</button>
+                <button class="numpad-btn" onclick="AppLock.setupEnterDigit('2')">2</button>
+                <button class="numpad-btn" onclick="AppLock.setupEnterDigit('3')">3</button>
+                <button class="numpad-btn" onclick="AppLock.setupEnterDigit('4')">4</button>
+                <button class="numpad-btn" onclick="AppLock.setupEnterDigit('5')">5</button>
+                <button class="numpad-btn" onclick="AppLock.setupEnterDigit('6')">6</button>
+                <button class="numpad-btn" onclick="AppLock.setupEnterDigit('7')">7</button>
+                <button class="numpad-btn" onclick="AppLock.setupEnterDigit('8')">8</button>
+                <button class="numpad-btn" onclick="AppLock.setupEnterDigit('9')">9</button>
+                <button class="numpad-btn action" onclick="AppLock.closeSetupModal()"><i class="fas fa-times"></i></button>
+                <button class="numpad-btn" onclick="AppLock.setupEnterDigit('0')">0</button>
+                <button class="numpad-btn action" onclick="AppLock.setupDeleteDigit()"><i class="fas fa-backspace"></i></button>
+            </div>
+            
+            <div id="setupErrorMsg" style="color: #ef4444; font-size: 12px; margin-top: 15px; min-height: 18px;"></div>
+        `;
+        
+        modal.classList.add('active');
+    },
+    
+    closeSetupModal: function() {
+        const modal = document.getElementById('pinSetupModal');
+        modal.classList.remove('active');
+        this.setupMode = null;
+        this.tempPin = '';
+        this.enteredPin = '';
+        
+        // Toggle'ı senkronize et
+        const toggle = document.getElementById('appLockToggle');
+        if (toggle) {
+            toggle.checked = this.isLockEnabled() && this.hasPin();
+        }
+        
+        this.updateSettingsUI();
+    },
+    
+    setupEnterDigit: function(digit) {
+        if (this.enteredPin.length >= 4) return;
+        
+        if (navigator.vibrate) navigator.vibrate(10);
+        
+        this.enteredPin += digit;
+        this.updateSetupDots();
+        
+        if (this.enteredPin.length === 4) {
+            setTimeout(() => this.processSetupPin(), 200);
+        }
+    },
+    
+    setupDeleteDigit: function() {
+        if (this.enteredPin.length > 0) {
+            if (navigator.vibrate) navigator.vibrate(10);
+            this.enteredPin = this.enteredPin.slice(0, -1);
+            this.updateSetupDots();
+        }
+    },
+    
+    updateSetupDots: function() {
+        const dots = document.querySelectorAll('#setupPinDots .pin-dot');
+        dots.forEach((dot, index) => {
+            dot.classList.remove('filled', 'error');
+            if (index < this.enteredPin.length) {
+                dot.classList.add('filled');
+            }
+        });
+    },
+    
+    processSetupPin: function() {
+        const errorEl = document.getElementById('setupErrorMsg');
+        
+        switch(this.setupMode) {
+            case 'new':
+            case 'new-after-verify':
+                // Basit PIN kontrolü
+                if (['0000', '1234', '1111', '2222', '3333', '4444', '5555', '6666', '7777', '8888', '9999'].includes(this.enteredPin)) {
+                    this.showSetupError('Bu PIN çok kolay tahmin edilebilir. Farklı bir PIN seçin.');
+                    return;
+                }
+                this.tempPin = this.enteredPin;
+                this.enteredPin = '';
+                this.setupMode = 'confirm';
+                this.openSetupModal('confirm');
+                break;
+                
+            case 'confirm':
+                if (this.enteredPin === this.tempPin) {
+                    // PIN'i kaydet
+                    localStorage.setItem(this.PIN_KEY, this.enteredPin);
+                    localStorage.setItem(this.LOCK_ENABLED_KEY, 'true');
+                    
+                    if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+                    
+                    this.closeSetupModal();
+                    this.updateSettingsUI();
+                    this.updateSecurityBadge();
+                    
+                    // Başarı bildirimi
+                    if (typeof addNotification === 'function') {
+                        addNotification('success', '🔐 PIN Oluşturuldu', 'Uygulama kilidi aktif edildi.');
+                    }
+                } else {
+                    this.showSetupError('PIN\'ler eşleşmiyor. Tekrar deneyin.');
+                    this.tempPin = '';
+                    this.enteredPin = '';
+                    setTimeout(() => {
+                        this.setupMode = 'new';
+                        this.openSetupModal('new');
+                    }, 1000);
+                }
+                break;
+                
+            case 'change':
+                if (this.enteredPin === this.getStoredPin()) {
+                    this.enteredPin = '';
+                    this.setupMode = 'new-after-verify';
+                    this.openSetupModal('new-after-verify');
+                } else {
+                    this.showSetupError('Yanlış PIN!');
+                }
+                break;
+                
+            case 'verify-disable':
+                if (this.enteredPin === this.getStoredPin()) {
+                    localStorage.setItem(this.LOCK_ENABLED_KEY, 'false');
+                    this.closeSetupModal();
+                    this.updateSettingsUI();
+                    this.updateSecurityBadge();
+                    
+                    if (typeof addNotification === 'function') {
+                        addNotification('warn', '🔓 Kilit Kapatıldı', 'Uygulama kilidi devre dışı bırakıldı.');
+                    }
+                } else {
+                    this.showSetupError('Yanlış PIN!');
+                }
+                break;
+                
+            case 'verify-remove':
+                if (this.enteredPin === this.getStoredPin()) {
+                    localStorage.removeItem(this.PIN_KEY);
+                    localStorage.setItem(this.LOCK_ENABLED_KEY, 'false');
+                    this.closeSetupModal();
+                    this.updateSettingsUI();
+                    this.updateSecurityBadge();
+                    
+                    if (typeof addNotification === 'function') {
+                        addNotification('danger', '🗑️ PIN Kaldırıldı', 'Uygulama kilidi tamamen kaldırıldı.');
+                    }
+                } else {
+                    this.showSetupError('Yanlış PIN!');
+                }
+                break;
+        }
+    },
+    
+    showSetupError: function(msg) {
+        const dots = document.querySelectorAll('#setupPinDots .pin-dot');
+        dots.forEach(dot => dot.classList.add('error'));
+        
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        
+        document.getElementById('setupErrorMsg').innerText = msg;
+        
+        setTimeout(() => {
+            this.enteredPin = '';
+            this.updateSetupDots();
+            document.getElementById('setupErrorMsg').innerText = '';
+        }, 1500);
+    },
+    
+    // === UI GÜNCELLEME ===
+    updateSettingsUI: function() {
+        const toggle = document.getElementById('appLockToggle');
+        const btnRow = document.getElementById('securityBtnRow');
+        const statusDisplay = document.getElementById('pinStatusDisplay');
+        
+        const isEnabled = this.isLockEnabled() && this.hasPin();
+        
+        if (toggle) {
+            toggle.checked = isEnabled;
+        }
+        
+        if (btnRow) {
+            btnRow.style.display = isEnabled ? 'flex' : 'none';
+        }
+        
+        if (statusDisplay) {
+            if (isEnabled) {
+                statusDisplay.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 10px;">
+                        <i class="fas fa-check-circle" style="color: #10b981; font-size: 18px;"></i>
+                        <div>
+                            <div style="font-size: 13px; font-weight: 600; color: #10b981;">Koruma Aktif</div>
+                            <div style="font-size: 11px; color: #94a3b8;">Uygulamanız PIN ile korunuyor</div>
+                        </div>
+                    </div>
+                `;
+            } else if (this.hasPin()) {
+                statusDisplay.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 10px;">
+                        <i class="fas fa-pause-circle" style="color: #f59e0b; font-size: 18px;"></i>
+                        <div>
+                            <div style="font-size: 13px; font-weight: 600; color: #f59e0b;">Kilit Devre Dışı</div>
+                            <div style="font-size: 11px; color: #94a3b8;">PIN mevcut ama kilit kapalı</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                statusDisplay.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 10px;">
+                        <i class="fas fa-shield-alt" style="color: #94a3b8; font-size: 18px;"></i>
+                        <div>
+                            <div style="font-size: 13px; font-weight: 600; color: #94a3b8;">Koruma Yok</div>
+                            <div style="font-size: 11px; color: #64748b;">PIN oluşturarak uygulamanızı koruyun</div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+    },
+    
+    updateSecurityBadge: function() {
+        const badge = document.getElementById('securityStatusBadge');
+        if (badge) {
+            const isEnabled = this.isLockEnabled() && this.hasPin();
+            if (isEnabled) {
+                badge.innerHTML = '<span class="pin-status-badge active"><i class="fas fa-check"></i> Aktif</span>';
+            } else {
+                badge.innerHTML = '<span class="pin-status-badge inactive"><i class="fas fa-minus"></i> Kapalı</span>';
+            }
+        }
+    }
+};
+
+// Sayfa yüklendiğinde başlat
+document.addEventListener('DOMContentLoaded', function() {
+    // Splash screen bittikten sonra kilit kontrolü
+    setTimeout(function() {
+        AppLock.init();
+    }, 2000); // Splash screen animasyonunun bitmesini bekle
+});
+
+// Uygulama arka plandan döndüğünde kilit kontrolü (Mobil için)
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') {
+        if (AppLock.isLockEnabled() && AppLock.hasPin() && !AppLock.isLocked) {
+            // Kısa bir süre sonra kilit göster (kullanıcı deneyimi için)
+            AppLock.showLockScreen();
+        }
+    }
+});
 </script>
 
 <script src="lang.js"></script>
