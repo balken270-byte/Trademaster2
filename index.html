@@ -569,29 +569,559 @@ body {
         @keyframes drawArrowOriginal { from { opacity: 0; transform: translate(-20px, 20px) scale(0.8); } to { opacity: 1; transform: translate(0, 0) scale(1); } }
         @keyframes loadingMove { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
 
-        /* --- YENİ ANALİZ DASHBOARD STİLLERİ --- */
-        .dashboard-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding-bottom: 20px; }
-        .dash-card { background: var(--bg-card); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 20px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+        /* === PREMIUM PERFORMANCE DASHBOARD v2 === */
+        
+        /* Performance Section Container */
+        #an-view-perf {
+            --perf-bg-deep: #030712;
+            --perf-card-bg: rgba(15, 23, 42, 0.5);
+            --perf-glass: rgba(255, 255, 255, 0.02);
+            --perf-border: rgba(255, 255, 255, 0.06);
+            --perf-glow-blue: rgba(59, 130, 246, 0.4);
+            --perf-glow-green: rgba(16, 185, 129, 0.4);
+            --perf-glow-gold: rgba(251, 191, 36, 0.4);
+            --perf-glow-purple: rgba(139, 92, 246, 0.4);
+            --perf-accent-cyan: #22d3ee;
+            --perf-accent-emerald: #34d399;
+            --perf-accent-rose: #fb7185;
+        }
+        
+        /* Dashboard Grid */
+        .dashboard-container { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 12px; 
+            padding-bottom: 20px;
+            position: relative;
+        }
+        
+        /* Premium Card Base */
+        .dash-card { 
+            background: linear-gradient(165deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 24px; 
+            padding: 20px; 
+            position: relative; 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .dash-card:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+        }
+        
         .dash-card.full-width { grid-column: span 2; }
-        .dash-card::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--accent), transparent); opacity: 0.5; }
-        .metric-title { font-size: 11px; color: var(--text-sub); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .metric-value { font-size: 26px; font-weight: 800; color: white; letter-spacing: -0.5px; }
-        .metric-sub { font-size: 11px; font-weight: 600; margin-top: 5px; display: flex; align-items: center; gap: 5px; }
-        .trend-up { color: var(--success); background: rgba(16, 185, 129, 0.1); padding: 3px 8px; border-radius: 6px; }
-        .trend-down { color: var(--danger); background: rgba(239, 68, 68, 0.1); padding: 3px 8px; border-radius: 6px; }
-        .win-rate-container { display: flex; align-items: center; justify-content: center; position: relative; height: 140px; }
-        .win-rate-text { position: absolute; text-align: center; }
-        .wr-val { font-size: 28px; font-weight: 800; display: block; color: white; }
-        .wr-lbl { font-size: 10px; color: var(--text-sub); font-weight: 700; }
-        .top-performer-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .top-performer-row:last-child { border-bottom: none; }
-        .tp-name { font-weight: 700; font-size: 13px; color: white; display: flex; align-items: center; gap: 8px; }
-        .tp-val { font-weight: 800; font-size: 13px; }
-        .rank-badge { width: 20px; height: 20px; background: var(--bg-input); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: var(--text-sub); }
-        .rank-1 { background: rgba(245, 158, 11, 0.2); color: var(--gold); border: 1px solid rgba(245, 158, 11, 0.3); }
-        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .chart-filter-btn { background: var(--bg-input); border: 1px solid rgba(255,255,255,0.05); color: var(--text-sub); font-size: 10px; padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
-        .chart-filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+        
+        /* Card Glow Effect */
+        .dash-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+        }
+        
+        .dash-card::after { 
+            content: ''; 
+            position: absolute; 
+            top: -50%; 
+            left: -50%; 
+            width: 200%; 
+            height: 200%; 
+            background: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.03) 0%, transparent 70%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        
+        .dash-card:hover::after {
+            opacity: 1;
+        }
+        
+        /* Premium Metric Title */
+        .metric-title { 
+            font-size: 10px; 
+            color: rgba(148, 163, 184, 0.9);
+            font-weight: 600; 
+            text-transform: uppercase; 
+            letter-spacing: 1.5px; 
+            margin-bottom: 12px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            position: relative;
+        }
+        
+        .metric-title i {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-right: 6px;
+        }
+        
+        /* Premium Large Value */
+        .metric-value { 
+            font-size: 32px; 
+            font-weight: 800; 
+            color: white; 
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.1;
+        }
+        
+        .metric-sub { 
+            font-size: 11px; 
+            font-weight: 500; 
+            margin-top: 8px; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px;
+        }
+        
+        /* Premium Trend Pills */
+        .trend-up { 
+            color: #34d399; 
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%);
+            padding: 4px 10px; 
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 12px;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
+        }
+        
+        .trend-down { 
+            color: #fb7185; 
+            background: linear-gradient(135deg, rgba(244, 63, 94, 0.15) 0%, rgba(244, 63, 94, 0.05) 100%);
+            padding: 4px 10px; 
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 12px;
+            border: 1px solid rgba(244, 63, 94, 0.2);
+            box-shadow: 0 0 20px rgba(244, 63, 94, 0.1);
+        }
+        
+        /* Win Rate Premium Container */
+        .win-rate-container { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            position: relative; 
+            height: 130px;
+        }
+        
+        .win-rate-text { 
+            position: absolute; 
+            text-align: center;
+            z-index: 2;
+        }
+        
+        .wr-val { 
+            font-size: 26px; 
+            font-weight: 800; 
+            display: block; 
+            background: linear-gradient(135deg, #ffffff 0%, #22d3ee 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .wr-lbl { 
+            font-size: 9px; 
+            color: rgba(148, 163, 184, 0.7);
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        
+        /* Top Performers Premium List */
+        .top-performer-row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 14px 16px;
+            margin: 6px 0;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: all 0.3s ease;
+        }
+        
+        .top-performer-row:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.08);
+            transform: translateX(4px);
+        }
+        
+        .tp-name { 
+            font-weight: 600; 
+            font-size: 13px; 
+            color: rgba(255, 255, 255, 0.9);
+            display: flex; 
+            align-items: center; 
+            gap: 12px;
+        }
+        
+        .tp-val { 
+            font-weight: 700; 
+            font-size: 14px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+        
+        /* Premium Rank Badges */
+        .rank-badge { 
+            width: 28px; 
+            height: 28px; 
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border-radius: 10px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 11px; 
+            font-weight: 700; 
+            color: rgba(148, 163, 184, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        
+        .rank-1 { 
+            background: linear-gradient(145deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.1) 100%);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.15);
+        }
+        
+        .rank-badge.rank-2 {
+            background: linear-gradient(145deg, rgba(192, 192, 192, 0.15) 0%, rgba(148, 163, 184, 0.1) 100%);
+            color: #cbd5e1;
+            border: 1px solid rgba(203, 213, 225, 0.2);
+        }
+        
+        .rank-badge.rank-3 {
+            background: linear-gradient(145deg, rgba(205, 127, 50, 0.15) 0%, rgba(180, 83, 9, 0.1) 100%);
+            color: #d97706;
+            border: 1px solid rgba(217, 119, 6, 0.2);
+        }
+        
+        /* Chart Header Premium */
+        .chart-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 16px;
+        }
+        
+        .chart-filter-btn { 
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: rgba(148, 163, 184, 0.8);
+            font-size: 10px; 
+            font-weight: 600;
+            padding: 6px 14px; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 0.5px;
+        }
+        
+        .chart-filter-btn:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+        
+        .chart-filter-btn.active { 
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(59, 130, 246, 0.15) 100%);
+            color: #60a5fa;
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+        }
+        
+        /* === HERO NET WORTH CARD === */
+        .dash-card.perf-hero-card {
+            background: linear-gradient(165deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 50%, rgba(10, 15, 30, 0.95) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .dash-card.perf-hero-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.6), rgba(139, 92, 246, 0.4), transparent);
+        }
+        
+        .dash-card.perf-hero-card::after {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        
+        .perf-hero-card .metric-title {
+            color: rgba(96, 165, 250, 0.9);
+            font-size: 11px;
+            letter-spacing: 2px;
+        }
+        
+        .perf-hero-card .metric-value {
+            font-size: 38px;
+            background: linear-gradient(135deg, #ffffff 0%, #60a5fa 50%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 8px 0;
+        }
+        
+        /* === TRADER REPORT CARD PREMIUM === */
+        .dash-card.perf-trader-card {
+            background: linear-gradient(165deg, rgba(30, 41, 59, 0.6) 0%, rgba(20, 15, 35, 0.8) 100%);
+            border: 1px solid rgba(251, 191, 36, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .dash-card.perf-trader-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.5), rgba(245, 158, 11, 0.3), transparent);
+        }
+        
+        .perf-trader-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .perf-trader-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(251, 191, 36, 0.9);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        
+        .perf-trader-title i {
+            font-size: 14px;
+            color: #fbbf24;
+        }
+        
+        .perf-score-badge {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.08) 100%);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.25);
+        }
+        
+        .perf-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .perf-stat-box {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            padding: 14px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .perf-stat-box:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+        
+        .perf-stat-label {
+            font-size: 9px;
+            color: rgba(148, 163, 184, 0.8);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+        
+        .perf-stat-value {
+            font-size: 20px;
+            font-weight: 800;
+            color: white;
+        }
+        
+        .perf-stat-desc {
+            font-size: 9px;
+            color: rgba(148, 163, 184, 0.5);
+            margin-top: 4px;
+        }
+        
+        .perf-stat-box.full-span {
+            grid-column: span 2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+        }
+        
+        .perf-stat-box.full-span .stat-left,
+        .perf-stat-box.full-span .stat-right {
+            text-align: center;
+        }
+        
+        .perf-stat-box.full-span .divider {
+            width: 1px;
+            height: 35px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        /* === CHART CARD PREMIUM === */
+        .dash-card.perf-chart-card {
+            background: linear-gradient(165deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.85) 100%);
+            border: 1px solid rgba(34, 211, 238, 0.1);
+        }
+        
+        .dash-card.perf-chart-card::before {
+            background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.3), transparent);
+        }
+        
+        .perf-chart-card .metric-title {
+            color: rgba(34, 211, 238, 0.8);
+        }
+        
+        .perf-chart-info {
+            font-size: 10px;
+            color: rgba(148, 163, 184, 0.5);
+            text-align: center;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .perf-chart-info i {
+            font-size: 11px;
+            opacity: 0.6;
+        }
+        
+        /* === ALLOCATION CARD === */
+        .dash-card.perf-allocation-card {
+            background: linear-gradient(165deg, rgba(30, 41, 59, 0.5) 0%, rgba(20, 30, 45, 0.85) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.1);
+        }
+        
+        .dash-card.perf-allocation-card::before {
+            background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.3), transparent);
+        }
+        
+        .perf-allocation-card .metric-title {
+            color: rgba(167, 139, 250, 0.8);
+        }
+        
+        /* === TOP PERFORMERS CARD === */
+        .dash-card.perf-top-card {
+            background: linear-gradient(165deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 30, 35, 0.85) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.1);
+        }
+        
+        .dash-card.perf-top-card::before {
+            background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.3), transparent);
+        }
+        
+        .perf-top-card .metric-title {
+            color: rgba(52, 211, 153, 0.8);
+        }
+        
+        /* === SMALL STAT CARDS === */
+        .dash-card.perf-mini-card {
+            padding: 18px;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .perf-mini-card.win-rate-card {
+            border-color: rgba(34, 211, 238, 0.15);
+        }
+        
+        .perf-mini-card.win-rate-card::before {
+            background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.4), transparent);
+        }
+        
+        .perf-mini-card.cash-ratio-card {
+            border-color: rgba(251, 191, 36, 0.15);
+        }
+        
+        .perf-mini-card.cash-ratio-card::before {
+            background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.4), transparent);
+        }
+        
+        /* Premium Progress Bar */
+        .perf-progress-wrapper {
+            margin-top: 8px;
+        }
+        
+        .perf-progress-bg {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .perf-progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #fbbf24, #f59e0b);
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .perf-progress-label {
+            font-size: 10px;
+            color: rgba(148, 163, 184, 0.6);
+            margin-top: 6px;
+        }
+        
+        /* Goal Progress Premium */
+        .goal-wrapper {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .goal-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #fbbf24, #f59e0b);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
 
         /* --- PRO MUHASEBE STİLLERİ --- */
         .accounting-header { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
@@ -2457,23 +2987,97 @@ button:active,
 
 <div class="content-area">
     <div id="page-portfolio" class="page active">
-       <div class="balance-hero">
-           
-            <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:5px;">
-                <span class="lbl-sm" data-lang="total_assets">TOPLAM VARLIK</span>
-                <button onclick="togglePrivacy()" style="background:none; border:none; color:var(--text-sub); cursor:pointer;"><i class="fas fa-eye"></i></button>
-            </div>
-            <div class="val-lg" id="totalWallet">--</div>
-            <div class="hero-stats-row">
-                <div class="hero-pill"><i class="fas fa-coins"></i> Kâr: <span id="realizedPnLVal">--</span></div>
-                <div class="hero-pill cash"><i class="fas fa-wallet"></i> Nakit: <span id="cashBalance">--</span></div>
-            </div>
-            <div class="hero-actions">
-                <button class="hero-btn" onclick="modifyCash(1)"><i class="fas fa-plus"></i> Yatır</button>
-                <button class="hero-btn" onclick="modifyCash(-1)"><i class="fas fa-minus"></i> Çek</button>
-                <button class="hero-btn" onclick="addDividend()"><i class="fas fa-gift"></i> Temettü</button>
-            </div>
-        </div>
+       
+
+<div class="balance-hero">
+    
+    <style>
+        /* Üst Başlık Alanı */
+        .hero-header-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+            opacity: 0.7;
+        }
+
+        /* Aksiyon Butonları Izgarası (Grid) */
+        .hero-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4 Eşit Parça */
+            gap: 8px; /* Butonlar arası boşluk */
+            margin-top: 15px;
+        }
+
+        /* Standart Aksiyon Butonu */
+        .action-btn {
+            display: flex;
+            flex-direction: column; /* İkon üste, yazı alta */
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            padding: 10px 0;
+            border-radius: 10px; /* Hafif yuvarlak köşeler */
+            min-width: 0;
+            transition: all 0.2s ease;
+        }
+
+        /* İkon Boyutu */
+        .action-btn i {
+            font-size: 13px;
+            margin-bottom: 2px;
+        }
+
+        /* Özel Cüzdan Butonu (Altın Sarısı) */
+        .btn-gold {
+            background: rgba(255, 215, 0, 0.1) !important;
+            color: #FFD700 !important;
+            border: 1px solid rgba(255, 215, 0, 0.3) !important;
+        }
+        
+        /* Cüzdan butonuna hover efekti */
+        .btn-gold:active {
+            background: rgba(255, 215, 0, 0.2) !important;
+        }
+    </style>
+
+    <div class="hero-header-row">
+        <span class="lbl-sm" style="font-weight:600; letter-spacing:1px;">TOPLAM VARLIK</span>
+        <button onclick="togglePrivacy()" style="background:none; border:none; color:var(--text-sub); cursor:pointer;">
+            <i class="fas fa-eye"></i>
+        </button>
+    </div>
+
+    <div class="val-lg" id="totalWallet">--</div>
+
+    <div class="hero-stats-row">
+        <div class="hero-pill"><i class="fas fa-coins"></i> Kâr: <span id="realizedPnLVal">--</span></div>
+        <div class="hero-pill cash"><i class="fas fa-wallet"></i> Nakit: <span id="cashBalance">--</span></div>
+    </div>
+
+    <div class="hero-actions-grid">
+        
+        <button class="hero-btn action-btn" onclick="modifyCash(1)">
+            <i class="fas fa-plus"></i> Yatır
+        </button>
+        
+        <button class="hero-btn action-btn" onclick="modifyCash(-1)">
+            <i class="fas fa-minus"></i> Çek
+        </button>
+        
+        <button class="hero-btn action-btn" onclick="addDividend()">
+            <i class="fas fa-gift"></i> Temettü
+        </button>
+
+        <button class="hero-btn action-btn btn-gold" onclick="openPortfolioModal()">
+            <i class="fas fa-exchange-alt"></i> Cüzdan
+        </button>
+
+    </div>
+</div>
+
 
         <div class="trade-card deep-inset" id="tradeCard">
     <div class="trade-header collapsible-header" onclick="toggleTradeMenu()">
@@ -3549,18 +4153,20 @@ button:active,
         <div id="an-view-perf" class="an-view-section active">
         <div class="dashboard-container">
             
-            <div class="dash-card full-width">
+            <!-- HERO NET WORTH CARD -->
+            <div class="dash-card full-width perf-hero-card">
                 <div class="metric-title">
-                    <i class="fas fa-wallet"></i> TOPLAM NET VARLIK
+                    <span><i class="fas fa-gem"></i> TOPLAM NET VARLIK</span>
                 </div>
                 <div class="metric-value" id="anNetWorth">--</div>
                 <div class="metric-sub" id="anNetWorthSub">
-                    <span id="anPnlPill">--</span> <span style="color:var(--text-sub)">Toplam Kâr/Zarar</span>
+                    <span id="anPnlPill">--</span> <span style="color:rgba(148, 163, 184, 0.6)">Toplam Kâr/Zarar</span>
                 </div>
             </div>
 
-            <div class="dash-card">
-                <div class="metric-title">BAŞARI ORANI</div>
+            <!-- WIN RATE CARD -->
+            <div class="dash-card perf-mini-card win-rate-card">
+                <div class="metric-title"><i class="fas fa-bullseye"></i> BAŞARI ORANI</div>
                 <div class="win-rate-container">
                     <canvas id="winRateChart"></canvas>
                     <div class="win-rate-text">
@@ -3570,77 +4176,86 @@ button:active,
                 </div>
             </div>
 
-            <div class="dash-card">
-                <div class="metric-title">NAKİT ORANI</div>
-                <div style="display:flex; flex-direction:column; height:100%; justify-content:center;">
-                    <div class="metric-value" id="anCashRatioVal" style="font-size:20px;">--</div>
-                    <div class="goal-wrapper" style="margin-top:5px;">
-                        <div id="cashRatioBar" class="goal-fill" style="width:0%"></div>
+            <!-- CASH RATIO CARD -->
+            <div class="dash-card perf-mini-card cash-ratio-card">
+                <div class="metric-title"><i class="fas fa-vault"></i> NAKİT ORANI</div>
+                <div style="display:flex; flex-direction:column; flex:1; justify-content:center;">
+                    <div class="metric-value" id="anCashRatioVal" style="font-size:22px; background: linear-gradient(135deg, #fbbf24, #f59e0b); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">--</div>
+                    <div class="perf-progress-wrapper">
+                        <div class="perf-progress-bg">
+                            <div id="cashRatioBar" class="perf-progress-fill" style="width:0%"></div>
+                        </div>
                     </div>
-                    <div style="font-size:10px; color:var(--text-sub); margin-top:5px;">Kasada: <span id="anCashRaw">--</span></div>
+                    <div class="perf-progress-label">Kasada: <span id="anCashRaw" style="color:rgba(251, 191, 36, 0.8); font-weight:600;">--</span></div>
                 </div>
             </div>
 
-            <div class="dash-card full-width" style="background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%); border: 1px solid rgba(255,255,255,0.05);">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <div class="metric-title" style="margin:0;"><i class="fas fa-graduation-cap" style="color:var(--gold)"></i> TRADER KARNESİ</div>
-                    <div id="scoreBadge" style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:800; color:var(--text-sub);">VERİ YOK</div>
+            <!-- TRADER KARNESI PREMIUM -->
+            <div class="dash-card full-width perf-trader-card">
+                <div class="perf-trader-header">
+                    <div class="perf-trader-title">
+                        <i class="fas fa-award"></i> TRADER KARNESİ
+                    </div>
+                    <div id="scoreBadge" class="perf-score-badge">VERİ YOK</div>
                 </div>
 
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                    <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:10px; text-align:center;">
-                        <div style="font-size:9px; color:var(--text-sub); font-weight:700;">KÂR FAKTÖRÜ</div>
-                        <div id="pfScore" style="font-size:18px; font-weight:800; margin-top:2px;">--</div>
-                        <div id="pfDesc" style="font-size:9px; opacity:0.6;">Bekleniyor</div>
+                <div class="perf-stats-grid">
+                    <div class="perf-stat-box">
+                        <div class="perf-stat-label">KÂR FAKTÖRÜ</div>
+                        <div id="pfScore" class="perf-stat-value">--</div>
+                        <div id="pfDesc" class="perf-stat-desc">Bekleniyor</div>
                     </div>
 
-                    <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:10px; text-align:center;">
-                        <div style="font-size:9px; color:var(--text-sub); font-weight:700;">İŞLEM BEKLENTİSİ</div>
-                        <div id="expScore" style="font-size:18px; font-weight:800; margin-top:2px;">--</div>
-                        <div id="expDesc" style="font-size:9px; opacity:0.6;">Bekleniyor</div>
+                    <div class="perf-stat-box">
+                        <div class="perf-stat-label">İŞLEM BEKLENTİSİ</div>
+                        <div id="expScore" class="perf-stat-value">--</div>
+                        <div id="expDesc" class="perf-stat-desc">Bekleniyor</div>
                     </div>
                     
-                    <div style="grid-column: span 2; background:rgba(255,255,255,0.03); padding:10px 15px; border-radius:10px; display:flex; justify-content:space-between; align-items:center;">
-                        <div style="text-align:left;">
-                            <div style="font-size:9px; color:var(--success); font-weight:700;">ORT. KAZANÇ</div>
-                            <div id="avgWinVal" style="font-size:14px; font-weight:800;">--</div>
+                    <div class="perf-stat-box full-span">
+                        <div class="stat-left">
+                            <div class="perf-stat-label" style="color:rgba(52, 211, 153, 0.9);">ORT. KAZANÇ</div>
+                            <div id="avgWinVal" class="perf-stat-value" style="color:#34d399;">--</div>
                         </div>
-                        <div style="height:25px; width:1px; background:rgba(255,255,255,0.1);"></div>
-                        <div style="text-align:right;">
-                            <div style="font-size:9px; color:var(--danger); font-weight:700;">ORT. KAYIP</div>
-                            <div id="avgLossVal" style="font-size:14px; font-weight:800;">--</div>
+                        <div class="divider"></div>
+                        <div class="stat-right">
+                            <div class="perf-stat-label" style="color:rgba(251, 113, 133, 0.9);">ORT. KAYIP</div>
+                            <div id="avgLossVal" class="perf-stat-value" style="color:#fb7185;">--</div>
                         </div>
                     </div>
                 </div>
                 
-                <div style="font-size:9px; color:var(--text-sub); text-align:center; font-style:italic; margin-top:10px;">
-                    * Geçmiş satış işlemleriniz üzerinden hesaplanır.
+                <div style="font-size:9px; color:rgba(148, 163, 184, 0.4); text-align:center; font-style:italic; margin-top:14px;">
+                    <i class="fas fa-info-circle" style="margin-right:4px;"></i> Geçmiş satış işlemleriniz üzerinden hesaplanır.
                 </div>
             </div>
 
-            <div class="dash-card full-width">
+            <!-- GROWTH CHART PREMIUM -->
+            <div class="dash-card full-width perf-chart-card">
                 <div class="chart-header">
-                    <div class="metric-title"><i class="fas fa-chart-line"></i> PORTFÖY BÜYÜMESİ</div>
-                    <div style="display:flex; gap:5px;">
+                    <div class="metric-title" style="margin:0;"><i class="fas fa-chart-area"></i> PORTFÖY BÜYÜMESİ</div>
+                    <div style="display:flex; gap:6px;">
                         <button class="chart-filter-btn active" onclick="updateGrowthChart(7)">7G</button>
                         <button class="chart-filter-btn" onclick="updateGrowthChart(30)">30G</button>
                     </div>
                 </div>
-                <div style="height: 220px; width: 100%;">
+                <div style="height: 200px; width: 100%;">
                     <canvas id="realGrowthChart"></canvas>
                 </div>
-                <div style="font-size:10px; color:var(--text-sub); text-align:center; margin-top:10px;">
-                    <i class="fas fa-info-circle"></i> Grafik, her gün sisteme giriş yaptığınızda otomatik kaydedilir.
+                <div class="perf-chart-info">
+                    <i class="fas fa-sync-alt"></i> Grafik, her gün sisteme giriş yaptığınızda otomatik kaydedilir.
                 </div>
             </div>
 
-            <div class="dash-card full-width">
-                <div class="metric-title">EN ÇOK KAZANDIRANLAR</div>
+            <!-- TOP PERFORMERS PREMIUM -->
+            <div class="dash-card full-width perf-top-card">
+                <div class="metric-title"><i class="fas fa-trophy"></i> EN ÇOK KAZANDIRANLAR</div>
                 <div id="topPerformersList"></div>
             </div>
 
-            <div class="dash-card full-width">
-                <div class="metric-title">VARLIK DAĞILIMI</div>
+            <!-- ALLOCATION CHART PREMIUM -->
+            <div class="dash-card full-width perf-allocation-card">
+                <div class="metric-title"><i class="fas fa-chart-pie"></i> VARLIK DAĞILIMI</div>
                 <div style="height: 200px; display:flex; justify-content:center;">
                     <canvas id="newAllocationChart"></canvas>
                 </div>
@@ -7442,6 +8057,25 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
 </div>
 
 
+<div id="portfolioModal" class="modal-overlay">
+    <div class="modal" style="max-width:320px;">
+        <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3 style="margin:0; font-size:16px;">Portföylerim</h3>
+            <button onclick="document.getElementById('portfolioModal').style.display='none'" style="background:none; border:none; color:white; font-size:16px;"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div id="portfolioListContainer" style="margin-bottom:15px; max-height:200px; overflow-y:auto;">
+            </div>
+
+        <div style="display:flex; gap:5px; border-top:1px solid rgba(255,255,255,0.1); padding-top:15px;">
+            <input type="text" id="newPortfolioName" class="modern-input" placeholder="Yeni Cüzdan Adı" style="margin:0; font-size:12px;">
+            <button onclick="MultiPortfolio.create()" class="btn-main" style="width:auto; padding:0 15px;"><i class="fas fa-plus"></i></button>
+        </div>
+    </div>
+</div>
+
+</body>
+
 
 <script>
     
@@ -7508,7 +8142,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.4"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -8745,8 +9379,9 @@ function renderAnalyticsPage() {
     sortedAssets.forEach((a, i) => { 
         let currentP = a.curr || a.buy; 
         let rawPnL = (currentP - a.buy) * a.amt; 
-        let pnlColor = rawPnL >= 0 ? 'var(--success)' : 'var(--danger)'; 
-        topListHTML += `<div class="top-performer-row"><div class="tp-name"><div class="rank-badge ${i===0 ? 'rank-1' : ''}">${i+1}</div>${a.name.replace('.IS','')}</div><div class="tp-val" style="color:${pnlColor}">${rawPnL >= 0 ? '+' : ''}${rawPnL.toFixed(0)}</div></div>`; 
+        let pnlColor = rawPnL >= 0 ? '#34d399' : '#fb7185'; 
+        let rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
+        topListHTML += `<div class="top-performer-row"><div class="tp-name"><div class="rank-badge ${rankClass}">${i+1}</div>${a.name.replace('.IS','')}</div><div class="tp-val" style="color:${pnlColor}">${rawPnL >= 0 ? '+' : ''}${rawPnL.toFixed(0)}</div></div>`; 
     });
     
     document.getElementById('topPerformersList').innerHTML = topListHTML; 
@@ -15563,6 +16198,143 @@ function removeAlarm(id) {
     if(typeof updatePortfolioUI === 'function') updatePortfolioUI(); 
 }
 
+/* --- ÇOKLU PORTFÖY YÖNETİCİSİ (SWAP SİSTEMİ) --- */
+const MultiPortfolio = {
+    // Başlangıç Ayarları
+    init: function() {
+        // Eğer sistemde hiç portföy veritabanı yoksa oluştur
+        let db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
+        if (!db) {
+            // Mevcut veriyi 'Ana Cüzdan' olarak kaydet
+            let currentData = localStorage.getItem('myPF_final') || '[]';
+            let currentCash = localStorage.getItem('tm_cash_balance') || '0';
+            
+            db = {
+                activeID: 'main',
+                list: {
+                    'main': { name: 'Ana Cüzdan', data: currentData, cash: currentCash }
+                }
+            };
+            localStorage.setItem('tm_all_portfolios', JSON.stringify(db));
+        }
+        
+        // Aktif cüzdan ismini başlığa yaz
+        this.updateHeader();
+    },
+
+    // Modalı Aç ve Listeyi Göster
+    open: function() {
+        this.syncCurrentToStorage(); // Önce şu anki hali kaydet
+        let db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
+        let container = document.getElementById('portfolioListContainer');
+        let html = '';
+
+        Object.keys(db.list).forEach(key => {
+            let p = db.list[key];
+            let isActive = (key === db.activeID) ? 'border-color:var(--accent); background:rgba(59,130,246,0.1);' : 'border-color:rgba(255,255,255,0.1);';
+            let icon = (key === db.activeID) ? '<i class="fas fa-check-circle" style="color:var(--accent)"></i>' : '<i class="far fa-circle" style="color:var(--text-sub)"></i>';
+            let delBtn = (key !== 'main' && key !== db.activeID) ? `<button onclick="MultiPortfolio.delete('${key}')" style="background:none; border:none; color:var(--danger); cursor:pointer; padding:5px;"><i class="fas fa-trash"></i></button>` : '';
+
+            html += `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border:1px solid; border-radius:10px; margin-bottom:8px; cursor:pointer; transition:0.2s; ${isActive}" onclick="MultiPortfolio.switch('${key}')">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    ${icon}
+                    <div style="font-weight:700; font-size:13px;">${p.name}</div>
+                </div>
+                <div onclick="event.stopPropagation()">
+                    ${delBtn}
+                </div>
+            </div>`;
+        });
+
+        container.innerHTML = html;
+        document.getElementById('portfolioModal').style.display = 'flex';
+    },
+
+    // Yeni Portföy Oluştur
+    create: function() {
+        let name = document.getElementById('newPortfolioName').value.trim();
+        if (!name) return alert("Lütfen bir isim girin.");
+
+        this.syncCurrentToStorage(); // Mevcut işleri kaydet
+        let db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
+        
+        // Benzersiz ID oluştur
+        let newID = 'pf_' + Date.now();
+        
+        db.list[newID] = {
+            name: name,
+            data: '[]', // Boş portföy
+            cash: '0'   // 0 Nakit
+        };
+
+        localStorage.setItem('tm_all_portfolios', JSON.stringify(db));
+        document.getElementById('newPortfolioName').value = '';
+        this.open(); // Listeyi yenile
+    },
+
+    // Portföy Değiştir (SWAP İŞLEMİ)
+    switch: function(targetID) {
+        let db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
+        if (targetID === db.activeID) return; // Zaten seçili
+
+        // 1. Mevcut (Aktif) Cüzdanı Hafızaya Yedekle
+        let currentPF = localStorage.getItem('myPF_final') || '[]';
+        let currentCash = localStorage.getItem('tm_cash_balance') || '0';
+        db.list[db.activeID].data = currentPF;
+        db.list[db.activeID].cash = currentCash;
+
+        // 2. Hedef Cüzdanı Aktif Yap
+        db.activeID = targetID;
+        localStorage.setItem('tm_all_portfolios', JSON.stringify(db));
+
+        // 3. Hedef Veriyi Uygulamanın Ana Belleğine (localStorage) Yaz
+        let targetWallet = db.list[targetID];
+        localStorage.setItem('myPF_final', targetWallet.data);
+        localStorage.setItem('tm_cash_balance', targetWallet.cash);
+
+        // 4. Uygulamayı Yenile
+        location.reload(); 
+    },
+
+    // Silme
+    delete: function(targetID) {
+        if (!confirm("Bu cüzdan ve içindeki tüm veriler silinecek. Emin misiniz?")) return;
+        let db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
+        delete db.list[targetID];
+        localStorage.setItem('tm_all_portfolios', JSON.stringify(db));
+        this.open();
+    },
+
+    // Mevcut durumu ana veritabanına eşitle (Yedekleme)
+    syncCurrentToStorage: function() {
+        let db = JSON.parse(localStorage.getItem('tm_all_portfolios')) || { activeID: 'main', list: {'main':{}} };
+        if (db.list[db.activeID]) {
+            db.list[db.activeID].data = localStorage.getItem('myPF_final') || '[]';
+            db.list[db.activeID].cash = localStorage.getItem('tm_cash_balance') || '0';
+            localStorage.setItem('tm_all_portfolios', JSON.stringify(db));
+        }
+    },
+
+    // Başlığı Güncelle
+    updateHeader: function() {
+        let db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
+        if (db && db.list[db.activeID]) {
+            let el = document.getElementById('activePortfolioName');
+            if(el) el.innerHTML = `${db.list[db.activeID].name.toUpperCase()} <i class="fas fa-chevron-down" style="font-size:10px; margin-left:3px;"></i>`;
+        }
+    }
+};
+
+// Modal Açma Yardımcısı
+function openPortfolioModal() {
+    MultiPortfolio.open();
+}
+
+// Uygulama başladığında sistemi kontrol et
+document.addEventListener('DOMContentLoaded', () => {
+    MultiPortfolio.init();
+});
 
 </script>
 
