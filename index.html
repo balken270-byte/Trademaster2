@@ -16,8 +16,8 @@
     <meta name="theme-color" content="#0b0f19">
     
     <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/svg+xml" href="/ikon.svg">
-<link rel="apple-touch-icon" href="/ikon.svg">
+    <link rel="icon" type="image/svg+xml" href="/apple-touch-icon.svg">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.svg">
     
     <!-- Fonts & Libraries -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -28,6 +28,7 @@
     <script src="https://accounts.google.com/gsi/client"></script>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
     
+
     <style>
         /* --- HD GÖRÜNTÜ VE NET YAZILAR --- */
 body {
@@ -3239,6 +3240,36 @@ button:active,
     border: none;
     cursor: default;
 }
+/* --- AKILLI RENKLİ SLIDER --- */
+input[type=range]#aaBudgetSlider {
+    -webkit-appearance: none; /* Standart görünümü kapat */
+    width: 100%;
+    height: 12px; /* Biraz kalınlaştırdık */
+    background: #1e293b; /* Boş kalan yerin rengi */
+    border-radius: 6px;
+    outline: none;
+    transition: background 0.1s; /* Renk geçişi yumuşak olsun */
+}
+
+/* Yuvarlak Tutamaç (Thumb) */
+input[type=range]#aaBudgetSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #ffffff; /* İçi beyaz */
+    border: 4px solid #1e293b; /* Çerçevesi dinamik değişecek */
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    transition: transform 0.2s, border-color 0.2s;
+    margin-top: -1px; /* Ortalamak için */
+}
+
+/* Tıklayınca büyüsün */
+input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
+    transform: scale(1.3);
+}
 
 </style>
 
@@ -3448,7 +3479,7 @@ button:active,
                         letter-spacing: 4px; 
                         text-transform: uppercase;
                     ">
-                        PREMIUM TRADING
+                        GELİŞMİŞ FİNANS TERMİNALİ
                     </p>
                     <div style="width: 30px; height: 1px; background: linear-gradient(90deg, #f59e0b, transparent);"></div>
                 </div>
@@ -8906,7 +8937,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.7"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -15075,34 +15106,40 @@ function calcLabRisk() {
 }
 
 /* --------------------------------------------------------------------------
-   BÖLÜM 1: AKILLI MALİYET SİHİRBAZI (AVG) - KUR KORUMALI (FİNAL)
+   BÖLÜM: AKILLI MALİYET SİHİRBAZI (TAM SÜRÜM)
    -------------------------------------------------------------------------- */
 
-// 1. LİSTEYİ DOLDUR (ORİJİNAL PARA BİRİMİ İLE)
-function populateAdvAvgAssets() {
-    const select = document.getElementById('advAvgSelect');
-    if(!select) return;
-    select.innerHTML = '<option value="-1">Manuel Giriş Yap</option>';
-    
-    let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
-    
-    as.forEach((a, i) => {
-        // Varlığın orijinal para birimi neyse onu göster (TL ise ₺, USD ise $)
-        let sym = a.origin === 'USD' ? '$' : '₺';
-        select.innerHTML += `<option value="${i}">${a.name} (Maliyet: ${sym}${a.buy.toFixed(2)})</option>`;
-    });
-}
-
-// 2. SEÇİLEN VARLIĞI DOLDUR (ÇEVİRİ YAPMADAN HAM FİYAT)
+// 1. VARLIK SEÇİLİNCE ÇALIŞAN ANA FONKSİYON
 function fillAdvAvgData() {
     let idx = document.getElementById('advAvgSelect').value;
     
-    // Temizle
+    // --- A) KASADAKİ PARAYI ÇEK VE SLIDER'I AYARLA ---
+    let currentCash = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
+    
+    let budgetInput = document.getElementById('aaBudget');
+    let sliderInput = document.getElementById('aaBudgetSlider');
+    
+    if (budgetInput && sliderInput) {
+        // 1. Slider'ın sınırını kasadaki tüm para yap
+        sliderInput.max = currentCash > 0 ? currentCash : 100000;
+        
+        // 2. Varsayılan olarak %50'ye (Güvenli Bölgeye) getir
+        let safeAmount = currentCash / 2;
+        sliderInput.value = safeAmount;
+        budgetInput.value = safeAmount.toFixed(2);
+        
+        // 3. Görünümü ve Renkleri Güncelle
+        updateSliderVisuals(sliderInput);
+    }
+    // ------------------------------------------------
+
+    // --- B) SEÇİLEN VARLIĞIN BİLGİLERİNİ DOLDUR ---
     if(idx == "-1") {
+        // Seçim iptal edilirse temizle
         document.getElementById('aaOldQty').value = "";
         document.getElementById('aaOldPrice').value = "";
         document.getElementById('aaCurPrice').value = "";
-        currentSelectedAssetSym = "";
+        if(typeof currentSelectedAssetSym !== 'undefined') currentSelectedAssetSym = "";
         return;
     }
     
@@ -15110,70 +15147,95 @@ function fillAdvAvgData() {
     let asset = as[idx];
     
     if(asset) {
-        // BURASI KRİTİK: Varlığın kendi birimindeki fiyatını alıyoruz (Çevirmeden)
+        // Fiyatları al
         let rawBuy = asset.buy; 
         let rawCurr = asset.curr && asset.curr > 0 ? asset.curr : asset.buy;
 
+        // Kutuları doldur
         document.getElementById('aaOldQty').value = asset.amt;
         document.getElementById('aaOldPrice').value = rawBuy.toFixed(2);
         document.getElementById('aaCurPrice').value = rawCurr.toFixed(2);
         
-        currentSelectedAssetSym = asset.name;
+        if(typeof currentSelectedAssetSym !== 'undefined') currentSelectedAssetSym = asset.name;
 
-        // Inputları parlat
-        if(typeof flashInput === 'function') {
-            flashInput(document.getElementById('aaOldQty'));
-            flashInput(document.getElementById('aaOldPrice'));
+        // Hesaplamayı tetikle (Otomatik hesaplasın)
+        if(typeof calcAdvAvg === 'function') {
+            calcAdvAvg('budget');
         }
     }
 }
 
-// 3. SLIDER SENKRONİZASYONU (Aynen Kalabilir)
+// 2. SLIDER HAREKET ETTİKÇE ÇALIŞAN FONKSİYON
 function syncBudgetSlider(source) {
     const slider = document.getElementById('aaBudgetSlider');
     const input = document.getElementById('aaBudget');
-    const display = document.getElementById('sliderValDisplay');
+
+    if (!slider || !input) return;
 
     if(source === 'slider') {
+        // Slider oynatıldıysa input'a yaz
         input.value = slider.value;
     } else {
+        // Input'a elle yazıldıysa slider'ı güncelle
         let val = parseFloat(input.value) || 0;
-        if(val > parseFloat(slider.max)) slider.max = val * 1.2; 
+        // Eğer elle girilen rakam slider sınırını aşıyorsa sınırı büyüt
+        if(val > parseFloat(slider.max)) slider.max = val; 
         slider.value = val;
     }
     
-    // Slider her zaman "Cüzdan Para Birimi" (Genelde TL) gösterir
-    let sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY') ? '₺' : '$';
-    display.innerText = sym + parseFloat(slider.value).toLocaleString();
+    // --- RENK VE YAZI GÜNCELLEME ---
+    updateSliderVisuals(slider);
     
-    calcAdvAvg('budget');
+    // Hesaplamayı yap
+    if(typeof calcAdvAvg === 'function') {
+        calcAdvAvg('budget');
+    }
 }
 
-// MOD DEĞİŞTİRME FONKSİYONU (GÜNCELLENMİŞ)
-function switchAvgMode(mode, btn) {
-    document.getElementById('avg-mode-budget').style.display = 'none';
-    document.getElementById('avg-mode-target').style.display = 'none';
-    document.getElementById('avg-mode-' + mode).style.display = 'block';
-    
-    const group = btn.parentElement;
-    group.querySelectorAll('.sim-tab').forEach(t => t.classList.remove('active'));
-    btn.classList.add('active');
-    
-    document.getElementById('aaResultBox').style.display = 'none';
-    document.getElementById('aaRiskAlert').style.display = 'none';
+// 3. GÖRSEL EFEKT VE RENK YÖNETİMİ (YENİ ÖZELLİK)
+function updateSliderVisuals(slider) {
+    if (!slider) return;
 
-    // KASA BAKİYESİNE GÖRE SLIDER'I GÜNCELLE
-    if(mode === 'budget') {
-        const cashBalance = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
-        const slider = document.getElementById('aaBudgetSlider');
+    let val = parseFloat(slider.value) || 0;
+    let max = parseFloat(slider.max) || 100;
+    if (max <= 0) max = 100; // Bölme hatası olmasın
+
+    // Yüzdeyi hesapla
+    let percent = (val / max) * 100;
+    
+    // --- RENK MANTIĞI ---
+    let color = '#10b981'; // YEŞİL (Güvenli)
+    let label = 'Güvenli';
+    
+    if (percent > 80) {
+        color = '#ef4444'; // KIRMIZI (Riskli)
+        label = 'Yüksek Risk!';
+    } else if (percent > 50) {
+        color = '#f59e0b'; // TURUNCU (Dikkat)
+        label = 'Dikkat';
+    }
+
+    // 1. Slider'ın arka planını boya (CSS Gradient)
+    // Sadece doluluk oranı kadar boyanır, gerisi koyu kalır
+    slider.style.background = `linear-gradient(to right, ${color} 0%, ${color} ${percent}%, #334155 ${percent}%, #334155 100%)`;
+
+    // 2. Slider'ın tutamacına (topuna) renkli gölge ver
+    slider.style.boxShadow = `0 0 15px ${color}60`; 
+
+    // 3. Yazıyı güncelle (₺ sembolü ile)
+    let display = document.getElementById('sliderValDisplay');
+    if (display) {
+        // Para birimi sembolü (Varsayılan ₺)
+        let sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY') ? '₺' : '$';
         
-        // Slider'ın maksimumunu kasa bakiyesine ayarla (minimum 50.000 kalsın ki boşsa da kalsın)
-        slider.max = Math.max(cashBalance, 50000);
+        // Binlik ayracı ile formatla (Örn: 15.000)
+        let formattedMoney = sym + val.toLocaleString(undefined, {maximumFractionDigits: 0});
         
-        // Eğer kasa bakiyesi 0 ise kullanıcıyı bilgilendir
-        if(cashBalance <= 0) {
-            document.getElementById('sliderValDisplay').innerText = "Kasa Boş!";
-        }
+        // HTML olarak yazdır (Renk ve Yazı)
+        display.innerHTML = `
+            <span style="color:${color}; font-weight:bold; font-size:1.1em;">${formattedMoney}</span>
+            <span style="font-size:11px; color:${color}; margin-left:6px; opacity:0.8; text-transform: uppercase; letter-spacing: 0.5px;">${label}</span>
+        `;
     }
 }
 
