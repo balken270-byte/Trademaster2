@@ -21,13 +21,15 @@
 
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
+<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TradeVia">
-
 <meta name="theme-color" content="#0b0f19">
+
 <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/svg+xml" href="/icon.svg">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="/apple-touch-icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.svg">
+
 
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -568,6 +570,51 @@ body {
         @keyframes fadeUpText { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes drawArrowOriginal { from { opacity: 0; transform: translate(-20px, 20px) scale(0.8); } to { opacity: 1; transform: translate(0, 0) scale(1); } }
         @keyframes loadingMove { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
+
+        /* === CRYSTAL PREMIUM LOGO STYLES === */
+        .crystal-logo-wrapper {
+            position: relative;
+            animation: crystalFloat 4s ease-in-out infinite;
+        }
+        
+        .crystal-logo-svg {
+            filter: drop-shadow(0 0 30px rgba(59, 130, 246, 0.4));
+            animation: crystalGlow 3s ease-in-out infinite;
+        }
+        
+        @keyframes crystalFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes crystalGlow {
+            0%, 100% { filter: drop-shadow(0 0 30px rgba(59, 130, 246, 0.4)); }
+            50% { filter: drop-shadow(0 0 50px rgba(59, 130, 246, 0.7)); }
+        }
+        
+        .glass-reflection-overlay {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent 40%,
+                rgba(255,255,255,0.03) 45%,
+                rgba(255,255,255,0.05) 50%,
+                rgba(255,255,255,0.03) 55%,
+                transparent 60%
+            );
+            animation: glassShimmer 6s infinite linear;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        @keyframes glassShimmer {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
 
         /* === KİLİT EKRANI (LOCK SCREEN) === */
         #lock-screen {
@@ -3242,83 +3289,166 @@ button:active,
 <div id="splash-screen">
     
     <div class="original-logo-container">
-        <div class="original-logo-container" style="
+        <div class="crystal-logo-wrapper" style="
             display:flex; 
             flex-direction:column; 
             align-items:center; 
             position:relative;
-            background: radial-gradient(circle at center, rgba(30, 58, 138, 0.2) 0%, rgba(0,0,0,0) 70%);
-            padding: 40px;
-            border-radius: 50%;
+            padding: 20px;
         ">
+            <!-- Glass Reflection Effect -->
+            <div class="glass-reflection-overlay"></div>
     
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="160" height="160">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 280" width="180" height="180" class="crystal-logo-svg">
                 <defs>
-                    <linearGradient id="deepCoreGrad" x1="0" y1="240" x2="240" y2="0" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stop-color="#0f172a"/> <stop offset="50%" stop-color="#1e3a8a"/> <stop offset="100%" stop-color="#3b82f6"/> 
+                    <!-- Premium Gradients -->
+                    <linearGradient id="crystalCoreGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#020617"/>
+                        <stop offset="30%" stop-color="#0f172a"/>
+                        <stop offset="70%" stop-color="#1e3a8a"/>
+                        <stop offset="100%" stop-color="#2563eb"/>
                     </linearGradient>
                     
-                    <linearGradient id="activePathGrad" x1="0" y1="100" x2="240" y2="100" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stop-color="#3b82f6"/>
-                        <stop offset="50%" stop-color="#06b6d4"/> <stop offset="100%" stop-color="#10b981"/> 
+                    <linearGradient id="crystalEdgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.8"/>
+                        <stop offset="50%" stop-color="#3b82f6" stop-opacity="0.4"/>
+                        <stop offset="100%" stop-color="#1d4ed8" stop-opacity="0.2"/>
                     </linearGradient>
-
-                    <filter id="internalGlow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
-                        <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 18 -7" result="goo" />
-                        <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+                    
+                    <linearGradient id="crystalPathGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#3b82f6"/>
+                        <stop offset="35%" stop-color="#06b6d4"/>
+                        <stop offset="65%" stop-color="#10b981"/>
+                        <stop offset="100%" stop-color="#34d399"/>
+                    </linearGradient>
+                    
+                    <linearGradient id="crystalGoldAccent" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#fcd34d"/>
+                        <stop offset="50%" stop-color="#f59e0b"/>
+                        <stop offset="100%" stop-color="#d97706"/>
+                    </linearGradient>
+                    
+                    <!-- Premium Filters -->
+                    <filter id="crystalInnerShadow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>
+                        <feOffset dx="2" dy="4" result="offsetBlur"/>
+                        <feComposite in="SourceGraphic" in2="offsetBlur" operator="out" result="inverse"/>
+                        <feFlood flood-color="#000" flood-opacity="0.3" result="color"/>
+                        <feComposite in="color" in2="inverse" operator="in" result="shadow"/>
+                        <feComposite in="shadow" in2="SourceGraphic" operator="over"/>
                     </filter>
                     
-                    <filter id="outerGlow" height="300%" width="300%" x="-75%" y="-75%">
-                        <feMorphology operator="dilate" radius="2" in="SourceAlpha" result="thicken" />
-                        <feGaussianBlur in="thicken" stdDeviation="8" result="blurred" />
-                        <feFlood flood-color="rgba(59, 130, 246, 0.6)" result="glowColor" />
-                        <feComposite in="glowColor" in2="blurred" operator="in" result="softGlow_colored" />
+                    <filter id="crystalGlow" x="-100%" y="-100%" width="300%" height="300%">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur1"/>
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur2"/>
                         <feMerge>
-                            <feMergeNode in="softGlow_colored"/>
+                            <feMergeNode in="blur2"/>
+                            <feMergeNode in="blur1"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                    
+                    <filter id="crystalStarGlow">
+                        <feGaussianBlur stdDeviation="3" result="blur"/>
+                        <feMerge>
+                            <feMergeNode in="blur"/>
+                            <feMergeNode in="blur"/>
                             <feMergeNode in="SourceGraphic"/>
                         </feMerge>
                     </filter>
                 </defs>
-
-                <g opacity="0.2" stroke="#64748b" stroke-width="1" fill="none">
-                    <path d="M40 200 L 90 150 L 200 180" />
-                    <path d="M20 120 L 80 140 L 160 100" />
-                    <circle cx="90" cy="150" r="3" fill="#64748b"/>
-                    <circle cx="160" cy="100" r="3" fill="#64748b"/>
-                </g>
-
-                <path d="M120 30 L 190 80 L 190 160 L 120 210 L 50 160 L 50 80 Z" 
-                    fill="url(#deepCoreGrad)" stroke="rgba(59, 130, 246, 0.3)" stroke-width="2" opacity="0.9"/>
                 
-                <path d="M50 80 L 120 30 L 190 80" stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none"/>
-
-                <g filter="url(#outerGlow)">
-                    <path d="M75 150 L 110 170 L 150 140 L 150 70 L 185 40" 
-                        stroke="url(#activePathGrad)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <!-- Outer Glow Ring -->
+                <circle cx="140" cy="140" r="130" fill="none" stroke="url(#crystalEdgeGrad)" stroke-width="1" opacity="0.3"/>
+                
+                <!-- Background Grid Pattern -->
+                <g opacity="0.08" stroke="#3b82f6" stroke-width="0.5">
+                    <line x1="60" y1="140" x2="220" y2="140"/>
+                    <line x1="140" y1="60" x2="140" y2="220"/>
+                    <line x1="80" y1="80" x2="200" y2="200"/>
+                    <line x1="200" y1="80" x2="80" y2="200"/>
                 </g>
-
-                <circle cx="185" cy="40" r="6" fill="#ffffff" filter="url(#internalGlow)">
-                    <animate attributeName="r" values="6;9;6" dur="2.5s" repeatCount="indefinite"/>
-                    <animate attributeName="opacity" values="1;0.6;1" dur="2.5s" repeatCount="indefinite"/>
-                </circle>
+                
+                <!-- Main Hexagon with 3D effect -->
+                <g filter="url(#crystalInnerShadow)">
+                    <!-- Back face (depth) -->
+                    <path d="M140 45 L215 95 L215 185 L140 235 L65 185 L65 95 Z" 
+                          fill="#020617" transform="translate(3, 3)" opacity="0.5"/>
+                    
+                    <!-- Main face -->
+                    <path d="M140 45 L215 95 L215 185 L140 235 L65 185 L65 95 Z" 
+                          fill="url(#crystalCoreGrad)"/>
+                </g>
+                
+                <!-- Hexagon Border Glow -->
+                <path d="M140 45 L215 95 L215 185 L140 235 L65 185 L65 95 Z" 
+                      fill="none" stroke="url(#crystalEdgeGrad)" stroke-width="2"/>
+                
+                <!-- Top Edge Highlight -->
+                <path d="M65 95 L140 45 L215 95" 
+                      fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" stroke-linecap="round"/>
+                
+                <!-- Inner Hexagon Pattern -->
+                <path d="M140 70 L190 105 L190 175 L140 210 L90 175 L90 105 Z" 
+                      fill="none" stroke="rgba(59, 130, 246, 0.15)" stroke-width="1"/>
+                
+                <!-- Main Chart Path with Enhanced Glow -->
+                <g filter="url(#crystalGlow)">
+                    <path d="M90 175 L125 190 L165 155 L165 85 L205 50" 
+                          stroke="url(#crystalPathGrad)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                </g>
+                
+                <!-- Path Reflection -->
+                <path d="M90 175 L125 190 L165 155 L165 85 L205 50" 
+                      stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"
+                      transform="translate(-1, -1)"/>
+                
+                <!-- Data Points -->
+                <circle cx="90" cy="175" r="4" fill="#3b82f6" opacity="0.8"/>
+                <circle cx="125" cy="190" r="4" fill="#06b6d4" opacity="0.8"/>
+                <circle cx="165" cy="155" r="4" fill="#10b981" opacity="0.8"/>
+                <circle cx="165" cy="85" r="4" fill="#10b981" opacity="0.8"/>
+                
+                <!-- Premium Star Point -->
+                <g filter="url(#crystalStarGlow)">
+                    <circle cx="205" cy="50" r="10" fill="url(#crystalGoldAccent)">
+                        <animate attributeName="r" values="10;13;10" dur="2s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="205" cy="50" r="5" fill="#ffffff">
+                        <animate attributeName="opacity" values="1;0.7;1" dur="2s" repeatCount="indefinite"/>
+                    </circle>
+                </g>
+                
+                <!-- Sparkle Effects -->
+                <g fill="#ffffff" opacity="0.8">
+                    <circle cx="80" cy="75" r="1.5">
+                        <animate attributeName="opacity" values="0;1;0" dur="3s" repeatCount="indefinite" begin="0s"/>
+                    </circle>
+                    <circle cx="200" cy="130" r="1">
+                        <animate attributeName="opacity" values="0;1;0" dur="2.5s" repeatCount="indefinite" begin="0.5s"/>
+                    </circle>
+                    <circle cx="100" cy="200" r="1.5">
+                        <animate attributeName="opacity" values="0;1;0" dur="4s" repeatCount="indefinite" begin="1s"/>
+                    </circle>
+                </g>
             </svg>
 
-            <div style="text-align:center; z-index:1; margin-top: 5px;">
+            <!-- Premium Text -->
+            <div style="text-align:center; z-index:1; margin-top: 15px;">
                 <h1 style="
                     margin: 0;
                     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-                    font-size: 38px; 
+                    font-size: 40px; 
                     font-weight: 900; 
-                    color: #ffffff; 
                     letter-spacing: -1px;
-                    text-shadow: 0 4px 20px rgba(59, 130, 246, 0.5);
+                    background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
                 ">
                     TRADE<span style="
-                        background: linear-gradient(to right, #60a5fa, #34d399); 
-                        -webkit-background-clip: text; 
+                        background: linear-gradient(135deg, #60a5fa 0%, #34d399 50%, #fcd34d 100%);
+                        -webkit-background-clip: text;
                         -webkit-text-fill-color: transparent;
-                        font-weight: 900;
                     ">VIA</span>
                 </h1>
                 
@@ -3326,22 +3456,22 @@ button:active,
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    gap: 8px;
-                    margin-top: 8px;
+                    gap: 12px;
+                    margin-top: 12px;
                 ">
-                    <div style="width: 20px; height: 1px; background: rgba(148, 163, 184, 0.5);"></div>
+                    <div style="width: 30px; height: 1px; background: linear-gradient(90deg, transparent, #f59e0b);"></div>
                     <p style="
                         margin: 0;
                         font-family: 'Inter', sans-serif; 
-                        font-size: 11px; 
-                        font-weight: 600; 
-                        color: #cbd5e1; 
-                        letter-spacing: 3px; 
+                        font-size: 9px; 
+                        font-weight: 700; 
+                        color: #f59e0b; 
+                        letter-spacing: 4px; 
                         text-transform: uppercase;
                     ">
-                        Gelişmiş Finans Terminali
+                        PREMIUM TRADING
                     </p>
-                    <div style="width: 20px; height: 1px; background: rgba(148, 163, 184, 0.5);"></div>
+                    <div style="width: 30px; height: 1px; background: linear-gradient(90deg, #f59e0b, transparent);"></div>
                 </div>
             </div>
         </div>
@@ -3369,34 +3499,90 @@ button:active,
 
 <!-- === KİLİT EKRANI (LOCK SCREEN) === -->
 <div id="lock-screen">
-    <!-- Mini Logo -->
-    <svg class="lock-logo-mini" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+    <!-- Crystal Premium Mini Logo -->
+    <svg class="lock-logo-mini" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 280">
         <defs>
-            <linearGradient id="lockGrad1" x1="0" y1="240" x2="240" y2="0" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="#0f172a"/> <stop offset="50%" stop-color="#1e3a8a"/> <stop offset="100%" stop-color="#3b82f6"/> 
+            <linearGradient id="lockCrystalCore" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#020617"/>
+                <stop offset="30%" stop-color="#0f172a"/>
+                <stop offset="70%" stop-color="#1e3a8a"/>
+                <stop offset="100%" stop-color="#2563eb"/>
             </linearGradient>
-            <linearGradient id="lockGrad2" x1="0" y1="100" x2="240" y2="100" gradientUnits="userSpaceOnUse">
+            <linearGradient id="lockCrystalEdge" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.8"/>
+                <stop offset="50%" stop-color="#3b82f6" stop-opacity="0.4"/>
+                <stop offset="100%" stop-color="#1d4ed8" stop-opacity="0.2"/>
+            </linearGradient>
+            <linearGradient id="lockCrystalPath" x1="0%" y1="100%" x2="100%" y2="0%">
                 <stop offset="0%" stop-color="#3b82f6"/>
-                <stop offset="50%" stop-color="#06b6d4"/> <stop offset="100%" stop-color="#10b981"/> 
+                <stop offset="35%" stop-color="#06b6d4"/>
+                <stop offset="65%" stop-color="#10b981"/>
+                <stop offset="100%" stop-color="#34d399"/>
             </linearGradient>
-            <filter id="lockGlow" height="300%" width="300%" x="-75%" y="-75%">
-                <feMorphology operator="dilate" radius="2" in="SourceAlpha" result="thicken" />
-                <feGaussianBlur in="thicken" stdDeviation="6" result="blurred" />
-                <feFlood flood-color="rgba(59, 130, 246, 0.5)" result="glowColor" />
-                <feComposite in="glowColor" in2="blurred" operator="in" result="softGlow_colored" />
+            <linearGradient id="lockCrystalGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#fcd34d"/>
+                <stop offset="50%" stop-color="#f59e0b"/>
+                <stop offset="100%" stop-color="#d97706"/>
+            </linearGradient>
+            <filter id="lockCrystalGlow" x="-100%" y="-100%" width="300%" height="300%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur1"/>
+                <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur2"/>
                 <feMerge>
-                    <feMergeNode in="softGlow_colored"/>
+                    <feMergeNode in="blur2"/>
+                    <feMergeNode in="blur1"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+            <filter id="lockStarGlow">
+                <feGaussianBlur stdDeviation="2" result="blur"/>
+                <feMerge>
+                    <feMergeNode in="blur"/>
+                    <feMergeNode in="blur"/>
                     <feMergeNode in="SourceGraphic"/>
                 </feMerge>
             </filter>
         </defs>
-        <path d="M120 30 L 190 80 L 190 160 L 120 210 L 50 160 L 50 80 Z" fill="url(#lockGrad1)" stroke="rgba(59, 130, 246, 0.3)" stroke-width="2"/>
-        <g filter="url(#lockGlow)">
-            <path d="M75 150 L 110 170 L 150 140 L 150 70 L 185 40" stroke="url(#lockGrad2)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        
+        <!-- Outer Ring -->
+        <circle cx="140" cy="140" r="130" fill="none" stroke="url(#lockCrystalEdge)" stroke-width="1" opacity="0.3"/>
+        
+        <!-- 3D Hexagon -->
+        <path d="M140 45 L215 95 L215 185 L140 235 L65 185 L65 95 Z" fill="#020617" transform="translate(2, 2)" opacity="0.4"/>
+        <path d="M140 45 L215 95 L215 185 L140 235 L65 185 L65 95 Z" fill="url(#lockCrystalCore)" stroke="url(#lockCrystalEdge)" stroke-width="1.5"/>
+        
+        <!-- Top Highlight -->
+        <path d="M65 95 L140 45 L215 95" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1" stroke-linecap="round"/>
+        
+        <!-- Inner Hex -->
+        <path d="M140 70 L190 105 L190 175 L140 210 L90 175 L90 105 Z" fill="none" stroke="rgba(59, 130, 246, 0.15)" stroke-width="1"/>
+        
+        <!-- Chart Line -->
+        <g filter="url(#lockCrystalGlow)">
+            <path d="M90 175 L125 190 L165 155 L165 85 L205 50" stroke="url(#lockCrystalPath)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
         </g>
-        <circle cx="185" cy="40" r="5" fill="#ffffff">
-            <animate attributeName="r" values="5;7;5" dur="2s" repeatCount="indefinite"/>
-            <animate attributeName="opacity" values="1;0.7;1" dur="2s" repeatCount="indefinite"/>
+        
+        <!-- Data Points -->
+        <circle cx="90" cy="175" r="3" fill="#3b82f6" opacity="0.7"/>
+        <circle cx="125" cy="190" r="3" fill="#06b6d4" opacity="0.7"/>
+        <circle cx="165" cy="155" r="3" fill="#10b981" opacity="0.7"/>
+        <circle cx="165" cy="85" r="3" fill="#10b981" opacity="0.7"/>
+        
+        <!-- Gold Star Point -->
+        <g filter="url(#lockStarGlow)">
+            <circle cx="205" cy="50" r="8" fill="url(#lockCrystalGold)">
+                <animate attributeName="r" values="8;10;8" dur="2s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="205" cy="50" r="4" fill="#ffffff">
+                <animate attributeName="opacity" values="1;0.7;1" dur="2s" repeatCount="indefinite"/>
+            </circle>
+        </g>
+        
+        <!-- Sparkles -->
+        <circle cx="80" cy="75" r="1" fill="#ffffff" opacity="0.6">
+            <animate attributeName="opacity" values="0;1;0" dur="3s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="200" cy="130" r="1" fill="#ffffff" opacity="0.6">
+            <animate attributeName="opacity" values="0;1;0" dur="2.5s" repeatCount="indefinite" begin="0.5s"/>
         </circle>
     </svg>
 
@@ -8741,7 +8927,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.5"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 

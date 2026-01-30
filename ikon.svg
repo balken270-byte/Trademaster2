@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+    <defs>
+        <!-- Background Gradient -->
+        <linearGradient id="bgGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#020617"/>
+            <stop offset="50%" stop-color="#0f172a"/>
+            <stop offset="100%" stop-color="#1e3a8a"/>
+        </linearGradient>
+        
+        <!-- Core Hexagon Gradient -->
+        <linearGradient id="coreGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#020617"/>
+            <stop offset="30%" stop-color="#0f172a"/>
+            <stop offset="70%" stop-color="#1e3a8a"/>
+            <stop offset="100%" stop-color="#2563eb"/>
+        </linearGradient>
+        
+        <!-- Edge Highlight Gradient -->
+        <linearGradient id="edgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.9"/>
+            <stop offset="50%" stop-color="#3b82f6" stop-opacity="0.5"/>
+            <stop offset="100%" stop-color="#1d4ed8" stop-opacity="0.3"/>
+        </linearGradient>
+        
+        <!-- Chart Path Gradient -->
+        <linearGradient id="pathGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#3b82f6"/>
+            <stop offset="35%" stop-color="#06b6d4"/>
+            <stop offset="65%" stop-color="#10b981"/>
+            <stop offset="100%" stop-color="#34d399"/>
+        </linearGradient>
+        
+        <!-- Gold Accent Gradient -->
+        <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#fef3c7"/>
+            <stop offset="30%" stop-color="#fcd34d"/>
+            <stop offset="60%" stop-color="#f59e0b"/>
+            <stop offset="100%" stop-color="#d97706"/>
+        </linearGradient>
+        
+        <!-- Glow Filter -->
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur1"/>
+            <feGaussianBlur in="SourceGraphic" stdDeviation="16" result="blur2"/>
+            <feMerge>
+                <feMergeNode in="blur2"/>
+                <feMergeNode in="blur1"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+        
+        <!-- Star Glow Filter -->
+        <filter id="starGlow" x="-100%" y="-100%" width="300%" height="300%">
+            <feGaussianBlur stdDeviation="6" result="blur"/>
+            <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+        
+        <!-- Inner Shadow Filter -->
+        <filter id="innerShadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blur"/>
+            <feOffset dx="4" dy="6" result="offsetBlur"/>
+            <feComposite in="SourceGraphic" in2="offsetBlur" operator="out" result="inverse"/>
+            <feFlood flood-color="#000" flood-opacity="0.4" result="color"/>
+            <feComposite in="color" in2="inverse" operator="in" result="shadow"/>
+            <feComposite in="shadow" in2="SourceGraphic" operator="over"/>
+        </filter>
+    </defs>
+    
+    <!-- Background -->
+    <rect width="512" height="512" rx="108" fill="url(#bgGrad)"/>
+    
+    <!-- Subtle outer ring -->
+    <circle cx="256" cy="256" r="230" fill="none" stroke="url(#edgeGrad)" stroke-width="1.5" opacity="0.3"/>
+    
+    <!-- Background Grid Pattern -->
+    <g opacity="0.06" stroke="#3b82f6" stroke-width="1">
+        <line x1="100" y1="256" x2="412" y2="256"/>
+        <line x1="256" y1="100" x2="256" y2="412"/>
+        <line x1="130" y1="130" x2="382" y2="382"/>
+        <line x1="382" y1="130" x2="130" y2="382"/>
+    </g>
+    
+    <!-- 3D Hexagon Shadow -->
+    <path d="M256 72 L400 156 L400 344 L256 428 L112 344 L112 156 Z" 
+          fill="#000" transform="translate(6, 8)" opacity="0.4"/>
+    
+    <!-- Main Hexagon -->
+    <g filter="url(#innerShadow)">
+        <path d="M256 72 L400 156 L400 344 L256 428 L112 344 L112 156 Z" 
+              fill="url(#coreGrad)"/>
+    </g>
+    
+    <!-- Hexagon Border -->
+    <path d="M256 72 L400 156 L400 344 L256 428 L112 344 L112 156 Z" 
+          fill="none" stroke="url(#edgeGrad)" stroke-width="3"/>
+    
+    <!-- Top Edge Highlight -->
+    <path d="M112 156 L256 72 L400 156" 
+          fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2.5" stroke-linecap="round"/>
+    
+    <!-- Inner Hexagon Pattern -->
+    <path d="M256 110 L365 175 L365 340 L256 405 L147 340 L147 175 Z" 
+          fill="none" stroke="rgba(59, 130, 246, 0.15)" stroke-width="1.5"/>
+    
+    <!-- Chart Path with Glow -->
+    <g filter="url(#glow)">
+        <path d="M155 340 L225 365 L305 295 L305 165 L385 95" 
+              stroke="url(#pathGrad)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </g>
+    
+    <!-- Path Highlight -->
+    <path d="M155 340 L225 365 L305 295 L305 165 L385 95" 
+          stroke="rgba(255,255,255,0.25)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"
+          transform="translate(-2, -2)"/>
+    
+    <!-- Data Points -->
+    <circle cx="155" cy="340" r="8" fill="#3b82f6" opacity="0.9"/>
+    <circle cx="225" cy="365" r="8" fill="#06b6d4" opacity="0.9"/>
+    <circle cx="305" cy="295" r="8" fill="#10b981" opacity="0.9"/>
+    <circle cx="305" cy="165" r="8" fill="#10b981" opacity="0.9"/>
+    
+    <!-- Premium Gold Star Point -->
+    <g filter="url(#starGlow)">
+        <circle cx="385" cy="95" r="22" fill="url(#goldGrad)"/>
+        <circle cx="385" cy="95" r="10" fill="#ffffff" opacity="0.95"/>
+    </g>
+    
+    <!-- Sparkle Effects -->
+    <circle cx="135" cy="120" r="3" fill="#ffffff" opacity="0.7"/>
+    <circle cx="380" cy="250" r="2.5" fill="#ffffff" opacity="0.6"/>
+    <circle cx="170" cy="390" r="3" fill="#ffffff" opacity="0.5"/>
+    <circle cx="420" cy="180" r="2" fill="#fcd34d" opacity="0.8"/>
+</svg>
