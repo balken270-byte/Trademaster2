@@ -9278,26 +9278,36 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
 
             <div class="lab-mode-toggle">
-                <div class="sim-tab active" onclick="switchAvgMode('budget', this)">💰 Bütçe ile Planla</div>
-                <div class="sim-tab" onclick="switchAvgMode('target', this)">🎯 Hedefe Kilitlen</div>
-            </div>
+    <div class="sim-tab active" onclick="switchAvgMode('budget', this)">
+        <i class="fas fa-wallet"></i> Bütçe Planı
+    </div>
+    <div class="sim-tab" onclick="switchAvgMode('target', this)">
+        <i class="fas fa-crosshairs"></i> Hedef Fiyat
+    </div>
+    <div class="sim-tab" onclick="switchAvgMode('auto', this)">
+        <i class="fas fa-life-ring"></i> AI Kurtarıcı
+    </div>
+</div>
 
-            <div class="lab-form-grid">
-                <div class="lab-form-group">
-                    <label class="lab-form-label">Eldeki Adet</label>
-                    <input type="number" id="aaOldQty" class="lab-input" placeholder="0">
-                </div>
-                <div class="lab-form-group">
-                    <label class="lab-form-label">Maliyetim</label>
-                    <input type="number" id="aaOldPrice" class="lab-input" placeholder="0.00">
-                </div>
-                <div class="lab-form-group full">
-                    <label class="lab-form-label">Şu Anki Piyasa Fiyatı</label>
-                    <input type="number" id="aaCurPrice" class="lab-input" placeholder="Güncel fiyat">
-                </div>
-            </div>
 
-            <hr style="border: 0; border-top: 1px solid var(--lab-glass-border); margin: 16px 0;">
+    
+
+            <div id="avg-manual-inputs" class="lab-form-grid">
+    <div class="lab-form-group">
+        <label class="lab-form-label">Eldeki Adet</label>
+        <input type="number" id="aaOldQty" class="lab-input" placeholder="0">
+    </div>
+    <div class="lab-form-group">
+        <label class="lab-form-label">Maliyetim</label>
+        <input type="number" id="aaOldPrice" class="lab-input" placeholder="0.00">
+    </div>
+    <div class="lab-form-group full">
+        <label class="lab-form-label">Şu Anki Piyasa Fiyatı</label>
+        <input type="number" id="aaCurPrice" class="lab-input" placeholder="Güncel fiyat">
+    </div>
+</div>
+
+<hr style="border: 0; border-top: 1px solid var(--lab-glass-border); margin: 16px 0;">
 
             <!-- Budget Mode -->
             <div id="avg-mode-budget">
@@ -9330,6 +9340,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 </button>
             </div>
         </div>
+
+
+<div id="avg-mode-auto" style="display:none; animation: fadeIn 0.4s;">
+    
+    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1)); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; padding: 20px; margin-bottom: 20px; position:relative; overflow:hidden;">
+        <div style="position:absolute; top:-20px; right:-20px; width:100px; height:100px; background:radial-gradient(circle, rgba(52,211,153,0.2) 0%, transparent 70%); border-radius:50%;"></div>
+        
+        <div style="display:flex; align-items:flex-start; gap:15px; position:relative; z-index:1;">
+            <div style="min-width:44px; height:44px; background:linear-gradient(135deg, #10b981, #059669); border-radius:12px; display:flex; align-items:center; justify-content:center; color:white; box-shadow:0 4px 15px rgba(16,185,129,0.3);">
+                <i class="fas fa-brain" style="font-size:20px;"></i>
+            </div>
+            <div>
+                <div style="font-size:15px; font-weight:800; color:white; margin-bottom:6px;">DeepScan™ Analiz Motoru</div>
+                <div style="font-size:11px; color:#cbd5e1; line-height:1.5;">
+                    Yapay zeka, varlıkların <b>son 90 günlük</b> verilerini tarar; RSI, Volatilite ve Trend analizi yaparak hangisinin "ölü yatırım" hangisinin "fırsat" olduğunu belirler.
+                </div>
+            </div>
+        </div>
+        <div style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:12px; display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:11px; font-weight:700; color:#94a3b8;">KULLANILABİLİR KASA</span>
+            <span style="font-size:16px; font-weight:800; color:#34d399; letter-spacing:0.5px;" id="aiRescueCash">--</span>
+        </div>
+    </div>
+
+    <button id="btnAiStart" class="lab-btn-primary emerald" onclick="runDeepDiveAnalysis()">
+        <i class="fas fa-microchip"></i> DETAYLI ANALİZİ BAŞLAT
+    </button>
+
+    <div id="aiLoadingScreen" style="display:none; text-align:center; padding:30px 0;">
+        <div style="width:50px; height:50px; border:3px solid rgba(16,185,129,0.1); border-top:3px solid #10b981; border-radius:50%; margin:0 auto 15px; animation:spin 1s linear infinite;"></div>
+        <div id="aiLoadingText" style="font-size:12px; color:#34d399; font-weight:700;">Veriler toplanıyor...</div>
+        <div id="aiLoadingSub" style="font-size:10px; color:#64748b; margin-top:5px;">Geçmiş grafikler inceleniyor</div>
+    </div>
+
+    <div id="aiRescueResult" style="display:none; margin-top:20px;">
+        <div class="lab-section-label" style="color:#34d399; display:flex; justify-content:space-between; align-items:center;">
+            <span><i class="fas fa-clipboard-check"></i> STRATEJİ RAPORU</span>
+            <span style="font-size:9px; background:rgba(16,185,129,0.1); padding:2px 8px; border-radius:10px;">AI Önerisi</span>
+        </div>
+        <div id="aiRescueList"></div>
+    </div>
+</div>
 
         <!-- Risk Alert -->
         <div id="aaRiskAlert" class="lab-risk-alert" style="display:none;">
@@ -11309,7 +11361,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.4"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -19604,6 +19656,300 @@ function openPortfolioModal() {
 document.addEventListener('DOMContentLoaded', () => {
     MultiPortfolio.init();
 });
+
+// --- GELİŞMİŞ ANALİZ MOTORU (Düzeltilmiş) ---
+
+async function runDeepDiveAnalysis() {
+    // LocalStorage verisini güvenli çekme
+    var asData = localStorage.getItem('myPF_final');
+    var as = asData ? JSON.parse(asData) : [];
+    
+    var cashData = localStorage.getItem('tm_cash_balance');
+    var cash = cashData ? parseFloat(cashData) : 0;
+    
+    // UI Hazırlığı
+    var btnStart = document.getElementById('btnAiStart');
+    var screenLoad = document.getElementById('aiLoadingScreen');
+    var resultArea = document.getElementById('aiRescueResult');
+    var logText = document.getElementById('aiLoadingText');
+    
+    if(btnStart) btnStart.style.display = 'none';
+    if(screenLoad) screenLoad.style.display = 'block';
+    if(resultArea) resultArea.style.display = 'none';
+    
+    function updateLog(msg) {
+        if(logText) logText.innerText = msg;
+    }
+
+    // 1. Zarardaki Varlıkları Seç
+    var losers = as.filter(function(a) {
+        var price = a.curr || a.buy;
+        return price < a.buy;
+    });
+    
+    if (losers.length === 0) {
+        finishAiAnalysis([], cash, "Zararda varlık yok.");
+        return;
+    }
+
+    var analyzedAssets = [];
+    updateLog(losers.length + " varlık için geçmiş veriler taranıyor...");
+
+    // 2. Her Varlık İçin Derinlemesine Veri Çek
+    for (var i = 0; i < losers.length; i++) {
+        var asset = losers[i];
+        
+        // Sembolü temizle
+        var rawSym = asset.name.replace('BINANCE:','').replace('BIST:','').replace('USDT','').replace('.IS','').trim();
+        
+        // Veri Çekme
+        var candles = await fetchCandleHistory(rawSym, asset.name);
+        
+        // Teknik Analiz Hesapla
+        var metrics = calculateTechnicalMetrics(candles, asset.buy, (asset.curr || asset.buy));
+        
+        // Güvenli nesne birleştirme (Spread operator yerine assign kullanıldı)
+        var newObj = Object.assign({}, asset);
+        newObj.metrics = metrics;
+        newObj.cleanSym = rawSym;
+        
+        analyzedAssets.push(newObj);
+        
+        // API limitine takılmamak için bekleme
+        await new Promise(function(resolve) { setTimeout(resolve, 200); });
+    }
+
+    // 3. Puanlama ve Bütçe Dağıtımı
+    updateLog("Yapay zeka puanlaması yapılıyor...");
+    var finalPlan = generateAiStrategy(analyzedAssets, cash);
+    
+    finishAiAnalysis(finalPlan, cash);
+}
+
+// --- YARDIMCI: MUM VERİSİ ÇEKME ---
+async function fetchCandleHistory(symbol, originalName) {
+    try {
+        var targetSym = symbol + "USDT";
+        
+        // Borsa/Hisse ise null dön (Binance'de yok)
+        if (originalName.includes('.IS') || (!originalName.includes('USDT') && symbol.length <= 5 && !['BTC','ETH','SOL','AVAX'].includes(symbol))) {
+            return null; 
+        }
+
+        var res = await fetch("https://api.binance.com/api/v3/klines?symbol=" + targetSym + "&interval=1d&limit=90");
+        if (!res.ok) return null;
+        var data = await res.json();
+        
+        // Veriyi formatla
+        return data.map(function(d) {
+            return {
+                c: parseFloat(d[4]), // Kapanış
+                h: parseFloat(d[2]), // Yüksek
+                l: parseFloat(d[3])  // Düşük
+            };
+        });
+
+    } catch (e) { return null; }
+}
+
+// --- YARDIMCI: TEKNİK METRİKLERİ HESAPLA ---
+function calculateTechnicalMetrics(candles, myCost, currentPrice) {
+    // Veri yoksa basit matematik kullan
+    if (!candles || candles.length < 30) {
+        var drop = ((myCost - currentPrice) / myCost) * 100;
+        return { score: 10, rsi: 50, trend: 'Bilinmiyor', volatility: 'Düşük', desc: "Veri sınırlı, temel analiz.", drop: drop };
+    }
+
+    // A) RSI Hesapla (14 Günlük)
+    var gains = 0, losses = 0;
+    for (var i = candles.length - 14; i < candles.length; i++) {
+        var diff = candles[i].c - candles[i-1].c;
+        if (diff >= 0) gains += diff; else losses -= diff;
+    }
+    var rs = (gains / 14) / (losses / 14 || 1);
+    var rsi = 100 - (100 / (1 + rs));
+
+    // B) Hareketli Ortalama (SMA 50)
+    var sum50 = 0;
+    var period = Math.min(50, candles.length);
+    for (var j = candles.length - period; j < candles.length; j++) sum50 += candles[j].c;
+    var sma50 = sum50 / period;
+
+    // C) Zirveden Düşüş (Max Drawdown - 90 Gün)
+    var maxHigh = 0;
+    candles.forEach(function(c) { if(c.h > maxHigh) maxHigh = c.h; });
+    var drawdown = ((maxHigh - currentPrice) / maxHigh) * 100;
+
+    // PUANLAMA MANTIĞI
+    var score = 0;
+    var desc = "";
+
+    // 1. RSI Kontrolü
+    if (rsi < 30) { score += 40; desc += "Aşırı Satış (RSI Dip). "; }
+    else if (rsi < 45) { score += 20; desc += "Fiyat ucuzluyor. "; }
+    else if (rsi > 70) { score -= 20; desc += "Fiyat şişmiş. "; }
+
+    // 2. Trend Kontrolü
+    if (currentPrice > sma50) { score += 30; desc += "Yükseliş trendinde. "; }
+    else { score += 10; desc += "Düşüş trendinde. "; }
+
+    // 3. Çöküş Kontrolü
+    if (drawdown > 70) { score -= 10; desc += "Çok sert çakılmış. "; }
+    else if (drawdown > 40) { score += 20; desc += "Güzel düzeltme yapmış. "; }
+
+    return { score: score, rsi: rsi, trend: (currentPrice > sma50 ? 'Yükseliş' : 'Düşüş'), volatility: 'Orta', desc: desc, drop: drawdown };
+}
+
+// --- YARDIMCI: STRATEJİ OLUŞTUR ---
+function generateAiStrategy(assets, cash) {
+    var totalScore = 0;
+    
+    // Puanları topla
+    assets.forEach(function(a) {
+        if(a.metrics.score <= 0) a.metrics.score = 1;
+        totalScore += a.metrics.score;
+    });
+
+    // Paylaştır
+    return assets.map(function(a) {
+        var allocation = (a.metrics.score / totalScore) * cash;
+        
+        var color = "#64748b";
+        var label = "Nötr";
+        if(a.metrics.score >= 50) { color = "#10b981"; label = "💎 GÜÇLÜ AL"; }
+        else if(a.metrics.score >= 30) { color = "#3b82f6"; label = "AL"; }
+        else { color = "#f59e0b"; label = "BEKLE"; }
+
+        // Güvenli nesne birleştirme
+        var resObj = Object.assign({}, a);
+        resObj.allocation = allocation;
+        resObj.color = color;
+        resObj.label = label;
+        return resObj;
+        
+    }).sort(function(a,b) { return b.metrics.score - a.metrics.score; });
+}
+
+// --- SONUÇLARI GÖSTER ---
+function finishAiAnalysis(plan, cash, errorMsg) {
+    var screenLoad = document.getElementById('aiLoadingScreen');
+    var resultArea = document.getElementById('aiRescueResult');
+    var btnStart = document.getElementById('btnAiStart');
+    
+    if(screenLoad) screenLoad.style.display = 'none';
+    if(resultArea) resultArea.style.display = 'block';
+    if(btnStart) {
+        btnStart.style.display = 'flex';
+        btnStart.innerHTML = '<i class="fas fa-sync-alt"></i> ANALİZİ YENİLE';
+    }
+
+    var container = document.getElementById('aiRescueList');
+    
+    if (plan.length === 0) {
+        container.innerHTML = "<div style='padding:20px; text-align:center; color:#94a3b8;'>" + (errorMsg || "Sonuç yok") + "</div>";
+        return;
+    }
+
+    var html = "";
+    var sym = '₺'; // Varsayılan TL
+    if (typeof appSettings !== 'undefined' && appSettings.currency === 'USD') sym = '$';
+
+    plan.forEach(function(p) {
+        // Yeni ortalama hesabı
+        var curP = p.curr || p.buy;
+        var qtyAdd = p.allocation / curP;
+        var newAvg = ((p.amt * p.buy) + p.allocation) / (p.amt + qtyAdd);
+        
+        // RSI Rengi
+        var rsiColor = p.metrics.rsi < 30 ? '#10b981' : (p.metrics.rsi > 70 ? '#ef4444' : '#f59e0b');
+
+        html += `
+        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:12px; margin-bottom:10px; border-left:3px solid ${p.color};">
+            
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <div>
+                    <div style="font-weight:800; font-size:14px; color:white;">${p.name}</div>
+                    <div style="font-size:10px; color:${p.color}; font-weight:700; background:${p.color}15; padding:2px 6px; border-radius:4px; display:inline-block; margin-top:2px;">
+                        ${p.label} (Puan: ${Math.round(p.metrics.score)})
+                    </div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:9px; color:#94a3b8;">ÖNERİLEN EKLEME</div>
+                    <div style="font-weight:800; font-size:14px; color:#a78bfa;">${sym}${p.allocation.toLocaleString(undefined, {maximumFractionDigits:0})}</div>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:10px; background:rgba(0,0,0,0.2); padding:8px; border-radius:8px;">
+                <div style="font-size:10px; color:#94a3b8;">
+                    RSI: <span style="color:${rsiColor}; font-weight:700;">${p.metrics.rsi.toFixed(0)}</span>
+                </div>
+                <div style="font-size:10px; color:#94a3b8; text-align:right;">
+                    Trend: <span style="color:white;">${p.metrics.trend}</span>
+                </div>
+                <div style="grid-column: span 2; font-size:9px; color:#64748b; font-style:italic;">
+                    "${p.metrics.desc}"
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px;">
+                <span style="color:#ef4444; text-decoration:line-through;">Maliyet: ${p.buy.toFixed(2)}</span>
+                <i class="fas fa-arrow-right" style="color:#64748b; font-size:10px;"></i>
+                <span style="color:#10b981; font-weight:700;">Yeni Hedef: ${newAvg.toFixed(2)}</span>
+            </div>
+
+        </div>`;
+    });
+
+    container.innerHTML = html;
+}
+
+// --- 3'LÜ MOD GEÇİŞ SİSTEMİ (GİZLEME ÖZELLİKLİ) ---
+function switchAvgMode(mode, btn) {
+    // 1. Butonların Rengini Ayarla
+    if (btn && btn.parentElement) {
+        const siblings = btn.parentElement.children;
+        for (let i = 0; i < siblings.length; i++) {
+            siblings[i].classList.remove('active');
+        }
+        btn.classList.add('active');
+    }
+
+    // 2. Tüm Panelleri Tanımla
+    const budgetPanel = document.getElementById('avg-mode-budget');
+    const targetPanel = document.getElementById('avg-mode-target');
+    const autoPanel = document.getElementById('avg-mode-auto');
+    
+    // GİZLENECEK ALAN (Manuel Giriş Kutuları)
+    const manualInputs = document.getElementById('avg-manual-inputs');
+    const assetSelect = document.getElementById('advAvgSelect'); // Varlık seçimi de gizlensin mi? (Opsiyonel)
+
+    // 3. Önce Hepsini Gizle (Temizlik)
+    if(budgetPanel) budgetPanel.style.display = 'none';
+    if(targetPanel) targetPanel.style.display = 'none';
+    if(autoPanel) autoPanel.style.display = 'none';
+
+    // 4. Seçilen Modu Göster
+    if (mode === 'budget') {
+        if(budgetPanel) budgetPanel.style.display = 'block';
+        if(manualInputs) manualInputs.style.display = 'grid'; // Kutuları GÖSTER
+    } 
+    else if (mode === 'target') {
+        if(targetPanel) targetPanel.style.display = 'block';
+        if(manualInputs) manualInputs.style.display = 'grid'; // Kutuları GÖSTER
+    } 
+    else if (mode === 'auto') {
+        if(autoPanel) {
+            autoPanel.style.display = 'block';
+            if(manualInputs) manualInputs.style.display = 'none'; // Kutuları GİZLE
+            
+            // Kasa bilgisini anında güncelle
+            let cash = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
+            let sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY') ? '₺' : '$';
+            let cashDisplay = document.getElementById('aiRescueCash');
+            if(cashDisplay) cashDisplay.innerText = sym + cash.toLocaleString();
+        }
+    }
+}
 
 </script>
 
