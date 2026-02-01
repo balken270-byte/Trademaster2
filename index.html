@@ -11504,7 +11504,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.7"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -20402,6 +20402,60 @@ function switchAvgMode(mode, btn) {
         }
     }
 }
+// ============================================================
+// GÜVENLİ DÜZELTME: MALİYET DÜŞÜRME + AI KASA (FİNAL)
+// ============================================================
+window.switchAvgMode = function(mode, btn) {
+    try {
+        // 1. Butonların Rengini Ayarla
+        if (btn) {
+            const container = btn.closest('.lab-mode-toggle');
+            if (container) {
+                container.querySelectorAll('.sim-tab').forEach(el => el.classList.remove('active'));
+            }
+            btn.classList.add('active');
+        }
+
+        // 2. Tüm Panelleri Gizle
+        ['budget', 'target', 'auto'].forEach(p => {
+            const el = document.getElementById('avg-mode-' + p);
+            if (el) el.style.display = 'none';
+        });
+
+        // 3. Seçilen Paneli Aç
+        const targetPanel = document.getElementById('avg-mode-' + mode);
+        if (targetPanel) targetPanel.style.display = 'block';
+
+        // 4. SONUÇLARI GİZLE (Temiz Sayfa İçin)
+        const resultBox = document.getElementById('aaResultBox');
+        const strategyBox = document.getElementById('aaStrategyBox');
+        if (resultBox) resultBox.style.display = 'none';
+        if (strategyBox) strategyBox.style.display = 'none';
+
+        // 5. AI MODU: KASA BAKİYESİNİ GÜNCELLE
+        if (mode === 'auto') {
+            // Sizin verdiğiniz özel ID: aiRescueCash
+            const cashEl = document.getElementById('aiRescueCash');
+            
+            if (cashEl) {
+                // Bakiyeyi güvenli çek
+                const currentCash = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
+                
+                // Para birimi kontrolü
+                let sym = '₺';
+                if (typeof appSettings !== 'undefined' && appSettings.currency === 'USD') sym = '$';
+
+                // Sadece sayıyı güncelle (Tasarım bozulmaz)
+                cashEl.innerText = sym + currentCash.toLocaleString('tr-TR', {
+                    minimumFractionDigits: 2, 
+                    maximumFractionDigits: 2
+                });
+            }
+        }
+    } catch (err) {
+        console.error("Tab değiştirme hatası:", err);
+    }
+};
 
 </script>
 
