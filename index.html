@@ -11361,7 +11361,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.6"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -14527,13 +14527,50 @@ function switchAvgMode(mode, btn) {
     // 2. İşlev: İlgili paneli göster, diğerini gizle
     const budgetPanel = document.getElementById('avg-mode-budget');
     const targetPanel = document.getElementById('avg-mode-target');
+    const autoPanel = document.getElementById('avg-mode-auto');
+    const manualInputs = document.getElementById('avg-manual-inputs');
+
+    // Önce hepsini gizle
+    if(budgetPanel) budgetPanel.style.display = 'none';
+    if(targetPanel) targetPanel.style.display = 'none';
+    if(autoPanel) autoPanel.style.display = 'none';
+    
+    // ✅ TÜM SONUÇ EKRANLARINI TEMİZLE
+    const aaResult = document.getElementById('aaResultBox');
+    const aiResult = document.getElementById('aiRescueResult');
+    const aiLoading = document.getElementById('aiLoadingScreen');
+    const aiList = document.getElementById('aiRescueList');
+    const aaRiskAlert = document.getElementById('aaRiskAlert');
+    
+    if(aaResult) aaResult.style.display = 'none';
+    if(aiResult) aiResult.style.display = 'none';
+    if(aiLoading) aiLoading.style.display = 'none';
+    if(aiList) aiList.innerHTML = '';
+    if(aaRiskAlert) aaRiskAlert.style.display = 'none';
+    
+    // AI Başlat butonunu sıfırla
+    const btnAiStart = document.getElementById('btnAiStart');
+    if(btnAiStart) {
+        btnAiStart.style.display = 'flex';
+        btnAiStart.innerHTML = '<i class="fas fa-brain"></i> ANALİZİ BAŞLAT';
+    }
 
     if (mode === 'budget') {
         if(budgetPanel) budgetPanel.style.display = 'block';
-        if(targetPanel) targetPanel.style.display = 'none';
+        if(manualInputs) manualInputs.style.display = 'grid';
     } else if (mode === 'target') {
-        if(budgetPanel) budgetPanel.style.display = 'none';
         if(targetPanel) targetPanel.style.display = 'block';
+        if(manualInputs) manualInputs.style.display = 'grid';
+    } else if (mode === 'auto') {
+        if(autoPanel) {
+            autoPanel.style.display = 'block';
+            if(manualInputs) manualInputs.style.display = 'none';
+            
+            let cash = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
+            let sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY') ? '₺' : '$';
+            let cashDisplay = document.getElementById('aiRescueCash');
+            if(cashDisplay) cashDisplay.innerText = sym + cash.toLocaleString();
+        }
     }
 }
 
@@ -20137,6 +20174,26 @@ function switchAvgMode(mode, btn) {
     if(budgetPanel) budgetPanel.style.display = 'none';
     if(targetPanel) targetPanel.style.display = 'none';
     if(autoPanel) autoPanel.style.display = 'none';
+    
+    // ✅ TÜM SONUÇ EKRANLARINI TEMİZLE (Mod değiştiğinde eski sonuçlar kaybolsun)
+    const aaResult = document.getElementById('aaResultBox');
+    const aiResult = document.getElementById('aiRescueResult');
+    const aiLoading = document.getElementById('aiLoadingScreen');
+    const aiList = document.getElementById('aiRescueList');
+    const aaRiskAlert = document.getElementById('aaRiskAlert');
+    
+    if(aaResult) aaResult.style.display = 'none';
+    if(aiResult) aiResult.style.display = 'none';
+    if(aiLoading) aiLoading.style.display = 'none';
+    if(aiList) aiList.innerHTML = '';
+    if(aaRiskAlert) aaRiskAlert.style.display = 'none';
+    
+    // AI Başlat butonunu sıfırla
+    const btnAiStart = document.getElementById('btnAiStart');
+    if(btnAiStart) {
+        btnAiStart.style.display = 'flex';
+        btnAiStart.innerHTML = '<i class="fas fa-brain"></i> ANALİZİ BAŞLAT';
+    }
 
     // 4. Seçilen Modu Göster
     if (mode === 'budget') {
