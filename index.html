@@ -11361,7 +11361,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.4"; 
+    const CURRENT_VERSION = "1.5"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -19726,31 +19726,75 @@ async function runDeepDiveAnalysis() {
     finishAiAnalysis(finalPlan, cash);
 }
 
-// --- YARDIMCI: MUM VERİSİ ÇEKME ---
+// --- YARDIMCI: MUM VERİSİ ÇEKME (COINGECKO ÖNCELİKLİ -> BINANCE YEDEKLİ) ---
 async function fetchCandleHistory(symbol, originalName) {
-    try {
-        var targetSym = symbol + "USDT";
-        
-        // Borsa/Hisse ise null dön (Binance'de yok)
-        if (originalName.includes('.IS') || (!originalName.includes('USDT') && symbol.length <= 5 && !['BTC','ETH','SOL','AVAX'].includes(symbol))) {
-            return null; 
-        }
+    // 1. Sembol Temizliği
+    let cleanSym = symbol.replace('BINANCE:', '').replace('USDT', '').replace('TRY', '').trim();
+    
+    // BIST/Hisse kontrolü (Bunlar için veri çekemeyiz, null dönelim)
+    if (originalName.includes('.IS') || (!originalName.includes('USDT') && symbol.length <= 5 && !['BTC','ETH','SOL','AVAX'].includes(symbol))) {
+        return null;
+    }
 
-        var res = await fetch("https://api.binance.com/api/v3/klines?symbol=" + targetSym + "&interval=1d&limit=90");
-        if (!res.ok) return null;
-        var data = await res.json();
+    // --- PLAN A: COINGECKO (ÖNCELİKLİ) ---
+    try {
+        if (!coingeckoApiKey) throw new Error("No Key");
+
+        // A1. Arama Yap (ID Bulmak İçin)
+        const searchRes = await fetch(`https://api.coingecko.com/api/v3/search?query=${cleanSym}&x_cg_demo_api_key=${coingeckoApiKey}`);
+        if (!searchRes.ok) throw new Error("CG Search Fail");
         
-        // Veriyi formatla
-        return data.map(function(d) {
-            return {
+        const searchData = await searchRes.json();
+        
+        if (!searchData.coins || searchData.coins.length === 0) throw new Error("CG Symbol Not Found");
+        
+        // Tam eşleşmeyi veya ilk sonucu al
+        let coinId = searchData.coins[0].id;
+        let exact = searchData.coins.find(c => c.symbol.toUpperCase() === cleanSym.toUpperCase());
+        if (exact) coinId = exact.id;
+
+        // A2. Geçmiş Veriyi Çek (90 Gün)
+        const histRes = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=90&interval=daily&x_cg_demo_api_key=${coingeckoApiKey}`);
+        if (!histRes.ok) throw new Error("CG History Fail");
+        
+        const histData = await histRes.json();
+        
+        if (!histData.prices || histData.prices.length === 0) throw new Error("CG No Prices");
+
+        // CoinGecko verisini analiz formatına çevir (c: close, h: high, l: low)
+        // Not: CG free API günlük OHLC vermez, sadece fiyat verir. H/L değerlerini Close ile eşitliyoruz.
+        return histData.prices.map(p => ({
+            c: p[1], // Kapanış Fiyatı
+            h: p[1], // Yüksek (Yaklaşık)
+            l: p[1]  // Düşük (Yaklaşık)
+        }));
+
+    } catch (cgError) {
+        // --- PLAN B: BINANCE (YEDEK) ---
+        // Eğer yukarıdaki işlemlerden herhangi biri hata verirse burası devreye girer.
+        // console.log("CoinGecko yanıt vermedi, Binance deneniyor..."); 
+
+        try {
+            let targetSym = cleanSym.toUpperCase() + "USDT";
+            const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${targetSym}&interval=1d&limit=90`);
+            
+            if (!res.ok) return null; // Binance de bulamazsa vazgeç
+            
+            const data = await res.json();
+            
+            // Binance verisini formatla
+            return data.map(d => ({
                 c: parseFloat(d[4]), // Kapanış
                 h: parseFloat(d[2]), // Yüksek
                 l: parseFloat(d[3])  // Düşük
-            };
-        });
+            }));
 
-    } catch (e) { return null; }
+        } catch (binError) {
+            return null; // İkisi de çalışmazsa veri yok demektir.
+        }
+    }
 }
+
 
 // --- YARDIMCI: TEKNİK METRİKLERİ HESAPLA ---
 function calculateTechnicalMetrics(candles, myCost, currentPrice) {
