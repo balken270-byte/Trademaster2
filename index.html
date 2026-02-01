@@ -9606,8 +9606,44 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <script>
+// TÜM LAB SONUÇ EKRANLARINI TEMİZLEYEN FONKSİYON
+function resetAllLabResults() {
+    const resultIds = [
+        'aiRescueResult',    // AI Kurtarıcı Sonuçları
+        'aaResultBox',       // Maliyet Düşürme Sonuçları
+        'labResults',        // Büyüme Hesaplayıcı
+        'riskResultBox',     // Risk Hesaplayıcı  
+        'statResult',        // Zaman Makinesi
+        'chaosResult',       // Kaos Testi
+        'aiLoadingScreen'    // Yükleme ekranı
+    ];
+    
+    resultIds.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.style.display = 'none';
+    });
+    
+    // AI listesini temizle
+    const aiList = document.getElementById('aiRescueList');
+    if(aiList) aiList.innerHTML = '';
+    
+    // Risk alert'i temizle
+    const riskAlert = document.getElementById('aaRiskAlert');
+    if(riskAlert) riskAlert.style.display = 'none';
+    
+    // AI Başlat butonunu sıfırla
+    const btnAiStart = document.getElementById('btnAiStart');
+    if(btnAiStart) {
+        btnAiStart.style.display = 'flex';
+        btnAiStart.innerHTML = '<i class="fas fa-brain"></i> ANALİZİ BAŞLAT';
+    }
+}
+
 // Lab'ı kapatıp Analiz sayfasına dön
 function closeLabView() {
+    // ÖNCELİKLE TÜM SONUÇ EKRANLARINI TEMİZLE
+    resetAllLabResults();
+    
     // Lab'ı gizle
     const labView = document.getElementById('an-view-lab');
     labView.style.display = 'none';
@@ -9674,18 +9710,62 @@ function openLabFullscreen() {
             <button class="p-tab-btn" onclick="switchPsychoTab('tab-fomo')">
                 <i class="fa-solid fa-fire"></i> FOMO
             </button>
+            <button class="p-tab-btn" onclick="switchPsychoTab('tab-coach')">
+                <i class="fa-solid fa-robot"></i> AI Koç
+            </button>
         </div>
 
         <div class="psycho-content-area">
             
+            <!-- ZEKA SEKMESİ - ORİJİNAL + NABIZ + PATTERN -->
             <div id="tab-karne" class="psycho-view active">
+                <!-- ORİJİNAL KARNE ALANI -->
                 <div id="inject-winrate-modern">
                     <div style="text-align:center; color:#64748b; padding:20px;">
                         <i class="fas fa-circle-notch fa-spin"></i> Veri toplanıyor...
                     </div>
                 </div>
+
+                <!-- KİŞİSEL AÇGÖZLÜLÜK ENDEKSİ -->
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05);">
+                    <div style="font-size: 10px; color: #64748b; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-heart-pulse"></i> KİŞİSEL AÇGÖZLÜLÜK ENDEKSİ
+                        <span style="font-size: 8px; background: rgba(139,92,246,0.2); color: #a78bfa; padding: 2px 6px; border-radius: 10px; margin-left: auto;">Senin Verilerin</span>
+                    </div>
+                    <div style="background: linear-gradient(135deg, rgba(239,68,68,0.08), rgba(16,185,129,0.08)); border-radius: 12px; padding: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="text-align: center; min-width: 55px;">
+                                <div style="font-size: 26px; font-weight: 800;" id="nabizScore">50</div>
+                                <div style="font-size: 9px;" id="nabizLabel">Nötr</div>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="width: 100%; height: 8px; background: linear-gradient(to right, #ef4444 0%, #f59e0b 50%, #10b981 100%); border-radius: 10px; position: relative;">
+                                    <div id="nabizNeedle" style="position: absolute; top: -4px; width: 4px; height: 16px; background: white; border-radius: 2px; box-shadow: 0 0 8px rgba(255,255,255,0.9); left: 50%; transition: left 0.5s ease;"></div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; font-size: 8px; color: #64748b; margin-top: 5px;">
+                                    <span>😱 Aşırı Korku</span>
+                                    <span>😐 Nötr</span>
+                                    <span>🤑 Aşırı Açgözlü</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DAVRANIŞ PATTERNLERİ -->
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05);">
+                    <div style="font-size: 10px; color: #64748b; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-fingerprint"></i> DAVRANIŞ PATTERNLERİ
+                    </div>
+                    <div id="patternCards" style="display: flex; flex-direction: column; gap: 8px;">
+                        <div style="text-align:center; color:#64748b; padding:10px; font-size: 11px;">
+                            <i class="fas fa-circle-notch fa-spin"></i> Analiz ediliyor...
+                        </div>
+                    </div>
+                </div>
             </div>
 
+            <!-- PİŞMANLIK SEKMESİ - ORİJİNAL -->
             <div id="tab-regret" class="psycho-view">
                 <div style="margin-bottom:15px; font-size:12px; color:#94a3b8; background:rgba(255,255,255,0.05); padding:10px; border-radius:8px;">
                     <i class="fa-solid fa-circle-info"></i> "Keşke satmasaydım" veya "İyi ki satmışım" dediğiniz işlemlerin analizi.
@@ -9693,8 +9773,93 @@ function openLabFullscreen() {
                 <div id="inject-regret-modern"></div>
             </div>
 
+            <!-- FOMO SEKMESİ - ORİJİNAL -->
             <div id="tab-fomo" class="psycho-view">
                 <div id="inject-fomo-modern"></div>
+            </div>
+
+            <!-- AI KOÇ SEKMESİ -->
+            <div id="tab-coach" class="psycho-view">
+                <!-- AI Profil Kartı -->
+                <div style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); border-radius: 16px; overflow: hidden; margin-bottom: 12px; border: 1px solid rgba(139,92,246,0.2);">
+                    <!-- Header -->
+                    <div style="background: rgba(139,92,246,0.15); padding: 12px 15px; display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 42px; height: 42px; background: linear-gradient(135deg, #8b5cf6, #6366f1); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 4px 15px rgba(139,92,246,0.3);">🧠</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 700; color: #fff; font-size: 14px;">TradeVia AI Koç</div>
+                            <div style="font-size: 9px; color: #a78bfa;">Tüm davranışlarını analiz ediyorum</div>
+                        </div>
+                        <div id="aiDataCount" style="background: rgba(16,185,129,0.2); padding: 4px 8px; border-radius: 8px; font-size: 9px; color: #10b981; font-weight: 600;">
+                            0 veri
+                        </div>
+                    </div>
+                    
+                    <!-- Ana Mesaj -->
+                    <div id="aiCoachMessage" style="padding: 15px; font-size: 12px; color: #e2e8f0; line-height: 1.7; min-height: 80px;">
+                        <i class="fas fa-circle-notch fa-spin" style="color: #64748b;"></i> <span style="color: #64748b;">Veriler analiz ediliyor...</span>
+                    </div>
+                    
+                    <!-- Profil Özeti -->
+                    <div style="background: rgba(0,0,0,0.2); padding: 10px 15px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; border-top: 1px solid rgba(255,255,255,0.05);">
+                        <div style="text-align: center;">
+                            <div style="font-size: 14px; font-weight: 800; color: #fff;" id="aiTraderType">-</div>
+                            <div style="font-size: 7px; color: #64748b;">Trader Tipi</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 14px; font-weight: 800;" id="aiRiskLevel">-</div>
+                            <div style="font-size: 7px; color: #64748b;">Risk Seviyesi</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 14px; font-weight: 800;" id="aiFocusArea">-</div>
+                            <div style="font-size: 7px; color: #64748b;">Odak Alanı</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 14px; font-weight: 800;" id="aiScore">-</div>
+                            <div style="font-size: 7px; color: #64748b;">AI Skor</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kullanım İstatistikleri -->
+                <div style="background: rgba(255,255,255,0.02); border-radius: 12px; padding: 12px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                    <div style="font-size: 10px; color: #64748b; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-chart-bar"></i> KULLANIM ANALİZİ
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                        <div style="background: rgba(59,130,246,0.1); border-radius: 8px; padding: 10px; text-align: center;">
+                            <div style="font-size: 16px; font-weight: 800; color: #3b82f6;" id="statMostUsedFeature">-</div>
+                            <div style="font-size: 8px; color: #64748b;">En Çok Kullanılan</div>
+                        </div>
+                        <div style="background: rgba(245,158,11,0.1); border-radius: 8px; padding: 10px; text-align: center;">
+                            <div style="font-size: 16px; font-weight: 800; color: #f59e0b;" id="statMostSearched">-</div>
+                            <div style="font-size: 8px; color: #64748b;">En Çok Aranan</div>
+                        </div>
+                        <div style="background: rgba(16,185,129,0.1); border-radius: 8px; padding: 10px; text-align: center;">
+                            <div style="font-size: 16px; font-weight: 800; color: #10b981;" id="statTimeSpent">-</div>
+                            <div style="font-size: 8px; color: #64748b;">Aktif Süre</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detaylı Analiz Butonları -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <button onclick="runAIAnalysis('strength')" style="padding: 14px 10px; background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(16,185,129,0.05)); border: 1px solid rgba(16,185,129,0.25); border-radius: 12px; color: #10b981; font-size: 10px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                        <i class="fas fa-shield-alt" style="font-size: 16px; display: block; margin-bottom: 5px;"></i>
+                        Güçlü Yönlerin
+                    </button>
+                    <button onclick="runAIAnalysis('weakness')" style="padding: 14px 10px; background: linear-gradient(135deg, rgba(239,68,68,0.12), rgba(239,68,68,0.05)); border: 1px solid rgba(239,68,68,0.25); border-radius: 12px; color: #ef4444; font-size: 10px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 16px; display: block; margin-bottom: 5px;"></i>
+                        Zayıf Yönlerin
+                    </button>
+                    <button onclick="runAIAnalysis('behavior')" style="padding: 14px 10px; background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(139,92,246,0.05)); border: 1px solid rgba(139,92,246,0.25); border-radius: 12px; color: #8b5cf6; font-size: 10px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                        <i class="fas fa-user-secret" style="font-size: 16px; display: block; margin-bottom: 5px;"></i>
+                        Davranış Raporu
+                    </button>
+                    <button onclick="runAIAnalysis('advice')" style="padding: 14px 10px; background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.05)); border: 1px solid rgba(245,158,11,0.25); border-radius: 12px; color: #f59e0b; font-size: 10px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                        <i class="fas fa-lightbulb" style="font-size: 16px; display: block; margin-bottom: 5px;"></i>
+                        Kişisel Tavsiyeler
+                    </button>
+                </div>
             </div>
 
         </div>
@@ -11361,7 +11526,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.6"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -14524,28 +14689,17 @@ function switchAvgMode(mode, btn) {
         btn.classList.add('active');
     }
 
-    // 2. İşlev: İlgili paneli göster, diğerini gizle
-    const budgetPanel = document.getElementById('avg-mode-budget');
-    const targetPanel = document.getElementById('avg-mode-target');
-    const autoPanel = document.getElementById('avg-mode-auto');
-    const manualInputs = document.getElementById('avg-manual-inputs');
-
-    // Önce hepsini gizle
-    if(budgetPanel) budgetPanel.style.display = 'none';
-    if(targetPanel) targetPanel.style.display = 'none';
-    if(autoPanel) autoPanel.style.display = 'none';
-    
-    // ✅ TÜM SONUÇ EKRANLARINI TEMİZLE
-    const aaResult = document.getElementById('aaResultBox');
-    const aiResult = document.getElementById('aiRescueResult');
-    const aiLoading = document.getElementById('aiLoadingScreen');
-    const aiList = document.getElementById('aiRescueList');
+    // 2. MOD DEĞİŞTİĞİNDE SONUÇ EKRANLARINI TEMİZLE
+    const aaResultBox = document.getElementById('aaResultBox');
+    const aiRescueResult = document.getElementById('aiRescueResult');
+    const aiLoadingScreen = document.getElementById('aiLoadingScreen');
+    const aiRescueList = document.getElementById('aiRescueList');
     const aaRiskAlert = document.getElementById('aaRiskAlert');
     
-    if(aaResult) aaResult.style.display = 'none';
-    if(aiResult) aiResult.style.display = 'none';
-    if(aiLoading) aiLoading.style.display = 'none';
-    if(aiList) aiList.innerHTML = '';
+    if(aaResultBox) aaResultBox.style.display = 'none';
+    if(aiRescueResult) aiRescueResult.style.display = 'none';
+    if(aiLoadingScreen) aiLoadingScreen.style.display = 'none';
+    if(aiRescueList) aiRescueList.innerHTML = '';
     if(aaRiskAlert) aaRiskAlert.style.display = 'none';
     
     // AI Başlat butonunu sıfırla
@@ -14555,22 +14709,16 @@ function switchAvgMode(mode, btn) {
         btnAiStart.innerHTML = '<i class="fas fa-brain"></i> ANALİZİ BAŞLAT';
     }
 
+    // 3. İşlev: İlgili paneli göster, diğerini gizle
+    const budgetPanel = document.getElementById('avg-mode-budget');
+    const targetPanel = document.getElementById('avg-mode-target');
+
     if (mode === 'budget') {
         if(budgetPanel) budgetPanel.style.display = 'block';
-        if(manualInputs) manualInputs.style.display = 'grid';
+        if(targetPanel) targetPanel.style.display = 'none';
     } else if (mode === 'target') {
+        if(budgetPanel) budgetPanel.style.display = 'none';
         if(targetPanel) targetPanel.style.display = 'block';
-        if(manualInputs) manualInputs.style.display = 'grid';
-    } else if (mode === 'auto') {
-        if(autoPanel) {
-            autoPanel.style.display = 'block';
-            if(manualInputs) manualInputs.style.display = 'none';
-            
-            let cash = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
-            let sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY') ? '₺' : '$';
-            let cashDisplay = document.getElementById('aiRescueCash');
-            if(cashDisplay) cashDisplay.innerText = sym + cash.toLocaleString();
-        }
     }
 }
 
@@ -17314,6 +17462,9 @@ function fillTimeMachineSymbol() {
 // --- ANA GEÇİŞ FONKSİYONU (GÜNCELLENMİŞ VE DÜZELTİLMİŞ HALİ) ---
 
 function switchLabTool(tool, btn) {
+    // ÖNCELİKLE TÜM SONUÇ EKRANLARINI TEMİZLE
+    resetAllLabResults();
+    
     // Önce tüm araçları gizle
     document.querySelectorAll('.lab-tool-container').forEach(el => el.style.display = 'none');
     
@@ -19225,12 +19376,24 @@ document.addEventListener("DOMContentLoaded", () => {
         if (pageId === 'analysis' || pageId === 'page-analysis') {
             setTimeout(refreshAnalysisData, 50); 
         }
+        
+        // 3. Analiz sayfası dışına çıkıldığında Lab sonuçlarını temizle
+        if (pageId !== 'analysis' && pageId !== 'page-analysis') {
+            if (typeof resetAllLabResults === 'function') {
+                resetAllLabResults();
+            }
+        }
     };
 
     // 5. Analiz İçi Sekme (SwitchAnTab) Sarmalayıcısı
     window.switchAnTab = function(tab, btn) {
         originalSwitchAnTab(tab, btn);
         updateTopBarState(); // Sekme değişince barı kontrol et
+        
+        // Lab sekmesinden çıkıldığında sonuçları temizle
+        if (tab !== 'lab' && typeof resetAllLabResults === 'function') {
+            resetAllLabResults();
+        }
     };
 
     // 6. Kapatma Helper'ı
@@ -19240,6 +19403,12 @@ document.addEventListener("DOMContentLoaded", () => {
             el.style.display = 'none';
             el.classList.remove('active');
         }
+        
+        // Lab sonuçlarını temizle
+        if (typeof resetAllLabResults === 'function') {
+            resetAllLabResults();
+        }
+        
         // Varsayılan sekmeye (Performans) dön
         const perfBtn = document.querySelector(".s-tab.seg-style"); 
         if (perfBtn) {
@@ -20161,31 +20330,17 @@ function switchAvgMode(mode, btn) {
         btn.classList.add('active');
     }
 
-    // 2. Tüm Panelleri Tanımla
-    const budgetPanel = document.getElementById('avg-mode-budget');
-    const targetPanel = document.getElementById('avg-mode-target');
-    const autoPanel = document.getElementById('avg-mode-auto');
-    
-    // GİZLENECEK ALAN (Manuel Giriş Kutuları)
-    const manualInputs = document.getElementById('avg-manual-inputs');
-    const assetSelect = document.getElementById('advAvgSelect'); // Varlık seçimi de gizlensin mi? (Opsiyonel)
-
-    // 3. Önce Hepsini Gizle (Temizlik)
-    if(budgetPanel) budgetPanel.style.display = 'none';
-    if(targetPanel) targetPanel.style.display = 'none';
-    if(autoPanel) autoPanel.style.display = 'none';
-    
-    // ✅ TÜM SONUÇ EKRANLARINI TEMİZLE (Mod değiştiğinde eski sonuçlar kaybolsun)
-    const aaResult = document.getElementById('aaResultBox');
-    const aiResult = document.getElementById('aiRescueResult');
-    const aiLoading = document.getElementById('aiLoadingScreen');
-    const aiList = document.getElementById('aiRescueList');
+    // 2. MOD DEĞİŞTİĞİNDE SONUÇ EKRANLARINI TEMİZLE
+    const aaResultBox = document.getElementById('aaResultBox');
+    const aiRescueResult = document.getElementById('aiRescueResult');
+    const aiLoadingScreen = document.getElementById('aiLoadingScreen');
+    const aiRescueList = document.getElementById('aiRescueList');
     const aaRiskAlert = document.getElementById('aaRiskAlert');
     
-    if(aaResult) aaResult.style.display = 'none';
-    if(aiResult) aiResult.style.display = 'none';
-    if(aiLoading) aiLoading.style.display = 'none';
-    if(aiList) aiList.innerHTML = '';
+    if(aaResultBox) aaResultBox.style.display = 'none';
+    if(aiRescueResult) aiRescueResult.style.display = 'none';
+    if(aiLoadingScreen) aiLoadingScreen.style.display = 'none';
+    if(aiRescueList) aiRescueList.innerHTML = '';
     if(aaRiskAlert) aaRiskAlert.style.display = 'none';
     
     // AI Başlat butonunu sıfırla
@@ -20195,7 +20350,21 @@ function switchAvgMode(mode, btn) {
         btnAiStart.innerHTML = '<i class="fas fa-brain"></i> ANALİZİ BAŞLAT';
     }
 
-    // 4. Seçilen Modu Göster
+    // 3. Tüm Panelleri Tanımla
+    const budgetPanel = document.getElementById('avg-mode-budget');
+    const targetPanel = document.getElementById('avg-mode-target');
+    const autoPanel = document.getElementById('avg-mode-auto');
+    
+    // GİZLENECEK ALAN (Manuel Giriş Kutuları)
+    const manualInputs = document.getElementById('avg-manual-inputs');
+    const assetSelect = document.getElementById('advAvgSelect'); // Varlık seçimi de gizlensin mi? (Opsiyonel)
+
+    // 4. Önce Hepsini Gizle (Temizlik)
+    if(budgetPanel) budgetPanel.style.display = 'none';
+    if(targetPanel) targetPanel.style.display = 'none';
+    if(autoPanel) autoPanel.style.display = 'none';
+
+    // 5. Seçilen Modu Göster
     if (mode === 'budget') {
         if(budgetPanel) budgetPanel.style.display = 'block';
         if(manualInputs) manualInputs.style.display = 'grid'; // Kutuları GÖSTER
@@ -21089,10 +21258,852 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('visibilitychange', function() {
     if (document.visibilityState === 'visible') {
         if (AppLock.isLockEnabled() && AppLock.hasPin() && !AppLock.isLocked) {
-            // Kısa bir süre sonra kilit göster (kullanıcı deneyimi için)
             AppLock.showLockScreen();
         }
     }
+});
+
+/* ======================================================
+   TRADEVİA DAVRANIŞ TAKİP & AI KOÇ SİSTEMİ
+   Kullanıcının TÜM davranışlarını analiz eder
+   ====================================================== */
+
+// ==========================================
+// 1. DAVRANIŞ TAKİP SİSTEMİ (Behavior Tracker)
+// ==========================================
+const BehaviorTracker = {
+    STORAGE_KEY: 'tv_behavior_data',
+    
+    // Varsayılan veri yapısı
+    getDefaultData: function() {
+        return {
+            // Sayfa/Sekme kullanımı
+            pageVisits: {}, // { portfolio: 150, market: 80, ... }
+            tabVisits: {}, // { kripto: 50, hisse: 30, ... }
+            
+            // Özellik kullanımı
+            featureUsage: {}, // { search: 45, addAsset: 20, ... }
+            
+            // Arama geçmişi
+            searchHistory: [], // ['BTC', 'ETH', 'THYAO', ...]
+            searchCounts: {}, // { BTC: 15, ETH: 10, ... }
+            
+            // Zaman takibi
+            sessionTimes: [], // [{ date: '01.01.2025', duration: 1800 }, ...]
+            pageTimeSpent: {}, // { portfolio: 3600, market: 1200, ... }
+            
+            // Tıklama/Etkileşim
+            clickCounts: {}, // { refreshBtn: 30, settingsBtn: 10, ... }
+            
+            // İşlem davranışları
+            tradePatterns: {
+                hourlyTrades: {}, // Saat bazlı işlem dağılımı
+                dailyTrades: {}, // Gün bazlı işlem dağılımı
+                quickSells: 0, // Hızlı satışlar (<24 saat)
+                avgHoldTime: 0
+            },
+            
+            // Son güncelleme
+            lastUpdate: Date.now(),
+            totalSessions: 0
+        };
+    },
+    
+    // Veriyi yükle
+    load: function() {
+        try {
+            let data = localStorage.getItem(this.STORAGE_KEY);
+            return data ? JSON.parse(data) : this.getDefaultData();
+        } catch(e) {
+            return this.getDefaultData();
+        }
+    },
+    
+    // Veriyi kaydet
+    save: function(data) {
+        try {
+            data.lastUpdate = Date.now();
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+        } catch(e) {}
+    },
+    
+    // Sayfa ziyaretini kaydet
+    trackPageVisit: function(pageName) {
+        let data = this.load();
+        data.pageVisits[pageName] = (data.pageVisits[pageName] || 0) + 1;
+        this.save(data);
+    },
+    
+    // Sekme ziyaretini kaydet
+    trackTabVisit: function(tabName) {
+        let data = this.load();
+        data.tabVisits[tabName] = (data.tabVisits[tabName] || 0) + 1;
+        this.save(data);
+    },
+    
+    // Özellik kullanımını kaydet
+    trackFeatureUse: function(featureName) {
+        let data = this.load();
+        data.featureUsage[featureName] = (data.featureUsage[featureName] || 0) + 1;
+        this.save(data);
+    },
+    
+    // Arama kaydı
+    trackSearch: function(query) {
+        if (!query || query.length < 2) return;
+        let data = this.load();
+        let q = query.toUpperCase().trim();
+        
+        // Son 100 aramayı tut
+        data.searchHistory.unshift(q);
+        if (data.searchHistory.length > 100) data.searchHistory.pop();
+        
+        // Sayacı artır
+        data.searchCounts[q] = (data.searchCounts[q] || 0) + 1;
+        this.save(data);
+    },
+    
+    // Tıklama kaydı
+    trackClick: function(elementId) {
+        let data = this.load();
+        data.clickCounts[elementId] = (data.clickCounts[elementId] || 0) + 1;
+        this.save(data);
+    },
+    
+    // Oturum süresini kaydet
+    trackSessionTime: function(seconds) {
+        let data = this.load();
+        let today = new Date().toLocaleDateString('tr-TR');
+        
+        let existing = data.sessionTimes.find(s => s.date === today);
+        if (existing) {
+            existing.duration += seconds;
+        } else {
+            data.sessionTimes.push({ date: today, duration: seconds });
+        }
+        
+        // Son 30 günü tut
+        if (data.sessionTimes.length > 30) data.sessionTimes.shift();
+        data.totalSessions++;
+        this.save(data);
+    },
+    
+    // Sayfa süresini kaydet
+    trackPageTime: function(pageName, seconds) {
+        let data = this.load();
+        data.pageTimeSpent[pageName] = (data.pageTimeSpent[pageName] || 0) + seconds;
+        this.save(data);
+    },
+    
+    // Özet istatistikler
+    getSummary: function() {
+        let data = this.load();
+        
+        // En çok ziyaret edilen sayfa
+        let topPage = Object.entries(data.pageVisits).sort((a,b) => b[1] - a[1])[0];
+        
+        // En çok kullanılan özellik
+        let topFeature = Object.entries(data.featureUsage).sort((a,b) => b[1] - a[1])[0];
+        
+        // En çok aranan
+        let topSearch = Object.entries(data.searchCounts).sort((a,b) => b[1] - a[1])[0];
+        
+        // Toplam süre
+        let totalTime = data.sessionTimes.reduce((a, s) => a + s.duration, 0);
+        
+        // En uzun kalınan sayfa
+        let longestPage = Object.entries(data.pageTimeSpent).sort((a,b) => b[1] - a[1])[0];
+        
+        return {
+            topPage: topPage ? topPage[0] : null,
+            topPageCount: topPage ? topPage[1] : 0,
+            topFeature: topFeature ? topFeature[0] : null,
+            topFeatureCount: topFeature ? topFeature[1] : 0,
+            topSearch: topSearch ? topSearch[0] : null,
+            topSearchCount: topSearch ? topSearch[1] : 0,
+            totalTimeMinutes: Math.round(totalTime / 60),
+            longestPage: longestPage ? longestPage[0] : null,
+            longestPageMinutes: longestPage ? Math.round(longestPage[1] / 60) : 0,
+            totalSessions: data.totalSessions,
+            searchHistory: data.searchHistory.slice(0, 20),
+            pageVisits: data.pageVisits,
+            featureUsage: data.featureUsage
+        };
+    }
+};
+
+// ==========================================
+// 2. OTOMATİK TAKİP BAŞLAT
+// ==========================================
+(function initBehaviorTracking() {
+    let currentPage = 'portfolio';
+    let pageStartTime = Date.now();
+    let sessionStartTime = Date.now();
+    
+    // Sayfa değişikliğini takip et
+    const origSwitchPage = window.switchPage;
+    if (typeof origSwitchPage === 'function') {
+        window.switchPage = function(pageId, btn) {
+            // Önceki sayfanın süresini kaydet
+            let elapsed = Math.round((Date.now() - pageStartTime) / 1000);
+            if (elapsed > 2) BehaviorTracker.trackPageTime(currentPage, elapsed);
+            
+            // Yeni sayfa
+            currentPage = pageId;
+            pageStartTime = Date.now();
+            BehaviorTracker.trackPageVisit(pageId);
+            
+            return origSwitchPage.apply(this, arguments);
+        };
+    }
+    
+    // Piyasa sekme değişikliğini takip et
+    const origLoadMarket = window.loadMarketCategory;
+    if (typeof origLoadMarket === 'function') {
+        window.loadMarketCategory = function(cat) {
+            BehaviorTracker.trackTabVisit(cat);
+            return origLoadMarket.apply(this, arguments);
+        };
+    }
+    
+    // Arama takibi
+    const origSearch = window.handleSmartSearch || window.performSearch;
+    if (typeof origSearch === 'function') {
+        window.handleSmartSearch = function(query) {
+            BehaviorTracker.trackSearch(query);
+            BehaviorTracker.trackFeatureUse('search');
+            return origSearch.apply(this, arguments);
+        };
+    }
+    
+    // Oturum süresini kaydet (sayfa kapatılırken)
+    window.addEventListener('beforeunload', function() {
+        let sessionDuration = Math.round((Date.now() - sessionStartTime) / 1000);
+        if (sessionDuration > 10) BehaviorTracker.trackSessionTime(sessionDuration);
+        
+        let pageElapsed = Math.round((Date.now() - pageStartTime) / 1000);
+        if (pageElapsed > 2) BehaviorTracker.trackPageTime(currentPage, pageElapsed);
+    });
+    
+    // Belirli butonlara tıklama takibi
+    document.addEventListener('click', function(e) {
+        let target = e.target.closest('button, .btn-main, .nav-item, .chart-filter-btn');
+        if (target) {
+            let id = target.id || target.className.split(' ')[0] || 'unknown';
+            BehaviorTracker.trackClick(id);
+        }
+    });
+})();
+
+// ==========================================
+// 3. TÜM VERİLERİ TOPLAYAN ANALİZ MOTORU
+// ==========================================
+const AIDataCollector = {
+    
+    collectAll: function() {
+        // 1. İşlem Geçmişi
+        let tradeHistory = JSON.parse(localStorage.getItem('tm_full_trade_history')) || [];
+        let sales = tradeHistory.filter(t => t.type === 'SATIM');
+        let buys = tradeHistory.filter(t => t.type === 'ALIM');
+        
+        // 2. Portföy
+        let portfolio = JSON.parse(localStorage.getItem('myPF_final')) || [];
+        let cash = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
+        
+        // 3. Davranış verileri
+        let behavior = BehaviorTracker.getSummary();
+        
+        // 4. Hedefler
+        let mainGoal = parseFloat(localStorage.getItem('tradevia_main_goal')) || 0;
+        let goals = JSON.parse(localStorage.getItem('tv_goals')) || [];
+        
+        // 5. Alarmlar
+        let alarms = JSON.parse(localStorage.getItem('tm_alarms')) || [];
+        
+        // 6. Ayarlar
+        let settings = JSON.parse(localStorage.getItem('tradevia_settings')) || {};
+        
+        // 7. Günlük takip
+        let dailyTracking = JSON.parse(localStorage.getItem('tm_daily_tracking')) || [];
+        
+        // İşlem metrikleri hesapla
+        let winRate = sales.length > 0 ? (sales.filter(s => parseFloat(s.pnl) > 0).length / sales.length * 100) : 0;
+        let totalPnL = sales.reduce((a, t) => a + parseFloat(t.pnl || 0), 0);
+        
+        // Tutma süreleri
+        let holdDays = [];
+        sales.forEach(s => {
+            let buy = buys.find(b => b.sym === s.sym);
+            if (buy) {
+                let d1 = this.parseDate(buy.date);
+                let d2 = this.parseDate(s.date);
+                let days = (d2 - d1) / (1000*60*60*24);
+                if (days >= 0 && days < 1000) holdDays.push(days);
+            }
+        });
+        let avgHold = holdDays.length > 0 ? holdDays.reduce((a,b) => a+b, 0) / holdDays.length : 0;
+        
+        // Panik satış
+        let panicSells = 0;
+        sales.forEach(s => {
+            let buy = buys.find(b => b.sym === s.sym);
+            if (buy && parseFloat(s.pnl) < 0) {
+                let days = (this.parseDate(s.date) - this.parseDate(buy.date)) / (1000*60*60*24);
+                if (days < 3 && days >= 0) panicSells++;
+            }
+        });
+        
+        // İşlem yapılan varlıklar
+        let tradedAssets = {};
+        tradeHistory.forEach(t => {
+            tradedAssets[t.sym] = (tradedAssets[t.sym] || 0) + 1;
+        });
+        let topTradedAsset = Object.entries(tradedAssets).sort((a,b) => b[1] - a[1])[0];
+        
+        // Gün bazlı işlem dağılımı
+        let dayDistribution = {};
+        tradeHistory.forEach(t => {
+            let d = new Date(t.date.split('.').reverse().join('-'));
+            let day = d.toLocaleDateString('tr-TR', { weekday: 'long' });
+            dayDistribution[day] = (dayDistribution[day] || 0) + 1;
+        });
+        let mostActiveDay = Object.entries(dayDistribution).sort((a,b) => b[1] - a[1])[0];
+        
+        return {
+            // İşlem verileri
+            totalTrades: tradeHistory.length,
+            totalBuys: buys.length,
+            totalSales: sales.length,
+            winRate,
+            totalPnL,
+            avgHold,
+            panicSells,
+            topTradedAsset: topTradedAsset ? topTradedAsset[0] : null,
+            topTradedCount: topTradedAsset ? topTradedAsset[1] : 0,
+            uniqueAssets: Object.keys(tradedAssets).length,
+            mostActiveDay: mostActiveDay ? mostActiveDay[0] : null,
+            
+            // Portföy verileri
+            portfolioSize: portfolio.length,
+            cashBalance: cash,
+            
+            // Davranış verileri
+            behavior,
+            
+            // Hedef verileri
+            mainGoal,
+            goalsCount: goals.length,
+            
+            // Alarm verileri
+            alarmsCount: alarms.length,
+            
+            // Diğer
+            dailyTrackingDays: dailyTracking.length,
+            currency: settings.currency || 'TRY'
+        };
+    },
+    
+    parseDate: function(dateStr) {
+        if (!dateStr) return new Date();
+        let parts = dateStr.split('.');
+        if (parts.length === 3) return new Date(parts[2], parts[1] - 1, parts[0]);
+        return new Date(dateStr);
+    }
+};
+
+// ==========================================
+// 4. GELİŞMİŞ AI KOÇ MOTORU
+// ==========================================
+const AdvancedAICoach = {
+    
+    // Trader tipini belirle
+    classifyTrader: function(data) {
+        if (data.totalTrades < 5) return { emoji: '🆕', name: 'Yeni', color: '#64748b' };
+        
+        let scores = { scalper: 0, swing: 0, investor: 0, analyst: 0 };
+        
+        // İşlem sıklığına göre
+        let tradesPerDay = data.behavior.totalSessions > 0 ? data.totalTrades / Math.max(data.behavior.totalSessions, 1) : 0;
+        if (tradesPerDay > 0.5) scores.scalper += 30;
+        else if (tradesPerDay > 0.1) scores.swing += 25;
+        else scores.investor += 30;
+        
+        // Tutma süresine göre
+        if (data.avgHold < 3) scores.scalper += 25;
+        else if (data.avgHold < 14) scores.swing += 25;
+        else scores.investor += 30;
+        
+        // Analiz sayfası kullanımına göre
+        let analysisVisits = data.behavior.pageVisits['analysis'] || 0;
+        let totalVisits = Object.values(data.behavior.pageVisits).reduce((a,b) => a+b, 0) || 1;
+        if (analysisVisits / totalVisits > 0.3) scores.analyst += 35;
+        
+        // Piyasa takibi
+        let marketVisits = data.behavior.pageVisits['market'] || 0;
+        if (marketVisits / totalVisits > 0.4) scores.scalper += 15;
+        
+        let maxScore = Math.max(...Object.values(scores));
+        let type = Object.keys(scores).find(k => scores[k] === maxScore);
+        
+        let types = {
+            scalper: { emoji: '⚡', name: 'Scalper', color: '#f59e0b' },
+            swing: { emoji: '🎯', name: 'Swing', color: '#3b82f6' },
+            investor: { emoji: '🏔️', name: 'Yatırımcı', color: '#10b981' },
+            analyst: { emoji: '📊', name: 'Analist', color: '#8b5cf6' }
+        };
+        
+        return types[type] || types.swing;
+    },
+    
+    // Risk seviyesi
+    classifyRisk: function(data) {
+        let risk = 50;
+        
+        if (data.panicSells > 3) risk += 20;
+        if (data.avgHold < 3) risk += 15;
+        if (data.uniqueAssets < 3) risk += 15;
+        if (data.portfolioSize > 10) risk -= 10;
+        if (data.avgHold > 14) risk -= 15;
+        if (data.winRate > 60) risk -= 10;
+        
+        risk = Math.max(0, Math.min(100, risk));
+        
+        if (risk <= 35) return { text: 'Düşük', color: '#10b981' };
+        if (risk <= 65) return { text: 'Orta', color: '#f59e0b' };
+        return { text: 'Yüksek', color: '#ef4444' };
+    },
+    
+    // Odak alanı
+    detectFocus: function(data) {
+        // En çok aranan varlığa göre
+        if (data.behavior.topSearch) {
+            let search = data.behavior.topSearch.toUpperCase();
+            if (search.includes('BTC') || search.includes('ETH') || search.includes('USDT')) return { text: 'Kripto', color: '#f59e0b' };
+            if (search.includes('.IS') || search.includes('THYAO') || search.includes('GARAN')) return { text: 'Hisse', color: '#3b82f6' };
+        }
+        
+        // En çok işlem yapılan varlığa göre
+        if (data.topTradedAsset) {
+            if (data.topTradedAsset.includes('USDT') || data.topTradedAsset.includes('BTC')) return { text: 'Kripto', color: '#f59e0b' };
+            if (data.topTradedAsset.includes('.IS')) return { text: 'Hisse', color: '#3b82f6' };
+        }
+        
+        // Piyasa sekmesi kullanımına göre
+        let tabs = data.behavior.tabVisits || {};
+        if ((tabs.kripto || 0) > (tabs.hisse || 0)) return { text: 'Kripto', color: '#f59e0b' };
+        if ((tabs.hisse || 0) > (tabs.kripto || 0)) return { text: 'Hisse', color: '#3b82f6' };
+        
+        return { text: 'Karma', color: '#8b5cf6' };
+    },
+    
+    // AI Skoru
+    calculateScore: function(data) {
+        if (data.totalTrades < 3) return 50;
+        
+        let score = 50;
+        
+        // Win rate
+        score += (data.winRate - 50) * 0.4;
+        
+        // Düzenli kullanım
+        if (data.behavior.totalSessions > 10) score += 5;
+        if (data.behavior.totalTimeMinutes > 60) score += 5;
+        
+        // Çeşitlilik
+        if (data.uniqueAssets >= 5) score += 10;
+        
+        // Olumsuz davranışlar
+        score -= data.panicSells * 3;
+        
+        // Hedef belirleme
+        if (data.mainGoal > 0) score += 5;
+        if (data.goalsCount > 0) score += 5;
+        
+        // Alarm kullanımı
+        if (data.alarmsCount > 0) score += 3;
+        
+        return Math.max(0, Math.min(100, Math.round(score)));
+    },
+    
+    // Ana mesaj oluştur
+    generateMainMessage: function(data) {
+        if (data.totalTrades < 3 && data.behavior.totalSessions < 3) {
+            return `👋 <b>Hoş geldin!</b><br><br>Seni tanımaya yeni başlıyorum. Uygulama kullandıkça ve işlem yaptıkça sana özel öneriler sunacağım.<br><br>💡 Şimdilik: Portföyünü oluştur, piyasaları keşfet!`;
+        }
+        
+        let messages = [];
+        let traderType = this.classifyTrader(data);
+        let focus = this.detectFocus(data);
+        
+        // Kişiselleştirilmiş selamlama
+        messages.push(`Merhaba! Seni <b style="color:${traderType.color}">${traderType.emoji} ${traderType.name}</b> olarak tanımlıyorum.`);
+        
+        // Odak alanı
+        if (focus.text !== 'Karma') {
+            messages.push(`📍 Odak alanın: <b style="color:${focus.color}">${focus.text}</b> piyasası.`);
+        }
+        
+        // Davranış bazlı öneriler
+        if (data.behavior.topPage === 'market' && data.totalTrades < 5) {
+            messages.push(`👀 Piyasayı çok takip ediyorsun ama az işlem yapıyorsun. Analiz felci mi yaşıyorsun?`);
+        }
+        
+        if (data.panicSells > 2) {
+            messages.push(`⚠️ <b>${data.panicSells}</b> panik satış tespit ettim. Sabırlı olmayı öğrenmelisin.`);
+        }
+        
+        // Win rate
+        if (data.winRate > 60 && data.totalSales >= 5) {
+            messages.push(`🏆 <b>%${data.winRate.toFixed(0)}</b> win rate ile harika gidiyorsun!`);
+        } else if (data.winRate < 40 && data.totalSales >= 5) {
+            messages.push(`📉 Win rate düşük (%${data.winRate.toFixed(0)}). Giriş stratejini gözden geçir.`);
+        }
+        
+        // En aktif gün
+        if (data.mostActiveDay) {
+            messages.push(`📅 En aktif olduğun gün: <b>${data.mostActiveDay}</b>`);
+        }
+        
+        return messages.join('<br><br>');
+    },
+    
+    // Detaylı analizler
+    analyzeStrengths: function(data) {
+        let strengths = [];
+        
+        if (data.winRate > 55 && data.totalSales >= 5) 
+            strengths.push(`✅ <b>Yüksek Başarı:</b> %${data.winRate.toFixed(0)} win rate ortalamanın üstünde.`);
+        
+        if (data.avgHold > 7) 
+            strengths.push(`✅ <b>Sabırlı:</b> Ortalama ${Math.round(data.avgHold)} gün tutabiliyorsun.`);
+        
+        if (data.uniqueAssets >= 5) 
+            strengths.push(`✅ <b>Çeşitlendirilmiş:</b> ${data.uniqueAssets} farklı varlıkla risk dağıtımı.`);
+        
+        if (data.behavior.totalTimeMinutes > 30) 
+            strengths.push(`✅ <b>Düzenli Takip:</b> Toplam ${data.behavior.totalTimeMinutes} dakika aktif kullanım.`);
+        
+        if (data.mainGoal > 0) 
+            strengths.push(`✅ <b>Hedef Odaklı:</b> Finansal hedef belirlemişsin.`);
+        
+        if (data.alarmsCount > 0) 
+            strengths.push(`✅ <b>Planlı:</b> ${data.alarmsCount} fiyat alarmı kurmuşsun.`);
+        
+        if (data.behavior.pageVisits['analysis'] > 5) 
+            strengths.push(`✅ <b>Analitik:</b> Analiz araçlarını aktif kullanıyorsun.`);
+        
+        return strengths.length > 0 ? strengths.join('<br><br>') : '🔍 Daha fazla veri toplandıkça güçlü yönlerini keşfedeceğim.';
+    },
+    
+    analyzeWeaknesses: function(data) {
+        let weaknesses = [];
+        
+        if (data.winRate < 45 && data.totalSales >= 5) 
+            weaknesses.push(`❌ <b>Düşük Başarı:</b> %${data.winRate.toFixed(0)} win rate. Giriş noktalarını gözden geçir.`);
+        
+        if (data.panicSells > 2) 
+            weaknesses.push(`❌ <b>Panik Satış:</b> ${data.panicSells} kez erken zararla sattın.`);
+        
+        if (data.avgHold < 3 && data.totalSales >= 3) 
+            weaknesses.push(`❌ <b>Sabırsızlık:</b> Ortalama ${data.avgHold.toFixed(1)} gün çok kısa.`);
+        
+        if (data.uniqueAssets < 3 && data.totalTrades >= 5) 
+            weaknesses.push(`❌ <b>Konsantrasyon Riski:</b> Sadece ${data.uniqueAssets} varlık. Çeşitlendir.`);
+        
+        if (data.behavior.topPage === 'market' && data.totalTrades < 3) 
+            weaknesses.push(`❌ <b>Analiz Felci:</b> Çok bakıyorsun ama az işlem yapıyorsun.`);
+        
+        if (data.mainGoal === 0) 
+            weaknesses.push(`❌ <b>Hedefsiz:</b> Finansal hedef belirlemeni öneririm.`);
+        
+        return weaknesses.length > 0 ? weaknesses.join('<br><br>') : '🎉 Belirgin zayıf yön tespit edilmedi!';
+    },
+    
+    analyzeBehavior: function(data) {
+        let report = [];
+        
+        report.push(`<b>📊 KULLANIM RAPORU</b>`);
+        report.push(`• Toplam Oturum: ${data.behavior.totalSessions}`);
+        report.push(`• Toplam Süre: ${data.behavior.totalTimeMinutes} dakika`);
+        
+        if (data.behavior.topPage) {
+            let pageNames = { portfolio: 'Cüzdan', market: 'Piyasa', analysis: 'Analiz', news: 'Haberler', settings: 'Ayarlar' };
+            report.push(`• En Çok Ziyaret: ${pageNames[data.behavior.topPage] || data.behavior.topPage} (${data.behavior.topPageCount}x)`);
+        }
+        
+        if (data.behavior.topFeature) {
+            report.push(`• En Çok Kullanılan: ${data.behavior.topFeature} (${data.behavior.topFeatureCount}x)`);
+        }
+        
+        if (data.behavior.topSearch) {
+            report.push(`• En Çok Aranan: ${data.behavior.topSearch} (${data.behavior.topSearchCount}x)`);
+        }
+        
+        report.push(``);
+        report.push(`<b>📈 İŞLEM RAPORU</b>`);
+        report.push(`• Toplam İşlem: ${data.totalTrades} (${data.totalBuys} alım, ${data.totalSales} satım)`);
+        report.push(`• Win Rate: %${data.winRate.toFixed(0)}`);
+        report.push(`• Toplam K/Z: ${data.totalPnL >= 0 ? '+' : ''}${data.totalPnL.toFixed(0)}`);
+        report.push(`• Ort. Tutma: ${Math.round(data.avgHold)} gün`);
+        
+        if (data.topTradedAsset) {
+            report.push(`• En Çok İşlem: ${data.topTradedAsset} (${data.topTradedCount}x)`);
+        }
+        
+        return report.join('<br>');
+    },
+    
+    generateAdvice: function(data) {
+        let advice = [];
+        let traderType = this.classifyTrader(data);
+        
+        advice.push(`<b>💡 ${traderType.name.toUpperCase()} İÇİN TAVSİYELER</b>`);
+        
+        // Trader tipine göre öneriler
+        if (traderType.name === 'Scalper') {
+            advice.push(`• Komisyon maliyetlerini hesapla, çok işlem kârı eritebilir.`);
+            advice.push(`• Stop-loss'suz işlem yapma.`);
+        } else if (traderType.name === 'Yatırımcı') {
+            advice.push(`• Uzun vadeli düşün, günlük dalgalanmalara takılma.`);
+            advice.push(`• Düzenli alım (DCA) stratejisi uygula.`);
+        } else if (traderType.name === 'Swing') {
+            advice.push(`• Trend yönünde işlem yap.`);
+            advice.push(`• Destek/direnç seviyelerini takip et.`);
+        }
+        
+        // Genel öneriler
+        advice.push(``);
+        advice.push(`<b>🎯 KİŞİSEL ÖNERİLER</b>`);
+        
+        if (data.panicSells > 0) {
+            advice.push(`• Panik satışlardan kaçın. Plan yap ve uygula.`);
+        }
+        
+        if (data.winRate < 50 && data.totalSales >= 5) {
+            advice.push(`• Giriş stratejini gözden geçir, daha seçici ol.`);
+        }
+        
+        if (data.mainGoal === 0) {
+            advice.push(`• Hedefler bölümünden finansal hedef belirle.`);
+        }
+        
+        if (data.behavior.pageVisits['analysis'] < 3) {
+            advice.push(`• Analiz araçlarını (Ar-Ge Lab) daha çok kullan.`);
+        }
+        
+        return advice.join('<br>');
+    }
+};
+
+// ==========================================
+// 5. NABIZ VE PATTERN FONKSİYONLARI
+// ==========================================
+function parseDateTR(dateStr) {
+    if (!dateStr) return new Date();
+    let parts = dateStr.split('.');
+    if (parts.length === 3) return new Date(parts[2], parts[1] - 1, parts[0]);
+    return new Date(dateStr);
+}
+
+function calculateNabiz() {
+    let history = JSON.parse(localStorage.getItem('tm_full_trade_history')) || [];
+    let sales = history.filter(t => t.type === 'SATIM');
+    let buys = history.filter(t => t.type === 'ALIM');
+    
+    if (sales.length < 2) return { score: 50, label: 'Veri Bekleniyor', color: '#64748b' };
+    
+    let score = 50;
+    
+    let uniqueDays = new Set(history.slice(-20).map(t => t.date)).size;
+    let freq = history.slice(-20).length / Math.max(uniqueDays, 1);
+    if (freq > 3) score += 15;
+    else if (freq < 0.5) score -= 10;
+    
+    let recent = sales.slice(-10);
+    let wins = recent.filter(s => parseFloat(s.pnl) > 0).length;
+    let losses = recent.filter(s => parseFloat(s.pnl) < 0).length;
+    if (losses > wins) score -= (losses - wins) * 8;
+    if (wins > losses) score += (wins - losses) * 5;
+    
+    let panicCount = 0;
+    sales.slice(-10).forEach(s => {
+        let buy = buys.find(b => b.sym === s.sym);
+        if (buy && parseFloat(s.pnl) < 0) {
+            let days = (parseDateTR(s.date) - parseDateTR(buy.date)) / (1000*60*60*24);
+            if (days < 3 && days >= 0) panicCount++;
+        }
+    });
+    score -= panicCount * 10;
+    
+    score = Math.max(0, Math.min(100, Math.round(score)));
+    
+    let label, color;
+    if (score <= 20) { label = 'Aşırı Korku'; color = '#ef4444'; }
+    else if (score <= 40) { label = 'Korku'; color = '#f97316'; }
+    else if (score <= 60) { label = 'Nötr'; color = '#eab308'; }
+    else if (score <= 80) { label = 'Açgözlü'; color = '#84cc16'; }
+    else { label = 'Aşırı Açgözlü'; color = '#10b981'; }
+    
+    return { score, label, color };
+}
+
+function renderNabiz() {
+    let data = calculateNabiz();
+    let scoreEl = document.getElementById('nabizScore');
+    let labelEl = document.getElementById('nabizLabel');
+    let needleEl = document.getElementById('nabizNeedle');
+    
+    if (scoreEl) { scoreEl.innerText = data.score; scoreEl.style.color = data.color; }
+    if (labelEl) { labelEl.innerText = data.label; labelEl.style.color = data.color; }
+    if (needleEl) needleEl.style.left = data.score + '%';
+}
+
+function detectPatterns() {
+    let history = JSON.parse(localStorage.getItem('tm_full_trade_history')) || [];
+    let sales = history.filter(t => t.type === 'SATIM');
+    let buys = history.filter(t => t.type === 'ALIM');
+    let patterns = [];
+    
+    if (history.length < 5) {
+        return [{ type: 'info', icon: 'fa-info-circle', title: 'Veri Bekleniyor', desc: 'En az 5 işlem gerekli' }];
+    }
+    
+    // Panik Satış
+    let panicCount = 0;
+    sales.forEach(s => {
+        let buy = buys.find(b => b.sym === s.sym);
+        if (buy && parseFloat(s.pnl) < 0) {
+            let days = (parseDateTR(s.date) - parseDateTR(buy.date)) / (1000*60*60*24);
+            if (days < 3 && days >= 0) panicCount++;
+        }
+    });
+    if (panicCount > 2) patterns.push({ type: 'danger', icon: 'fa-ghost', title: 'Panik Satış', desc: panicCount + ' kez erken sattın' });
+    
+    // FOMO
+    let fomo = 0;
+    buys.forEach(b => {
+        let prevSell = sales.find(s => s.sym === b.sym && parseDateTR(s.date) < parseDateTR(b.date));
+        if (prevSell && parseFloat(b.price) > parseFloat(prevSell.price) * 1.15) fomo++;
+    });
+    if (fomo > 1) patterns.push({ type: 'warning', icon: 'fa-fire', title: 'FOMO Alım', desc: fomo + ' kez yüksekten aldın' });
+    
+    // Win Rate
+    let winRate = sales.length > 0 ? (sales.filter(s => parseFloat(s.pnl) > 0).length / sales.length * 100) : 0;
+    if (winRate > 60 && sales.length >= 5) patterns.push({ type: 'success', icon: 'fa-trophy', title: 'Yüksek Başarı', desc: '%' + winRate.toFixed(0) + ' win rate' });
+    
+    if (patterns.length === 0) patterns.push({ type: 'info', icon: 'fa-check', title: 'Dengeli', desc: 'Belirgin pattern yok' });
+    
+    return patterns.slice(0, 3);
+}
+
+function renderPatterns() {
+    let patterns = detectPatterns();
+    let container = document.getElementById('patternCards');
+    if (!container) return;
+    
+    let colors = { danger: '#ef4444', warning: '#f59e0b', success: '#10b981', info: '#3b82f6' };
+    let html = patterns.map(p => `
+        <div style="background: ${colors[p.type]}10; border-left: 3px solid ${colors[p.type]}; border-radius: 8px; padding: 10px; display: flex; align-items: center; gap: 10px;">
+            <i class="fas ${p.icon}" style="color: ${colors[p.type]}; font-size: 14px;"></i>
+            <div>
+                <div style="font-size: 11px; font-weight: 700; color: #fff;">${p.title}</div>
+                <div style="font-size: 9px; color: #94a3b8;">${p.desc}</div>
+            </div>
+        </div>
+    `).join('');
+    container.innerHTML = html;
+}
+
+// ==========================================
+// 6. AI KOÇ RENDER FONKSİYONLARI
+// ==========================================
+function renderAICoach() {
+    let data = AIDataCollector.collectAll();
+    
+    // Veri sayısı
+    let dataCount = data.totalTrades + data.behavior.totalSessions + (data.behavior.searchHistory?.length || 0);
+    let dataCountEl = document.getElementById('aiDataCount');
+    if (dataCountEl) dataCountEl.innerText = dataCount + ' veri';
+    
+    // Ana mesaj
+    let messageEl = document.getElementById('aiCoachMessage');
+    if (messageEl) messageEl.innerHTML = AdvancedAICoach.generateMainMessage(data);
+    
+    // Profil özeti
+    let traderType = AdvancedAICoach.classifyTrader(data);
+    let risk = AdvancedAICoach.classifyRisk(data);
+    let focus = AdvancedAICoach.detectFocus(data);
+    let score = AdvancedAICoach.calculateScore(data);
+    
+    let typeEl = document.getElementById('aiTraderType');
+    let riskEl = document.getElementById('aiRiskLevel');
+    let focusEl = document.getElementById('aiFocusArea');
+    let scoreEl = document.getElementById('aiScore');
+    
+    if (typeEl) typeEl.innerText = traderType.emoji;
+    if (riskEl) { riskEl.innerText = risk.text; riskEl.style.color = risk.color; }
+    if (focusEl) { focusEl.innerText = focus.text; focusEl.style.color = focus.color; }
+    if (scoreEl) { 
+        scoreEl.innerText = score; 
+        scoreEl.style.color = score >= 60 ? '#10b981' : score >= 40 ? '#f59e0b' : '#ef4444';
+    }
+    
+    // Kullanım istatistikleri
+    let mostUsedEl = document.getElementById('statMostUsedFeature');
+    let mostSearchEl = document.getElementById('statMostSearched');
+    let timeSpentEl = document.getElementById('statTimeSpent');
+    
+    let pageNames = { portfolio: '💼', market: '📈', analysis: '🔬', news: '📰', settings: '⚙️' };
+    if (mostUsedEl) mostUsedEl.innerText = pageNames[data.behavior.topPage] || '📱';
+    if (mostSearchEl) mostSearchEl.innerText = data.behavior.topSearch || '-';
+    if (timeSpentEl) timeSpentEl.innerText = data.behavior.totalTimeMinutes + 'dk';
+}
+
+function runAIAnalysis(type) {
+    let data = AIDataCollector.collectAll();
+    let el = document.getElementById('aiCoachMessage');
+    if (!el) return;
+    
+    el.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="color:#64748b;"></i> <span style="color:#64748b;">Analiz ediliyor...</span>';
+    
+    setTimeout(() => {
+        let result = '';
+        switch(type) {
+            case 'strength': result = AdvancedAICoach.analyzeStrengths(data); break;
+            case 'weakness': result = AdvancedAICoach.analyzeWeaknesses(data); break;
+            case 'behavior': result = AdvancedAICoach.analyzeBehavior(data); break;
+            case 'advice': result = AdvancedAICoach.generateAdvice(data); break;
+            default: result = AdvancedAICoach.generateMainMessage(data);
+        }
+        el.innerHTML = result;
+    }, 400);
+}
+
+// ==========================================
+// 7. SEKME GEÇİŞ YÖNETİMİ
+// ==========================================
+const _origSwitchPsychoTab = window.switchPsychoTab;
+window.switchPsychoTab = function(tabName) {
+    document.querySelectorAll('.psycho-view').forEach(el => el.classList.remove('active'));
+    const target = document.getElementById(tabName);
+    if(target) target.classList.add('active');
+    
+    document.querySelectorAll('.p-tab-btn').forEach(btn => btn.classList.remove('active'));
+    if(event && event.currentTarget) event.currentTarget.classList.add('active');
+    
+    // Davranış takibi
+    BehaviorTracker.trackTabVisit('psycho_' + tabName);
+    
+    if (tabName === 'tab-karne') { renderNabiz(); renderPatterns(); }
+    if (tabName === 'tab-coach') renderAICoach();
+};
+
+// Sayfa yüklendiğinde
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => { 
+        renderNabiz(); 
+        renderPatterns(); 
+    }, 2500);
 });
 
 
