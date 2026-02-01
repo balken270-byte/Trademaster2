@@ -11526,7 +11526,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.3"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -11738,26 +11738,41 @@ function setSortMode(mode) {
     loadPF(false); 
 }
 
-/* --- SAYFA GEÇİŞ FONKSİYONU (YENİ TASARIM İÇİN GÜNCELLENDİ) --- */
+/* ==========================================================================
+   SAYFA YÖNETİM SİSTEMİ (GELİŞMİŞ RESET ÖZELLİKLİ)
+   ========================================================================== */
+
+let currentActivePage = 'portfolio';
+
+// Sayfa Değiştirme Fonksiyonu
 function switchPage(pageId, btn) {
+    // 1. AYNI BUTONA TIKLANIRSA: SIFIRLA (RESET)
+    if (pageId === currentActivePage) {
+        resetPageToInitialState(pageId);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return; // Sayfa değişim kodunu çalıştırma, sadece sıfırla
+    }
     
-    // 1. SAYFA GÖRÜNÜMÜNÜ SIFIRLA VE YENİSİNİ AÇ
+    // 2. AKTİF SAYFAYI GÜNCELLE
+    currentActivePage = pageId;
+    
+    // Tüm sayfaları gizle
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
         page.style.display = 'none'; 
     });
 
+    // Hedef sayfayı göster
     const targetPage = document.getElementById('page-' + pageId);
     if (targetPage) {
-        targetPage.style.display = 'flex'; // Flex yapısını koru
-        // Animasyonun tetiklenmesi için minik gecikme
+        targetPage.style.display = 'flex';
+        // Animasyon için minik gecikme
         setTimeout(() => targetPage.classList.add('active'), 10);
     }
 
-    // 2. ALT MENÜ BUTONLARINI GÜNCELLE
-    // Eğer buton parametresi gelmediyse (manuel çağrılarda), otomatik bul
+    // 3. ALT MENÜ BUTONLARINI GÜNCELLE
     if (!btn) {
-        // İlgili butonu bul (basit mantık: ikon veya sıraya göre)
+        // Manuel çağrılarda butonu bul
         const allBtns = document.querySelectorAll('.nav-item');
         if(pageId === 'portfolio') btn = allBtns[0];
         else if(pageId === 'market') btn = allBtns[1];
@@ -11769,76 +11784,129 @@ function switchPage(pageId, btn) {
     if (btn) {
         document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
         btn.classList.add('active');
-        
-        // Haptic Feedback (Titreşim - Mobil için)
         if(navigator.vibrate) navigator.vibrate(10);
     }
 
-    // 3. ARAYÜZ ELEMANLARINI YÖNET
+    // 4. ARAYÜZ YÖNETİMİ (TopBar vb.)
     manageUIElements(pageId);
 
-    // 4. SAYFAYA ÖZEL FONKSİYONLARI ÇALIŞTIR
+    // 5. SAYFAYA ÖZEL MANTIK
     runPageSpecificLogic(pageId);
 }
 
-/* --- YARDIMCI: ARAYÜZ YÖNETİCİSİ --- */
+// --- GELİŞMİŞ SIFIRLAMA FONKSİYONU ---
+function resetPageToInitialState(pageId) {
+    
+    // İşlem hissedilsin diye titreşim
+    if (navigator.vibrate) navigator.vibrate([10, 30, 10]);
+
+    switch(pageId) {
+        case 'portfolio':
+            // --- CÜZDAN SIFIRLAMA ---
+            // Dosyadaki TÜM Modal ve Overlay ID'lerini kapat
+            const modalsToClose = [
+                'portfolioModal', 'sellModal', 'cashModal', 'manualHistoryModal', 
+                'alarmModal', 'trashModal', 'salaryModal', 'feedbackModal'
+            ];
+            
+            modalsToClose.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+
+            // Varsa işlem kartını (tradeCard) kapat
+            const tradeCard = document.getElementById('tradeCard');
+            if (tradeCard) tradeCard.style.display = 'none';
+
+            // Cüzdan verilerini sessizce yenile
+            if(typeof loadPF === 'function') loadPF(false);
+            break;
+            
+        case 'settings':
+            // --- AYARLAR SIFIRLAMA ---
+            
+            // 1. Varsa 'closeSubPage' fonksiyonunu çalıştır (En temiz yöntem)
+            if (typeof closeSubPage === 'function') {
+                closeSubPage();
+            } else {
+                // Fonksiyon yoksa manuel kapat
+                const detailPage = document.getElementById('settings-detail');
+                const homePage = document.getElementById('settings-home');
+                if (detailPage) detailPage.style.display = 'none';
+                if (homePage) homePage.style.display = 'block';
+            }
+
+            // 2. Premium Modalı açıksa kapat
+            const premModal = document.getElementById('premiumModalOverlay');
+            if (premModal) premModal.style.display = 'none';
+            break;
+
+        case 'market':
+            // Piyasa: İlk kategoriye tıkla
+            const firstMktBtn = document.querySelector('.market-cat-btn');
+            if(firstMktBtn) firstMktBtn.click();
+            
+            // Aramayı temizle
+            const sInput = document.getElementById('smartSearchInput');
+            if(sInput) { sInput.value = ''; sInput.blur(); }
+            const sRes = document.getElementById('smartSearchResults');
+            if(sRes) sRes.style.display = 'none';
+            break;
+            
+        case 'analysis':
+            // Analiz: İlk sekmeye dön
+            const firstAnTab = document.querySelector('.s-tab');
+            if(firstAnTab) firstAnTab.click();
+            break;
+            
+        case 'news':
+            // Haberler: İlk kategoriye dön
+            const firstNewsBtn = document.querySelector('.news-cat-btn');
+            if(firstNewsBtn) firstNewsBtn.click();
+            break;
+    }
+}
+
+// Arayüz Elemanları Yönetimi
 function manageUIElements(pageId) {
     const topBar = document.querySelector('.top-bar');
     const backBtn = document.getElementById('manualBackBtn');
 
-    // A) Üst Bar Yönetimi (Haberler ve Ayarlar'da Gizle)
+    // Haberler ve Ayarlar'da üst barı gizle
     if (pageId === 'news' || pageId === 'settings') {
         if (topBar) topBar.style.display = 'none';
     } else {
         if (topBar) topBar.style.display = 'flex';
     }
 
-    // B) Geri Butonu Yönetimi (Sadece Cüzdan'da Gizle)
+    // Cüzdan ana sayfasında geri butonunu gizle
     if (backBtn) {
         backBtn.style.display = (pageId === 'portfolio') ? 'none' : 'flex';
     }
 }
 
-/* --- YARDIMCI: SAYFA MANTIK YÖNETİCİSİ --- */
+// Sayfa Özel Mantık Yürütücü
 function runPageSpecificLogic(pageId) {
-    // -- Önceki Haber Zamanlayıcısını Temizle --
     if (typeof newsInterval !== 'undefined') clearInterval(newsInterval);
 
     switch (pageId) {
         case 'portfolio':
-            if(typeof loadPF === 'function') loadPF(false); // Cüzdanı yenile
+            if(typeof loadPF === 'function') loadPF(false);
             break;
-
         case 'market':
-            if (!currentMarketTab) currentMarketTab = 'kripto';
-            if(typeof loadMarketCategory === 'function') loadMarketCategory(currentMarketTab);
+            if(typeof loadMarketCategory === 'function') loadMarketCategory('kripto'); // Varsayılan Kripto
             if(typeof startLiveUpdates === 'function') startLiveUpdates();
             break;
-
         case 'analysis':
-            // Eğer analiz sayfasında özel render fonksiyonları varsa çağır
-            if (typeof renderAnalyticsPage === 'function') renderAnalyticsPage();
-            
-            // Psikoloji sekmesi render hatasını düzelt
+            // Psikoloji sekmesi grafik hatası düzeltmesi
             const psychoTab = document.getElementById('an-view-psycho');
             if (psychoTab && psychoTab.classList.contains('active')) {
                 psychoTab.style.display = 'none';
                 setTimeout(() => { psychoTab.style.display = 'block'; }, 50);
             }
             break;
-
         case 'news':
-            const tl = document.getElementById('newsTimeline');
-            // İçerik boşsa sistemi başlat
-            if (tl && (tl.innerHTML.trim() === "" || tl.innerHTML.includes('Yükleniyor'))) {
-                if (typeof initNewsSystem === 'function') initNewsSystem();
-            } else {
-                if (typeof startNewsTimer === 'function') startNewsTimer();
-            }
-            break;
-
-        case 'notifications':
-            if(typeof renderNotifications === 'function') renderNotifications();
+            if(typeof initNewsSystem === 'function') initNewsSystem();
             break;
     }
 }
