@@ -9436,25 +9436,25 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 
-    
-
-            <div id="avg-manual-inputs" class="lab-form-grid">
+    <div id="avg-manual-inputs" class="lab-form-grid">
     <div class="lab-form-group">
         <label class="lab-form-label">Eldeki Adet</label>
         <input type="number" id="aaOldQty" class="lab-input" placeholder="0">
     </div>
-    <div class="lab-form-group">
+
+    <div class="lab-form-group" id="dynamic-cost-box">
         <label class="lab-form-label">Maliyetim</label>
         <input type="number" id="aaOldPrice" class="lab-input" placeholder="0.00">
     </div>
-    <div class="lab-form-group full">
+
+    <div class="lab-form-group full" id="current-price-box">
         <label class="lab-form-label">Şu Anki Piyasa Fiyatı</label>
         <input type="number" id="aaCurPrice" class="lab-input" placeholder="Güncel fiyat">
     </div>
 </div>
 
-<hr style="border: 0; border-top: 1px solid var(--lab-glass-border); margin: 16px 0;">
 
+            
             <!-- Budget Mode -->
             <div id="avg-mode-budget">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -11760,7 +11760,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.3"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -15029,29 +15029,50 @@ function exportComprehensiveReport() {
     function renderTradingView(symbol) { let container = document.getElementById('tradingview_container'); if(container) { container.innerHTML = ""; new TradingView.widget({ "autosize": true, "symbol": symbol, "interval": "D", "timezone": "Etc/UTC", "theme": "dark", "style": "1", "locale": "tr", "toolbar_bg": "#f1f3f6", "enable_publishing": false, "hide_top_toolbar": true, "container_id": "tradingview_container" }); } }
     
     
-    // --- EKSİK OLAN MALİYET MODU GEÇİŞ FONKSİYONU ---
-function switchAvgMode(mode, btn) {
-    // 1. Görsel: Tüm butonların aktifliğini kaldır, tıklanana ekle
-    if (btn && btn.parentElement) {
-        const siblings = btn.parentElement.children;
-        for (let i = 0; i < siblings.length; i++) {
-            siblings[i].classList.remove('active');
-        }
-        btn.classList.add('active');
+// --- KESİN VE NİHAİ ÇÖZÜM: AI MODUNDA MALİYETİ GİZLEME ---
+window.switchAvgMode = function(mode, clickedBtn) {
+    // --- 1. BUTON GÖRÜNÜMÜ (Active Class) ---
+    // Butonları HTML'de iki ayrı kutuya ayırdığımız için,
+    // sayfadaki tüm sekmeleri bulup ışıklarını söndürüyoruz.
+    var allTabs = document.querySelectorAll('.sim-tab');
+    for (var k = 0; k < allTabs.length; k++) {
+        allTabs[k].classList.remove('active');
+    }
+    
+    // Sadece tıklananı yakıyoruz
+    if (clickedBtn) {
+        clickedBtn.classList.add('active');
     }
 
-    // 2. İşlev: İlgili paneli göster, diğerini gizle
-    const budgetPanel = document.getElementById('avg-mode-budget');
-    const targetPanel = document.getElementById('avg-mode-target');
+    // --- 2. GİRİŞ KUTULARINI GİZLEME/AÇMA ---
+    var costBox = document.getElementById('dynamic-cost-box');       // Maliyet Kutusu
+    var currentBox = document.getElementById('current-price-box');   // Güncel Fiyat Kutusu (ID eklemeyi unutma!)
 
-    if (mode === 'budget') {
-        if(budgetPanel) budgetPanel.style.display = 'block';
-        if(targetPanel) targetPanel.style.display = 'none';
-    } else if (mode === 'target') {
-        if(budgetPanel) budgetPanel.style.display = 'none';
-        if(targetPanel) targetPanel.style.display = 'block';
+    if (mode === 'auto') {
+        // AI Modunda: İkisini de GİZLE
+        if (costBox) costBox.style.display = 'none';
+        if (currentBox) currentBox.style.display = 'none';
+    } else {
+        // Bütçe veya Hedef Modunda: İkisini de GÖSTER
+        if (costBox) costBox.style.display = 'block';
+        if (currentBox) currentBox.style.display = 'block';
     }
-}
+
+    // --- 3. SONUÇ PANELLERİNİ DEĞİŞTİRME ---
+    // Bütün panelleri gizle
+    var panels = ['avg-mode-budget', 'avg-mode-target', 'avg-mode-auto'];
+    for (var i = 0; i < panels.length; i++) {
+        var p = document.getElementById(panels[i]);
+        if (p) p.style.display = 'none';
+    }
+    
+    // Sadece seçili olan paneli aç
+    var targetPanel = document.getElementById('avg-mode-' + mode);
+    if (targetPanel) {
+        targetPanel.style.display = 'block';
+    }
+};
+
 
 
     initApp();
@@ -20755,99 +20776,150 @@ window.switchAvgMode = function(mode, btn) {
 };
 
 
-// --- VARLIK KIYASLAMA MOTORU (PROFESYONEL V3) ---
+// --- VARLIK KIYASLAMA MOTORU (FİNAL - GARANTİLİ) ---
 const CompareApp = {
     baseAsset: null, targetAsset: null, allAssets: [],
 
-    // Veri ve Logo İşleme
+    // 1. VERİLERİ ÇEK VE HAZIRLA
     getProcessedAssets: function() {
+        // Cüzdan verisini olduğu gibi al
         const rawAssets = JSON.parse(localStorage.getItem('myPF_final')) || [];
         const settings = JSON.parse(localStorage.getItem('tm_settings')) || { currency: 'TRY' };
+        
+        // Kur bilgisi (Yoksa varsayılan)
         const currentUsd = (typeof window.usdTryRate !== 'undefined') ? window.usdTryRate : 36.50;
         const myCurr = settings.currency;
 
         return rawAssets.map(a => {
-            let price = (a.curr && a.curr > 0) ? a.curr : a.buy;
+            // --- Fiyat Hesaplamaları ---
+            let price = (a.curr && a.curr > 0) ? parseFloat(a.curr) : parseFloat(a.buy);
+            let buyPrice = parseFloat(a.buy);
+            let amount = parseFloat(a.amt);
+
             let dVal = 0, dCost = 0;
 
-            if(myCurr === 'TRY') {
-                dVal = (a.origin === 'USD') ? price * a.amt * currentUsd : price * a.amt;
-                dCost = (a.origin === 'USD') ? a.buy * a.amt * currentUsd : a.buy * a.amt;
-            } else {
-                dVal = (a.origin === 'TRY') ? (price * a.amt) / currentUsd : price * a.amt;
-                dCost = (a.origin === 'TRY') ? (a.buy * a.amt) / currentUsd : a.buy * a.amt;
+            if (myCurr === 'TRY') {
+                if (a.origin === 'USD' || a.origin === 'USDT') {
+                    dVal = price * amount * currentUsd;
+                    dCost = buyPrice * amount * currentUsd;
+                } else {
+                    dVal = price * amount;
+                    dCost = buyPrice * amount;
+                }
+            } else { 
+                if (a.origin === 'TRY' || (a.name && a.name.includes('.IS'))) {
+                    dVal = (price * amount) / currentUsd;
+                    dCost = (buyPrice * amount) / currentUsd;
+                } else {
+                    dVal = price * amount;
+                    dCost = buyPrice * amount;
+                }
             }
 
             let pnl = dVal - dCost;
             let roi = (dCost > 0) ? (pnl / dCost) * 100 : 0;
             
-            // Logo Bulucu
-            let cleanSym = a.name.replace('.IS','').replace('TRY','').replace('USDT','').trim().toLowerCase();
-            let logoUrl = `https://assets.coincap.io/assets/icons/${cleanSym}@2x.png`;
-            // Varsa kendi logosunu, yoksa internetten, o da yoksa placeholder kullan
-            let logoImg = a.logo ? a.logo : `<img src="${logoUrl}" onerror="this.src='https://via.placeholder.com/80/1e293b/ffffff?text=${cleanSym.toUpperCase()}'" alt="${cleanSym}">`;
+            // --- SEMBOL VE LOGO MANTIĞI (BASİT VE NET) ---
+            
+            // Sembol: Varsa 'symbol', yoksa 'name'
+            let finalSymbol = a.symbol ? a.symbol : a.name;
+            // Temizlik (BIST veya USDT uzantılarını kaldır)
+            let cleanSymbol = finalSymbol.replace('.IS', '').replace('USDT', '').toUpperCase();
+            
+            let logoHtml = '';
+
+            // 1. LOGO VARSA: Olduğu gibi kullan (HTML veya Link)
+            if (a.logo && a.logo.length > 5) {
+                // Eğer HTML kodu ise (örn: <i class...>)
+                if (a.logo.includes('<')) {
+                    logoHtml = `<div style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 24px; background:rgba(255,255,255,0.05); border-radius:50%;">${a.logo}</div>`;
+                } 
+                // Eğer Link ise (http...)
+                else {
+                    logoHtml = `<img src="${a.logo}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.1);" onerror="this.style.display='none'">`;
+                }
+            } 
+            // 2. LOGO YOKSA: Harf Kutusu Yap
+            else {
+                let hash = 0;
+                for (let i = 0; i < cleanSymbol.length; i++) hash = cleanSymbol.charCodeAt(i) + ((hash << 5) - hash);
+                let hue = Math.abs(hash % 360); 
+                logoHtml = `<div style="width: 50px; height: 50px; background: linear-gradient(135deg, hsl(${hue}, 60%, 50%), hsl(${hue}, 70%, 30%)); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; border-radius: 12px;">${cleanSymbol.substring(0, 3)}</div>`;
+            }
 
             return {
-                name: a.name, symbol: cleanSym.toUpperCase(),
-                logo: logoImg, val: dVal, cost: dCost, roi: roi
+                name: a.name,           
+                symbol: cleanSymbol,    
+                logo: logoHtml,         
+                val: dVal,
+                cost: dCost,
+                roi: roi
             };
         });
     },
 
+    // 2. MODAL AÇMA
     open: function(symbolName) {
-        document.getElementById('compareModalOverlay').style.display = 'flex';
+        let overlay = document.getElementById('compareModalOverlay');
+        if(overlay) overlay.style.display = 'flex';
+        
+        // Verileri Taze Çek
         this.allAssets = this.getProcessedAssets();
-        this.baseAsset = this.allAssets.find(a => a.name === symbolName);
         
-        if(!this.baseAsset) { alert("Varlık verisi okunamadı."); this.close(); return; }
+        // Seçilen varlığı bul (İsme veya Sembole göre)
+        this.baseAsset = this.allAssets.find(a => a.name === symbolName || a.symbol === symbolName);
         
-        // Sol Tarafı Doldur
+        if(!this.baseAsset) { 
+            alert("Varlık verisi bulunamadı!"); 
+            this.close(); 
+            return; 
+        }
+        
+        // SOL Tarafı Doldur
         document.getElementById('p1_symbol').innerText = this.baseAsset.symbol;
         document.getElementById('p1_logo_box').innerHTML = this.baseAsset.logo;
 
+        // SAĞ Taraf Listesini Hazırla
         this.populateDropdown();
         this.resetBars();
         
-        // Sağ Tarafı Sıfırla
-        const p2Box = document.getElementById('p2_logo_box');
-        p2Box.innerHTML = '<i class="fas fa-question" style="font-size:30px; opacity:0.5;"></i>';
-        p2Box.classList.add('placeholder');
-        p2Box.classList.remove('active-right');
+        // Sağ tarafı sıfırla
+        document.getElementById('p2_logo_box').innerHTML = '<i class="fas fa-question" style="font-size:30px; opacity:0.5;"></i>';
+        document.getElementById('p2_logo_box').classList.add('placeholder');
     },
 
     close: function() {
         document.getElementById('compareModalOverlay').style.display = 'none';
     },
 
+    // 3. RAKİP LİSTESİ
     populateDropdown: function() {
         const select = document.getElementById('p2_select');
         select.innerHTML = '<option value="">Rakip Seç...</option>';
+        
         this.allAssets.forEach((asset, index) => {
             if(asset.name !== this.baseAsset.name) {
-                const opt = document.createElement('option');
-                opt.value = index; opt.innerText = asset.symbol;
+                let opt = document.createElement('option');
+                opt.value = index; 
+                opt.innerText = asset.symbol;
                 select.appendChild(opt);
             }
         });
     },
 
+    // 4. SEÇİM DEĞİŞİNCE
     updateComparison: function() {
         const select = document.getElementById('p2_select');
         const idx = select.value;
-        const p2Box = document.getElementById('p2_logo_box');
-
+        
         if(idx === "") {
-            p2Box.innerHTML = '<i class="fas fa-question" style="font-size:30px; opacity:0.5;"></i>';
-            p2Box.classList.add('placeholder');
-            p2Box.classList.remove('active-right');
             this.resetBars();
             return;
         }
         
         this.targetAsset = this.allAssets[idx];
-        p2Box.innerHTML = this.targetAsset.logo;
-        p2Box.classList.remove('placeholder');
-        p2Box.classList.add('active-right');
+        document.getElementById('p2_logo_box').innerHTML = this.targetAsset.logo;
+        document.getElementById('p2_logo_box').classList.remove('placeholder');
         
         this.calculateAndDraw();
     },
@@ -20863,56 +20935,56 @@ const CompareApp = {
     },
 
     calculateAndDraw: function() {
-        const a1 = this.baseAsset; const a2 = this.targetAsset;
-        const currencySym = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY') ? '₺' : '$';
+        const a1 = this.baseAsset; 
+        const a2 = this.targetAsset;
+        const sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY') ? '₺' : '$';
 
         this.setBar('roi', a1.roi, a2.roi, '%');
-        this.setBar('val', a1.val, a2.val, currencySym);
-        this.setBar('cost', a1.cost, a2.cost, currencySym);
+        this.setBar('val', a1.val, a2.val, sym);
+        this.setBar('cost', a1.cost, a2.cost, sym);
 
-        let score1 = 0; let score2 = 0;
-        if(a1.roi > a2.roi) score1++; else score2++;
-        if(a1.val > a2.val) score1++; else score2++;
-        if(a1.cost > a2.cost) score1++; else score2++;
+        // KAZANANI BELİRLE
+        let s1 = 0, s2 = 0;
+        if(a1.roi > a2.roi) s1++; else s2++;
+        if(a1.val > a2.val) s1++; else s2++;
+        if(a1.cost > a2.cost) s1++; else s2++;
 
-        const winSection = document.getElementById('winner_section');
+        const winSec = document.getElementById('winner_section');
         const wName = document.getElementById('winner_name');
         
-        winSection.style.display = 'flex';
-        winSection.classList.remove('blue-win', 'orange-win');
+        winSec.style.display = 'flex';
+        winSec.classList.remove('blue-win', 'orange-win');
         
-        if(score1 > score2) {
+        if(s1 > s2) {
             wName.innerText = a1.symbol + " KAZANDI!";
-            winSection.classList.add('blue-win');
+            winSec.classList.add('blue-win');
         } else {
             wName.innerText = a2.symbol + " KAZANDI!";
-            winSection.classList.add('orange-win');
+            winSec.classList.add('orange-win');
         }
     },
 
     setBar: function(type, v1, v2, suffix) {
-        let abs1 = Math.abs(v1); let abs2 = Math.abs(v2);
-        if(abs1 === 0 && abs2 === 0) { abs1 = 1; abs2 = 1; }
-        const total = abs1 + abs2;
-        const p1 = (abs1 / total) * 100;
-        const p2 = (abs2 / total) * 100;
-
-        // Barın çok küçülmesini engelle (min %10)
-        const finalP1 = Math.max(p1, 10);
-        const finalP2 = Math.max(p2, 10);
-        const normTotal = finalP1 + finalP2;
+        let total = Math.abs(v1) + Math.abs(v2);
+        if(total === 0) total = 1;
         
-        // Genişlikleri ayarla (aradaki çizgi için %1 pay bırak)
-        document.getElementById(`bar_${type}_1`).style.width = `${(finalP1/normTotal)*99}%`;
-        document.getElementById(`bar_${type}_2`).style.width = `${(finalP2/normTotal)*99}%`;
+        let p1 = Math.max((Math.abs(v1) / total) * 100, 10); // Min %10
+        let p2 = Math.max((Math.abs(v2) / total) * 100, 10);
+        
+        // 100'e tamamla
+        let scale = 100 / (p1 + p2);
+        p1 *= scale; p2 *= scale;
+
+        document.getElementById(`bar_${type}_1`).style.width = (p1 - 2) + '%';
+        document.getElementById(`bar_${type}_2`).style.width = (p2 - 2) + '%';
 
         let t1 = v1.toLocaleString(undefined, {maximumFractionDigits: 1});
         let t2 = v2.toLocaleString(undefined, {maximumFractionDigits: 1});
+        
         document.getElementById(`val_${type}_1`).innerText = suffix === '%' ? t1 + suffix : suffix + t1;
         document.getElementById(`val_${type}_2`).innerText = suffix === '%' ? t2 + suffix : suffix + t2;
     }
 };
-
 
 
 </script>
