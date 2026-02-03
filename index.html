@@ -3270,6 +3270,146 @@ input[type=range]#aaBudgetSlider::-webkit-slider-thumb {
 input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
     transform: scale(1.3);
 }
+/* === TRADEVIA ELITE THEME === */
+:root {
+    --neon-cyan: #06b6d4;
+    --neon-purple: #8b5cf6;
+    --neon-orange: #f97316;
+    --glass-bg: rgba(15, 23, 42, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+.elite-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    z-index: 99999; display: none;
+    align-items: center; justify-content: center;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.elite-modal {
+    position: relative; width: 92%; max-width: 440px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 30px; padding: 25px;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.05), 0 40px 80px -20px rgba(0,0,0,1);
+    overflow: hidden;
+}
+
+/* Ambient Lights */
+.ambient-light { position: absolute; width: 250px; height: 250px; border-radius: 50%; filter: blur(90px); opacity: 0.2; z-index: -1; }
+.cyan-light { top: -100px; left: -100px; background: var(--neon-cyan); }
+.purple-light { bottom: -100px; right: -100px; background: var(--neon-purple); }
+.grid-pattern {
+    position: absolute; top:0; left:0; width:100%; height:100%; z-index: -1; opacity: 0.05;
+    background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+/* Header */
+.elite-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+.header-title { display: flex; flex-direction: column; }
+.title-badge { font-size: 9px; font-weight: 900; color: var(--neon-cyan); letter-spacing: 2px; text-transform: uppercase; }
+.app-name { font-size: 20px; font-weight: 800; color: white; letter-spacing: 0.5px; background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
+
+.elite-close-btn {
+    width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.03); color: white; cursor: pointer; transition: all 0.2s;
+}
+.elite-close-btn:hover { background: rgba(255,255,255,0.1); transform: rotate(90deg); }
+
+/* Showdown Arena */
+.showdown-arena { display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; position: relative; }
+
+.fighter-card {
+    width: 110px; height: 140px; position: relative;
+    background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+    border: 1px solid var(--glass-border); border-radius: 20px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.fighter-glow { position: absolute; inset: 0; border-radius: 20px; opacity: 0; transition: 0.3s; z-index: 0; box-shadow: 0 0 20px currentColor; }
+.fighter-card.active-card .fighter-glow.blue { opacity: 0.2; color: var(--neon-cyan); }
+.fighter-card.active-card .fighter-glow.orange { opacity: 0.2; color: var(--neon-purple); }
+.fighter-card:active { transform: scale(0.95); }
+
+.fighter-content { z-index: 2; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+
+.logo-holster {
+    width: 55px; height: 55px; border-radius: 16px; background: #0f172a;
+    border: 2px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center;
+    overflow: hidden; box-shadow: 0 8px 16px rgba(0,0,0,0.3); transition: 0.3s;
+}
+.logo-holster img { width: 100%; height: 100%; object-fit: cover; }
+.logo-holster.placeholder { border-style: dashed; color: #64748b; font-size: 18px; }
+
+.fighter-id { text-align: center; }
+.fighter-id .symbol { display: block; font-size: 16px; font-weight: 800; color: white; }
+.fighter-id .role { font-size: 8px; font-weight: 700; color: var(--neon-cyan); letter-spacing: 1px; }
+
+/* VS Core */
+.vs-core { width: 50px; height: 50px; position: relative; display: flex; align-items: center; justify-content: center; }
+.vs-ring {
+    position: absolute; width: 100%; height: 100%; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.1); border-top-color: white; border-bottom-color: white;
+    animation: spin 3s linear infinite; box-shadow: 0 0 15px rgba(255,255,255,0.1);
+}
+.vs-text { font-weight: 900; font-style: italic; font-size: 14px; color: white; }
+
+/* Selector */
+.fighter-selector { position: relative; width: 90%; }
+.fighter-selector select {
+    position: absolute; top:0; left:0; width:100%; height:100%; opacity: 0; cursor: pointer;
+}
+.selector-label {
+    font-size: 10px; font-weight: 700; color: #94a3b8; background: rgba(0,0,0,0.3);
+    padding: 6px 10px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Cyber Stats */
+.cyber-stats { display: flex; flex-direction: column; gap: 20px; }
+.cyber-label { font-size: 10px; font-weight: 700; color: #64748b; letter-spacing: 1px; margin-bottom: 8px; }
+
+.cyber-bar-container { position: relative; height: 36px; display: flex; align-items: flex-end; }
+.val-float { position: absolute; top: 0; font-size: 12px; font-weight: 800; }
+.val-float.left { left: 0; color: var(--neon-cyan); }
+.val-float.right { right: 0; color: var(--neon-purple); }
+
+.energy-track {
+    width: 100%; height: 10px; background: rgba(255,255,255,0.03); border-radius: 5px;
+    display: flex; align-items: center; padding: 2px; border: 1px solid rgba(255,255,255,0.05);
+    position: relative; overflow: hidden;
+}
+.energy-beam { height: 100%; border-radius: 3px; transition: width 0.8s cubic-bezier(0.25, 1, 0.5, 1); position: relative; }
+.energy-beam.cyan { background: var(--neon-cyan); box-shadow: 0 0 12px var(--neon-cyan); }
+.energy-beam.purple { background: var(--neon-purple); box-shadow: 0 0 12px var(--neon-purple); }
+.energy-beam::after {
+    content: ''; position: absolute; top:0; left:0; width:100%; height:100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+    transform: translateX(-100%); animation: shimmer 2s infinite;
+}
+
+/* Victory Modal */
+.victory-modal {
+    position: absolute; bottom: 25px; left: 0; width: 100%; display: flex; justify-content: center;
+    animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.victory-content {
+    background: rgba(15, 23, 42, 0.95); border: 1px solid #10b981;
+    padding: 10px 25px; border-radius: 50px; display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4);
+}
+.victory-icon { color: #10b981; font-size: 18px; }
+.victory-text .v-label { font-size: 8px; color: #10b981; font-weight: 800; letter-spacing: 1px; }
+.victory-text .v-name { font-size: 14px; font-weight: 900; color: white; }
+
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+@keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
 
 </style>
 
@@ -11436,6 +11576,122 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
     </div>
 </div>
 
+
+<div class="elite-overlay" id="compareModalOverlay">
+    <div class="elite-modal">
+        
+        <div class="ambient-light cyan-light"></div>
+        <div class="ambient-light purple-light"></div>
+        <div class="grid-pattern"></div>
+
+        <div class="elite-header">
+            <div class="header-title">
+                <span class="title-badge">PVP MODE</span>
+                <span class="app-name">VARLIK SAVAŞI</span>
+            </div>
+            <button onclick="CompareApp.close()" class="elite-close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="showdown-arena">
+            
+            <div class="fighter-card left-fighter">
+                <div class="fighter-glow blue"></div>
+                <div class="fighter-content">
+                    <div class="logo-holster" id="p1_logo_box">
+                        </div>
+                    <div class="fighter-id">
+                        <span class="symbol" id="p1_symbol">BTC</span>
+                        <span class="role">CHALLENGER</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="vs-core">
+                <div class="vs-ring"></div>
+                <div class="vs-text">VS</div>
+            </div>
+
+            <div class="fighter-card right-fighter">
+                <div class="fighter-glow orange"></div>
+                <div class="fighter-content">
+                    <div class="logo-holster placeholder" id="p2_logo_box">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    
+                    <div class="fighter-selector">
+                        <select id="p2_select" onchange="CompareApp.updateComparison()">
+                            <option value="">Rakip Seç</option>
+                        </select>
+                        <div class="selector-label">
+                            <span id="p2_label">RAKİP SEÇ</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cyber-stats">
+            
+            <div class="cyber-row">
+                <div class="cyber-label">KÂRLILIK ORANI (ROI)</div>
+                <div class="cyber-bar-container">
+                    <div class="val-float left" id="val_roi_1">---</div>
+                    <div class="val-float right" id="val_roi_2">---</div>
+                    
+                    <div class="energy-track">
+                        <div id="bar_roi_1" class="energy-beam cyan"></div>
+                        <div class="energy-void"></div>
+                        <div id="bar_roi_2" class="energy-beam purple"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cyber-row">
+                <div class="cyber-label">PORTFÖY DEĞERİ</div>
+                <div class="cyber-bar-container">
+                    <div class="val-float left" id="val_val_1">---</div>
+                    <div class="val-float right" id="val_val_2">---</div>
+
+                    <div class="energy-track">
+                        <div id="bar_val_1" class="energy-beam cyan"></div>
+                        <div class="energy-void"></div>
+                        <div id="bar_val_2" class="energy-beam purple"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cyber-row">
+                <div class="cyber-label">TOPLAM MALİYET</div>
+                <div class="cyber-bar-container">
+                    <div class="val-float left" id="val_cost_1">---</div>
+                    <div class="val-float right" id="val_cost_2">---</div>
+
+                    <div class="energy-track">
+                        <div id="bar_cost_1" class="energy-beam cyan"></div>
+                        <div class="energy-void"></div>
+                        <div id="bar_cost_2" class="energy-beam purple"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="winner_section" class="victory-modal" style="display:none;">
+            <div class="victory-content">
+                <div class="victory-icon"><i class="fas fa-crown"></i></div>
+                <div class="victory-text">
+                    <div class="v-label">KAZANAN</div>
+                    <div class="v-name" id="winner_name">BITCOIN</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
 </body>
 
 
@@ -11504,7 +11760,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -12370,13 +12626,54 @@ function renderPortfolioHTML(as) {
         
         // ----------------------------------
 
-        htmlBuilder += `<div class="${cardColorClass}" id="card_bg_${a.originalIndex}"><div class="asset-header collapsible-header" onclick="toggleAssetDetails(${a.originalIndex})"><div class="asset-left">${logoHtml}<div><span class="asset-name">${a.name.replace('.IS','')}${sourceBadge}</span><div class="asset-meta">${a.amt} Adet</div></div></div><div style="display:flex; align-items:center; gap:10px;"><div class="asset-pnl ${cls}" id="live_pnl_badge_${a.originalIndex}">${percentBadge}${sym}<span id="live_pnl_val_${a.originalIndex}">${a.pnl.toFixed(0)}</span></div><i id="asset-chevron-${a.originalIndex}" class="fas fa-chevron-down rotate-icon" style="font-size:12px; color:var(--text-sub);"></i></div></div><div id="asset-content-${a.originalIndex}" class="collapsible-content collapsed"><div class="asset-body-content"><div class="asset-details-grid"><div class="detail-item"><span class="detail-label">Ortalama</span><span class="detail-val">${a.buy.toFixed(2)} ${a.origin==='USD'?'$':'₺'}</span></div><div class="detail-item" style="text-align:right;"><span class="detail-label">Güncel</span><span class="detail-val accent">${priceUnit}</span></div><div class="detail-item"><span class="detail-label">Maliyet</span><span class="detail-val">${sym}${a.dCost.toFixed(0)}</span></div><div class="detail-item" style="text-align:right;"><span class="detail-label">Toplam Değer</span><span class="detail-val" id="live_total_val_${a.originalIndex}">${sym}${a.dVal.toFixed(0)}</span></div></div>${a.note ? `<div class="asset-note"><i class="fas fa-sticky-note"></i> ${a.note}</div>` : ''}<div class="asset-footer"><button class="tool-btn" onclick="toggleAssetChart('${a.name}', '${chartId}', this)"><i class="fas fa-chart-area"></i></button><button class="tool-btn ${a.alarm?'active-alarm':''}" onclick="openAlarmModal(${a.originalIndex})"><i class="fas fa-bell"></i></button><button class="tool-btn active-sim" onclick="openSimulator(${a.originalIndex})"><i class="fas fa-magic"></i></button><button class="tool-btn" onclick="editNote(${a.originalIndex})"><i class="fas fa-edit"></i></button><button class="tool-btn" onclick="openSell(${a.originalIndex})"><i class="fas fa-coins"></i></button><button class="tool-btn" onclick="delAsset(${a.originalIndex})"><i class="fas fa-trash"></i></button></div><div id="${chartId}" class="asset-mini-chart"></div></div></div></div>`; 
-    });
-    
-    l.innerHTML = htmlBuilder;
-    updateHeaderTotals(totalVal, totalUnrealizedPnL, chartData);
-    checkAllAlarms();
+            htmlBuilder += `<div class="${cardColorClass}" id="card_bg_${a.originalIndex}">
+        <div class="asset-header collapsible-header" onclick="toggleAssetDetails(${a.originalIndex})">
+            <div class="asset-left">
+                ${logoHtml}
+                <div>
+                    <span class="asset-name">${a.name.replace('.IS','')}${sourceBadge}</span>
+                    <div class="asset-meta">${a.amt} Adet</div>
+                </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div class="asset-pnl ${cls}" id="live_pnl_badge_${a.originalIndex}">${percentBadge}${sym}<span id="live_pnl_val_${a.originalIndex}">${a.pnl.toFixed(0)}</span></div>
+                <i id="asset-chevron-${a.originalIndex}" class="fas fa-chevron-down rotate-icon" style="font-size:12px; color:var(--text-sub);"></i>
+            </div>
+        </div>
+        <div id="asset-content-${a.originalIndex}" class="collapsible-content collapsed">
+            <div class="asset-body-content">
+                <div class="asset-details-grid">
+                    <div class="detail-item"><span class="detail-label">Ortalama</span><span class="detail-val">${a.buy.toFixed(2)} ${a.origin==='USD'?'$':'₺'}</span></div>
+                    <div class="detail-item" style="text-align:right;"><span class="detail-label">Güncel</span><span class="detail-val accent">${priceUnit}</span></div>
+                    <div class="detail-item"><span class="detail-label">Maliyet</span><span class="detail-val">${sym}${a.dCost.toFixed(0)}</span></div>
+                    <div class="detail-item" style="text-align:right;"><span class="detail-label">Toplam Değer</span><span class="detail-val" id="live_total_val_${a.originalIndex}">${sym}${a.dVal.toFixed(0)}</span></div>
+                </div>
+                ${a.note ? `<div class="asset-note"><i class="fas fa-sticky-note"></i> ${a.note}</div>` : ''}
+                
+                <div class="asset-footer">
+                    <button class="tool-btn" onclick="toggleAssetChart('${a.name}', '${chartId}', this)"><i class="fas fa-chart-area"></i></button>
+                    <button class="tool-btn ${a.alarm?'active-alarm':''}" onclick="openAlarmModal(${a.originalIndex})"><i class="fas fa-bell"></i></button>
+                    <button class="tool-btn active-sim" onclick="openSimulator(${a.originalIndex})"><i class="fas fa-magic"></i></button>
+                    
+                    <button class="tool-btn" onclick="CompareApp.open('${a.name}', '${a.name}')"><i class="fas fa-balance-scale"></i></button>
+                    <button class="tool-btn" onclick="editNote(${a.originalIndex})"><i class="fas fa-edit"></i></button>
+                    <button class="tool-btn" onclick="openSell(${a.originalIndex})"><i class="fas fa-coins"></i></button>
+                    <button class="tool-btn" onclick="delAsset(${a.originalIndex})"><i class="fas fa-trash"></i></button>
+                </div>
+                
+                <div id="${chartId}" class="asset-mini-chart"></div>
+            </div>
+        </div>
+    </div>`; 
+});
+
+// Eğer değişken ismin HtmlBuilder ise burayı da HtmlBuilder yapmalısın.
+// Senin attığın kodda atama kısmı "htmlBuilder" (küçük harf) idi, dikkat et.
+l.innerHTML = htmlBuilder; 
+updateHeaderTotals(totalVal, totalUnrealizedPnL, chartData);
+checkAllAlarms();
 }
+
 
 
     function updateHeaderTotals(totalVal, totalUnrealizedPnL, chartData) {
@@ -20456,6 +20753,167 @@ window.switchAvgMode = function(mode, btn) {
         console.error("Tab değiştirme hatası:", err);
     }
 };
+
+
+// --- VARLIK KIYASLAMA MOTORU (PROFESYONEL V3) ---
+const CompareApp = {
+    baseAsset: null, targetAsset: null, allAssets: [],
+
+    // Veri ve Logo İşleme
+    getProcessedAssets: function() {
+        const rawAssets = JSON.parse(localStorage.getItem('myPF_final')) || [];
+        const settings = JSON.parse(localStorage.getItem('tm_settings')) || { currency: 'TRY' };
+        const currentUsd = (typeof window.usdTryRate !== 'undefined') ? window.usdTryRate : 36.50;
+        const myCurr = settings.currency;
+
+        return rawAssets.map(a => {
+            let price = (a.curr && a.curr > 0) ? a.curr : a.buy;
+            let dVal = 0, dCost = 0;
+
+            if(myCurr === 'TRY') {
+                dVal = (a.origin === 'USD') ? price * a.amt * currentUsd : price * a.amt;
+                dCost = (a.origin === 'USD') ? a.buy * a.amt * currentUsd : a.buy * a.amt;
+            } else {
+                dVal = (a.origin === 'TRY') ? (price * a.amt) / currentUsd : price * a.amt;
+                dCost = (a.origin === 'TRY') ? (a.buy * a.amt) / currentUsd : a.buy * a.amt;
+            }
+
+            let pnl = dVal - dCost;
+            let roi = (dCost > 0) ? (pnl / dCost) * 100 : 0;
+            
+            // Logo Bulucu
+            let cleanSym = a.name.replace('.IS','').replace('TRY','').replace('USDT','').trim().toLowerCase();
+            let logoUrl = `https://assets.coincap.io/assets/icons/${cleanSym}@2x.png`;
+            // Varsa kendi logosunu, yoksa internetten, o da yoksa placeholder kullan
+            let logoImg = a.logo ? a.logo : `<img src="${logoUrl}" onerror="this.src='https://via.placeholder.com/80/1e293b/ffffff?text=${cleanSym.toUpperCase()}'" alt="${cleanSym}">`;
+
+            return {
+                name: a.name, symbol: cleanSym.toUpperCase(),
+                logo: logoImg, val: dVal, cost: dCost, roi: roi
+            };
+        });
+    },
+
+    open: function(symbolName) {
+        document.getElementById('compareModalOverlay').style.display = 'flex';
+        this.allAssets = this.getProcessedAssets();
+        this.baseAsset = this.allAssets.find(a => a.name === symbolName);
+        
+        if(!this.baseAsset) { alert("Varlık verisi okunamadı."); this.close(); return; }
+        
+        // Sol Tarafı Doldur
+        document.getElementById('p1_symbol').innerText = this.baseAsset.symbol;
+        document.getElementById('p1_logo_box').innerHTML = this.baseAsset.logo;
+
+        this.populateDropdown();
+        this.resetBars();
+        
+        // Sağ Tarafı Sıfırla
+        const p2Box = document.getElementById('p2_logo_box');
+        p2Box.innerHTML = '<i class="fas fa-question" style="font-size:30px; opacity:0.5;"></i>';
+        p2Box.classList.add('placeholder');
+        p2Box.classList.remove('active-right');
+    },
+
+    close: function() {
+        document.getElementById('compareModalOverlay').style.display = 'none';
+    },
+
+    populateDropdown: function() {
+        const select = document.getElementById('p2_select');
+        select.innerHTML = '<option value="">Rakip Seç...</option>';
+        this.allAssets.forEach((asset, index) => {
+            if(asset.name !== this.baseAsset.name) {
+                const opt = document.createElement('option');
+                opt.value = index; opt.innerText = asset.symbol;
+                select.appendChild(opt);
+            }
+        });
+    },
+
+    updateComparison: function() {
+        const select = document.getElementById('p2_select');
+        const idx = select.value;
+        const p2Box = document.getElementById('p2_logo_box');
+
+        if(idx === "") {
+            p2Box.innerHTML = '<i class="fas fa-question" style="font-size:30px; opacity:0.5;"></i>';
+            p2Box.classList.add('placeholder');
+            p2Box.classList.remove('active-right');
+            this.resetBars();
+            return;
+        }
+        
+        this.targetAsset = this.allAssets[idx];
+        p2Box.innerHTML = this.targetAsset.logo;
+        p2Box.classList.remove('placeholder');
+        p2Box.classList.add('active-right');
+        
+        this.calculateAndDraw();
+    },
+
+    resetBars: function() {
+        ['roi', 'val', 'cost'].forEach(type => {
+            document.getElementById(`bar_${type}_1`).style.width = '50%';
+            document.getElementById(`bar_${type}_2`).style.width = '50%';
+            document.getElementById(`val_${type}_1`).innerText = '---';
+            document.getElementById(`val_${type}_2`).innerText = '---';
+        });
+        document.getElementById('winner_section').style.display = 'none';
+    },
+
+    calculateAndDraw: function() {
+        const a1 = this.baseAsset; const a2 = this.targetAsset;
+        const currencySym = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY') ? '₺' : '$';
+
+        this.setBar('roi', a1.roi, a2.roi, '%');
+        this.setBar('val', a1.val, a2.val, currencySym);
+        this.setBar('cost', a1.cost, a2.cost, currencySym);
+
+        let score1 = 0; let score2 = 0;
+        if(a1.roi > a2.roi) score1++; else score2++;
+        if(a1.val > a2.val) score1++; else score2++;
+        if(a1.cost > a2.cost) score1++; else score2++;
+
+        const winSection = document.getElementById('winner_section');
+        const wName = document.getElementById('winner_name');
+        
+        winSection.style.display = 'flex';
+        winSection.classList.remove('blue-win', 'orange-win');
+        
+        if(score1 > score2) {
+            wName.innerText = a1.symbol + " KAZANDI!";
+            winSection.classList.add('blue-win');
+        } else {
+            wName.innerText = a2.symbol + " KAZANDI!";
+            winSection.classList.add('orange-win');
+        }
+    },
+
+    setBar: function(type, v1, v2, suffix) {
+        let abs1 = Math.abs(v1); let abs2 = Math.abs(v2);
+        if(abs1 === 0 && abs2 === 0) { abs1 = 1; abs2 = 1; }
+        const total = abs1 + abs2;
+        const p1 = (abs1 / total) * 100;
+        const p2 = (abs2 / total) * 100;
+
+        // Barın çok küçülmesini engelle (min %10)
+        const finalP1 = Math.max(p1, 10);
+        const finalP2 = Math.max(p2, 10);
+        const normTotal = finalP1 + finalP2;
+        
+        // Genişlikleri ayarla (aradaki çizgi için %1 pay bırak)
+        document.getElementById(`bar_${type}_1`).style.width = `${(finalP1/normTotal)*99}%`;
+        document.getElementById(`bar_${type}_2`).style.width = `${(finalP2/normTotal)*99}%`;
+
+        let t1 = v1.toLocaleString(undefined, {maximumFractionDigits: 1});
+        let t2 = v2.toLocaleString(undefined, {maximumFractionDigits: 1});
+        document.getElementById(`val_${type}_1`).innerText = suffix === '%' ? t1 + suffix : suffix + t1;
+        document.getElementById(`val_${type}_2`).innerText = suffix === '%' ? t2 + suffix : suffix + t2;
+    }
+};
+
+
 
 </script>
 
