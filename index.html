@@ -335,6 +335,127 @@ body {
         .asset-mini-chart.active { height: 320px; border-top: 1px solid rgba(255,255,255,0.05); }
         .chart-loader-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--text-sub); font-size: 12px; z-index: 0; }
         .tool-btn.chart-on { color: var(--accent) !important; background: rgba(59, 130, 246, 0.15); border-radius: 6px; }
+        .tool-btn.news-on { color: #f59e0b !important; background: rgba(245, 158, 11, 0.15); border-radius: 6px; }
+
+        /* ── VARLIK BAZLI HABER CONTAINER ── */
+        .asset-news-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+            opacity: 0;
+        }
+        .asset-news-container.news-open {
+            max-height: 600px;
+            opacity: 1;
+            overflow-y: auto;
+        }
+        .asset-news-inner {
+            padding: 10px 0 4px;
+            border-top: 1px solid rgba(255,255,255,0.04);
+            margin-top: 8px;
+        }
+        .asset-news-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .asset-news-header .anh-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: #f59e0b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .asset-news-header .anh-badge {
+            font-size: 8px;
+            background: rgba(245,158,11,0.1);
+            color: #f59e0b;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        .asset-news-item {
+            display: flex;
+            gap: 10px;
+            padding: 9px 10px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.03);
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .asset-news-item:hover {
+            background: rgba(245,158,11,0.04);
+            border-color: rgba(245,158,11,0.1);
+        }
+        .asset-news-item:active { transform: scale(0.99); }
+        .asset-news-item .ani-img {
+            width: 52px;
+            height: 52px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.04);
+            flex-shrink: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .asset-news-item .ani-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .asset-news-item .ani-img i {
+            font-size: 16px;
+            color: #555;
+        }
+        .asset-news-item .ani-body { flex: 1; min-width: 0; }
+        .asset-news-item .ani-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #d0d0d0;
+            line-height: 1.45;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+        .asset-news-item .ani-meta {
+            font-size: 9px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .asset-news-item .ani-meta .ani-source {
+            color: #f59e0b;
+            font-weight: 600;
+        }
+        .asset-news-loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 11px;
+        }
+        .asset-news-loading i { margin-right: 6px; }
+        .asset-news-empty {
+            text-align: center;
+            padding: 20px 10px;
+            color: #555;
+            font-size: 11px;
+        }
+        .asset-news-empty i {
+            display: block;
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: #444;
+        }
         .notif-card { background: var(--bg-card); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 10px; display: flex; gap: 12px; align-items: flex-start; animation: slideIn 0.3s ease; position: relative; }
         .notif-card.unread { border-left: 3px solid var(--accent); background: rgba(59, 130, 246, 0.05); }
         .notif-icon-box { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; }
@@ -2427,14 +2548,14 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
    ========================================================================== */
 
 .psycho-hub-container {
-    background: linear-gradient(145deg, #1e293b, #0f172a);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(160deg, #12162a 0%, #0b0f1e 35%, #0e1225 65%, #0a0e1a 100%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 16px;
     padding: 0;
     margin-bottom: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.03);
     position: relative;
-    overflow: hidden; /* Taşmayı kesin olarak engeller */
+    overflow: hidden;
     display: flex;
     flex-direction: column;
 }
@@ -9889,172 +10010,173 @@ function openLabFullscreen() {
             </div>
 
             <!-- ═══════════════════════════════════════════ -->
-            <!-- AI KOÇ - YENİ PREMIUM TASARIM              -->
+            <!-- AI KOÇ - DASHBOARD COCKPIT TASARIM          -->
             <!-- ═══════════════════════════════════════════ -->
+            <style>
+                .coach-dash-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+                .coach-dash-header h2{font-size:17px;font-weight:900;letter-spacing:-0.5px;color:#f0f0f0;}
+                .coach-dash-header h2 span{background:linear-gradient(135deg,#6366f1,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+                .coach-dash-live{display:flex;align-items:center;gap:6px;font-size:10px;color:#666;font-weight:500;}
+                .coach-dash-live .cdl-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,0.6);animation:coachLivePulse 2s ease infinite;}
+                @keyframes coachLivePulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
+                .coach-score-section{display:flex;align-items:center;justify-content:center;padding:14px 0 8px;position:relative;}
+                .coach-score-ring{width:170px;height:170px;position:relative;display:flex;align-items:center;justify-content:center;}
+                .coach-score-ring svg{position:absolute;inset:0;transform:rotate(-90deg);}
+                .coach-score-ring .csr-bg{fill:none;stroke:rgba(255,255,255,0.04);stroke-width:8;}
+                .coach-score-ring .csr-fg{fill:none;stroke:url(#coachScoreGrad);stroke-width:8;stroke-linecap:round;stroke-dasharray:471;stroke-dashoffset:132;animation:coachRingFill 1.5s ease-out;}
+                @keyframes coachRingFill{from{stroke-dashoffset:471;}}
+                .coach-score-inner{text-align:center;z-index:1;}
+                .coach-score-inner .csn{font-size:48px;font-weight:900;letter-spacing:-3px;line-height:1;background:linear-gradient(180deg,#fff,rgba(255,255,255,0.55));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+                .coach-score-inner .cso{font-size:11px;color:#555;font-weight:500;margin-top:2px;}
+                .coach-score-inner .csv{font-size:10px;font-weight:700;margin-top:6px;padding:4px 12px;border-radius:20px;display:inline-block;}
+
+                .coach-side-stat{position:absolute;text-align:center;}
+                .coach-side-stat.css-left{left:0;top:50%;transform:translateY(-50%);}
+                .coach-side-stat.css-right{right:0;top:50%;transform:translateY(-50%);}
+                .coach-side-stat .css-val{font-size:20px;margin-bottom:2px;}
+                .coach-side-stat .css-lbl{font-size:8px;color:#555;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;line-height:1.4;}
+
+                .coach-gauge-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
+                .coach-gauge-card{background:rgba(255,255,255,0.025);border-radius:14px;padding:14px 10px;text-align:center;border:1px solid rgba(255,255,255,0.04);position:relative;overflow:hidden;transition:border-color 0.3s;}
+                .coach-gauge-card:hover{border-color:rgba(255,255,255,0.08);}
+                .coach-gauge-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:2px 2px 0 0;}
+                .coach-gauge-card.cgc-risk::before{background:linear-gradient(90deg,#22c55e 60%,transparent);}
+                .coach-gauge-card.cgc-focus::before{background:linear-gradient(90deg,#a78bfa 45%,transparent);}
+                .coach-gauge-card.cgc-time::before{background:linear-gradient(90deg,#f59e0b 70%,transparent);}
+                .coach-gauge-label{font-size:8px;color:#555;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px;}
+                .coach-gauge-value{font-size:18px;font-weight:900;margin-bottom:4px;}
+                .coach-gauge-bar{width:100%;height:3px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;margin-top:8px;}
+                .coach-gauge-bar .cgb-fill{height:100%;border-radius:3px;animation:coachBarGrow 1s ease-out;}
+                @keyframes coachBarGrow{from{width:0!important;}}
+                .coach-gauge-sub{font-size:8px;color:#555;margin-top:5px;font-weight:500;}
+
+                .coach-ai-insight{background:rgba(255,255,255,0.025);border-radius:14px;padding:14px 16px;margin-bottom:10px;border:1px solid rgba(255,255,255,0.04);display:flex;gap:12px;align-items:flex-start;}
+                .coach-ai-icon{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#ec4899);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+                .coach-ai-icon i{font-size:13px;color:#fff;}
+                .coach-ai-text{font-size:12px;color:#888;line-height:1.8;flex:1;}
+                .coach-ai-text strong{color:#d0d0d0;}
+
+                .coach-action-strip{display:flex;gap:7px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;scrollbar-width:none;}
+                .coach-action-strip::-webkit-scrollbar{display:none;}
+                .coach-action-chip{flex-shrink:0;padding:11px 16px;border-radius:12px;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.05);color:#ccc;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:7px;white-space:nowrap;font-family:inherit;}
+                .coach-action-chip:hover{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.1);transform:translateY(-1px);}
+                .coach-action-chip:active{transform:scale(0.97);}
+                .coach-action-chip i{font-size:12px;}
+                .coach-action-chip.cac-green i{color:#22c55e;}
+                .coach-action-chip.cac-red i{color:#ef4444;}
+                .coach-action-chip.cac-blue i{color:#6366f1;}
+                .coach-action-chip.cac-amber i{color:#f59e0b;}
+
+                .coach-activity-section{background:rgba(255,255,255,0.025);border-radius:14px;padding:14px 16px;border:1px solid rgba(255,255,255,0.04);}
+                .coach-activity-title{font-size:9px;color:#555;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+                .coach-activity-bars{display:flex;align-items:flex-end;gap:4px;height:50px;}
+                .coach-activity-bar{flex:1;background:rgba(99,102,241,0.15);border-radius:3px 3px 0 0;min-height:4px;transition:background 0.2s;}
+                .coach-activity-bar:hover{background:rgba(99,102,241,0.4);}
+                .coach-activity-bar.cab-active{background:linear-gradient(180deg,#6366f1,rgba(99,102,241,0.25));}
+                .coach-activity-days{display:flex;gap:4px;margin-top:5px;}
+                .coach-activity-days span{flex:1;text-align:center;font-size:7px;color:#444;font-weight:500;}
+            </style>
+
             <div id="tab-coach" class="psycho-view">
 
-                <!-- ▸ HERO: AI Profil Kartı -->
-                <div style="
-                    position: relative;
-                    background: linear-gradient(165deg, #0f172a 0%, #020617 40%, #0c1222 100%);
-                    border-radius: 24px;
-                    overflow: hidden;
-                    margin-bottom: 12px;
-                    border: 1px solid rgba(56,189,248,0.06);
-                    box-shadow: 0 0 80px -20px rgba(56,189,248,0.08);
-                ">
-                    <!-- Animated accent line -->
-                    <div style="height: 1.5px; background: linear-gradient(90deg, transparent 0%, #0ea5e9 20%, #a855f7 50%, #0ea5e9 80%, transparent 100%); background-size: 200% 100%; animation: gradientMove 6s linear infinite;"></div>
-                    
-                    <!-- Subtle mesh background -->
-                    <div style="position:absolute; inset:0; opacity:0.015; background-image: radial-gradient(circle at 20% 30%, #38bdf8, transparent 50%), radial-gradient(circle at 80% 70%, #a855f7, transparent 50%); pointer-events:none;"></div>
+                <!-- ▸ HEADER -->
+                <div class="coach-dash-header">
+                    <h2>AI <span>Koç</span></h2>
+                    <div class="coach-dash-live"><div class="cdl-dot"></div> <span id="aiDataCount">0 veri</span></div>
+                </div>
 
-                    <!-- Header -->
-                    <div style="display:flex; align-items:center; gap:14px; padding:18px 18px 14px;">
-                        <!-- Avatar -->
-                        <div style="position:relative; flex-shrink:0;">
-                            <div style="
-                                width:46px; height:46px;
-                                background: linear-gradient(135deg, #0ea5e9 0%, #7c3aed 100%);
-                                border-radius: 14px;
-                                display:flex; align-items:center; justify-content:center;
-                                box-shadow: 0 4px 20px rgba(14,165,233,0.2), 0 0 0 1px rgba(255,255,255,0.05);
-                            ">
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M16 14H8a4 4 0 0 0-4 4v2h16v-2a4 4 0 0 0-4-4z"/><circle cx="12" cy="6" r="1" fill="white"/></svg>
-                            </div>
-                            <div style="position:absolute; bottom:-1px; right:-1px; width:11px; height:11px; background:#22c55e; border-radius:50%; border:2px solid #020617;"></div>
-                        </div>
-                        <!-- Title -->
-                        <div style="flex:1; min-width:0;">
-                            <div style="font-size:15px; font-weight:800; color:#f8fafc; letter-spacing:-0.2px;">AI Koç</div>
-                            <div style="font-size:10px; color:#64748b; margin-top:2px;">Kişisel yatırım danışmanın · çevrimiçi</div>
-                        </div>
-                        <!-- Data count -->
-                        <div id="aiDataCount" style="
-                            padding:5px 11px; border-radius:20px;
-                            font-size:9px; font-weight:700; color:#22c55e;
-                            background: rgba(34,197,94,0.06);
-                            border: 1px solid rgba(34,197,94,0.1);
-                        "><i class="fas fa-chart-line" style="margin-right:3px; font-size:8px;"></i><span id="aiDataCountNum">0</span> veri</div>
+                <!-- ▸ BIG SCORE RING -->
+                <div class="coach-score-section">
+                    <div class="coach-side-stat css-left">
+                        <div class="css-val" id="statMostUsedFeature">📱</div>
+                        <div class="css-lbl">En Çok<br>Kullanılan</div>
                     </div>
 
-                    <!-- Message bubble -->
-                    <div style="padding: 0 18px 16px;">
-                        <div id="aiCoachMessage" style="
-                            background: rgba(255,255,255,0.02);
-                            border: 1px solid rgba(255,255,255,0.04);
-                            border-radius: 16px; border-top-left-radius: 4px;
-                            padding: 16px 18px;
-                            font-size: 12.5px; color: #cbd5e1; line-height: 1.85;
-                            min-height: 60px;
-                        ">
-                            <div style="display:flex; align-items:center; gap:8px; color:#475569;">
-                                <div style="width:6px;height:6px;background:#38bdf8;border-radius:50%;animation:pulse 2s ease infinite;box-shadow:0 0 8px rgba(56,189,248,0.5);"></div>
-                                Veriler analiz ediliyor...
-                            </div>
+                    <div class="coach-score-ring">
+                        <svg viewBox="0 0 170 170">
+                            <defs>
+                                <linearGradient id="coachScoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#6366f1"/>
+                                    <stop offset="50%" style="stop-color:#ec4899"/>
+                                    <stop offset="100%" style="stop-color:#f59e0b"/>
+                                </linearGradient>
+                            </defs>
+                            <circle class="csr-bg" cx="85" cy="85" r="75"/>
+                            <circle class="csr-fg" id="coachScoreRing" cx="85" cy="85" r="75"/>
+                        </svg>
+                        <div class="coach-score-inner">
+                            <div class="csn" id="aiScore">-</div>
+                            <div class="cso">/ 100</div>
+                            <div class="csv" id="aiScoreVerdict" style="background:rgba(34,197,94,0.1);color:#22c55e;">Hesaplanıyor</div>
                         </div>
                     </div>
 
-                    <!-- 4-Metric Strip -->
-                    <div style="display:grid; grid-template-columns:repeat(4,1fr); background:rgba(0,0,0,0.2); border-top:1px solid rgba(255,255,255,0.03);">
-                        <div style="padding:13px 6px; text-align:center; border-right:1px solid rgba(255,255,255,0.03);">
-                            <div style="font-size:20px; margin-bottom:2px;" id="aiTraderType">-</div>
-                            <div style="font-size:7px; color:#475569; text-transform:uppercase; letter-spacing:1.5px; font-weight:700;">Profil</div>
-                        </div>
-                        <div style="padding:13px 6px; text-align:center; border-right:1px solid rgba(255,255,255,0.03);">
-                            <div style="font-size:13px; font-weight:800;" id="aiRiskLevel">-</div>
-                            <div style="font-size:7px; color:#475569; text-transform:uppercase; letter-spacing:1.5px; font-weight:700;">Risk</div>
-                        </div>
-                        <div style="padding:13px 6px; text-align:center; border-right:1px solid rgba(255,255,255,0.03);">
-                            <div style="font-size:13px; font-weight:800;" id="aiFocusArea">-</div>
-                            <div style="font-size:7px; color:#475569; text-transform:uppercase; letter-spacing:1.5px; font-weight:700;">Odak</div>
-                        </div>
-                        <div style="padding:13px 6px; text-align:center;">
-                            <div style="font-size:13px; font-weight:800;" id="aiScore">-</div>
-                            <div style="font-size:7px; color:#475569; text-transform:uppercase; letter-spacing:1.5px; font-weight:700;">Skor</div>
+                    <div class="coach-side-stat css-right">
+                        <div class="css-val" style="font-size:13px;font-weight:800;" id="statMostSearched">-</div>
+                        <div class="css-lbl">En Çok<br>Aranan</div>
+                    </div>
+                </div>
+
+                <!-- ▸ GAUGE ROW -->
+                <div class="coach-gauge-row">
+                    <div class="coach-gauge-card cgc-risk">
+                        <div class="coach-gauge-label">Risk Seviyesi</div>
+                        <div class="coach-gauge-value" id="aiRiskLevel" style="color:#22c55e;">-</div>
+                        <div class="coach-gauge-bar"><div class="cgb-fill" id="riskBarFill" style="width:30%;background:#22c55e;"></div></div>
+                        <div class="coach-gauge-sub" id="riskBarSub"></div>
+                    </div>
+                    <div class="coach-gauge-card cgc-focus">
+                        <div class="coach-gauge-label">Odak Alanı</div>
+                        <div class="coach-gauge-value" id="aiFocusArea" style="color:#a78bfa;">-</div>
+                        <div class="coach-gauge-bar"><div class="cgb-fill" id="focusBarFill" style="width:50%;background:#a78bfa;"></div></div>
+                        <div class="coach-gauge-sub" id="focusBarSub"></div>
+                    </div>
+                    <div class="coach-gauge-card cgc-time">
+                        <div class="coach-gauge-label">Aktif Süre</div>
+                        <div class="coach-gauge-value" id="statTimeSpent" style="color:#f59e0b;">0dk</div>
+                        <div class="coach-gauge-bar"><div class="cgb-fill" style="width:50%;background:#f59e0b;"></div></div>
+                        <div class="coach-gauge-sub">Bugün</div>
+                    </div>
+                </div>
+
+                <!-- ▸ AI INSIGHT MESSAGE -->
+                <div class="coach-ai-insight">
+                    <div class="coach-ai-icon"><i class="fas fa-brain"></i></div>
+                    <div class="coach-ai-text" id="aiCoachMessage">
+                        <div style="display:flex;align-items:center;gap:8px;color:#555;">
+                            <i class="fas fa-circle-notch fa-spin" style="font-size:11px;"></i> Veriler analiz ediliyor...
                         </div>
                     </div>
                 </div>
 
-                <!-- ▸ STATS: Üçlü İstatistik -->
-                <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px;">
-                    <div style="background:linear-gradient(160deg,#0f172a,#020617); border-radius:16px; padding:14px 8px; text-align:center; border:1px solid rgba(56,189,248,0.06); position:relative;">
-                        <div style="font-size:20px; margin-bottom:3px;" id="statMostUsedFeature">📱</div>
-                        <div style="font-size:8px; color:#475569; font-weight:600;">En Çok Kullanılan</div>
+                <!-- ▸ ACTION CHIPS (horizontal scroll) -->
+                <div class="coach-action-strip">
+                    <button class="coach-action-chip cac-green" onclick="runAIAnalysis('strength')"><i class="fas fa-shield-alt"></i> Güçlü Yönler</button>
+                    <button class="coach-action-chip cac-red" onclick="runAIAnalysis('weakness')"><i class="fas fa-bolt"></i> Gelişim Alanları</button>
+                    <button class="coach-action-chip cac-blue" onclick="runAIAnalysis('behavior')"><i class="fas fa-chart-pie"></i> Davranış Raporu</button>
+                    <button class="coach-action-chip cac-amber" onclick="runAIAnalysis('advice')"><i class="fas fa-lightbulb"></i> Kişisel Öneriler</button>
+                </div>
+
+                <!-- ▸ WEEKLY ACTIVITY -->
+                <div class="coach-activity-section">
+                    <div class="coach-activity-title"><i class="fas fa-chart-bar" style="color:#6366f1;"></i> Haftalık Aktivite</div>
+                    <div class="coach-activity-bars" id="coachActivityBars">
+                        <div class="coach-activity-bar" style="height:30%;"></div>
+                        <div class="coach-activity-bar" style="height:55%;"></div>
+                        <div class="coach-activity-bar" style="height:40%;"></div>
+                        <div class="coach-activity-bar" style="height:70%;"></div>
+                        <div class="coach-activity-bar" style="height:85%;"></div>
+                        <div class="coach-activity-bar cab-active" style="height:60%;"></div>
+                        <div class="coach-activity-bar" style="height:20%;"></div>
                     </div>
-                    <div style="background:linear-gradient(160deg,#0f172a,#020617); border-radius:16px; padding:14px 8px; text-align:center; border:1px solid rgba(245,158,11,0.06); position:relative;">
-                        <div style="font-size:11px; font-weight:800; color:#f59e0b; margin-bottom:3px;" id="statMostSearched">-</div>
-                        <div style="font-size:8px; color:#475569; font-weight:600;">En Çok Aranan</div>
-                    </div>
-                    <div style="background:linear-gradient(160deg,#0f172a,#020617); border-radius:16px; padding:14px 8px; text-align:center; border:1px solid rgba(34,197,94,0.06); position:relative;">
-                        <div style="font-size:11px; font-weight:800; color:#22c55e; margin-bottom:3px;" id="statTimeSpent">0dk</div>
-                        <div style="font-size:8px; color:#475569; font-weight:600;">Aktif Süre</div>
+                    <div class="coach-activity-days">
+                        <span>Pzt</span><span>Sal</span><span>Çar</span><span>Per</span><span>Cum</span><span>Cmt</span><span>Paz</span>
                     </div>
                 </div>
 
-                <!-- ▸ ACTIONS: Analiz Butonları -->
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-                    <button onclick="runAIAnalysis('strength')" style="
-                        padding:14px 12px; background:linear-gradient(160deg,#0f172a,#020617);
-                        border:1px solid rgba(34,197,94,0.08); border-radius:16px;
-                        color:#22c55e; font-size:11px; font-weight:700;
-                        cursor:pointer; transition:all 0.2s;
-                        display:flex; align-items:center; gap:10px; text-align:left;
-                    ">
-                        <div style="width:34px;height:34px;border-radius:10px;background:rgba(34,197,94,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                            <i class="fas fa-shield-alt" style="font-size:14px;"></i>
-                        </div>
-                        <div>
-                            <div style="margin-bottom:2px;">Güçlü Yönler</div>
-                            <div style="font-size:8px;color:#475569;font-weight:500;">Avantajlarını keşfet</div>
-                        </div>
-                    </button>
-                    <button onclick="runAIAnalysis('weakness')" style="
-                        padding:14px 12px; background:linear-gradient(160deg,#0f172a,#020617);
-                        border:1px solid rgba(239,68,68,0.08); border-radius:16px;
-                        color:#f87171; font-size:11px; font-weight:700;
-                        cursor:pointer; transition:all 0.2s;
-                        display:flex; align-items:center; gap:10px; text-align:left;
-                    ">
-                        <div style="width:34px;height:34px;border-radius:10px;background:rgba(239,68,68,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                            <i class="fas fa-bolt" style="font-size:14px;"></i>
-                        </div>
-                        <div>
-                            <div style="margin-bottom:2px;">Gelişim Alanları</div>
-                            <div style="font-size:8px;color:#475569;font-weight:500;">Nerede gelişebilirsin</div>
-                        </div>
-                    </button>
-                    <button onclick="runAIAnalysis('behavior')" style="
-                        padding:14px 12px; background:linear-gradient(160deg,#0f172a,#020617);
-                        border:1px solid rgba(56,189,248,0.08); border-radius:16px;
-                        color:#38bdf8; font-size:11px; font-weight:700;
-                        cursor:pointer; transition:all 0.2s;
-                        display:flex; align-items:center; gap:10px; text-align:left;
-                    ">
-                        <div style="width:34px;height:34px;border-radius:10px;background:rgba(56,189,248,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                            <i class="fas fa-chart-pie" style="font-size:14px;"></i>
-                        </div>
-                        <div>
-                            <div style="margin-bottom:2px;">Davranış Raporu</div>
-                            <div style="font-size:8px;color:#475569;font-weight:500;">Detaylı kullanım analizi</div>
-                        </div>
-                    </button>
-                    <button onclick="runAIAnalysis('advice')" style="
-                        padding:14px 12px; background:linear-gradient(160deg,#0f172a,#020617);
-                        border:1px solid rgba(245,158,11,0.08); border-radius:16px;
-                        color:#fbbf24; font-size:11px; font-weight:700;
-                        cursor:pointer; transition:all 0.2s;
-                        display:flex; align-items:center; gap:10px; text-align:left;
-                    ">
-                        <div style="width:34px;height:34px;border-radius:10px;background:rgba(245,158,11,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                            <i class="fas fa-lightbulb" style="font-size:14px;"></i>
-                        </div>
-                        <div>
-                            <div style="margin-bottom:2px;">Kişisel Öneriler</div>
-                            <div style="font-size:8px;color:#475569;font-weight:500;">Sana özel tavsiyeler</div>
-                        </div>
-                    </button>
-                </div>
+                <!-- Hidden element to keep aiTraderType working -->
+                <div id="aiTraderType" style="display:none;"></div>
             </div>
 
         </div>
@@ -10082,10 +10204,7 @@ function openLabFullscreen() {
     padding: 0;
     min-height: 100vh;
     color: #e0e0e0;
-    /* Siyah, Koyu Gri ve Altın Tozu Rengi */
-    background: linear-gradient(-45deg, #000000, #1c1910, #000000, #2b2200);
-    background-size: 400% 400%;
-    animation: goldGlow 10s ease infinite;
+    background: var(--bg-body);
 ">
 
     
@@ -10094,9 +10213,9 @@ function openLabFullscreen() {
     
     <!-- Ambient Background Orbs -->
     <div style="position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden;">
-        <div style="position:absolute; width:500px; height:500px; background:radial-gradient(circle, rgba(255,214,10,0.15) 0%, transparent 70%); top:-200px; right:-150px; border-radius:50%; filter:blur(100px); opacity:0.5; animation:orbFloat1 25s ease-in-out infinite;"></div>
-        <div style="position:absolute; width:400px; height:400px; background:radial-gradient(circle, rgba(10,132,255,0.12) 0%, transparent 70%); bottom:10%; left:-150px; border-radius:50%; filter:blur(100px); opacity:0.5; animation:orbFloat2 30s ease-in-out infinite;"></div>
-        <div style="position:absolute; width:300px; height:300px; background:radial-gradient(circle, rgba(48,209,88,0.1) 0%, transparent 70%); top:50%; right:-100px; border-radius:50%; filter:blur(100px); opacity:0.5; animation:orbFloat3 20s ease-in-out infinite;"></div>
+        <div style="position:absolute; width:500px; height:500px; background:radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%); top:-200px; right:-150px; border-radius:50%; filter:blur(100px); opacity:0.5; animation:orbFloat1 25s ease-in-out infinite;"></div>
+        <div style="position:absolute; width:400px; height:400px; background:radial-gradient(circle, rgba(139,92,246,0.06) 0%, transparent 70%); bottom:10%; left:-150px; border-radius:50%; filter:blur(100px); opacity:0.5; animation:orbFloat2 30s ease-in-out infinite;"></div>
+        <div style="position:absolute; width:300px; height:300px; background:radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 70%); top:50%; right:-100px; border-radius:50%; filter:blur(100px); opacity:0.5; animation:orbFloat3 20s ease-in-out infinite;"></div>
     </div>
     
     <style>
@@ -10524,7 +10643,7 @@ function openLabFullscreen() {
             <div class="ps-menu-list">
                 <!-- YENİ: Güvenlik -->
                 <div class="ps-menu-item" onclick="openSubPage('security')">
-                    <div class="ps-menu-icon cyan"><i class="fas fa-lock"></i></div>
+                    <div class="ps-menu-icon cyan" id="securityMenuIcon"><i class="fas fa-lock-open"></i></div>
                     <div class="ps-menu-text">
                         <div class="ps-menu-title">Güvenlik</div>
                         <div class="ps-menu-subtitle">
@@ -10756,7 +10875,7 @@ function openLabFullscreen() {
                     <div class="ps-setting-row setting-item">
     <span class="ps-setting-title">Tema</span>
     <select id="themeSelect" class="ps-select setting-select" style="width:auto;" onchange="changeTheme(this.value)">
-        <option value="ocean"> Okyanus (Mavi)</option>
+        <option value="ocean">🎨 Orijinal (TradeVia)</option>
         <option value="cyber"> Siber (Neon Mor)</option>
         <option value="oled"> Zifiri (OLED Siyah)</option>
         <option value="luxury"> Lüks (Altın)</option>
@@ -11619,18 +11738,36 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
 
 
 <div id="portfolioModal" class="modal-overlay">
-    <div class="modal" style="max-width:320px;">
-        <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h3 style="margin:0; font-size:16px;">Portföylerim</h3>
+    <div class="modal" style="max-width:340px;">
+        <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3 style="margin:0; font-size:16px;"><i class="fas fa-wallet" style="margin-right:8px; color:var(--accent);"></i>Portföylerim</h3>
             <button onclick="document.getElementById('portfolioModal').style.display='none'" style="background:none; border:none; color:white; font-size:16px;"><i class="fas fa-times"></i></button>
         </div>
 
-        <div id="portfolioListContainer" style="margin-bottom:15px; max-height:200px; overflow-y:auto;">
+        <!-- Açıklama -->
+        <div style="background:rgba(59,130,246,0.06); border:1px solid rgba(59,130,246,0.1); border-radius:10px; padding:10px 12px; margin-bottom:14px; font-size:11px; color:#94a3b8; line-height:1.55;">
+            <i class="fas fa-info-circle" style="color:var(--accent); margin-right:5px;"></i>
+            Birden fazla cüzdan oluşturup farklı stratejileri ayrı ayrı takip edebilirsin. Her cüzdanın kendi varlık ve nakit bakiyesi vardır.
+        </div>
+
+        <div id="portfolioListContainer" style="margin-bottom:14px; max-height:200px; overflow-y:auto;">
             </div>
 
-        <div style="display:flex; gap:5px; border-top:1px solid rgba(255,255,255,0.1); padding-top:15px;">
-            <input type="text" id="newPortfolioName" class="modern-input" placeholder="Yeni Cüzdan Adı" style="margin:0; font-size:12px;">
-            <button onclick="MultiPortfolio.create()" class="btn-main" style="width:auto; padding:0 15px;"><i class="fas fa-plus"></i></button>
+        <!-- Yeni Cüzdan Oluşturma Alanı -->
+        <div style="border-top:1px solid rgba(255,255,255,0.06); padding-top:14px;">
+            <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">
+                <i class="fas fa-plus-circle" style="margin-right:4px;"></i> Yeni Cüzdan
+            </div>
+            <div style="display:flex; gap:6px; margin-bottom:8px;">
+                <input type="text" id="newPortfolioName" class="modern-input" placeholder="Cüzdan adı (ör: Kripto, Borsa)" style="margin:0; font-size:12px; flex:1;">
+            </div>
+            <div style="display:flex; gap:6px; align-items:center;">
+                <div style="position:relative; flex:1;">
+                    <i class="fas fa-coins" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#64748b; font-size:11px;"></i>
+                    <input type="number" id="newPortfolioCash" class="modern-input" placeholder="Başlangıç nakdi (opsiyonel)" style="margin:0; font-size:12px; padding-left:30px;">
+                </div>
+                <button onclick="MultiPortfolio.create()" class="btn-main" style="width:auto; padding:8px 16px; font-size:12px; white-space:nowrap;"><i class="fas fa-plus" style="margin-right:4px;"></i> Oluştur</button>
+            </div>
         </div>
     </div>
 </div>
@@ -11848,7 +11985,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.3"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -12741,6 +12878,7 @@ function renderPortfolioHTML(as) {
                 <div class="asset-footer">
                     <button class="tool-btn" onclick="toggleAssetChart('${a.name}', '${chartId}', this)"><i class="fas fa-chart-area"></i></button>
                     <button class="tool-btn ${a.alarm?'active-alarm':''}" onclick="openAlarmModal(${a.originalIndex})"><i class="fas fa-bell"></i></button>
+                    <button class="tool-btn" onclick="toggleAssetNews('${a.name.replace('.IS','')}', 'asset-news-${a.originalIndex}', this)"><i class="fas fa-newspaper"></i></button>
                     <button class="tool-btn active-sim" onclick="openSimulator(${a.originalIndex})"><i class="fas fa-magic"></i></button>
                     
                     <button class="tool-btn" onclick="CompareApp.open('${a.name}', '${a.name}')"><i class="fas fa-balance-scale"></i></button>
@@ -12750,6 +12888,7 @@ function renderPortfolioHTML(as) {
                 </div>
                 
                 <div id="${chartId}" class="asset-mini-chart"></div>
+                <div id="asset-news-${a.originalIndex}" class="asset-news-container"></div>
             </div>
         </div>
     </div>`; 
@@ -13497,6 +13636,150 @@ function toggleAssetChart(symbol, id, btn) {
             "save_image": false,
             "container_id": "tv_" + id
         });
+    }
+}
+
+// ═══════════════════════════════════════
+// VARLIK BAZLI HABER SİSTEMİ
+// ═══════════════════════════════════════
+const _assetNewsCache = {};
+
+function toggleAssetNews(symbolName, containerId, btnEl) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    // Toggle
+    if (container.classList.contains('news-open')) {
+        container.classList.remove('news-open');
+        if (btnEl) btnEl.classList.remove('news-on');
+        setTimeout(() => { container.innerHTML = ''; }, 400);
+        return;
+    }
+
+    // Activate
+    container.classList.add('news-open');
+    if (btnEl) btnEl.classList.add('news-on');
+
+    // Keyword mapping for better search results
+    const keywordMap = {
+        'BTC': 'Bitcoin BTC',
+        'ETH': 'Ethereum ETH',
+        'BNB': 'Binance BNB',
+        'XRP': 'Ripple XRP',
+        'SOL': 'Solana SOL',
+        'ADA': 'Cardano ADA',
+        'DOGE': 'Dogecoin DOGE',
+        'AVAX': 'Avalanche AVAX',
+        'DOT': 'Polkadot DOT',
+        'MATIC': 'Polygon MATIC',
+        'LINK': 'Chainlink LINK',
+        'ATOM': 'Cosmos ATOM',
+        'XAU': 'Altın ons gold',
+        'XAG': 'Gümüş silver',
+        'BRENT': 'Brent petrol',
+    };
+
+    // Clean symbol
+    let cleanSymbol = symbolName.replace('.IS', '').replace('USDT', '').replace('USD', '').replace('TRY','');
+    let searchQuery = keywordMap[cleanSymbol] || cleanSymbol;
+
+    // Check cache (5 min)
+    let cacheKey = cleanSymbol.toLowerCase();
+    if (_assetNewsCache[cacheKey] && (Date.now() - _assetNewsCache[cacheKey].ts < 300000)) {
+        container.innerHTML = _assetNewsCache[cacheKey].html;
+        return;
+    }
+
+    fetchAssetNews(searchQuery, cleanSymbol, containerId);
+}
+
+async function fetchAssetNews(query, symbol, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="asset-news-inner">
+            <div class="asset-news-loading">
+                <i class="fas fa-circle-notch fa-spin"></i> <strong>${symbol}</strong> haberleri aranıyor...
+            </div>
+        </div>`;
+
+    try {
+        const googleRssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}+when:3d&hl=tr-TR&gl=TR&ceid=TR:tr`;
+        const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(googleRssUrl)}`;
+
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        if (!container.classList.contains('news-open')) return; // Kapatıldıysa iptal
+
+        if (data.status === 'ok' && data.items && data.items.length > 0) {
+            let newsHtml = `<div class="asset-news-inner">
+                <div class="asset-news-header">
+                    <div class="anh-title"><i class="fas fa-newspaper"></i> ${symbol} Haberleri</div>
+                    <div class="anh-badge">${Math.min(data.items.length, 8)} haber</div>
+                </div>`;
+
+            data.items.slice(0, 8).forEach(item => {
+                const date = new Date(item.pubDate);
+                const now = new Date();
+                const diffMs = now - date;
+                const diffH = Math.floor(diffMs / 3600000);
+                const diffM = Math.floor(diffMs / 60000);
+                let timeAgo = diffM < 60 ? `${diffM}dk` : diffH < 24 ? `${diffH}sa` : `${Math.floor(diffH/24)}g`;
+
+                let title = item.title || '';
+                let source = 'Kaynak';
+                if (title.includes(' - ')) {
+                    const parts = title.split(' - ');
+                    source = parts.pop();
+                    title = parts.join(' - ');
+                }
+
+                let imgHtml = '<i class="fas fa-newspaper"></i>';
+                const imgMatch = item.description ? item.description.match(/src="([^"]+)"/) : null;
+                if (imgMatch) {
+                    imgHtml = `<img src="${imgMatch[1]}" alt="" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-newspaper\\'></i>'">`;
+                }
+
+                newsHtml += `
+                <div class="asset-news-item" onclick="window.open('${item.link}', '_blank')">
+                    <div class="ani-img">${imgHtml}</div>
+                    <div class="ani-body">
+                        <div class="ani-title">${title}</div>
+                        <div class="ani-meta">
+                            <span class="ani-source">${source}</span>
+                            <span>·</span>
+                            <span><i class="far fa-clock" style="margin-right:2px;"></i>${timeAgo} önce</span>
+                        </div>
+                    </div>
+                </div>`;
+            });
+
+            newsHtml += '</div>';
+            container.innerHTML = newsHtml;
+
+            // Cache
+            _assetNewsCache[symbol.toLowerCase()] = { html: newsHtml, ts: Date.now() };
+
+        } else {
+            container.innerHTML = `
+                <div class="asset-news-inner">
+                    <div class="asset-news-empty">
+                        <i class="fas fa-search"></i>
+                        <strong>${symbol}</strong> ile ilgili güncel haber bulunamadı.
+                    </div>
+                </div>`;
+        }
+    } catch (err) {
+        console.error('Asset news fetch error:', err);
+        container.innerHTML = `
+            <div class="asset-news-inner">
+                <div class="asset-news-empty">
+                    <i class="fas fa-wifi-slash"></i>
+                    Haberler yüklenemedi. Bağlantını kontrol et.
+                </div>
+            </div>`;
     }
 }
 
@@ -20200,17 +20483,33 @@ const MultiPortfolio = {
 
         Object.keys(db.list).forEach(key => {
             let p = db.list[key];
-            let isActive = (key === db.activeID) ? 'border-color:var(--accent); background:rgba(59,130,246,0.1);' : 'border-color:rgba(255,255,255,0.1);';
-            let icon = (key === db.activeID) ? '<i class="fas fa-check-circle" style="color:var(--accent)"></i>' : '<i class="far fa-circle" style="color:var(--text-sub)"></i>';
-            let delBtn = (key !== 'main' && key !== db.activeID) ? `<button onclick="MultiPortfolio.delete('${key}')" style="background:none; border:none; color:var(--danger); cursor:pointer; padding:5px;"><i class="fas fa-trash"></i></button>` : '';
+            let isActive = (key === db.activeID);
+            let borderStyle = isActive ? 'border-color:var(--accent); background:rgba(59,130,246,0.08);' : 'border-color:rgba(255,255,255,0.06); background:rgba(255,255,255,0.02);';
+            let icon = isActive ? '<i class="fas fa-check-circle" style="color:var(--accent);font-size:16px;"></i>' : '<i class="far fa-circle" style="color:var(--text-sub);font-size:16px;"></i>';
+            let delBtn = (key !== 'main' && key !== db.activeID) ? `<button onclick="MultiPortfolio.delete('${key}')" style="background:none; border:none; color:var(--danger); cursor:pointer; padding:5px;"><i class="fas fa-trash" style="font-size:12px;"></i></button>` : '';
+            let activeBadge = isActive ? '<span style="font-size:8px; background:rgba(59,130,246,0.15); color:var(--accent); padding:2px 6px; border-radius:8px; font-weight:700;">AKTİF</span>' : '';
+
+            // Nakit ve varlık sayısı
+            let pCash = parseFloat(p.cash) || 0;
+            let pAssets = 0;
+            try { pAssets = JSON.parse(p.data || '[]').length; } catch(e) {}
+            let sym = (appSettings && appSettings.currency === 'USD') ? '$' : '₺';
 
             html += `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border:1px solid; border-radius:10px; margin-bottom:8px; cursor:pointer; transition:0.2s; ${isActive}" onclick="MultiPortfolio.switch('${key}')">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border:1px solid; border-radius:12px; margin-bottom:8px; cursor:pointer; transition:all 0.2s; ${borderStyle}" onclick="MultiPortfolio.switch('${key}')">
                 <div style="display:flex; align-items:center; gap:10px;">
                     ${icon}
-                    <div style="font-weight:700; font-size:13px;">${p.name}</div>
+                    <div>
+                        <div style="font-weight:700; font-size:13px; display:flex; align-items:center; gap:6px;">
+                            ${p.name} ${activeBadge}
+                        </div>
+                        <div style="font-size:10px; color:var(--text-sub); margin-top:3px;">
+                            <span style="margin-right:8px;"><i class="fas fa-coins" style="margin-right:3px;font-size:8px;"></i>${sym}${pCash.toLocaleString('tr-TR',{maximumFractionDigits:0})}</span>
+                            <span><i class="fas fa-layer-group" style="margin-right:3px;font-size:8px;"></i>${pAssets} varlık</span>
+                        </div>
+                    </div>
                 </div>
-                <div onclick="event.stopPropagation()">
+                <div onclick="event.stopPropagation()" style="display:flex;align-items:center;">
                     ${delBtn}
                 </div>
             </div>`;
@@ -20225,6 +20524,9 @@ const MultiPortfolio = {
         let name = document.getElementById('newPortfolioName').value.trim();
         if (!name) return alert("Lütfen bir isim girin.");
 
+        let cashInput = document.getElementById('newPortfolioCash');
+        let initialCash = cashInput ? (parseFloat(cashInput.value) || 0) : 0;
+
         this.syncCurrentToStorage(); // Mevcut işleri kaydet
         let db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
         
@@ -20234,15 +20536,16 @@ const MultiPortfolio = {
         db.list[newID] = {
             name: name,
             data: '[]', // Boş portföy
-            cash: '0'   // 0 Nakit
+            cash: String(initialCash)
         };
 
         localStorage.setItem('tm_all_portfolios', JSON.stringify(db));
         document.getElementById('newPortfolioName').value = '';
+        if (cashInput) cashInput.value = '';
         this.open(); // Listeyi yenile
     },
 
-    // Portföy Değiştir (SWAP İŞLEMİ)
+    // Portföy Değiştir (SOFT SWAP - Sayfa yenilemeden)
     switch: function(targetID) {
         let db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
         if (targetID === db.activeID) return; // Zaten seçili
@@ -20262,8 +20565,11 @@ const MultiPortfolio = {
         localStorage.setItem('myPF_final', targetWallet.data);
         localStorage.setItem('tm_cash_balance', targetWallet.cash);
 
-        // 4. Uygulamayı Yenile
-        location.reload(); 
+        // 4. Soft Reload — sayfa yenilemeden cüzdanı yükle
+        cashBalance = parseFloat(targetWallet.cash) || 0;
+        document.getElementById('portfolioModal').style.display = 'none';
+        this.updateHeader();
+        if (typeof loadPF === 'function') loadPF(false);
     },
 
     // Silme
@@ -21909,14 +22215,18 @@ const AppLock = {
     
     updateSecurityBadge: function() {
         const badge = document.getElementById('securityStatusBadge');
-        if (badge) {
-            const isEnabled = this.isLockEnabled() && this.hasPin();
+        const menuIcon = document.getElementById('securityMenuIcon');
+        const isEnabled = this.isLockEnabled() && this.hasPin();
+        // Sadece menü ikonunu güncelle, alt yazı yok
+        if (menuIcon) {
             if (isEnabled) {
-                badge.innerHTML = '<span class="pin-status-badge active"><i class="fas fa-check"></i> Aktif</span>';
+                menuIcon.innerHTML = '<i class="fas fa-lock"></i>';
             } else {
-                badge.innerHTML = '<span class="pin-status-badge inactive"><i class="fas fa-minus"></i> Kapalı</span>';
+                menuIcon.innerHTML = '<i class="fas fa-lock-open"></i>';
             }
         }
+        // Badge alanını boş bırak
+        if (badge) badge.innerHTML = '';
     }
 };
 
@@ -22773,6 +23083,44 @@ function renderAICoach() {
     if (scoreEl) { 
         scoreEl.innerText = score; 
         scoreEl.style.color = score >= 60 ? '#10b981' : score >= 40 ? '#f59e0b' : '#ef4444';
+        scoreEl.style.background = 'none';
+        scoreEl.style.webkitBackgroundClip = 'unset';
+        scoreEl.style.webkitTextFillColor = scoreEl.style.color;
+    }
+
+    // Score ring animasyonu (circumference = 2 * PI * 75 ≈ 471)
+    let ringEl = document.getElementById('coachScoreRing');
+    if (ringEl) {
+        let pct = Math.min(score, 100) / 100;
+        let dashoffset = 471 - (471 * pct);
+        ringEl.style.strokeDashoffset = dashoffset;
+    }
+    
+    // Verdict badge
+    let verdictEl = document.getElementById('aiScoreVerdict');
+    if (verdictEl) {
+        if (score >= 75) { verdictEl.innerText = 'Mükemmel'; verdictEl.style.background = 'rgba(34,197,94,0.1)'; verdictEl.style.color = '#22c55e'; }
+        else if (score >= 60) { verdictEl.innerText = 'İyi Seviye'; verdictEl.style.background = 'rgba(34,197,94,0.1)'; verdictEl.style.color = '#22c55e'; }
+        else if (score >= 40) { verdictEl.innerText = 'Gelişiyor'; verdictEl.style.background = 'rgba(245,158,11,0.1)'; verdictEl.style.color = '#f59e0b'; }
+        else { verdictEl.innerText = 'Başlangıç'; verdictEl.style.background = 'rgba(239,68,68,0.1)'; verdictEl.style.color = '#ef4444'; }
+    }
+
+    // Risk bar
+    let riskBar = document.getElementById('riskBarFill');
+    let riskSub = document.getElementById('riskBarSub');
+    if (riskBar && risk) {
+        let riskPct = risk.text === 'Düşük' ? 25 : risk.text === 'Orta' ? 50 : risk.text === 'Yüksek' ? 75 : 50;
+        riskBar.style.width = riskPct + '%';
+        riskBar.style.background = risk.color;
+        if (riskSub) riskSub.innerText = riskPct/10 + '/10';
+    }
+
+    // Focus bar
+    let focusBar = document.getElementById('focusBarFill');
+    let focusSub = document.getElementById('focusBarSub');
+    if (focusBar && focus) {
+        focusBar.style.background = focus.color;
+        if (focusSub) focusSub.innerText = focus.text + ' ağırlıklı';
     }
     
     // Kullanım istatistikleri
@@ -22784,6 +23132,24 @@ function renderAICoach() {
     if (mostUsedEl) mostUsedEl.innerText = pageNames[data.behavior.topPage] || '📱';
     if (mostSearchEl) mostSearchEl.innerText = data.behavior.topSearch || '-';
     if (timeSpentEl) timeSpentEl.innerText = data.behavior.totalTimeMinutes + 'dk';
+
+    // Haftalık aktivite bar'larını güncelle
+    try {
+        let barsContainer = document.getElementById('coachActivityBars');
+        if (barsContainer && data.behavior && data.behavior.dailySessions) {
+            let days = data.behavior.dailySessions;
+            let maxVal = Math.max(...days, 1);
+            let bars = barsContainer.querySelectorAll('.coach-activity-bar');
+            bars.forEach((bar, i) => {
+                let val = days[i] || 0;
+                let pct = Math.max((val / maxVal) * 100, 5);
+                bar.style.height = pct + '%';
+                if (i === new Date().getDay() - 1 || (i === 6 && new Date().getDay() === 0)) {
+                    bar.classList.add('cab-active');
+                }
+            });
+        }
+    } catch(e) {}
 }
 
 function runAIAnalysis(type) {
