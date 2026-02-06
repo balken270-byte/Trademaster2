@@ -513,6 +513,64 @@ body {
         .wl-search-box { display: flex; gap: 10px; align-items: center; background: var(--bg-input); border-radius: 12px; padding: 5px 10px; border: 1px solid rgba(255,255,255,0.1); }
         .wl-search-input { flex: 1; background: transparent; border: none; color: white; padding: 10px; font-size: 14px; outline: none; }
         .wl-add-btn { background: var(--accent); color: white; border: none; width: 40px; height: 40px; border-radius: 10px; font-size: 18px; cursor: pointer; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
+
+        /* ── PREMIUM İZLEME LİSTESİ KARTLARI ── */
+        .wl-pro-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .wl-pro-card:hover { border-color: rgba(255,255,255,0.08); transform: translateY(-1px); }
+        .wl-pro-card:active { transform: scale(0.99); }
+        .wl-pro-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+        .wl-pro-logo {
+            width: 44px; height: 44px; border-radius: 14px;
+            background: rgba(255,255,255,0.03);
+            border: 2px solid rgba(255,255,255,0.06);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; overflow: hidden;
+        }
+        .wl-pro-info { flex: 1; min-width: 0; }
+        .wl-pro-sym { font-size: 15px; font-weight: 800; color: #fff; letter-spacing: 0.5px; }
+        .wl-pro-tag {
+            font-size: 8px; font-weight: 700; padding: 2px 7px; border-radius: 6px;
+            text-transform: uppercase; letter-spacing: 0.5px; display: inline-block; margin-top: 3px;
+        }
+        .wl-tag-crypto { background: rgba(245,158,11,0.12); color: #f59e0b; }
+        .wl-tag-stock { background: rgba(59,130,246,0.12); color: #3b82f6; }
+        .wl-tag-other { background: rgba(139,92,246,0.12); color: #a78bfa; }
+        .wl-pro-price-area { text-align: right; }
+        .wl-pro-price { font-size: 16px; font-weight: 800; color: #fff; }
+        .wl-pro-change {
+            font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 8px;
+            display: inline-flex; align-items: center; margin-top: 3px;
+        }
+        .wl-pro-stats {
+            display: flex; align-items: center; justify-content: space-around;
+            background: rgba(255,255,255,0.02);
+            border-radius: 10px; padding: 8px 4px; flex: 1;
+        }
+        .wl-pro-stat { text-align: center; flex: 1; }
+        .wl-pro-stat-lbl { font-size: 8px; color: #64748b; font-weight: 700; display: block; margin-bottom: 2px; letter-spacing: 0.5px; }
+        .wl-pro-stat-val { font-size: 12px; font-weight: 700; }
+        .wl-pro-stat-divider { width: 1px; height: 24px; background: rgba(255,255,255,0.05); }
+        .wl-pro-del {
+            background: rgba(239,68,68,0.08); color: #ef4444;
+            width: 32px; height: 32px; border-radius: 8px; border: none;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 11px; transition: all 0.2s; flex-shrink: 0;
+        }
+        .wl-pro-del:hover { background: rgba(239,68,68,0.15); }
+        .wl-pro-bottom {
+            display: flex; align-items: center; gap: 8px;
+        }
+        .wl-pro-card:hover .wl-pro-del { opacity: 1; }
+        @media (hover: none) { .wl-pro-del { opacity: 0.7; } }
         #wlLiveInfo { font-size: 12px; color: var(--text-sub); padding: 5px; height: 20px; font-weight: 600; display: block; }
         .news-card-pro { background: var(--bg-card); border-radius: 16px; padding: 16px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); border-left: 4px solid var(--text-sub); transition: transform 0.2s; }
         .nc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap:5px; }
@@ -1781,8 +1839,8 @@ body {
 .md-change-pill { font-size: 14px; font-weight: 700; padding: 4px 12px; border-radius: 12px; display: inline-block; }
 
 /* Sekmeler */
-.md-tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.md-tab { padding: 10px 15px; font-size: 13px; font-weight: 700; color: var(--text-sub); cursor: pointer; border-bottom: 2px solid transparent; transition: 0.2s; }
+.md-tabs { display: flex; gap: 4px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.md-tab { padding: 10px 10px; font-size: 11px; font-weight: 700; color: var(--text-sub); cursor: pointer; border-bottom: 2px solid transparent; transition: 0.2s; white-space: nowrap; }
 .md-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
 /* İçerik Alanları */
@@ -1804,6 +1862,90 @@ body {
 
 /* Hızlı Aksiyonlar */
 .md-action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+
+/* ── PİYASA DETAY HABER TAB STİLLERİ ── */
+.md-news-wrap { padding: 4px 0; }
+.md-news-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.md-news-count {
+    font-size: 9px;
+    background: rgba(59,130,246,0.1);
+    color: var(--accent);
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+.md-news-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.03);
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.md-news-item:hover {
+    background: rgba(59,130,246,0.04);
+    border-color: rgba(59,130,246,0.1);
+}
+.md-news-item:active { transform: scale(0.99); }
+.md-news-featured {
+    background: rgba(59,130,246,0.05) !important;
+    border-color: rgba(59,130,246,0.12) !important;
+}
+.md-news-img {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    flex-shrink: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.md-news-img img { width: 100%; height: 100%; object-fit: cover; }
+.md-news-img i { font-size: 16px; color: #555; }
+.md-news-body { flex: 1; min-width: 0; }
+.md-news-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #d0d0d0;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 5px;
+}
+.md-news-meta {
+    font-size: 9px;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+.md-news-source { color: var(--accent); font-weight: 600; }
+.md-news-hot {
+    font-size: 8px;
+    background: rgba(239,68,68,0.15);
+    color: #ef4444;
+    padding: 1px 6px;
+    border-radius: 6px;
+    font-weight: 700;
+}
 .btn-quick { padding: 12px; border-radius: 12px; font-weight: 800; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; transition: 0.2s; }
 .btn-quick:active { transform: scale(0.96); }
 .bq-buy { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
@@ -11547,6 +11689,7 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
             <div class="md-tabs">
                 <div class="md-tab active" onclick="switchMdTab('overview', this)">GENEL BAKIŞ</div>
                 <div class="md-tab" onclick="switchMdTab('chart', this)">GRAFİK</div>
+                <div class="md-tab" onclick="switchMdTab('news', this)">HABERLER</div>
                 <div class="md-tab" onclick="switchMdTab('calc', this)">İŞLEM</div>
             </div>
 
@@ -11577,6 +11720,10 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
 
             <div id="md-tab-chart" class="md-content">
                 <div id="mdChartContainer" class="chart-box-lg" style="height: 350px;"></div>
+            </div>
+
+            <div id="md-tab-news" class="md-content">
+                <div id="mdNewsContainer" class="md-news-wrap"></div>
             </div>
 
             <div id="md-tab-calc" class="md-content">
@@ -12269,13 +12416,24 @@ function resetPageToInitialState(pageId) {
             break;
             
         case 'market':
-            // Piyasa: İlk sekmeye (Kripto) dön
+            // Piyasa: İlk sekmeye (Kripto) dön ve yenile
             if (typeof loadMarketCategory === 'function') loadMarketCategory('kripto');
             // Arama kutusunu temizle
             let searchInput = document.getElementById('smartSearchInput');
             if (searchInput) searchInput.value = '';
             let searchResults = document.getElementById('smartSearchResults');
             if (searchResults) searchResults.style.display = 'none';
+            // Unified search temizle
+            let uniInput = document.getElementById('unifiedSearchInput');
+            if (uniInput) uniInput.value = '';
+            let uniBox = document.getElementById('unifiedSearchBox');
+            if (uniBox) uniBox.classList.remove('open');
+            // Ana piyasa moduna dön (izlemeden çık)
+            let mvMain = document.getElementById('mv-main');
+            if(mvMain && !mvMain.classList.contains('active')) {
+                switchMarketMode('main', document.getElementById('btn-view-main'));
+            }
+            addNotification('info', 'Yenilendi', 'Piyasa verileri güncelleniyor...');
             break;
             
         case 'analysis':
@@ -12296,19 +12454,32 @@ function resetPageToInitialState(pageId) {
             break;
             
         case 'news':
-            // Haberler: İlk kategoriye dön
+            // Haberler: İlk kategoriye dön ve haberleri yenile
             let newsCategories = document.querySelectorAll('.news-cat-btn');
             if (newsCategories.length > 0) {
                 newsCategories.forEach(c => c.classList.remove('active'));
                 newsCategories[0].classList.add('active');
             }
+            // Haber önbelleğini temizle ve yenile
+            if (typeof NewsApp !== 'undefined' && NewsApp.refresh) NewsApp.refresh();
+            else if (typeof fetchNewsCustom === 'function') fetchNewsCustom();
+            addNotification('info', 'Yenilendi', 'Haberler güncelleniyor...');
             break;
             
         case 'settings':
-            // Ayarlar: Tüm açık panelleri kapat
+            // Ayarlar: Ana menüye dön (tüm alt sayfaları kapat)
             document.querySelectorAll('.settings-dropdown, .settings-panel').forEach(p => {
                 p.style.display = 'none';
             });
+            // Ayarlar sayfasındaki tüm detay sayfalarını kapat
+            let psPages = document.querySelectorAll('[id^="ps-page-"]');
+            psPages.forEach(p => { if(p) p.style.display = 'none'; });
+            let psMain = document.getElementById('ps-main-menu');
+            if(psMain) psMain.style.display = 'block';
+            // Scroll en üste
+            let settingsContainer = document.querySelector('#page-settings .ps-container');
+            if(settingsContainer) settingsContainer.scrollTop = 0;
+            addNotification('info', 'Sıfırlandı', 'Ayarlar ana menüye döndü.');
             break;
     }
     
@@ -15026,7 +15197,7 @@ onerror="this.outerHTML=\`<div style='width:40px;height:40px;background:${color}
     function checkPolyInit() { if(polyApiKey) { document.getElementById('polyIndicator').className='poly-status-dot'; testPolygonConnection(); } else { document.getElementById('polyIndicator').className='poly-status-dot idle'; document.getElementById('polyStatusText').innerText="KOD YOK"; } }
     function savePolyKey(val){ polyApiKey=val.trim(); localStorage.setItem('tm_poly_key',polyApiKey); if(polyApiKey==="") checkPolyInit(); else testPolygonConnection(); }
     async function testPolygonConnection() { if(!polyApiKey) return; const ind=document.getElementById('polyIndicator'); const txt=document.getElementById('polyStatusText'); txt.innerText="BAĞLANILIYOR..."; try{ const response=await fetch(`https://api.polygon.io/v2/aggs/ticker/AAPL/prevClose?adjusted=true&apiKey=${polyApiKey}`); if(!response.ok) throw new Error(response.status); const data=await response.json(); if(data.status==="OK" || data.resultsCount>=0){ ind.className='poly-status-dot active'; txt.innerText="AKTİF"; txt.style.color="var(--success)"; } } catch(e){ ind.className='poly-status-dot error'; txt.innerText="HATA"; txt.style.color="var(--danger)"; } }
-    async function getHistoricalChange(s){ let data=await getPrice(s); let r=(Math.random()-0.5)*2; return { ...data, daily: data.change, monthly: data.change*5+r, yearly: data.change*10+r }; }
+    async function getHistoricalChange(s){ let fm=null; let su=s.toUpperCase(); if(su.includes('.IS')) fm='BORSA'; else if(['BTC','ETH','SOL','XRP','DOGE','SHIB','AVAX','ADA','BNB','MATIC','DOT','LINK','ATOM','ARB','PEPE','RENDER'].some(c=>su.includes(c))) fm='CRYPTO'; let data=await getPrice(s,fm); let ch=data.change||0; return { ...data, daily: ch, monthly: ch*4.2, yearly: ch*12 }; }
     async function fetchUsdRate(){ try{ let res=await tryBinance('USDTTRY'); if(res) usdTryRate=res.price; else usdTryRate=36.5; } catch{ usdTryRate=36.5; } }
     
     function switchSettingsTab(tab, btn){ document.querySelectorAll('.settings-content').forEach(c => c.classList.remove('active')); document.getElementById('set-' + tab).classList.add('active'); document.querySelectorAll('.s-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); }
@@ -15037,7 +15208,41 @@ onerror="this.outerHTML=\`<div style='width:40px;height:40px;background:${color}
     let wlDebounce; function debouncedWlPreview(val) { clearTimeout(wlDebounce); if(val.length < 2) return; const infoDiv = document.getElementById('wlLiveInfo'); infoDiv.innerText = "Aranıyor..."; wlDebounce = setTimeout(async () => { let res = await getPrice(val); if(res.price > 0) infoDiv.innerHTML = `<span style="color:var(--success)">${val.toUpperCase()}: ${res.price.toFixed(2)}</span>`; else infoDiv.innerText = "Bulunamadı"; }, 600); }
     async function addToWatchlist(){ let s = document.getElementById('wlInput').value.trim().toUpperCase(); if(!s) return; let w = JSON.parse(localStorage.getItem('tm_watchlist')) || []; if(w.includes(s)) { return addNotification('warn', 'Zaten Ekli', 'Bu sembol izleme listesinde var.'); } w.push(s); localStorage.setItem('tm_watchlist', JSON.stringify(w)); document.getElementById('wlInput').value = ""; updateWatchlist(); addNotification('success', 'Eklendi', `${s} izlemeye alındı.`); }
     function removeFromWatchlist(s){ let w = JSON.parse(localStorage.getItem('tm_watchlist')) || []; w = w.filter(i => i !== s); localStorage.setItem('tm_watchlist', JSON.stringify(w)); updateWatchlist(); }
-    async function updateWatchlist(){ let wl = JSON.parse(localStorage.getItem('tm_watchlist')) || []; let l = document.getElementById('wlList'); l.innerHTML = ""; if(wl.length === 0) { l.innerHTML = "<div style='text-align:center; padding:20px; color:var(--text-sub)'>Liste boş.</div>"; return; } for(let s of wl){ let r = await getHistoricalChange(s); let priceDisplay = r.price > 0 ? (r.origin === 'USD' ? '$' : '₺') + r.price.toFixed(2) : 'Veri Yok'; let changeDisplay = r.price > 0 ? `%${r.change.toFixed(2)}` : '--'; let color = r.change >= 0 ? '#10b981' : '#ef4444'; let tag = getAssetTag(s); let tagClass = tag.t === 'KRİPTO' ? 'kripto' : (tag.t === 'BORSA' ? 'borsa' : 'doviz'); l.innerHTML += `<div class="wl-card-classic" style="border-left-color: ${color};"><div class="wl-c-header"><div><span class="wl-c-sym">${s}</span><span class="wl-c-tag ${tagClass}">${tag.t}</span></div><div class="wl-c-price-box"><span class="wl-c-price">${priceDisplay}</span><span class="wl-c-change" style="color:${color}">${changeDisplay}</span></div></div><div class="wl-c-stats"><div class="wl-c-stat-item"><span class="wl-c-lbl">GÜNLÜK</span><span class="wl-c-val" style="color:${color}">${(r.daily).toFixed(2)}%</span></div><div class="wl-c-stat-item"><span class="wl-c-lbl">AYLIK</span><span class="wl-c-val" style="color:${color}">${(r.monthly).toFixed(2)}%</span></div><div class="wl-c-stat-item"><span class="wl-c-lbl">YILLIK</span><span class="wl-c-val" style="color:${color}">${(r.yearly).toFixed(2)}%</span></div></div><button class="wl-c-del" onclick="removeFromWatchlist('${s}')"><i class="fas fa-trash"></i></button></div>`; } }
+    async function updateWatchlist(){
+        let wl = JSON.parse(localStorage.getItem('tm_watchlist')) || [];
+        let l = document.getElementById('wlList');
+        if(!l) return;
+        if(wl.length === 0){
+            l.innerHTML = '<div style="text-align:center; padding:50px 20px; color:var(--text-sub);"><div style="width:64px;height:64px;border-radius:20px;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;"><i class="fas fa-binoculars" style="font-size:24px;opacity:0.3;"></i></div><div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:6px;">İzleme Listesi Boş</div><div style="font-size:11px;color:#64748b;line-height:1.5;">Piyasa ekranında bir varlığa tıklayıp<br>⭐ yıldız ile buraya ekleyebilirsin.</div></div>';
+            return;
+        }
+        l.innerHTML = wl.map(() => '<div class="wl-pro-card" style="height:90px;opacity:0.3;"></div>').join('');
+        const results = await Promise.allSettled(wl.map(async (s) => { let r = await getHistoricalChange(s); return { symbol: s, ...r }; }));
+        let html = '';
+        results.forEach((res, idx) => {
+            let s = wl[idx];
+            let r = res.status === 'fulfilled' ? res.value : { price:0, change:0, daily:0, monthly:0, yearly:0, origin:'USD', image:null };
+            let priceDisplay = r.price > 0 ? (r.origin==='USD'?'$':'₺') + r.price.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2}) : '--';
+            let ch = r.change||0; let isUp = ch>=0; let color = isUp?'#10b981':'#ef4444';
+            let arrow = isUp?'fa-caret-up':'fa-caret-down';
+            let tag = getAssetTag(s); let tagCls = tag.t==='KRİPTO'?'wl-tag-crypto':(tag.t==='BORSA'?'wl-tag-stock':'wl-tag-other');
+            let cleanSym = s.replace('.IS','').replace('USDT','').toUpperCase();
+            let logoHtml = '';
+            if(r.image) {
+                logoHtml = '<img src="'+r.image+'" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><div style="display:none;width:100%;height:100%;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);align-items:center;justify-content:center;"><span style="font-size:13px;font-weight:800;color:white;">'+cleanSym.substring(0,2)+'</span></div>';
+            } else {
+                let cachedCoin = (typeof marketDataCache !== 'undefined') ? marketDataCache.find(c => c.symbol === cleanSym) : null;
+                if(cachedCoin && cachedCoin.image) {
+                    logoHtml = '<img src="'+cachedCoin.image+'" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">';
+                } else {
+                    let gc = tag.t==='KRİPTO' ? '#f59e0b,#d97706' : (tag.t==='BORSA' ? '#3b82f6,#2563eb' : '#8b5cf6,#7c3aed');
+                    logoHtml = '<div style="width:100%;height:100%;border-radius:12px;background:linear-gradient(135deg,'+gc+');display:flex;align-items:center;justify-content:center;"><span style="font-size:13px;font-weight:800;color:white;">'+cleanSym.substring(0,2)+'</span></div>';
+                }
+            }
+            html += '<div class="wl-pro-card" onclick="openMarketDetail(\''+s+'\')"><div class="wl-pro-top"><div class="wl-pro-logo" style="border-color:'+color+'30;">'+logoHtml+'</div><div class="wl-pro-info"><div class="wl-pro-sym">'+cleanSym+'</div><span class="wl-pro-tag '+tagCls+'">'+tag.t+'</span></div><div class="wl-pro-price-area"><div class="wl-pro-price">'+priceDisplay+'</div><div class="wl-pro-change" style="color:'+color+';background:'+color+'15;"><i class="fas '+arrow+'" style="margin-right:3px;"></i>'+(ch>=0?'+':'')+ch.toFixed(2)+'%</div></div></div><div class="wl-pro-bottom"><div class="wl-pro-stats"><div class="wl-pro-stat"><span class="wl-pro-stat-lbl">24S</span><span class="wl-pro-stat-val" style="color:'+(r.daily>=0?'#10b981':'#ef4444')+'">'+(r.daily>=0?'+':'')+r.daily.toFixed(2)+'%</span></div><div class="wl-pro-stat-divider"></div><div class="wl-pro-stat"><span class="wl-pro-stat-lbl">30G</span><span class="wl-pro-stat-val" style="color:'+(r.monthly>=0?'#10b981':'#ef4444')+'">'+(r.monthly>=0?'+':'')+r.monthly.toFixed(1)+'%</span></div><div class="wl-pro-stat-divider"></div><div class="wl-pro-stat"><span class="wl-pro-stat-lbl">1Y</span><span class="wl-pro-stat-val" style="color:'+(r.yearly>=0?'#10b981':'#ef4444')+'">'+(r.yearly>=0?'+':'')+r.yearly.toFixed(1)+'%</span></div></div><button class="wl-pro-del" onclick="event.stopPropagation();removeFromWatchlist(\''+s+'\')"><i class="fas fa-trash-alt"></i></button></div></div>';
+        });
+        l.innerHTML = html;
+    }
     function getAssetTag(s) { if(['ALTIN','GOLD','GRAM'].includes(s)) return {t:'EMTİA'}; if(s.includes('USDT') || (!s.includes('.') && s.length <= 5)) return {t:'KRİPTO'}; if(['USD','EUR','GBP'].includes(s)) return {t:'DÖVİZ'}; return {t:'BORSA'}; }
     function calcDca(){ let s=document.getElementById('addSymbol').value.toUpperCase(); let a=parseFloat(document.getElementById('addAmount').value); let p=parseFloat(document.getElementById('addBuyPrice').value); if(s&&a&&p){ let as=JSON.parse(localStorage.getItem('myPF_final'))||[]; let ex=as.find(i=>i.name===s); if(ex){ let n=((ex.amt*ex.buy)+(a*p))/(ex.amt+a); document.getElementById('dcaPreview').style.display='block'; document.getElementById('dcaText').innerHTML=`Eski: ${ex.buy.toFixed(2)} -> <span class="dca-val">Yeni: ${n.toFixed(2)}</span>`; } else {document.getElementById('dcaPreview').style.display='none';} } calcLiveTotal(); }
     function closeModal(id){document.getElementById(id).style.display='none';} function openModal(id){document.getElementById(id).style.display='flex';}
@@ -15684,14 +15889,60 @@ async function fetchMarketData() {
             }
         } 
         
-        // --- SENARYO 2: HİSSE (BIST) ---
+        // --- SENARYO 2: HİSSE (BIST + ABD - MASSIVE/YAHOO) ---
         else if(currentCategory === 'hisse') {
-            if(currentPage === 1) { // Sadece ilk yüklemede oluştur
-                marketDataCache = bistExtended.map(sym => ({
-                    symbol: sym, price: 0, change: 0, vol: 0, source: 'BIST', image: null
-                }));
-                updateBistPrices();
-                processAndRenderData(marketDataCache); // Hepsini bas
+            if(currentPage === 1) {
+                // İlk yüklemede skeleton göster
+                const listEl = document.getElementById('infiniteMarketList');
+                listEl.innerHTML = Array(10).fill('<div class="infinite-item" style="opacity:0.3;height:56px;"></div>').join('');
+                
+                marketDataCache = [];
+                
+                // Paralel fiyat çekimi (Promise.allSettled ile güvenli)
+                const results = await Promise.allSettled(
+                    bistExtended.map(async (sym) => {
+                        let s = sym.includes('.IS') || sym.includes('=') ? sym : sym + '.IS';
+                        let data = await getPrice(s, 'BORSA');
+                        
+                        // Logo çekimi - Yahoo/Polygon'dan gelen image varsa kullan
+                        let logo = data.image || null;
+                        
+                        // Eğer logo yoksa clearbit ile dene (.IS'siz temiz isim)
+                        if(!logo) {
+                            let cleanName = sym.replace('.IS','').toLowerCase();
+                            // Bilinen Türk şirketleri için domain mapping
+                            const domainMap = {
+                                'THYAO':'turkishairlines','GARAN':'garantibbva','AKBNK':'akbank',
+                                'ASELS':'aselsan','EREGL':'ereglidemir','SASA':'sasapolyester',
+                                'KCHOL':'kocholding','SISE':'sisecam','BIMAS':'bim',
+                                'TUPRS':'tupras','YKBNK':'yapikredi','ISCTR':'isbank',
+                                'FROTO':'ford','PETKM':'petkim','HALKB':'halkbank',
+                                'VAKBN':'vakifbank','TCELL':'turkcell','PGSUS':'flypgs',
+                                'ARCLK':'arcelik','TOASO':'tofas','TTKOM':'turktelekom',
+                                'MGROS':'migros','SAHOL':'sabancı','SOKM':'sok',
+                                'VESTL':'vestel','MAVI':'mavicompany'
+                            };
+                            let domain = domainMap[sym] || cleanName;
+                            logo = `https://logo.clearbit.com/${domain}.com.tr`;
+                        }
+                        
+                        return {
+                            symbol: sym,
+                            name: sym.replace('.IS',''),
+                            price: data.price || 0,
+                            change: data.change || 0,
+                            vol: 0,
+                            source: data.source || 'BIST',
+                            image: logo
+                        };
+                    })
+                );
+                
+                marketDataCache = results
+                    .filter(r => r.status === 'fulfilled')
+                    .map(r => r.value);
+                
+                processAndRenderData(marketDataCache);
             }
         } 
         
@@ -16010,6 +16261,11 @@ function switchMdTab(tab, btn) {
     document.getElementById('md-tab-' + tab).classList.add('active');
     document.querySelectorAll('.md-tab').forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
+
+    // Haberler tabı açıldığında otomatik yükle
+    if (tab === 'news' && typeof currentMdSymbol !== 'undefined' && currentMdSymbol) {
+        loadMdNews(currentMdSymbol);
+    }
 }
 
 // FORMAT VOLUME FONKSİYONU
@@ -16019,6 +16275,108 @@ function formatVolume(val, sym) {
     if(val > 1000000) return sym + (val/1000000).toFixed(2) + " M";
     if(val > 1000) return sym + (val/1000).toFixed(2) + " K";
     return sym + val.toFixed(0);
+}
+
+// PİYASA DETAY - HABER YÜKLEME
+const _mdNewsCache = {};
+async function loadMdNews(rawSymbol) {
+    const container = document.getElementById('mdNewsContainer');
+    if (!container) return;
+
+    // Keyword mapping (cüzdan haberdeki ile aynı)
+    const keywordMap = {
+        'BTC': 'Bitcoin BTC', 'ETH': 'Ethereum ETH', 'BNB': 'Binance BNB',
+        'XRP': 'Ripple XRP', 'SOL': 'Solana SOL', 'ADA': 'Cardano ADA',
+        'DOGE': 'Dogecoin DOGE', 'AVAX': 'Avalanche AVAX', 'DOT': 'Polkadot DOT',
+        'MATIC': 'Polygon MATIC', 'LINK': 'Chainlink LINK', 'ATOM': 'Cosmos ATOM',
+        'SHIB': 'Shiba Inu SHIB', 'PEPE': 'Pepe coin PEPE', 'ARB': 'Arbitrum ARB',
+        'RENDER': 'Render RNDR crypto',
+        'XAU': 'Altın ons gold', 'XAG': 'Gümüş silver', 'BRENT': 'Brent petrol',
+    };
+
+    let cleanSym = rawSymbol.replace('.IS','').replace('USDT','').replace('USD','').replace('TRY','').toUpperCase();
+    let searchQuery = keywordMap[cleanSym] || cleanSym;
+
+    // Cache kontrolü (5 dk)
+    let cacheKey = cleanSym.toLowerCase();
+    if (_mdNewsCache[cacheKey] && (Date.now() - _mdNewsCache[cacheKey].ts < 300000)) {
+        container.innerHTML = _mdNewsCache[cacheKey].html;
+        return;
+    }
+
+    container.innerHTML = `
+        <div style="text-align:center; padding:30px; color:var(--text-sub);">
+            <i class="fas fa-circle-notch fa-spin" style="font-size:18px; margin-bottom:10px; display:block;"></i>
+            <strong>${cleanSym}</strong> haberleri aranıyor...
+        </div>`;
+
+    try {
+        const googleRssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(searchQuery)}+when:3d&hl=tr-TR&gl=TR&ceid=TR:tr`;
+        const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(googleRssUrl)}`;
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        if (data.status === 'ok' && data.items && data.items.length > 0) {
+            let html = `<div class="md-news-header">
+                <span><i class="fas fa-newspaper" style="margin-right:5px;"></i> ${cleanSym} Haberleri</span>
+                <span class="md-news-count">${Math.min(data.items.length, 10)} haber</span>
+            </div>`;
+
+            data.items.slice(0, 10).forEach((item, idx) => {
+                const date = new Date(item.pubDate);
+                const now = new Date();
+                const diffMs = now - date;
+                const diffH = Math.floor(diffMs / 3600000);
+                const diffM = Math.floor(diffMs / 60000);
+                let timeAgo = diffM < 60 ? `${diffM}dk` : diffH < 24 ? `${diffH}sa` : `${Math.floor(diffH/24)}g`;
+
+                let title = item.title || '';
+                let source = 'Kaynak';
+                if (title.includes(' - ')) {
+                    const parts = title.split(' - ');
+                    source = parts.pop();
+                    title = parts.join(' - ');
+                }
+
+                let imgHtml = '<i class="fas fa-newspaper"></i>';
+                const imgMatch = item.description ? item.description.match(/src="([^"]+)"/) : null;
+                if (imgMatch) {
+                    imgHtml = `<img src="${imgMatch[1]}" alt="" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-newspaper\\'></i>'">`;
+                }
+
+                let isFirst = idx === 0;
+
+                html += `
+                <div class="md-news-item ${isFirst ? 'md-news-featured' : ''}" onclick="window.open('${item.link}', '_blank')">
+                    <div class="md-news-img">${imgHtml}</div>
+                    <div class="md-news-body">
+                        <div class="md-news-title">${title}</div>
+                        <div class="md-news-meta">
+                            <span class="md-news-source">${source}</span>
+                            <span>·</span>
+                            <span><i class="far fa-clock" style="margin-right:2px;"></i>${timeAgo} önce</span>
+                            ${isFirst ? '<span class="md-news-hot">GÜNDEM</span>' : ''}
+                        </div>
+                    </div>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+            _mdNewsCache[cacheKey] = { html, ts: Date.now() };
+        } else {
+            container.innerHTML = `
+                <div style="text-align:center; padding:40px 20px; color:var(--text-sub);">
+                    <i class="fas fa-search" style="font-size:24px; margin-bottom:12px; display:block; opacity:0.4;"></i>
+                    <strong>${cleanSym}</strong> ile ilgili güncel haber bulunamadı.
+                </div>`;
+        }
+    } catch (err) {
+        container.innerHTML = `
+            <div style="text-align:center; padding:40px 20px; color:var(--text-sub);">
+                <i class="fas fa-exclamation-triangle" style="font-size:24px; margin-bottom:12px; display:block; opacity:0.4;"></i>
+                Haberler yüklenemedi.
+            </div>`;
+    }
 }
 
 /* --- AKILLI GRAFİK MOTORU (DÜZELTİLMİŞ) --- */
@@ -16473,10 +16831,10 @@ function filterUnifiedList(val) {
     val = val.toUpperCase().trim();
     const isMain = document.getElementById('mv-main').classList.contains('active');
     const container = document.getElementById(isMain ? 'infiniteMarketList' : 'wlList');
-    const items = container.querySelectorAll(isMain ? '.infinite-item' : '.wl-card-classic');
+    const items = container.querySelectorAll(isMain ? '.infinite-item' : '.wl-pro-card');
 
     items.forEach(item => {
-        let text = isMain ? item.querySelector('.ii-sym').innerText : item.querySelector('.wl-c-sym').innerText;
+        let text = isMain ? item.querySelector('.ii-sym').innerText : item.querySelector('.wl-pro-sym').innerText;
         item.style.display = text.toUpperCase().includes(val) ? (isMain ? 'flex' : 'block') : 'none';
     });
 }
@@ -16540,12 +16898,12 @@ function filterUnifiedList(val) {
     clearTimeout(autoSearchTimer);
 
     // 1. MEVCUT LİSTEYİ FİLTRELE
-    const itemClass = isMain ? '.infinite-item' : '.wl-card-classic';
+    const itemClass = isMain ? '.infinite-item' : '.wl-pro-card';
     const items = container.querySelectorAll(itemClass);
     let visibleCount = 0;
 
     items.forEach(item => {
-        let text = isMain ? item.querySelector('.ii-sym').innerText : item.querySelector('.wl-c-sym').innerText;
+        let text = isMain ? item.querySelector('.ii-sym').innerText : item.querySelector('.wl-pro-sym').innerText;
         if (text.toUpperCase().includes(val.toUpperCase())) {
             item.style.display = isMain ? 'flex' : 'block';
             visibleCount++;
@@ -21151,29 +21509,31 @@ window.switchAvgMode = function(mode, btn) {
         const targetPanel = document.getElementById('avg-mode-' + mode);
         if (targetPanel) targetPanel.style.display = 'block';
 
-        // 4. SONUÇLARI GİZLE (Temiz Sayfa İçin)
+        // 4. Manuel Inputları Yönet
+        const manualInputs = document.getElementById('avg-manual-inputs');
+        if (mode === 'auto') {
+            // AI modunda form kutularını GİZLE
+            if (manualInputs) manualInputs.style.display = 'none';
+        } else {
+            // Bütçe/Hedef modunda form kutularını GÖSTER
+            if (manualInputs) manualInputs.style.display = 'grid';
+        }
+
+        // 5. SONUÇLARI GİZLE (Temiz Sayfa İçin)
         const resultBox = document.getElementById('aaResultBox');
         const strategyBox = document.getElementById('aaStrategyBox');
         if (resultBox) resultBox.style.display = 'none';
         if (strategyBox) strategyBox.style.display = 'none';
 
-        // 5. AI MODU: KASA BAKİYESİNİ GÜNCELLE
+        // 6. AI MODU: KASA BAKİYESİNİ GÜNCELLE
         if (mode === 'auto') {
-            // Sizin verdiğiniz özel ID: aiRescueCash
             const cashEl = document.getElementById('aiRescueCash');
-            
             if (cashEl) {
-                // Bakiyeyi güvenli çek
                 const currentCash = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
-                
-                // Para birimi kontrolü
                 let sym = '₺';
                 if (typeof appSettings !== 'undefined' && appSettings.currency === 'USD') sym = '$';
-
-                // Sadece sayıyı güncelle (Tasarım bozulmaz)
                 cashEl.innerText = sym + currentCash.toLocaleString('tr-TR', {
-                    minimumFractionDigits: 2, 
-                    maximumFractionDigits: 2
+                    minimumFractionDigits: 2, maximumFractionDigits: 2
                 });
             }
         }
