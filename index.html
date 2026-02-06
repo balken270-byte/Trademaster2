@@ -4194,7 +4194,7 @@ input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
         <div id="liveInfo" style="font-size:11px; color:var(--text-sub); margin-bottom:10px; height:15px; padding-left:5px; font-weight:600;"></div>
         <div class="input-row">
             <div class="trade-input-group"><i class="fas fa-layer-group input-icon"></i><input type="number" id="addAmount" class="trade-input" placeholder="Adet" onkeyup="calcDca(); calcLiveTotal();"></div>
-            <div class="trade-input-group"><i class="fas fa-tag input-icon"></i><input type="number" id="addBuyPrice" class="trade-input" placeholder="Fiyat" onkeyup="calcDca(); calcLiveTotal();"></div>
+            <div class="trade-input-group"><i class="fas fa-tag input-icon"></i><input type="number" id="addBuyPrice" class="trade-input" placeholder="Fiyat" onkeyup="calcDca(); calcLiveTotal();" oninput="this.dataset.autoFilled='false'"></div>
         </div>
         <div id="dcaPreview" style="display:none; margin-bottom:10px; font-size:11px; padding:8px; background:rgba(59,130,246,0.1); border-radius:8px; color:var(--accent);"><i class="fas fa-calculator"></i> <span id="dcaText">--</span></div>
         <div class="trade-summary-box"><span class="ts-label">TOPLAM TUTAR</span><span class="ts-val" id="liveTradeTotal">0.00</span></div>
@@ -12132,7 +12132,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.4"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -12687,7 +12687,7 @@ async function tryPolygon(symbol) {
     // (Saat 17:30'dan sonra burası çalışır)
     let d = new Date();
     let dateStr = d.toISOString().split('T')[0];
-    let urlToday = `https://api.massive.com/v2/aggs/ticker/${cleanSym}/range/1/day/${dateStr}/${dateStr}?adjusted=true&sort=desc&limit=1&apiKey=${polyApiKey}`;
+    let urlToday = `https://api.polygon.io/v2/aggs/ticker/${cleanSym}/range/1/day/${dateStr}/${dateStr}?adjusted=true&sort=desc&limit=1&apiKey=${polyApiKey}`;
 
     try {
         let r = await fetch(urlToday);
@@ -12701,7 +12701,7 @@ async function tryPolygon(symbol) {
 
     // --- ADIM 2: EN SON KAPANIŞ (Yedek Kuvvet) ---
     // Piyasa kapalıysa veya tatilse, son işlem gününü otomatik bulur.
-    let urlPrev = `https://api.massive.com/v2/aggs/ticker/${cleanSym}/prev?adjusted=true&apiKey=${polyApiKey}`;
+    let urlPrev = `https://api.polygon.io/v2/aggs/ticker/${cleanSym}/prev?adjusted=true&apiKey=${polyApiKey}`;
 
     try {
         let rPrev = await fetch(urlPrev);
@@ -12723,7 +12723,7 @@ async function tryPolygon(symbol) {
 async function processPolyResult(res, sym, key) {
     let logoUrl = null;
     try {
-        let urlDetails = `https://api.massive.com/v3/reference/tickers/${sym}?apiKey=${key}`;
+        let urlDetails = `https://api.polygon.io/v3/reference/tickers/${sym}?apiKey=${key}`;
         let rDet = await fetch(urlDetails);
         if(rDet.ok) {
             let dDet = await rDet.json();
@@ -13620,6 +13620,7 @@ function debouncedPreview(val) {
             if(sourceText === 'CG') { sourceText = "COINGECKO"; sourceColor = "#8bc34a"; }
             else if(sourceText === 'BINANCE') { sourceColor = "#f59e0b"; }
             else if(sourceText === 'BIST') { sourceColor = "#3b82f6"; }
+            else if(sourceText.includes('MASSIVE')) { sourceColor = "#06b6d4"; }
 
             infoDiv.innerHTML = `
                 <span style="color:var(--success); font-weight:700;">
@@ -13627,13 +13628,35 @@ function debouncedPreview(val) {
                     <span style="font-size:9px; background:${sourceColor}20; color:${sourceColor}; padding:2px 5px; border-radius:4px; margin-left:5px;">${sourceText}</span>
                 </span>
                 <span style="color:white; margin-left:5px;">
-                    : ${sym}${res.price.toFixed(2)}
+                    : ${sym}${res.price.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:6})}
                 </span>`; 
+
+            // OTOMATİK FİYAT DOLDURMA
+            // Eğer fiyat kutusu boşsa veya kullanıcı henüz dokunmadıysa otomatik doldur
+            const priceInput = document.getElementById('addBuyPrice');
+            if (priceInput && (!priceInput.value || priceInput.dataset.autoFilled === 'true')) {
+                priceInput.value = res.price;
+                priceInput.dataset.autoFilled = 'true';
+                calcDca();
+                calcLiveTotal();
+            }
+
+            // Giriş para birimini otomatik ayarla
+            if (res.origin === 'USD' || res.origin === 'USDT') {
+                entryCurrency = 'USD';
+                let currBtn = document.getElementById('entryCurrBtn');
+                if(currBtn) currBtn.innerText = '$ USD';
+            } else if (res.origin === 'TRY') {
+                entryCurrency = 'TRY';
+                let currBtn = document.getElementById('entryCurrBtn');
+                if(currBtn) currBtn.innerText = '₺ TRY';
+            }
+
         } else { 
             infoDiv.innerText = "Bulunamadı"; 
             infoDiv.style.color = "var(--text-sub)"; 
         } 
-    }, 800); // 0.8 sn bekleme (API tasarrufu için)
+    }, 800);
 }
 
     
@@ -13739,6 +13762,7 @@ async function addToPortfolio(){
     document.getElementById('addSymbol').value=""; 
     document.getElementById('addAmount').value=""; 
     document.getElementById('addBuyPrice').value=""; 
+    document.getElementById('addBuyPrice').dataset.autoFilled = 'true'; 
     document.getElementById('liveInfo').innerText=""; 
     document.getElementById('dcaPreview').style.display='none'; 
     document.getElementById('liveTradeTotal').innerText="0.00"; 
