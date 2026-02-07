@@ -55,6 +55,18 @@ body {
             padding-bottom: env(safe-area-inset-bottom); /* iPhone çizgisi için */
         }
 
+        /* ===== TOAST BİLDİRİM ===== */
+        .toast-container { position:fixed; top:0; left:0; right:0; z-index:999999; display:flex; flex-direction:column; align-items:center; pointer-events:none; padding-top:calc(env(safe-area-inset-top,0px) + 12px); gap:8px; }
+        .toast-msg { background:linear-gradient(135deg,rgba(16,185,129,0.97),rgba(5,150,105,0.97)); color:#fff; padding:14px 20px; border-radius:16px; font-size:14px; font-weight:700; display:flex; align-items:center; gap:12px; box-shadow:0 10px 40px rgba(16,185,129,0.4),0 4px 12px rgba(0,0,0,0.3); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); transform:translateY(-120px) scale(0.9); opacity:0; transition:all 0.45s cubic-bezier(0.34,1.56,0.64,1); pointer-events:auto; border:1px solid rgba(255,255,255,0.2); max-width:92%; min-width:260px; }
+        .toast-msg.toast-show { transform:translateY(0) scale(1); opacity:1; }
+        .toast-msg.toast-hide { transform:translateY(-60px) scale(0.8); opacity:0; transition:all 0.3s ease-in; }
+        .toast-msg.toast-danger { background:linear-gradient(135deg,rgba(239,68,68,0.97),rgba(185,28,28,0.97)); box-shadow:0 10px 40px rgba(239,68,68,0.4),0 4px 12px rgba(0,0,0,0.3); }
+        .toast-msg.toast-info { background:linear-gradient(135deg,rgba(59,130,246,0.97),rgba(37,99,235,0.97)); box-shadow:0 10px 40px rgba(59,130,246,0.4),0 4px 12px rgba(0,0,0,0.3); }
+        .toast-icon { width:30px; height:30px; background:rgba(255,255,255,0.25); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+        .toast-text { display:flex; flex-direction:column; gap:1px; }
+        .toast-title { font-weight:800; font-size:13px; }
+        .toast-sub { font-weight:500; font-size:11px; opacity:0.9; }
+
         
 /* --- TEMALAR & DEĞİŞKENLER (MEGA PAKET) --- */
 :root {
@@ -3697,6 +3709,7 @@ input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
     
 <body>
     <canvas id="bg-canvas"></canvas>
+    <div class="toast-container" id="toastContainer"></div>
  
 
 <div id="splash-screen">
@@ -10838,27 +10851,6 @@ function openLabFullscreen() {
                 </div>
             </div>
 
-            <!-- Satın Alma -->
-            <div class="ps-section-label">Satın Alma</div>
-            <div class="ps-menu-list" id="purchaseSection">
-                <div class="ps-menu-item" onclick="openPremiumModal()" id="settingsPurchaseBtn">
-                    <div class="ps-menu-icon" style="background:linear-gradient(135deg, #FFD60A, #FF9500); color:#000;"><i class="fas fa-crown"></i></div>
-                    <div class="ps-menu-text">
-                        <div class="ps-menu-title" id="settingsPurchaseTitle">PRO'ya Yükselt</div>
-                        <div class="ps-menu-subtitle" id="settingsPurchaseSub">Tüm özelliklerin kilidini aç · 99₺</div>
-                    </div>
-                    <div class="ps-menu-arrow" style="color:#FFD60A;"><i class="fas fa-chevron-right"></i></div>
-                </div>
-                <div class="ps-menu-item" onclick="if(window.Android && window.Android.restorePurchase) window.Android.restorePurchase(); else alert('Geri yükleme işlemi başlatıldı...');">
-                    <div class="ps-menu-icon" style="background:rgba(59,130,246,0.15); color:#3b82f6;"><i class="fas fa-redo"></i></div>
-                    <div class="ps-menu-text">
-                        <div class="ps-menu-title">Satın Alımı Geri Yükle</div>
-                        <div class="ps-menu-subtitle">Önceki satın alımını kurtar</div>
-                    </div>
-                    <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
-                </div>
-            </div>
-
             <!-- Destek & Yasal -->
             <div class="ps-section-label">Destek & Yasal</div>
 <div class="ps-menu-list">
@@ -12193,7 +12185,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -13759,7 +13751,7 @@ async function addToPortfolio(){
     let a = parseFloat(document.getElementById('addAmount').value); 
     let b = parseFloat(document.getElementById('addBuyPrice').value); 
     
-    if(!rawInput || !a || !b) return addNotification('danger', 'Hata', 'Eksik bilgi girdiniz.'); 
+    if(!rawInput || !a || !b) { if(typeof showToast==='function') showToast('danger','Eksik Bilgi','Lütfen tüm alanları doldurun.'); return addNotification('danger', 'Hata', 'Eksik bilgi girdiniz.'); }
 
     // 2. Fiyatı ve DOĞRU SEMBOLÜ tekrar çek
     addNotification('info', 'İşleniyor', 'Varlık doğrulanıyor...');
@@ -13818,7 +13810,8 @@ async function addToPortfolio(){
     localStorage.setItem('myPF_final', JSON.stringify(as)); 
     logHistory('ALIM', s, a, b, '', entryCurrency); 
     
-    addNotification('success', 'İşlem Başarılı', `${s} portföye eklendi.`); 
+    addNotification('success', 'İşlem Başarılı', `${s} portföye eklendi.`);
+    if(typeof showToast==='function') showToast('success', 'Cüzdana Eklendi ✓', `${s} başarıyla portföyünüze eklendi.`); 
     
     document.getElementById('addSymbol').value=""; 
     document.getElementById('addAmount').value=""; 
@@ -15748,6 +15741,19 @@ window.switchAvgMode = function(mode, clickedBtn) {
 };
 
 
+
+/* ===== TOAST BİLDİRİM ===== */
+function showToast(type, title, subtitle, duration) {
+    duration = duration || 3200;
+    var c = document.getElementById('toastContainer'); if (!c) return;
+    var icons = { success:'fa-check-circle', danger:'fa-times-circle', info:'fa-info-circle' };
+    var t = document.createElement('div');
+    t.className = 'toast-msg' + (type !== 'success' ? ' toast-' + type : '');
+    t.innerHTML = '<div class="toast-icon"><i class="fas ' + (icons[type]||icons.info) + '"></i></div><div class="toast-text"><div class="toast-title">' + title + '</div>' + (subtitle ? '<div class="toast-sub">' + subtitle + '</div>' : '') + '</div>';
+    c.appendChild(t);
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ t.classList.add('toast-show'); }); });
+    setTimeout(function(){ t.classList.remove('toast-show'); t.classList.add('toast-hide'); setTimeout(function(){ if(t.parentNode) t.remove(); }, 350); }, duration);
+}
 
     initApp();
 /* --- PARÇACIK AĞI ANİMASYONU (GÜNCELLENMİŞ - TEMA DUYARLI) --- */
@@ -21982,19 +21988,6 @@ const MembershipSystem = {
             else profileHero.classList.remove('pro-gold');
         }
 
-        // Ayarlardaki Satın Alma butonunu güncelle
-        let purchaseTitle = document.getElementById('settingsPurchaseTitle');
-        let purchaseSub = document.getElementById('settingsPurchaseSub');
-        if(purchaseTitle && purchaseSub) {
-            if(isPro) {
-                purchaseTitle.textContent = 'PRO Üyelik Aktif';
-                purchaseSub.textContent = 'Üyelik detaylarını görüntüle';
-            } else {
-                purchaseTitle.textContent = 'PRO\'ya Yükselt';
-                purchaseSub.textContent = 'Tüm özelliklerin kilidini aç · 99₺';
-            }
-        }
-        
         let badge = document.querySelector('.pbc-badge');
         if(badge) {
             if(isPro) {
