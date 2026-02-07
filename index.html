@@ -10831,15 +10831,6 @@ function openLabFullscreen() {
             <!-- Uygulama Ayarları -->
             <div class="ps-section-label">Uygulama Ayarları</div>
             <div class="ps-menu-list">
-                <!-- Hesap & Bulut -->
-                <div class="ps-menu-item" onclick="openSubPage('account')">
-                    <div class="ps-menu-icon" style="background:linear-gradient(135deg, #4285f4, #34a853);"><i class="fas fa-cloud"></i></div>
-                    <div class="ps-menu-text">
-                        <div class="ps-menu-title">Hesap & Bulut</div>
-                        <div class="ps-menu-subtitle" id="accountMenuStatus">Giriş yapılmadı</div>
-                    </div>
-                    <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
-                </div>
                 <!-- YENİ: Güvenlik -->
                 <div class="ps-menu-item" onclick="openSubPage('security')">
                     <div class="ps-menu-icon cyan" id="securityMenuIcon"><i class="fas fa-lock-open"></i></div>
@@ -11018,17 +11009,25 @@ function openLabFullscreen() {
                 PRO'YA GEÇ (99₺/ay)
             </button>
             
-            <div id="premiumLoginHint" style="display:none; text-align:center; margin-top:10px;">
-                <div style="font-size:11px; color:#f59e0b; margin-bottom:8px;">
-                    <i class="fas fa-exclamation-triangle"></i> PRO üyelik için Google hesabıyla giriş gerekli
+            <div id="premiumLoginHint" style="display:none; text-align:center; margin-top:15px; padding:20px; background:rgba(245,158,11,0.1); border:2px solid rgba(245,158,11,0.3); border-radius:16px;">
+                <div style="font-size:40px; margin-bottom:10px;">🔐</div>
+                <div style="font-size:14px; color:#fff; font-weight:700; margin-bottom:8px;">
+                    Hesap Gerekli
+                </div>
+                <div style="font-size:12px; color:var(--text-sub); margin-bottom:18px; line-height:1.6;">
+                    PRO üyelik için Google hesabınızla<br>giriş yapmanız gerekmektedir.
                 </div>
                 <button onclick="firebaseGoogleLogin(); closePremiumModal();" style="
-                    padding:10px 20px; border:none; border-radius:10px; cursor:pointer;
-                    background:#fff; color:#333; font-size:13px; font-weight:700;
-                    display:inline-flex; align-items:center; gap:8px;">
-                    <img src="https://www.google.com/favicon.ico" width="16" height="16">
+                    width:100%; padding:14px 20px; border:none; border-radius:12px; cursor:pointer;
+                    background:#fff; color:#333; font-size:14px; font-weight:700;
+                    display:flex; align-items:center; justify-content:center; gap:10px;
+                    box-shadow:0 4px 20px rgba(0,0,0,0.3); transition:all 0.2s;">
+                    <img src="https://www.google.com/favicon.ico" width="18" height="18">
                     Google ile Giriş Yap
                 </button>
+                <div style="font-size:10px; color:var(--text-sub); margin-top:12px; opacity:0.7;">
+                    <i class="fas fa-shield-alt"></i> Güvenli ve hızlı • Verileriniz korunur
+                </div>
             </div>
             
             <button class="ps-modal-downgrade-btn" id="btnDowngrade" onclick="MembershipSystem.downgrade(); closePremiumModal();">
@@ -11088,11 +11087,8 @@ function openLabFullscreen() {
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- ===== HESAP & BULUT SAYFASI ===== -->
-            <div id="set-account" class="settings-content" style="display:none;">
-                
+                <!-- HESAP & BULUT BÖLÜMÜ BURAYA EKLENDI -->
                 <!-- Giriş yapılmamış -->
                 <div id="accountLoggedOut">
                     <div class="ps-card card" style="text-align:center; padding:30px 20px;">
@@ -12312,7 +12308,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "2.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -17780,7 +17776,7 @@ function openSubPage(pageId) {
     document.getElementById('set-' + pageId).style.display = 'block';
 
     // Başlığı güncelle
-    let titles = { 'profile': 'Profilim', 'general': 'Genel Ayarlar', 'notify': 'Bildirimler', 'history': 'Geçmiş İşlemler', 'security': 'Güvenlik', 'account': 'Hesap & Bulut' };
+    let titles = { 'profile': 'Profilim', 'general': 'Genel Ayarlar', 'notify': 'Bildirimler', 'history': 'Geçmiş İşlemler', 'security': 'Güvenlik' };
     document.getElementById('subPageTitle').innerText = titles[pageId] || 'Detay';
 }
 
@@ -21795,14 +21791,35 @@ const MembershipSystem = {
 
     // --- ÖDEME İŞLEMİ (MERKEZİ) ---
     processPayment: function() {
+        // ÇİFT GÜVENLİK KONTROLÜ: Ödeme yapabilmek için Google girişi ZORUNLU
+        const user = fbAuth.currentUser;
+        if (!user) {
+            console.error('[TradeVia] Ödeme engellendi: Kullanıcı giriş yapmamış!');
+            if (typeof showToast === 'function') {
+                showToast('danger', '❌ Ödeme Başarısız', 'Önce Google hesabınızla giriş yapmalısınız!');
+            }
+            alert('⚠️ ÖDEME HATASI\n\nPRO üyelik satın alabilmek için Google hesabınızla giriş yapmanız zorunludur.\n\nGüvenlik nedeniyle anonim kullanıcılar ödeme yapamaz.');
+            return;
+        }
+        
+        // Kullanıcı bilgilerini logla (ödeme takibi için)
+        console.log('[TradeVia] Ödeme başlatıldı:', {
+            uid: user.uid,
+            email: user.email,
+            name: user.displayName,
+            timestamp: new Date().toISOString()
+        });
+        
         if (typeof closePremiumModal === 'function') closePremiumModal();
         const modal = document.getElementById('premiumModalOverlay');
         if(modal) { modal.classList.remove('active'); setTimeout(() => modal.style.display = 'none', 300); }
 
         if (window.Android && window.Android.buyPro) {
+            // Android ödeme sistemi (Google Play)
             window.Android.buyPro(); 
         } else {
-            if(confirm("🛠️ TEST MODU: Google Play bağlantısı yok. Ödeme başarılı sayılsın mı?")) {
+            // TEST MODU
+            if(confirm("🛠️ TEST MODU: Google Play bağlantısı yok.\n\nKullanıcı: " + user.email + "\n\nÖdeme başarılı sayılsın mı?")) {
                 this.activatePro();
             }
         }
@@ -23757,11 +23774,40 @@ async function firebaseLogout() {
 function handleProUpgrade() {
     const user = fbAuth.currentUser;
     if (!user) {
-        // Giriş yapılmamışsa uyar
-        if (typeof showToast === 'function') showToast('warn', 'Giriş Gerekli', 'PRO üyelik için önce Google ile giriş yapın.');
+        // Giriş yapılmamışsa uyarı göster ve profil sayfasına yönlendir
+        if (typeof showToast === 'function') {
+            showToast('warn', '🔐 Google Girişi Gerekli', 'PRO üyelik için hesap oluşturmalısınız.');
+        }
+        
+        // Premium modalı kapat
+        if (typeof closePremiumModal === 'function') closePremiumModal();
+        
+        // Ayarlar sayfasını aç
+        setTimeout(() => {
+            if (typeof switchPage === 'function') switchPage('settings');
+            // Profil sayfasını aç
+            setTimeout(() => {
+                if (typeof openSubPage === 'function') openSubPage('profile');
+                // Google giriş butonunu vurgula
+                setTimeout(() => {
+                    const loginSection = document.getElementById('accountLoggedOut');
+                    if (loginSection && loginSection.style.display !== 'none') {
+                        loginSection.style.animation = 'pulse 1s ease-in-out 3';
+                        loginSection.style.border = '2px solid #f59e0b';
+                        loginSection.style.borderRadius = '16px';
+                        setTimeout(() => {
+                            loginSection.style.animation = '';
+                            loginSection.style.border = '';
+                        }, 3000);
+                    }
+                }, 300);
+            }, 300);
+        }, 500);
+        
         return;
     }
-    // Mevcut ödeme akışını başlat
+    
+    // Kullanıcı giriş yapmış, ödeme akışını başlat
     MembershipSystem.processPayment();
 }
 
