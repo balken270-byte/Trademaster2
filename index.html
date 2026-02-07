@@ -28,6 +28,25 @@
     <script src="https://accounts.google.com/gsi/client"></script>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
     
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCqXkIAaDXMvXyZXStRtAU_mVZCZiDjriA",
+            authDomain: "tradevia-b9fd0.firebaseapp.com",
+            projectId: "tradevia-b9fd0",
+            storageBucket: "tradevia-b9fd0.firebasestorage.app",
+            messagingSenderId: "719787960245",
+            appId: "1:719787960245:web:544cd596903f29e4a41bfc",
+            measurementId: "G-VPRPTP4QSJ"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const fbAuth = firebase.auth();
+        const fbDb = firebase.firestore();
+    </script>
+    
 
     <style>
         /* --- HD GÖRÜNTÜ VE NET YAZILAR --- */
@@ -10812,6 +10831,15 @@ function openLabFullscreen() {
             <!-- Uygulama Ayarları -->
             <div class="ps-section-label">Uygulama Ayarları</div>
             <div class="ps-menu-list">
+                <!-- YENİ: Hesap & Bulut -->
+                <div class="ps-menu-item" onclick="openSubPage('account')">
+                    <div class="ps-menu-icon" style="background:linear-gradient(135deg, #4285f4, #34a853);"><i class="fas fa-cloud"></i></div>
+                    <div class="ps-menu-text">
+                        <div class="ps-menu-title">Hesap & Bulut</div>
+                        <div class="ps-menu-subtitle" id="accountMenuStatus">Giriş yapılmadı</div>
+                    </div>
+                    <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
+                </div>
                 <!-- YENİ: Güvenlik -->
                 <div class="ps-menu-item" onclick="openSubPage('security')">
                     <div class="ps-menu-icon cyan" id="securityMenuIcon"><i class="fas fa-lock-open"></i></div>
@@ -11050,6 +11078,109 @@ function openLabFullscreen() {
             </div>
 
             <!-- ===== GENEL & GÖRÜNÜM SAYFASI ===== -->
+
+            <!-- ===== HESAP & BULUT SAYFASI ===== -->
+            <div id="set-account" class="settings-content" style="display:none;">
+                
+                <!-- Giriş yapılmamış durum -->
+                <div id="accountLoggedOut">
+                    <div class="ps-card card" style="text-align:center; padding:30px 20px;">
+                        <div style="font-size:48px; margin-bottom:15px;">☁️</div>
+                        <div style="font-size:18px; font-weight:800; color:#fff; margin-bottom:8px;">Bulut Yedekleme</div>
+                        <div style="font-size:13px; color:var(--text-sub); margin-bottom:25px; line-height:1.6;">
+                            Google hesabınla giriş yap, portföyünü buluta yedekle.<br>
+                            Cihaz değişse bile verilerini koru.
+                        </div>
+                        <button onclick="firebaseGoogleLogin()" style="
+                            width:100%; padding:14px 20px; border:none; border-radius:14px; cursor:pointer;
+                            background:#fff; color:#333; font-size:15px; font-weight:700;
+                            display:flex; align-items:center; justify-content:center; gap:12px;
+                            box-shadow:0 4px 20px rgba(0,0,0,0.3); transition:all 0.2s;">
+                            <img src="https://www.google.com/favicon.ico" width="20" height="20">
+                            Google ile Giriş Yap
+                        </button>
+                    </div>
+                    
+                    <div class="ps-card card" style="padding:15px;">
+                        <div style="font-size:11px; color:var(--text-sub); line-height:1.6;">
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                                <i class="fas fa-check-circle" style="color:var(--success);"></i>
+                                <span>Portföy, nakit, işlem geçmişi bulutta güvende</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                                <i class="fas fa-check-circle" style="color:var(--success);"></i>
+                                <span>Cihaz değiştirsen bile verilerin kaybolmaz</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <i class="fas fa-check-circle" style="color:var(--success);"></i>
+                                <span>Tek tıkla yedekle ve geri yükle</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Giriş yapılmış durum -->
+                <div id="accountLoggedIn" style="display:none;">
+                    <div class="ps-card card" style="padding:20px;">
+                        <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px;">
+                            <img id="fbUserPhoto" src="" style="width:56px; height:56px; border-radius:16px; border:2px solid var(--accent);">
+                            <div>
+                                <div id="fbUserName" style="font-size:16px; font-weight:700; color:#fff;"></div>
+                                <div id="fbUserEmail" style="font-size:12px; color:var(--text-sub);"></div>
+                            </div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px; padding:10px 14px; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.2); border-radius:10px;">
+                            <i class="fas fa-check-circle" style="color:var(--success);"></i>
+                            <span style="font-size:12px; color:var(--success); font-weight:600;">Hesap bağlı</span>
+                        </div>
+                    </div>
+
+                    <!-- Yedekleme Butonları -->
+                    <div class="ps-card card">
+                        <div class="ps-card-label lbl-sm">Bulut Yedekleme</div>
+                        <div id="lastBackupInfo" style="font-size:11px; color:var(--text-sub); margin-bottom:12px; padding:8px 12px; background:rgba(255,255,255,0.03); border-radius:8px;">
+                            <i class="fas fa-info-circle"></i> Henüz yedek alınmamış
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+                            <button onclick="firebaseBackup()" style="
+                                padding:14px; border:none; border-radius:12px; cursor:pointer;
+                                background:linear-gradient(135deg, #3b82f6, #2563eb); color:#fff;
+                                font-size:13px; font-weight:700; display:flex; flex-direction:column;
+                                align-items:center; gap:6px;">
+                                <i class="fas fa-cloud-upload-alt" style="font-size:20px;"></i>
+                                Buluta Yedekle
+                            </button>
+                            <button onclick="firebaseRestore()" style="
+                                padding:14px; border:none; border-radius:12px; cursor:pointer;
+                                background:linear-gradient(135deg, #10b981, #059669); color:#fff;
+                                font-size:13px; font-weight:700; display:flex; flex-direction:column;
+                                align-items:center; gap:6px;">
+                                <i class="fas fa-cloud-download-alt" style="font-size:20px;"></i>
+                                Buluttan Yükle
+                            </button>
+                        </div>
+                        <button onclick="firebaseAutoSyncToggle()" id="btnAutoSync" style="
+                            width:100%; padding:12px; border:1px solid rgba(255,255,255,0.1); border-radius:12px;
+                            cursor:pointer; background:rgba(255,255,255,0.03); color:var(--text-sub);
+                            font-size:12px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px;">
+                            <i class="fas fa-sync"></i> Otomatik Senkronizasyon: <span id="autoSyncStatus">Kapalı</span>
+                        </button>
+                    </div>
+
+                    <!-- Çıkış -->
+                    <div class="ps-card card">
+                        <button onclick="firebaseLogout()" style="
+                            width:100%; padding:14px; border:none; border-radius:12px; cursor:pointer;
+                            background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2);
+                            color:#ef4444; font-size:14px; font-weight:700;
+                            display:flex; align-items:center; justify-content:center; gap:8px;">
+                            <i class="fas fa-sign-out-alt"></i> Çıkış Yap
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== GENEL & GÖRÜNÜM SAYFASI (DEVAM) ===== -->
             <div id="set-general" class="settings-content" style="display:none;">
                 <div class="ps-card card">
                     <div class="ps-card-label lbl-sm">Tercihler</div>
@@ -12185,7 +12316,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.5"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -17653,7 +17784,7 @@ function openSubPage(pageId) {
     document.getElementById('set-' + pageId).style.display = 'block';
 
     // Başlığı güncelle
-    let titles = { 'profile': 'Profilim', 'general': 'Genel Ayarlar', 'notify': 'Bildirimler', 'history': 'Geçmiş İşlemler', 'security': 'Güvenlik' };
+    let titles = { 'profile': 'Profilim', 'general': 'Genel Ayarlar', 'notify': 'Bildirimler', 'history': 'Geçmiş İşlemler', 'security': 'Güvenlik', 'account': 'Hesap & Bulut' };
     document.getElementById('subPageTitle').innerText = titles[pageId] || 'Detay';
 }
 
@@ -23729,6 +23860,281 @@ document.addEventListener('DOMContentLoaded', function() {
         renderPatterns(); 
     }, 2500);
 });
+
+
+/* ═══════════════════════════════════════════════════════════
+   FIREBASE HESAP & BULUT YEDEKLEME SİSTEMİ
+   ═══════════════════════════════════════════════════════════ */
+
+// --- Otomatik Senkronizasyon Ayarı ---
+let autoSyncEnabled = localStorage.getItem('tv_auto_sync') === 'true';
+
+// --- Auth State Listener ---
+fbAuth.onAuthStateChanged(function(user) {
+    updateAccountUI(user);
+    if (user && autoSyncEnabled) {
+        // Otomatik senkron açıksa, açılışta buluttan son yedek zamanını kontrol et
+        checkLastBackup(user.uid);
+    }
+});
+
+function updateAccountUI(user) {
+    const loggedOut = document.getElementById('accountLoggedOut');
+    const loggedIn = document.getElementById('accountLoggedIn');
+    const menuStatus = document.getElementById('accountMenuStatus');
+    
+    if (user) {
+        if (loggedOut) loggedOut.style.display = 'none';
+        if (loggedIn) loggedIn.style.display = 'block';
+        
+        const photoEl = document.getElementById('fbUserPhoto');
+        const nameEl = document.getElementById('fbUserName');
+        const emailEl = document.getElementById('fbUserEmail');
+        
+        if (photoEl) photoEl.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'U')}&background=3b82f6&color=fff&size=128`;
+        if (nameEl) nameEl.innerText = user.displayName || 'Kullanıcı';
+        if (emailEl) emailEl.innerText = user.email || '';
+        if (menuStatus) menuStatus.innerText = user.email || 'Bağlı';
+        
+        // Senkron durumunu göster
+        updateSyncUI();
+        checkLastBackup(user.uid);
+    } else {
+        if (loggedOut) loggedOut.style.display = 'block';
+        if (loggedIn) loggedIn.style.display = 'none';
+        if (menuStatus) menuStatus.innerText = 'Giriş yapılmadı';
+    }
+}
+
+// --- Google ile Giriş ---
+async function firebaseGoogleLogin() {
+    try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        
+        // Mobilde redirect kullan (popup sorun yaratabilir)
+        const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+            await fbAuth.signInWithRedirect(provider);
+        } else {
+            await fbAuth.signInWithPopup(provider);
+        }
+        
+        if (typeof showToast === 'function') showToast('success', 'Giriş Başarılı ✓', 'Google hesabınız bağlandı.');
+    } catch (err) {
+        console.error('Google login error:', err);
+        // Popup engellenirse redirect'e geç
+        if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                await fbAuth.signInWithRedirect(provider);
+            } catch(e) {
+                if (typeof showToast === 'function') showToast('danger', 'Giriş Hatası', e.message);
+            }
+        } else {
+            if (typeof showToast === 'function') showToast('danger', 'Giriş Hatası', err.message);
+        }
+    }
+}
+
+// Redirect sonrası sonucu yakala
+fbAuth.getRedirectResult().then(function(result) {
+    if (result && result.user) {
+        if (typeof showToast === 'function') showToast('success', 'Giriş Başarılı ✓', 'Google hesabınız bağlandı.');
+    }
+}).catch(function(err) {
+    console.error('Redirect result error:', err);
+});
+
+// --- Çıkış ---
+async function firebaseLogout() {
+    if (!confirm('Hesaptan çıkış yapmak istediğine emin misin?\nBulut yedeklerin silinmez.')) return;
+    try {
+        await fbAuth.signOut();
+        autoSyncEnabled = false;
+        localStorage.setItem('tv_auto_sync', 'false');
+        if (typeof showToast === 'function') showToast('info', 'Çıkış Yapıldı', 'Hesabınız bağlantısı kesildi.');
+    } catch(err) {
+        console.error('Logout error:', err);
+    }
+}
+
+// --- Buluta Yedekle ---
+async function firebaseBackup() {
+    const user = fbAuth.currentUser;
+    if (!user) { 
+        if (typeof showToast === 'function') showToast('danger', 'Hata', 'Önce giriş yapmalısınız.');
+        return; 
+    }
+    
+    try {
+        if (typeof showToast === 'function') showToast('info', 'Yedekleniyor...', 'Verileriniz buluta gönderiliyor.');
+        
+        // Yedeklenecek tüm veriler
+        const backupData = {
+            myPF_final: localStorage.getItem('myPF_final'),
+            tm_cash_balance: localStorage.getItem('tm_cash_balance'),
+            tm_full_trade_history: localStorage.getItem('tm_full_trade_history'),
+            tm_user_profile: localStorage.getItem('tm_user_profile'),
+            tm_watchlist: localStorage.getItem('tm_watchlist'),
+            tm_settings: localStorage.getItem('tm_settings'),
+            tm_notifications: localStorage.getItem('tm_notifications'),
+            tm_realized_pnl: localStorage.getItem('tm_realized_pnl'),
+            tm_notify_settings: localStorage.getItem('tm_notify_settings'),
+            tm_networth_history: localStorage.getItem('tm_networth_history'),
+            tm_daily_tracking: localStorage.getItem('tm_daily_tracking'),
+            tm_vision_settings: localStorage.getItem('tm_vision_settings'),
+            tm_saved_strategies: localStorage.getItem('tm_saved_strategies'),
+            tm_deleted_history: localStorage.getItem('tm_deleted_history'),
+            tm_all_portfolios: localStorage.getItem('tm_all_portfolios'),
+            tradeVia_alarms: localStorage.getItem('tradeVia_alarms'),
+            tradevia_main_goal: localStorage.getItem('tradevia_main_goal'),
+            tradevia_multi_goals: localStorage.getItem('tradevia_multi_goals'),
+            tradevia_goal_achievements: localStorage.getItem('tradevia_goal_achievements'),
+            tradevia_goal_streak: localStorage.getItem('tradevia_goal_streak'),
+            userPlan: localStorage.getItem('userPlan'),
+            proStartDate: localStorage.getItem('proStartDate'),
+            proEndDate: localStorage.getItem('proEndDate'),
+            // Meta
+            _backupDate: new Date().toISOString(),
+            _appVersion: '1.2',
+            _deviceInfo: navigator.userAgent.substring(0, 100)
+        };
+        
+        await fbDb.collection('users').doc(user.uid).set({
+            backup: backupData,
+            email: user.email,
+            name: user.displayName,
+            lastBackup: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        
+        localStorage.setItem('tv_last_backup', new Date().toISOString());
+        
+        if (typeof showToast === 'function') showToast('success', 'Yedekleme Başarılı ✓', 'Tüm verileriniz buluta kaydedildi.');
+        checkLastBackup(user.uid);
+        
+    } catch(err) {
+        console.error('Backup error:', err);
+        if (typeof showToast === 'function') showToast('danger', 'Yedekleme Hatası', err.message);
+    }
+}
+
+// --- Buluttan Geri Yükle ---
+async function firebaseRestore() {
+    const user = fbAuth.currentUser;
+    if (!user) {
+        if (typeof showToast === 'function') showToast('danger', 'Hata', 'Önce giriş yapmalısınız.');
+        return;
+    }
+    
+    if (!confirm('Buluttaki yedek geri yüklenecek.\nMevcut verilerinizin üzerine yazılacak.\n\nDevam etmek istiyor musunuz?')) return;
+    
+    try {
+        if (typeof showToast === 'function') showToast('info', 'Yükleniyor...', 'Veriler buluttan çekiliyor.');
+        
+        const doc = await fbDb.collection('users').doc(user.uid).get();
+        
+        if (!doc.exists || !doc.data().backup) {
+            if (typeof showToast === 'function') showToast('warn', 'Yedek Bulunamadı', 'Bulutta kayıtlı yedek yok.');
+            return;
+        }
+        
+        const backup = doc.data().backup;
+        
+        // Tüm verileri localStorage'a yaz
+        const keysToRestore = [
+            'myPF_final', 'tm_cash_balance', 'tm_full_trade_history', 'tm_user_profile',
+            'tm_watchlist', 'tm_settings', 'tm_notifications', 'tm_realized_pnl',
+            'tm_notify_settings', 'tm_networth_history', 'tm_daily_tracking',
+            'tm_vision_settings', 'tm_saved_strategies', 'tm_deleted_history',
+            'tm_all_portfolios', 'tradeVia_alarms', 'tradevia_main_goal',
+            'tradevia_multi_goals', 'tradevia_goal_achievements', 'tradevia_goal_streak',
+            'userPlan', 'proStartDate', 'proEndDate'
+        ];
+        
+        keysToRestore.forEach(key => {
+            if (backup[key] !== null && backup[key] !== undefined) {
+                localStorage.setItem(key, backup[key]);
+            }
+        });
+        
+        if (typeof showToast === 'function') showToast('success', 'Geri Yükleme Başarılı ✓', 'Verileriniz buluttan yüklendi. Sayfa yenileniyor...');
+        
+        setTimeout(() => location.reload(), 1500);
+        
+    } catch(err) {
+        console.error('Restore error:', err);
+        if (typeof showToast === 'function') showToast('danger', 'Geri Yükleme Hatası', err.message);
+    }
+}
+
+// --- Son Yedek Bilgisini Göster ---
+async function checkLastBackup(uid) {
+    try {
+        const doc = await fbDb.collection('users').doc(uid).get();
+        const infoEl = document.getElementById('lastBackupInfo');
+        if (!infoEl) return;
+        
+        if (doc.exists && doc.data().backup && doc.data().backup._backupDate) {
+            const d = new Date(doc.data().backup._backupDate);
+            const dateStr = d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
+            infoEl.innerHTML = `<i class="fas fa-cloud-upload-alt" style="color:var(--success);"></i> Son yedek: <strong>${dateStr}</strong>`;
+        } else {
+            infoEl.innerHTML = '<i class="fas fa-info-circle"></i> Henüz yedek alınmamış';
+        }
+    } catch(e) {
+        console.warn('checkLastBackup error:', e);
+    }
+}
+
+// --- Otomatik Senkronizasyon ---
+function firebaseAutoSyncToggle() {
+    autoSyncEnabled = !autoSyncEnabled;
+    localStorage.setItem('tv_auto_sync', autoSyncEnabled ? 'true' : 'false');
+    updateSyncUI();
+    
+    if (autoSyncEnabled) {
+        if (typeof showToast === 'function') showToast('success', 'Senkron Açık', 'Veriler değiştiğinde otomatik yedeklenecek.');
+        // İlk senkronu hemen yap
+        firebaseBackup();
+    } else {
+        if (typeof showToast === 'function') showToast('info', 'Senkron Kapalı', 'Otomatik yedekleme durduruldu.');
+    }
+}
+
+function updateSyncUI() {
+    const statusEl = document.getElementById('autoSyncStatus');
+    const btnEl = document.getElementById('btnAutoSync');
+    if (statusEl) statusEl.innerText = autoSyncEnabled ? 'Açık' : 'Kapalı';
+    if (btnEl) {
+        btnEl.style.borderColor = autoSyncEnabled ? 'rgba(16,185,129,0.4)' : 'rgba(255,255,255,0.1)';
+        btnEl.style.color = autoSyncEnabled ? 'var(--success)' : 'var(--text-sub)';
+    }
+}
+
+// --- Otomatik Senkron: localStorage Değişikliklerini İzle ---
+(function() {
+    if (!autoSyncEnabled) return;
+    
+    let syncTimer = null;
+    const originalSetItem = localStorage.setItem;
+    
+    // setItem'i izle — değişiklik olduğunda 30sn sonra otomatik yedekle
+    localStorage.setItem = function(key, value) {
+        originalSetItem.call(localStorage, key, value);
+        
+        // Otomatik senkron anahtarlarını takip et
+        const watchKeys = ['myPF_final', 'tm_cash_balance', 'tm_full_trade_history', 'tm_watchlist', 'tradeVia_alarms'];
+        if (autoSyncEnabled && fbAuth.currentUser && watchKeys.includes(key)) {
+            clearTimeout(syncTimer);
+            syncTimer = setTimeout(() => {
+                console.log('[TradeVia] Otomatik bulut senkronizasyonu...');
+                firebaseBackup();
+            }, 30000); // 30 saniye debounce
+        }
+    };
+})();
 
 
 </script>
