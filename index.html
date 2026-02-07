@@ -37,13 +37,11 @@
             projectId: "tradevia-b9fd0",
             storageBucket: "tradevia-b9fd0.firebasestorage.app",
             messagingSenderId: "719787960245",
-            appId: "1:719787960245:web:544cd596903f29e4a41bfc",
-            measurementId: "G-VPRPTP4QSJ"
+            appId: "1:719787960245:web:544cd596903f29e4a41bfc"
         };
         firebase.initializeApp(firebaseConfig);
         const fbAuth = firebase.auth();
         const fbDb = firebase.firestore();
-        // Persistence: redirect sonrası oturum korunur
         fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     </script>
     
@@ -10813,7 +10811,7 @@ function openLabFullscreen() {
             </div>
 
             <!-- Kompakt Membership Button -->
-            <div class="ps-membership-btn" id="membershipBtn" onclick="openPremiumModal()">
+            <div class="ps-membership-btn" id="membershipBtn" onclick="handleMembershipClick()">
                 <div class="ps-membership-btn-left">
                     <div class="ps-membership-btn-icon">
                         <i class="fas fa-crown"></i>
@@ -11018,19 +11016,6 @@ function openLabFullscreen() {
                 PRO'YA GEÇ (99₺/ay)
             </button>
             
-            <div id="premiumLoginHint" style="display:none; text-align:center; margin-top:10px;">
-                <div style="font-size:11px; color:#f59e0b; margin-bottom:8px;">
-                    <i class="fas fa-exclamation-triangle"></i> PRO üyelik için Google hesabıyla giriş gerekli
-                </div>
-                <button onclick="firebaseGoogleLogin(); closePremiumModal();" style="
-                    padding:10px 20px; border:none; border-radius:10px; cursor:pointer;
-                    background:#fff; color:#333; font-size:13px; font-weight:700;
-                    display:inline-flex; align-items:center; gap:8px;">
-                    <img src="https://www.google.com/favicon.ico" width="16" height="16">
-                    Google ile Giriş Yap
-                </button>
-            </div>
-            
             <button class="ps-modal-downgrade-btn" id="btnDowngrade" onclick="MembershipSystem.downgrade(); closePremiumModal();">
                 <i class="fas fa-times-circle"></i> Üyeliği İptal Et
             </button>
@@ -11092,106 +11077,145 @@ function openLabFullscreen() {
 
             <!-- ===== HESAP & BULUT SAYFASI ===== -->
             <div id="set-account" class="settings-content" style="display:none;">
-                
+                <style>
+                    .fb-hero-card { background:linear-gradient(145deg, rgba(66,133,244,0.12), rgba(52,168,83,0.08)); border:1px solid rgba(66,133,244,0.2); border-radius:20px; padding:24px; margin-bottom:16px; position:relative; overflow:hidden; }
+                    .fb-hero-card::before { content:''; position:absolute; top:-30px; right:-30px; width:120px; height:120px; background:radial-gradient(circle, rgba(66,133,244,0.15), transparent 70%); border-radius:50%; }
+                    .fb-user-row { display:flex; align-items:center; gap:16px; }
+                    .fb-user-avatar { width:64px; height:64px; border-radius:18px; border:3px solid rgba(66,133,244,0.4); object-fit:cover; }
+                    .fb-user-name { font-size:18px; font-weight:800; color:#fff; margin-bottom:2px; }
+                    .fb-user-email { font-size:12px; color:rgba(255,255,255,0.5); }
+                    .fb-pro-pill { display:inline-flex; align-items:center; gap:4px; padding:4px 12px; border-radius:20px; font-size:10px; font-weight:800; margin-top:6px; }
+                    .fb-pro-pill.pro { background:linear-gradient(135deg, #FFD60A, #FF9500); color:#000; }
+                    .fb-pro-pill.free { background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.5); border:1px solid rgba(255,255,255,0.1); }
+                    .fb-section { background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:18px; margin-bottom:14px; }
+                    .fb-section-title { font-size:11px; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px; margin-bottom:14px; }
+                    .fb-backup-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+                    .fb-backup-btn { padding:16px 12px; border:none; border-radius:14px; cursor:pointer; color:#fff; font-size:13px; font-weight:700; display:flex; flex-direction:column; align-items:center; gap:8px; transition:all 0.2s; }
+                    .fb-backup-btn:active { transform:scale(0.97); }
+                    .fb-backup-btn i { font-size:22px; }
+                    .fb-backup-btn.upload { background:linear-gradient(135deg, #3b82f6, #1d4ed8); }
+                    .fb-backup-btn.download { background:linear-gradient(135deg, #10b981, #047857); }
+                    .fb-info-row { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:10px; margin-bottom:12px; font-size:12px; }
+                    .fb-info-row.success { background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.15); color:var(--success); }
+                    .fb-login-card { text-align:center; padding:40px 24px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:20px; margin-bottom:16px; }
+                    .fb-login-icon { font-size:56px; margin-bottom:16px; display:block; }
+                    .fb-login-title { font-size:20px; font-weight:800; color:#fff; margin-bottom:8px; }
+                    .fb-login-desc { font-size:13px; color:var(--text-sub); line-height:1.7; margin-bottom:24px; }
+                    .fb-google-btn { width:100%; padding:15px 20px; border:none; border-radius:14px; cursor:pointer; background:#fff; color:#333; font-size:15px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:12px; box-shadow:0 4px 20px rgba(0,0,0,0.3); transition:all 0.2s; }
+                    .fb-google-btn:active { transform:scale(0.98); }
+                    .fb-feature-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+                    .fb-feature-chip { display:flex; align-items:center; gap:6px; padding:8px 10px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:10px; font-size:11px; color:var(--text-sub); }
+                    .fb-feature-chip i { color:var(--success); font-size:10px; }
+                    .fb-logout-btn { width:100%; padding:14px; border:none; border-radius:12px; cursor:pointer; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.15); color:#ef4444; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s; margin-bottom:80px; }
+                    .fb-logout-btn:active { transform:scale(0.98); }
+                    .fb-membership-card { background:linear-gradient(145deg, rgba(255,214,10,0.08), rgba(255,149,0,0.05)); border:1px solid rgba(255,214,10,0.15); border-radius:16px; padding:18px; margin-bottom:14px; }
+                </style>
+
                 <!-- Giriş yapılmamış -->
                 <div id="accountLoggedOut">
-                    <div class="ps-card card" style="text-align:center; padding:30px 20px;">
-                        <div style="font-size:48px; margin-bottom:15px;">☁️</div>
-                        <div style="font-size:18px; font-weight:800; color:#fff; margin-bottom:8px;">Bulut Yedekleme</div>
-                        <div style="font-size:13px; color:var(--text-sub); margin-bottom:25px; line-height:1.6;">
-                            Google hesabınla giriş yap, portföyünü buluta yedekle.<br>
-                            Cihaz değişse bile verilerini koru.
+                    <div class="fb-login-card">
+                        <span class="fb-login-icon">🔐</span>
+                        <div class="fb-login-title">Hesabını Bağla</div>
+                        <div class="fb-login-desc">
+                            Google ile giriş yap, verilerini buluta yedekle.<br>
+                            PRO üyelik ve cihazlar arası senkronizasyon.
                         </div>
-                        <button onclick="firebaseGoogleLogin()" style="
-                            width:100%; padding:14px 20px; border:none; border-radius:14px; cursor:pointer;
-                            background:#fff; color:#333; font-size:15px; font-weight:700;
-                            display:flex; align-items:center; justify-content:center; gap:12px;
-                            box-shadow:0 4px 20px rgba(0,0,0,0.3); transition:all 0.2s;">
+                        <button onclick="firebaseGoogleLogin()" class="fb-google-btn">
                             <img src="https://www.google.com/favicon.ico" width="20" height="20">
                             Google ile Giriş Yap
                         </button>
                     </div>
-                    <div class="ps-card card" style="padding:15px;">
-                        <div style="font-size:11px; color:var(--text-sub); line-height:1.8;">
-                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-                                <i class="fas fa-check-circle" style="color:var(--success);"></i>
-                                <span>Portföy, nakit, işlem geçmişi bulutta güvende</span>
-                            </div>
-                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-                                <i class="fas fa-check-circle" style="color:var(--success);"></i>
-                                <span>Cihaz değiştirsen bile verilerin kaybolmaz</span>
-                            </div>
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <i class="fas fa-check-circle" style="color:var(--success);"></i>
-                                <span>PRO üyelik tüm cihazlarında geçerli</span>
-                            </div>
+                    
+                    <div class="fb-section">
+                        <div class="fb-section-title">Ne Kazanırsın?</div>
+                        <div class="fb-feature-grid">
+                            <div class="fb-feature-chip"><i class="fas fa-check-circle"></i> Bulut Yedekleme</div>
+                            <div class="fb-feature-chip"><i class="fas fa-check-circle"></i> Cihaz Senkron</div>
+                            <div class="fb-feature-chip"><i class="fas fa-check-circle"></i> PRO Üyelik</div>
+                            <div class="fb-feature-chip"><i class="fas fa-check-circle"></i> Veri Güvenliği</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Giriş yapılmış -->
                 <div id="accountLoggedIn" style="display:none;">
-                    <div class="ps-card card" style="padding:20px;">
-                        <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px;">
-                            <img id="fbUserPhoto" src="" style="width:56px; height:56px; border-radius:16px; border:2px solid var(--accent);">
+                    <!-- Profil Kartı -->
+                    <div class="fb-hero-card">
+                        <div class="fb-user-row">
+                            <img id="fbUserPhoto" src="" class="fb-user-avatar">
                             <div style="flex:1;">
-                                <div id="fbUserName" style="font-size:16px; font-weight:700; color:#fff;"></div>
-                                <div id="fbUserEmail" style="font-size:12px; color:var(--text-sub);"></div>
-                                <div id="fbProBadge" style="display:none; margin-top:4px;">
-                                    <span style="display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:20px; font-size:10px; font-weight:800; background:linear-gradient(135deg, #FFD60A, #FF9500); color:#000;">
-                                        <i class="fas fa-crown"></i> PRO
-                                    </span>
+                                <div class="fb-user-name" id="fbUserName"></div>
+                                <div class="fb-user-email" id="fbUserEmail"></div>
+                                <div id="fbProBadge">
+                                    <span class="fb-pro-pill free" id="fbProPill"><i class="fas fa-user"></i> FREE</span>
                                 </div>
                             </div>
                         </div>
-                        <div style="display:flex; align-items:center; gap:8px; padding:10px 14px; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.2); border-radius:10px;">
-                            <i class="fas fa-check-circle" style="color:var(--success);"></i>
-                            <span style="font-size:12px; color:var(--success); font-weight:600;">Hesap bağlı</span>
-                        </div>
                     </div>
 
-                    <!-- Üyelik Durumu -->
-                    <div class="ps-card card" id="fbMembershipCard">
-                        <div class="ps-card-label lbl-sm">Üyelik</div>
-                        <div id="fbMembershipInfo" style="padding:5px 0;"></div>
+                    <!-- Üyelik -->
+                    <div class="fb-membership-card">
+                        <div class="fb-section-title">Üyelik Durumu</div>
+                        <div id="fbMembershipInfo"></div>
                     </div>
 
                     <!-- Yedekleme -->
-                    <div class="ps-card card">
-                        <div class="ps-card-label lbl-sm">Bulut Yedekleme</div>
-                        <div id="lastBackupInfo" style="font-size:11px; color:var(--text-sub); margin-bottom:12px; padding:8px 12px; background:rgba(255,255,255,0.03); border-radius:8px;">
+                    <div class="fb-section">
+                        <div class="fb-section-title">Bulut Yedekleme</div>
+                        <div class="fb-info-row success" id="lastBackupInfo">
                             <i class="fas fa-info-circle"></i> Henüz yedek alınmamış
                         </div>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
-                            <button onclick="firebaseBackup()" style="
-                                padding:14px; border:none; border-radius:12px; cursor:pointer;
-                                background:linear-gradient(135deg, #3b82f6, #2563eb); color:#fff;
-                                font-size:13px; font-weight:700; display:flex; flex-direction:column;
-                                align-items:center; gap:6px;">
-                                <i class="fas fa-cloud-upload-alt" style="font-size:20px;"></i>
+                        <div class="fb-backup-grid">
+                            <button onclick="firebaseBackup()" class="fb-backup-btn upload">
+                                <i class="fas fa-cloud-upload-alt"></i>
                                 Buluta Yedekle
                             </button>
-                            <button onclick="firebaseRestore()" style="
-                                padding:14px; border:none; border-radius:12px; cursor:pointer;
-                                background:linear-gradient(135deg, #10b981, #059669); color:#fff;
-                                font-size:13px; font-weight:700; display:flex; flex-direction:column;
-                                align-items:center; gap:6px;">
-                                <i class="fas fa-cloud-download-alt" style="font-size:20px;"></i>
+                            <button onclick="firebaseRestore()" class="fb-backup-btn download">
+                                <i class="fas fa-cloud-download-alt"></i>
                                 Buluttan Yükle
                             </button>
                         </div>
                     </div>
 
-                    <!-- Çıkış -->
-                    <div class="ps-card card" style="margin-bottom:100px;">
-                        <button onclick="firebaseLogout()" style="
-                            width:100%; padding:14px; border:none; border-radius:12px; cursor:pointer;
-                            background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2);
-                            color:#ef4444; font-size:14px; font-weight:700;
-                            display:flex; align-items:center; justify-content:center; gap:8px;">
-                            <i class="fas fa-sign-out-alt"></i> Çıkış Yap
-                        </button>
+                    <!-- PRO Özellikleri -->
+                    <div class="fb-section" id="fbProFeatures">
+                        <div class="fb-section-title">PRO Özellikleri</div>
+                        <div style="font-size:12px; color:var(--text-sub); line-height:1.8;">
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                                <i class="fas fa-brain" style="color:#8b5cf6; width:16px; text-align:center;"></i>
+                                <span><strong style="color:#fff;">Zeka Merkezi</strong> — AI yatırımcı analizi</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                                <i class="fas fa-history" style="color:#3b82f6; width:16px; text-align:center;"></i>
+                                <span><strong style="color:#fff;">Zaman Makinesi</strong> — Sınırsız (Free: 3/gün)</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                                <i class="fas fa-wallet" style="color:#f59e0b; width:16px; text-align:center;"></i>
+                                <span><strong style="color:#fff;">Çoklu Cüzdan</strong> — Sınırsız portföy</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                                <i class="fas fa-chart-bar" style="color:#10b981; width:16px; text-align:center;"></i>
+                                <span><strong style="color:#fff;">İndikatör Alarm</strong> — Sınırsız RSI (Free: 1)</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                                <i class="fas fa-life-ring" style="color:#ef4444; width:16px; text-align:center;"></i>
+                                <span><strong style="color:#fff;">AI Kurtarıcı</strong> — Sınırsız (Free: 1/gün)</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                                <i class="fas fa-cloud" style="color:#4285f4; width:16px; text-align:center;"></i>
+                                <span><strong style="color:#fff;">Bulut Yedekleme</strong> — Otomatik senkron</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <i class="fas fa-wand-magic-sparkles" style="color:#ec4899; width:16px; text-align:center;"></i>
+                                <span><strong style="color:#fff;">Maliyet Sihirbazı</strong> — Otomatik veri çekme</span>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- Çıkış -->
+                    <button onclick="firebaseLogout()" class="fb-logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Çıkış Yap
+                    </button>
                 </div>
             </div>
 
@@ -11261,7 +11285,6 @@ function openLabFullscreen() {
                     <button class="ps-btn btn-main btn-sec" style="width:100%" onclick="exportComprehensiveReport()">
     <i class="fas fa-file-invoice-dollar"></i> Kapsamlı Excel Raporu
 </button>
-
 
                 </div>
             </div>
@@ -12312,7 +12335,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.9"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -23637,23 +23660,43 @@ document.addEventListener('DOMContentLoaded', function() {
 fbAuth.onAuthStateChanged(function(user) {
     updateAccountUI(user);
     if (user) {
-        // Firestore'dan PRO durumunu çek
+        syncProfileFromFirebase(user);
         syncProStatus(user.uid);
     }
 });
+
+// --- Profil Senkronizasyonu: Firebase → Lokal profil ---
+function syncProfileFromFirebase(user) {
+    if (!user) return;
+    let up = JSON.parse(localStorage.getItem('tm_user_profile')) || {};
+    
+    // Firebase'den isim ve foto al (eğer lokalde yoksa)
+    if (!up.name || up.name === 'Misafir') up.name = user.displayName || up.name;
+    if (!up.img || up.img === 'null' || up.img === '') up.img = user.photoURL || '';
+    
+    localStorage.setItem('tm_user_profile', JSON.stringify(up));
+    
+    // Ayarlar profil kartını güncelle
+    const menuName = document.getElementById('menuProfileName');
+    const menuImg = document.getElementById('menuProfileImg');
+    if (menuName) menuName.innerText = up.name || user.displayName || 'Kullanıcı';
+    if (menuImg && user.photoURL) menuImg.src = user.photoURL;
+    
+    // Detay profil
+    const detailImg = document.getElementById('displayProfileImg');
+    const nameInput = document.getElementById('profileNameInput');
+    if (detailImg && user.photoURL) detailImg.src = user.photoURL;
+    if (nameInput && !nameInput.value) nameInput.value = up.name || '';
+}
 
 function updateAccountUI(user) {
     const loggedOut = document.getElementById('accountLoggedOut');
     const loggedIn = document.getElementById('accountLoggedIn');
     const menuStatus = document.getElementById('accountMenuStatus');
-    const premiumHint = document.getElementById('premiumLoginHint');
-    const btnUpgrade = document.getElementById('btnUpgrade');
     
     if (user) {
         if (loggedOut) loggedOut.style.display = 'none';
         if (loggedIn) loggedIn.style.display = 'block';
-        if (premiumHint) premiumHint.style.display = 'none';
-        if (btnUpgrade) btnUpgrade.style.display = 'block';
         
         const photoEl = document.getElementById('fbUserPhoto');
         const nameEl = document.getElementById('fbUserName');
@@ -23664,23 +23707,32 @@ function updateAccountUI(user) {
         if (emailEl) emailEl.innerText = user.email || '';
         if (menuStatus) menuStatus.innerText = user.email || 'Bağlı';
         
-        // PRO badge
-        const proBadge = document.getElementById('fbProBadge');
-        if (proBadge) proBadge.style.display = (localStorage.getItem('userPlan') === 'PRO') ? 'block' : 'none';
-        
+        updateProBadgeUI();
         updateMembershipUI();
         checkLastBackup(user.uid);
     } else {
         if (loggedOut) loggedOut.style.display = 'block';
         if (loggedIn) loggedIn.style.display = 'none';
         if (menuStatus) menuStatus.innerText = 'Giriş yapılmadı';
-        if (premiumHint) premiumHint.style.display = 'block';
-        if (btnUpgrade) btnUpgrade.style.display = 'none';
+    }
+}
+
+function updateProBadgeUI() {
+    const pill = document.getElementById('fbProPill');
+    if (!pill) return;
+    const isPro = localStorage.getItem('userPlan') === 'PRO';
+    if (isPro) {
+        pill.className = 'fb-pro-pill pro';
+        pill.innerHTML = '<i class="fas fa-crown"></i> PRO';
+    } else {
+        pill.className = 'fb-pro-pill free';
+        pill.innerHTML = '<i class="fas fa-user"></i> FREE';
     }
 }
 
 function updateMembershipUI() {
     const infoEl = document.getElementById('fbMembershipInfo');
+    const featuresEl = document.getElementById('fbProFeatures');
     if (!infoEl) return;
     
     const isPro = localStorage.getItem('userPlan') === 'PRO';
@@ -23690,28 +23742,24 @@ function updateMembershipUI() {
         const d = new Date(endDate);
         const remaining = Math.max(0, Math.ceil((d - new Date()) / 86400000));
         infoEl.innerHTML = `
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-                <span style="display:inline-flex; align-items:center; gap:4px; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:800; background:linear-gradient(135deg, #FFD60A, #FF9500); color:#000;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                <span style="display:inline-flex; align-items:center; gap:5px; padding:5px 14px; border-radius:20px; font-size:12px; font-weight:800; background:linear-gradient(135deg, #FFD60A, #FF9500); color:#000;">
                     <i class="fas fa-crown"></i> PRO AKTİF
                 </span>
                 <span style="font-size:12px; color:var(--text-sub);">${remaining} gün kaldı</span>
             </div>
-            <div style="font-size:11px; color:var(--text-sub);">
-                Bitiş: ${d.toLocaleDateString('tr-TR')}
-            </div>`;
+            <div style="font-size:11px; color:var(--text-sub);">Bitiş: ${d.toLocaleDateString('tr-TR')}</div>`;
+        if (featuresEl) featuresEl.style.display = 'none';
     } else {
         infoEl.innerHTML = `
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-                <span style="padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700; background:rgba(255,255,255,0.05); color:var(--text-sub); border:1px solid rgba(255,255,255,0.1);">
-                    FREE
-                </span>
-            </div>
+            <div style="margin-bottom:12px; font-size:12px; color:var(--text-sub);">Ücretsiz plan — bazı özellikler sınırlı</div>
             <button onclick="openPremiumModal()" style="
-                width:100%; padding:12px; border:none; border-radius:10px; cursor:pointer;
+                width:100%; padding:14px; border:none; border-radius:12px; cursor:pointer;
                 background:linear-gradient(135deg, #FFD60A, #FF9500); color:#000;
-                font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:8px;">
-                <i class="fas fa-crown"></i> PRO'ya Geç
+                font-size:14px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 16px rgba(255,214,10,0.25);">
+                <i class="fas fa-crown"></i> PRO'ya Yükselt — 99₺/ay
             </button>`;
+        if (featuresEl) featuresEl.style.display = 'block';
     }
 }
 
@@ -23720,23 +23768,15 @@ async function firebaseGoogleLogin() {
     try {
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
-        
-        // HER ZAMAN POPUP KULLAN — redirect sayfa yenilemeye neden olur
         const result = await fbAuth.signInWithPopup(provider);
-        
         if (result && result.user) {
-            if (typeof showToast === 'function') showToast('success', 'Giriş Başarılı ✓', 'Google hesabınız bağlandı.');
-            if (typeof addNotification === 'function') addNotification('success', 'Giriş', result.user.displayName + ' olarak giriş yapıldı.');
+            if (typeof showToast === 'function') showToast('success', 'Giriş Başarılı ✓', result.user.displayName + ' olarak giriş yapıldı.');
         }
     } catch (err) {
         console.error('Google login error:', err);
         if (err.code === 'auth/popup-blocked') {
-            alert('Popup engellendi! Lütfen tarayıcı ayarlarından popup\'a izin verin veya tekrar deneyin.');
-        } else if (err.code === 'auth/popup-closed-by-user') {
-            // Kullanıcı kapatmış, bir şey yapma
-        } else if (err.code === 'auth/cancelled-popup-request') {
-            // Birden fazla popup açılmış, bir şey yapma
-        } else {
+            alert('Popup engellendi! Tarayıcı ayarlarından popup izni verin.');
+        } else if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
             if (typeof showToast === 'function') showToast('danger', 'Giriş Hatası', err.message);
         }
     }
@@ -23747,30 +23787,49 @@ async function firebaseLogout() {
     if (!confirm('Hesaptan çıkış yapmak istediğine emin misin?\nBulut yedeklerin silinmez.')) return;
     try {
         await fbAuth.signOut();
-        if (typeof showToast === 'function') showToast('info', 'Çıkış Yapıldı', 'Hesabınızın bağlantısı kesildi.');
+        if (typeof showToast === 'function') showToast('info', 'Çıkış Yapıldı', 'Hesap bağlantısı kesildi.');
     } catch(err) {
         console.error('Logout error:', err);
     }
 }
 
-// --- PRO Üyelik (Firebase ile senkron) ---
+// --- PRO'ya Yükselt Butonu (Ayarlardaki) ---
+function handleMembershipClick() {
+    const user = fbAuth.currentUser;
+    if (!user) {
+        // Giriş yoksa direkt Google login aç
+        if (typeof showToast === 'function') showToast('info', 'Giriş Gerekli', 'PRO için önce Google ile giriş yapın.');
+        firebaseGoogleLogin().then(() => {
+            // Giriş başarılıysa PRO modalı aç
+            setTimeout(() => {
+                if (fbAuth.currentUser) openPremiumModal();
+            }, 500);
+        });
+        return;
+    }
+    openPremiumModal();
+}
+
+// --- Premium Modaldaki PRO Butonu ---
 function handleProUpgrade() {
     const user = fbAuth.currentUser;
     if (!user) {
-        // Giriş yapılmamışsa uyar
-        if (typeof showToast === 'function') showToast('warn', 'Giriş Gerekli', 'PRO üyelik için önce Google ile giriş yapın.');
+        closePremiumModal();
+        if (typeof showToast === 'function') showToast('info', 'Giriş Gerekli', 'Önce Google ile giriş yapın.');
+        firebaseGoogleLogin().then(() => {
+            setTimeout(() => {
+                if (fbAuth.currentUser) openPremiumModal();
+            }, 500);
+        });
         return;
     }
-    // Mevcut ödeme akışını başlat
     MembershipSystem.processPayment();
 }
 
-// PRO durumunu Firestore'a kaydet (activatePro çağrıldığında)
-const _origActivatePro = MembershipSystem.activatePro;
+// --- PRO aktivasyonunu Firestore'a da kaydet ---
+const _origActivatePro = MembershipSystem.activatePro.bind(MembershipSystem);
 MembershipSystem.activatePro = function() {
-    _origActivatePro.call(this);
-    
-    // Firestore'a da kaydet
+    _origActivatePro();
     const user = fbAuth.currentUser;
     if (user) {
         fbDb.collection('users').doc(user.uid).set({
@@ -23783,65 +23842,40 @@ MembershipSystem.activatePro = function() {
     }
 };
 
-// PRO durumunu Firestore'dan oku
+// --- PRO durumunu Firestore'dan senkronize et (yeni cihaz) ---
 async function syncProStatus(uid) {
     try {
         const doc = await fbDb.collection('users').doc(uid).get();
         if (doc.exists && doc.data().isPro) {
             const endDate = doc.data().proEndDate;
             if (endDate && new Date(endDate) > new Date()) {
-                // Bulutta PRO aktif ama lokalde değilse, lokali güncelle
                 if (localStorage.getItem('userPlan') !== 'PRO') {
                     localStorage.setItem('userPlan', 'PRO');
                     localStorage.setItem('proStartDate', doc.data().proStartDate || new Date().toISOString());
                     localStorage.setItem('proEndDate', endDate);
-                    console.log('[TradeVia] PRO üyelik buluttan senkronize edildi.');
-                    // UI güncelle
+                    console.log('[TradeVia] PRO buluttan senkronize edildi.');
                     if (typeof loadProfile === 'function') loadProfile();
+                    updateProBadgeUI();
+                    updateMembershipUI();
                 }
             }
         }
-    } catch(e) {
-        console.warn('syncProStatus error:', e);
-    }
+    } catch(e) { console.warn('syncProStatus:', e); }
 }
 
 // --- Buluta Yedekle ---
 async function firebaseBackup() {
     const user = fbAuth.currentUser;
-    if (!user) { 
-        if (typeof showToast === 'function') showToast('danger', 'Hata', 'Önce giriş yapmalısınız.');
-        return; 
-    }
+    if (!user) { if (typeof showToast === 'function') showToast('danger', 'Hata', 'Önce giriş yapın.'); return; }
     
     try {
         if (typeof showToast === 'function') showToast('info', 'Yedekleniyor...', 'Veriler buluta gönderiliyor.');
         
-        const backupData = {
-            myPF_final: localStorage.getItem('myPF_final'),
-            tm_cash_balance: localStorage.getItem('tm_cash_balance'),
-            tm_full_trade_history: localStorage.getItem('tm_full_trade_history'),
-            tm_user_profile: localStorage.getItem('tm_user_profile'),
-            tm_watchlist: localStorage.getItem('tm_watchlist'),
-            tm_settings: localStorage.getItem('tm_settings'),
-            tm_notifications: localStorage.getItem('tm_notifications'),
-            tm_realized_pnl: localStorage.getItem('tm_realized_pnl'),
-            tm_notify_settings: localStorage.getItem('tm_notify_settings'),
-            tm_networth_history: localStorage.getItem('tm_networth_history'),
-            tm_daily_tracking: localStorage.getItem('tm_daily_tracking'),
-            tm_saved_strategies: localStorage.getItem('tm_saved_strategies'),
-            tm_deleted_history: localStorage.getItem('tm_deleted_history'),
-            tm_all_portfolios: localStorage.getItem('tm_all_portfolios'),
-            tradeVia_alarms: localStorage.getItem('tradeVia_alarms'),
-            tradevia_main_goal: localStorage.getItem('tradevia_main_goal'),
-            tradevia_multi_goals: localStorage.getItem('tradevia_multi_goals'),
-            tradevia_goal_achievements: localStorage.getItem('tradevia_goal_achievements'),
-            userPlan: localStorage.getItem('userPlan'),
-            proStartDate: localStorage.getItem('proStartDate'),
-            proEndDate: localStorage.getItem('proEndDate'),
-            _backupDate: new Date().toISOString(),
-            _appVersion: '1.2'
-        };
+        const backupData = {};
+        const keys = ['myPF_final','tm_cash_balance','tm_full_trade_history','tm_user_profile','tm_watchlist','tm_settings','tm_notifications','tm_realized_pnl','tm_notify_settings','tm_networth_history','tm_daily_tracking','tm_saved_strategies','tm_deleted_history','tm_all_portfolios','tradeVia_alarms','tradevia_main_goal','tradevia_multi_goals','tradevia_goal_achievements','tradevia_goal_streak','userPlan','proStartDate','proEndDate'];
+        keys.forEach(k => { backupData[k] = localStorage.getItem(k); });
+        backupData._backupDate = new Date().toISOString();
+        backupData._appVersion = '1.2';
         
         await fbDb.collection('users').doc(user.uid).set({
             backup: backupData,
@@ -23852,10 +23886,9 @@ async function firebaseBackup() {
             lastBackup: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
         
-        if (typeof showToast === 'function') showToast('success', 'Yedekleme Başarılı ✓', 'Tüm verileriniz buluta kaydedildi.');
-        if (typeof addNotification === 'function') addNotification('success', 'Yedeklendi ☁️', 'Veriler Firebase bulutuna kaydedildi.');
+        if (typeof showToast === 'function') showToast('success', 'Yedekleme Başarılı ✓', 'Tüm veriler buluta kaydedildi.');
+        if (typeof addNotification === 'function') addNotification('success', 'Yedeklendi ☁️', 'Firebase bulutuna kaydedildi.');
         checkLastBackup(user.uid);
-        
     } catch(err) {
         console.error('Backup error:', err);
         if (typeof showToast === 'function') showToast('danger', 'Yedekleme Hatası', err.message);
@@ -23865,55 +23898,34 @@ async function firebaseBackup() {
 // --- Buluttan Geri Yükle ---
 async function firebaseRestore() {
     const user = fbAuth.currentUser;
-    if (!user) {
-        if (typeof showToast === 'function') showToast('danger', 'Hata', 'Önce giriş yapmalısınız.');
-        return;
-    }
-    
-    if (!confirm('Buluttaki yedek geri yüklenecek.\nMevcut verilerinizin üzerine yazılacak.\n\nDevam etmek istiyor musunuz?')) return;
+    if (!user) { if (typeof showToast === 'function') showToast('danger', 'Hata', 'Önce giriş yapın.'); return; }
+    if (!confirm('Buluttaki yedek geri yüklenecek.\nMevcut verilerinizin üzerine yazılacak.\n\nDevam?')) return;
     
     try {
         if (typeof showToast === 'function') showToast('info', 'Yükleniyor...', 'Veriler buluttan çekiliyor.');
-        
         const doc = await fbDb.collection('users').doc(user.uid).get();
-        
         if (!doc.exists || !doc.data().backup) {
-            if (typeof showToast === 'function') showToast('warn', 'Yedek Bulunamadı', 'Bulutta kayıtlı yedek yok.');
+            if (typeof showToast === 'function') showToast('warn', 'Bulunamadı', 'Bulutta kayıtlı yedek yok.');
             return;
         }
-        
         const backup = doc.data().backup;
-        const keysToRestore = [
-            'myPF_final', 'tm_cash_balance', 'tm_full_trade_history', 'tm_user_profile',
-            'tm_watchlist', 'tm_settings', 'tm_notifications', 'tm_realized_pnl',
-            'tm_notify_settings', 'tm_networth_history', 'tm_daily_tracking',
-            'tm_saved_strategies', 'tm_deleted_history', 'tm_all_portfolios',
-            'tradeVia_alarms', 'tradevia_main_goal', 'tradevia_multi_goals',
-            'tradevia_goal_achievements', 'userPlan', 'proStartDate', 'proEndDate'
-        ];
-        
-        keysToRestore.forEach(key => {
-            if (backup[key] !== null && backup[key] !== undefined) {
-                localStorage.setItem(key, backup[key]);
-            }
-        });
+        const keys = ['myPF_final','tm_cash_balance','tm_full_trade_history','tm_user_profile','tm_watchlist','tm_settings','tm_notifications','tm_realized_pnl','tm_notify_settings','tm_networth_history','tm_daily_tracking','tm_saved_strategies','tm_deleted_history','tm_all_portfolios','tradeVia_alarms','tradevia_main_goal','tradevia_multi_goals','tradevia_goal_achievements','tradevia_goal_streak','userPlan','proStartDate','proEndDate'];
+        keys.forEach(k => { if (backup[k] !== null && backup[k] !== undefined) localStorage.setItem(k, backup[k]); });
         
         if (typeof showToast === 'function') showToast('success', 'Geri Yükleme Başarılı ✓', 'Sayfa yenileniyor...');
         setTimeout(() => location.reload(), 1500);
-        
     } catch(err) {
         console.error('Restore error:', err);
-        if (typeof showToast === 'function') showToast('danger', 'Geri Yükleme Hatası', err.message);
+        if (typeof showToast === 'function') showToast('danger', 'Hata', err.message);
     }
 }
 
-// --- Son Yedek Bilgisini Göster ---
+// --- Son Yedek Bilgisi ---
 async function checkLastBackup(uid) {
     try {
         const doc = await fbDb.collection('users').doc(uid).get();
         const infoEl = document.getElementById('lastBackupInfo');
         if (!infoEl) return;
-        
         if (doc.exists && doc.data().backup && doc.data().backup._backupDate) {
             const d = new Date(doc.data().backup._backupDate);
             const dateStr = d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
@@ -23921,9 +23933,7 @@ async function checkLastBackup(uid) {
         } else {
             infoEl.innerHTML = '<i class="fas fa-info-circle"></i> Henüz yedek alınmamış';
         }
-    } catch(e) {
-        console.warn('checkLastBackup error:', e);
-    }
+    } catch(e) { console.warn('checkLastBackup:', e); }
 }
 
 
