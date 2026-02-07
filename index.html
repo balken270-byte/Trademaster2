@@ -12316,7 +12316,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -23911,21 +23911,7 @@ async function firebaseGoogleLogin() {
     try {
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
-            // --- BU KODU EKLE ---
-    
-    // Uygulama açıldığında giriş yapmış kullanıcı var mı diye kontrol eder
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            console.log("Tekrar hoş geldin:", user.displayName);
-            updateUI(user); // Kullanıcı varsa direkt ana ekranı aç
-        } else {
-            console.log("Kullanıcı yok, giriş ekranı gösteriliyor.");
-            updateUI(null); // Kullanıcı yoksa giriş butonunu göster
-        }
-    });
-
-    // --- EKLEME BİTTİ ---
-    
+        
         // Mobilde redirect kullan (popup sorun yaratabilir)
         const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
         
