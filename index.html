@@ -12324,7 +12324,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.7"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -21889,12 +21889,27 @@ const MembershipSystem = {
             // Bitiş tarihi var, iptal işaretini koy
             localStorage.setItem('proCancelled', 'true');
             
-            // Buluta da kaydet
+            // Buluta da DETAYLI kaydet (mağduriyet olmasın)
             const user = fbAuth.currentUser;
             if (user) {
+                const startDate = localStorage.getItem('proStartDate');
                 fbDb.collection('users').doc(user.uid).set({
-                    proCancelled: true
-                }, { merge: true }).catch(e => console.warn('Cancel sync error:', e));
+                    isPro: true, // Hala PRO (süre dolana kadar)
+                    proStartDate: startDate,
+                    proEndDate: endDate,
+                    proCancelled: true, // İptal bayrağı
+                    cancelledAt: new Date().toISOString(), // İptal tarihi
+                    email: user.email,
+                    name: user.displayName
+                }, { merge: true }).then(() => {
+                    console.log('[TradeVia] ✅ İptal durumu Firebase\'e kaydedildi');
+                }).catch(e => {
+                    console.error('[TradeVia] ❌ Firebase kayıt hatası:', e);
+                    alert('⚠️ Uyarı: Bulut senkronizasyonunda hata oluştu.\nLütfen internet bağlantınızı kontrol edin.');
+                });
+            } else {
+                console.warn('[TradeVia] ⚠️ Kullanıcı giriş yapmamış, Firebase\'e kaydedilemedi');
+                alert('⚠️ Uyarı: Google hesabınızla giriş yapmadığınız için iptal buluta kaydedilmedi.\n\nFarklı cihazlarda sorun yaşayabilirsiniz.');
             }
             
             alert("✅ Üyelik İptal Edildi\n\n" + new Date(endDate).toLocaleDateString('tr-TR') + " tarihine kadar PRO özelliklerden yararlanabilirsiniz.\n\nBu tarihten sonra otomatik olarak FREE plana geçilecektir.");
@@ -23988,10 +24003,16 @@ function updateMembershipUI() {
                 <div style="font-size:11px; color:var(--text-sub); margin-bottom:8px;">
                     Bitiş: ${d.toLocaleDateString('tr-TR')}
                 </div>
-                <div style="padding:10px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); border-radius:8px; font-size:10px; color:#ef4444; line-height:1.5;">
+                <div style="padding:10px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); border-radius:8px; font-size:10px; color:#ef4444; line-height:1.5; margin-bottom:10px;">
                     <i class="fas fa-info-circle"></i> <strong>Üyelik İptal Edildi</strong><br>
                     ${d.toLocaleDateString('tr-TR')} tarihine kadar PRO özelliklerden yararlanabilirsiniz.
-                </div>`;
+                </div>
+                <button onclick="reactivateProMembership()" style="
+                    width:100%; padding:12px; border:none; border-radius:10px; cursor:pointer;
+                    background:linear-gradient(135deg, #10b981, #059669); color:#fff;
+                    font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <i class="fas fa-redo"></i> Yeniden Aktifleştir
+                </button>`;
         } else {
             // Aktif PRO üyelik
             infoEl.innerHTML = `
@@ -24001,9 +24022,15 @@ function updateMembershipUI() {
                     </span>
                     <span style="font-size:12px; color:var(--text-sub);">${remaining} gün kaldı</span>
                 </div>
-                <div style="font-size:11px; color:var(--text-sub);">
+                <div style="font-size:11px; color:var(--text-sub); margin-bottom:10px;">
                     Bitiş: ${d.toLocaleDateString('tr-TR')}
-                </div>`;
+                </div>
+                <button onclick="cancelProMembership()" style="
+                    width:100%; padding:12px; border:none; border-radius:10px; cursor:pointer;
+                    background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:#ef4444;
+                    font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <i class="fas fa-times-circle"></i> Üyeliği İptal Et
+                </button>`;
         }
     } else {
         // FREE üye
@@ -24019,6 +24046,59 @@ function updateMembershipUI() {
                 font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:8px;">
                 <i class="fas fa-crown"></i> PRO'ya Geç
             </button>`;
+    }
+}
+
+// Üyeliği İptal Et (Profil sayfasından)
+function cancelProMembership() {
+    if (typeof MembershipSystem !== 'undefined' && typeof MembershipSystem.downgrade === 'function') {
+        MembershipSystem.downgrade();
+    } else {
+        alert('Üyelik sistemi yüklenemedi. Lütfen sayfayı yenileyin.');
+    }
+}
+
+// Üyeliği Yeniden Aktifleştir (Profil sayfasından)
+function reactivateProMembership() {
+    if (confirm('PRO üyeliğinizi yeniden aktifleştirmek istiyor musunuz?\n\nÜyelik otomatik yenilenmeye devam edecektir.')) {
+        localStorage.removeItem('proCancelled');
+        
+        const user = fbAuth.currentUser;
+        if (user) {
+            const startDate = localStorage.getItem('proStartDate');
+            const endDate = localStorage.getItem('proEndDate');
+            
+            fbDb.collection('users').doc(user.uid).set({
+                isPro: true,
+                proStartDate: startDate,
+                proEndDate: endDate,
+                proCancelled: false, // Artık iptal yok
+                reactivatedAt: new Date().toISOString(), // Yeniden aktifleştirme tarihi
+                email: user.email,
+                name: user.displayName
+            }, { merge: true }).then(() => {
+                console.log('[TradeVia] ✅ Yeniden aktifleştirme Firebase\'e kaydedildi');
+                
+                if (typeof showToast === 'function') {
+                    showToast('success', 'Yeniden Aktifleştirildi ✓', 'PRO üyeliğiniz otomatik yenilenmeye devam edecek.');
+                }
+                
+                alert('✅ Üyelik Yeniden Aktifleştirildi\n\nPRO üyeliğiniz otomatik yenilenmeye devam edecektir.');
+                
+                // UI'ları güncelle
+                if (typeof updateMembershipUI === 'function') updateMembershipUI();
+                if (typeof updateMembershipBtnUI === 'function') updateMembershipBtnUI();
+                if (typeof MembershipSystem !== 'undefined' && typeof MembershipSystem.refreshUI === 'function') {
+                    MembershipSystem.refreshUI();
+                }
+            }).catch(e => {
+                console.error('[TradeVia] ❌ Firebase kayıt hatası:', e);
+                alert('⚠️ Uyarı: Bulut senkronizasyonunda hata oluştu.\nLütfen internet bağlantınızı kontrol edin.');
+            });
+        } else {
+            console.warn('[TradeVia] ⚠️ Kullanıcı giriş yapmamış');
+            alert('⚠️ Uyarı: Google hesabınızla giriş yapmadığınız için işlem buluta kaydedilmedi.');
+        }
     }
 }
 
@@ -24258,6 +24338,7 @@ async function firebaseBackup() {
             userPlan: localStorage.getItem('userPlan'),
             proStartDate: localStorage.getItem('proStartDate'),
             proEndDate: localStorage.getItem('proEndDate'),
+            proCancelled: localStorage.getItem('proCancelled'), // İptal durumu
             _backupDate: new Date().toISOString(),
             _appVersion: '1.2'
         };
@@ -24267,7 +24348,9 @@ async function firebaseBackup() {
             email: user.email,
             name: user.displayName,
             isPro: localStorage.getItem('userPlan') === 'PRO',
+            proStartDate: localStorage.getItem('proStartDate'),
             proEndDate: localStorage.getItem('proEndDate'),
+            proCancelled: localStorage.getItem('proCancelled') === 'true', // İptal durumu
             lastBackup: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
         
@@ -24308,7 +24391,7 @@ async function firebaseRestore() {
             'tm_notify_settings', 'tm_networth_history', 'tm_daily_tracking',
             'tm_saved_strategies', 'tm_deleted_history', 'tm_all_portfolios',
             'tradeVia_alarms', 'tradevia_main_goal', 'tradevia_multi_goals',
-            'tradevia_goal_achievements', 'userPlan', 'proStartDate', 'proEndDate'
+            'tradevia_goal_achievements', 'userPlan', 'proStartDate', 'proEndDate', 'proCancelled'
         ];
         
         keysToRestore.forEach(key => {
