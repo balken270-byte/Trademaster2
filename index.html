@@ -11046,44 +11046,75 @@ function openLabFullscreen() {
                 <div class="ps-detail-title sub-title" id="subPageTitle">Detay</div>
             </div>
 
-            <!-- ===== PROFİL SAYFASI ===== -->
+            <!-- ===== PROFİL SAYFASI (PREMIUM TASARIM) ===== -->
             <div id="set-profile" class="settings-content" style="display:none;">
-                <div class="ps-profile-edit-hero">
-                    <div class="ps-avatar-editor">
-                        <img id="displayProfileImg" src="" class="ps-avatar-preview">
-                        <label class="ps-avatar-upload-btn">
-                            <i class="fas fa-camera"></i>
-                            <input type="file" id="imgUploadInput" style="display:none;" accept="image/*" onchange="uploadProfileImg(this)">
-                        </label>
+                
+                <!-- PREMIUM PROFILE HEADER -->
+                <div style="position:relative; padding:30px 20px 20px; background:linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(139,92,246,0.1) 100%); border-radius:20px; margin-bottom:20px; overflow:hidden;">
+                    <!-- Ambient Background -->
+                    <div style="position:absolute; top:-50px; right:-50px; width:200px; height:200px; background:radial-gradient(circle, rgba(139,92,246,0.2), transparent); filter:blur(40px); pointer-events:none;"></div>
+                    
+                    <!-- Avatar Section -->
+                    <div style="text-align:center; position:relative; z-index:1;">
+                        <div style="position:relative; display:inline-block; margin-bottom:15px;">
+                            <img id="displayProfileImg" src="https://ui-avatars.com/api/?name=User&background=3b82f6&color=fff&size=256" 
+                                 style="width:100px; height:100px; border-radius:50%; border:4px solid var(--accent); box-shadow:0 8px 32px rgba(59,130,246,0.4);">
+                            <label style="position:absolute; bottom:0; right:0; width:32px; height:32px; background:linear-gradient(135deg, var(--accent), #8b5cf6); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:3px solid var(--bg-card); box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+                                <i class="fas fa-camera" style="font-size:12px; color:#fff;"></i>
+                                <input type="file" id="imgUploadInput" style="display:none;" accept="image/*" onchange="uploadProfileImg(this)">
+                            </label>
+                        </div>
+                        
+                        <!-- Name & Email -->
+                        <div id="profileDisplayName" style="font-size:22px; font-weight:800; color:#fff; margin-bottom:4px;">Kullanıcı</div>
+                        <div id="profileDisplayEmail" style="font-size:13px; color:var(--text-sub); margin-bottom:12px;">--</div>
+                        
+                        <!-- PRO Badge -->
+                        <div id="profileProBadge" style="display:none; margin-bottom:10px;">
+                            <span style="display:inline-flex; align-items:center; gap:6px; padding:6px 16px; border-radius:100px; font-size:11px; font-weight:800; background:linear-gradient(135deg, #FFD60A, #FF9500); color:#000; box-shadow:0 4px 16px rgba(255,214,10,0.4);">
+                                <i class="fas fa-crown"></i> PRO ÜYE
+                            </span>
+                        </div>
+                        
+                        <!-- Connection Status -->
+                        <div id="profileConnectionStatus" style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; background:rgba(255,159,64,0.15); border:1px solid rgba(255,159,64,0.3); border-radius:100px; font-size:11px; font-weight:600; color:#ff9f40;">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span id="profileConnectionText">Bağlantı yok</span>
+                        </div>
                     </div>
-                    <p class="ps-avatar-hint">Fotoğrafı değiştirmek için tıkla</p>
                 </div>
 
-                <div class="ps-card card">
-                    <div class="ps-card-label lbl-sm">Bilgiler</div>
+                <!-- EDITABLE INFO CARD -->
+                <div id="profileEditCard" class="ps-card card">
+                    <div class="ps-card-label lbl-sm">
+                        <i class="fas fa-user-edit"></i> Profil Bilgileri
+                    </div>
                     <div class="ps-input-group">
                         <label class="ps-input-label">Ad Soyad</label>
                         <input type="text" id="profileNameInput" class="ps-input modern-input" placeholder="İsminizi girin" onchange="saveProfileData()">
                     </div>
                     <div class="ps-input-group">
                         <label class="ps-input-label">Bio / Ünvan</label>
-                        <input type="text" id="profileBioInput" class="ps-input modern-input" placeholder="Kısa bir açıklama" onchange="saveProfileData()">
+                        <input type="text" id="profileBioInput" class="ps-input modern-input" placeholder="Örn: Kripto Yatırımcısı" onchange="saveProfileData()">
                     </div>
-                    <div id="displayProfileName" style="display:none;"></div>
-                    <div id="displayProfileBio" style="display:none;"></div>
-                    <div id="membershipBadge" style="display:none;"></div>
+                    <div style="font-size:11px; color:var(--text-sub); margin-top:10px; padding:10px; background:rgba(59,130,246,0.1); border-radius:8px; border-left:3px solid var(--accent);">
+                        <i class="fas fa-info-circle"></i> Google ile giriş yaparsanız bilgileriniz otomatik gelir
+                    </div>
                 </div>
 
+                <!-- STATISTICS -->
                 <div class="ps-card card">
-                    <div class="ps-card-label lbl-sm">İstatistikler</div>
-                    <div class="ps-stats-grid stats-grid">
-                        <div class="ps-stat-card stat-box">
-                            <div class="ps-stat-label stat-label">Toplam İşlem</div>
-                            <div class="ps-stat-value stat-val" id="profileTradeCount">0</div>
+                    <div class="ps-card-label lbl-sm">
+                        <i class="fas fa-chart-line"></i> İstatistikler
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div style="background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.2); border-radius:14px; padding:16px; text-align:center;">
+                            <div style="font-size:11px; font-weight:600; color:var(--text-sub); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Toplam İşlem</div>
+                            <div id="profileTradeCount" style="font-size:28px; font-weight:800; color:var(--accent);">0</div>
                         </div>
-                        <div class="ps-stat-card stat-box">
-                            <div class="ps-stat-label stat-label">Üyelik Tarihi</div>
-                            <div class="ps-stat-value stat-val" id="profileJoinDate" style="font-size:18px">--</div>
+                        <div style="background:rgba(139,92,246,0.1); border:1px solid rgba(139,92,246,0.2); border-radius:14px; padding:16px; text-align:center;">
+                            <div style="font-size:11px; font-weight:600; color:var(--text-sub); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Üyelik Tarihi</div>
+                            <div id="profileJoinDate" style="font-size:18px; font-weight:700; color:#8b5cf6;">--</div>
                         </div>
                     </div>
                 </div>
@@ -12308,7 +12339,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "2.1"; 
+    const CURRENT_VERSION = "3.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -15803,7 +15834,31 @@ function exportComprehensiveReport() {
     XLSX.writeFile(wb, `TradeVia_Yedek_${dateStr}.xlsx`);
 }
 
-    function loadProfile() { document.getElementById('displayProfileName').innerText = userProfile.name; document.getElementById('profileNameInput').value = userProfile.name; document.getElementById('displayProfileBio').innerText = userProfile.bio; document.getElementById('profileBioInput').value = userProfile.bio; document.getElementById('profileJoinDate').innerText = userProfile.joinDate; document.getElementById('profileTradeCount').innerText = tradeHistory.length; if(userProfile.img) document.getElementById('displayProfileImg').src = userProfile.img; }
+    function loadProfile() { 
+        // Eski elementler (varsa)
+        const oldName = document.getElementById('displayProfileName');
+        const oldBio = document.getElementById('displayProfileBio');
+        
+        // Yeni elementler
+        const newName = document.getElementById('profileDisplayName');
+        
+        // Input alanları
+        const nameInput = document.getElementById('profileNameInput');
+        const bioInput = document.getElementById('profileBioInput');
+        const joinDate = document.getElementById('profileJoinDate');
+        const tradeCount = document.getElementById('profileTradeCount');
+        const profileImg = document.getElementById('displayProfileImg');
+        
+        // Güvenli güncellemeler
+        if (oldName) oldName.innerText = userProfile.name;
+        if (newName && !fbAuth.currentUser) newName.textContent = userProfile.name || 'Kullanıcı'; // Sadece giriş yoksa
+        if (nameInput) nameInput.value = userProfile.name;
+        if (oldBio) oldBio.innerText = userProfile.bio;
+        if (bioInput) bioInput.value = userProfile.bio;
+        if (joinDate) joinDate.innerText = userProfile.joinDate;
+        if (tradeCount) tradeCount.innerText = tradeHistory.length;
+        if (profileImg && userProfile.img && !fbAuth.currentUser) profileImg.src = userProfile.img; // Sadece giriş yoksa
+    }
     function saveProfileData() { let name = document.getElementById('profileNameInput').value; let bio = document.getElementById('profileBioInput').value; if(name) userProfile.name = name; if(bio) userProfile.bio = bio; localStorage.setItem('tm_user_profile', JSON.stringify(userProfile)); loadProfile(); addNotification('success', 'Profil', 'Bilgileriniz güncellendi.'); }
     function uploadProfileImg(input) { if (input.files && input.files[0]) { var reader = new FileReader(); reader.onload = function (e) { try { userProfile.img = e.target.result; localStorage.setItem('tm_user_profile', JSON.stringify(userProfile)); document.getElementById('displayProfileImg').src = userProfile.img; addNotification('success', 'Fotoğraf', 'Profil fotoğrafı yüklendi.'); } catch (error) { addNotification('danger', 'Hata', 'Fotoğraf boyutu çok büyük!'); } }; reader.readAsDataURL(input.files[0]); } }
         function switchMarketMode(mode, btn){ 
@@ -23685,14 +23740,107 @@ function updateAccountUI(user) {
         const proBadge = document.getElementById('fbProBadge');
         if (proBadge) proBadge.style.display = (localStorage.getItem('userPlan') === 'PRO') ? 'block' : 'none';
         
+        // ═══ YENİ: PROFİL SAYFASI SENKRONIZASYONU ═══
+        console.log('[TradeVia] Google bilgileri profil sayfasına aktarılıyor...');
+        
+        // Profil resmi
+        const profileImg = document.getElementById('displayProfileImg');
+        if (profileImg) {
+            profileImg.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}&background=3b82f6&color=fff&size=256`;
+        }
+        
+        // İsim
+        const profileDisplayName = document.getElementById('profileDisplayName');
+        if (profileDisplayName) {
+            profileDisplayName.textContent = user.displayName || 'Kullanıcı';
+        }
+        
+        // E-posta
+        const profileDisplayEmail = document.getElementById('profileDisplayEmail');
+        if (profileDisplayEmail) {
+            profileDisplayEmail.textContent = user.email || '--';
+        }
+        
+        // Bağlantı durumu
+        const profileConnectionStatus = document.getElementById('profileConnectionStatus');
+        const profileConnectionText = document.getElementById('profileConnectionText');
+        if (profileConnectionStatus) {
+            profileConnectionStatus.style.background = 'rgba(16,185,129,0.15)';
+            profileConnectionStatus.style.borderColor = 'rgba(16,185,129,0.3)';
+            profileConnectionStatus.style.color = 'var(--success)';
+        }
+        if (profileConnectionText) {
+            profileConnectionText.textContent = 'Google hesabı bağlı';
+        }
+        
+        // PRO badge (profil sayfası)
+        const profileProBadge = document.getElementById('profileProBadge');
+        if (profileProBadge) {
+            profileProBadge.style.display = (localStorage.getItem('userPlan') === 'PRO') ? 'block' : 'none';
+        }
+        
+        // Edit card'ı gizle (Google bilgileri var)
+        const profileEditCard = document.getElementById('profileEditCard');
+        if (profileEditCard) {
+            profileEditCard.style.display = 'none';
+        }
+        
+        // Input'lara da Google bilgilerini yaz (arka planda)
+        const profileNameInput = document.getElementById('profileNameInput');
+        if (profileNameInput && !profileNameInput.value) {
+            profileNameInput.value = user.displayName || '';
+        }
+        
         updateMembershipUI();
         checkLastBackup(user.uid);
+        
+        console.log('[TradeVia] ✓ Profil senkronizasyonu tamamlandı');
+        
     } else {
         if (loggedOut) loggedOut.style.display = 'block';
         if (loggedIn) loggedIn.style.display = 'none';
         if (menuStatus) menuStatus.innerText = 'Giriş yapılmadı';
         if (premiumHint) premiumHint.style.display = 'block';
         if (btnUpgrade) btnUpgrade.style.display = 'none';
+        
+        // ═══ YENİ: ÇIKIŞ YAPILDIĞINDA PROFİLİ SIFIRLA ═══
+        console.log('[TradeVia] Çıkış yapıldı, profil temizleniyor...');
+        
+        // Profil resmi
+        const profileImg = document.getElementById('displayProfileImg');
+        if (profileImg) {
+            profileImg.src = 'https://ui-avatars.com/api/?name=User&background=3b82f6&color=fff&size=256';
+        }
+        
+        // İsim ve e-posta
+        const profileDisplayName = document.getElementById('profileDisplayName');
+        const profileDisplayEmail = document.getElementById('profileDisplayEmail');
+        if (profileDisplayName) profileDisplayName.textContent = 'Kullanıcı';
+        if (profileDisplayEmail) profileDisplayEmail.textContent = '--';
+        
+        // Bağlantı durumu
+        const profileConnectionStatus = document.getElementById('profileConnectionStatus');
+        const profileConnectionText = document.getElementById('profileConnectionText');
+        if (profileConnectionStatus) {
+            profileConnectionStatus.style.background = 'rgba(255,159,64,0.15)';
+            profileConnectionStatus.style.borderColor = 'rgba(255,159,64,0.3)';
+            profileConnectionStatus.style.color = '#ff9f40';
+        }
+        if (profileConnectionText) {
+            profileConnectionText.textContent = 'Bağlantı yok';
+        }
+        
+        // PRO badge gizle
+        const profileProBadge = document.getElementById('profileProBadge');
+        if (profileProBadge) {
+            profileProBadge.style.display = 'none';
+        }
+        
+        // Edit card'ı göster
+        const profileEditCard = document.getElementById('profileEditCard');
+        if (profileEditCard) {
+            profileEditCard.style.display = 'block';
+        }
     }
 }
 
@@ -23761,12 +23909,40 @@ async function firebaseGoogleLogin() {
 
 // --- Çıkış ---
 async function firebaseLogout() {
-    if (!confirm('Hesaptan çıkış yapmak istediğine emin misin?\nBulut yedeklerin silinmez.')) return;
+    const isPro = localStorage.getItem('userPlan') === 'PRO';
+    let confirmMsg = 'Hesaptan çıkış yapmak istediğine emin misin?\n\nBulut yedeklerin silinmez.';
+    
+    if (isPro) {
+        confirmMsg = '⚠️ UYARI: PRO ÜYELİK AKTIF!\n\nÇıkış yaparsanız:\n• PRO üyeliğiniz iptal edilecek\n• Özellikler kilitlenecek\n• Tekrar giriş yapıp PRO almalısınız\n\nDevam etmek istiyor musunuz?';
+    }
+    
+    if (!confirm(confirmMsg)) return;
+    
     try {
+        // PRO ise iptal et
+        if (isPro) {
+            console.log('[TradeVia] PRO üyelik çıkış yapıldığı için iptal ediliyor...');
+            localStorage.setItem('userPlan', 'FREE');
+            localStorage.removeItem('proStartDate');
+            localStorage.removeItem('proEndDate');
+        }
+        
         await fbAuth.signOut();
-        if (typeof showToast === 'function') showToast('info', 'Çıkış Yapıldı', 'Hesabınızın bağlantısı kesildi.');
+        
+        if (typeof showToast === 'function') {
+            if (isPro) {
+                showToast('warn', 'Çıkış Yapıldı', 'PRO üyelik iptal edildi. Hesap bağlantısı kesildi.');
+            } else {
+                showToast('info', 'Çıkış Yapıldı', 'Hesabınızın bağlantısı kesildi.');
+            }
+        }
+        
+        // Sayfayı yenile
+        setTimeout(() => location.reload(), 1500);
+        
     } catch(err) {
         console.error('Logout error:', err);
+        if (typeof showToast === 'function') showToast('danger', 'Hata', 'Çıkış yapılamadı: ' + err.message);
     }
 }
 
