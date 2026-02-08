@@ -11049,37 +11049,45 @@ function openLabFullscreen() {
             <!-- ===== PROFİL SAYFASI (PREMIUM TASARIM) ===== -->
             <div id="set-profile" class="settings-content" style="display:none;">
                 
-                <!-- PREMIUM PROFILE HEADER (KOMPAKT) -->
-                <div style="position:relative; padding:20px 15px 15px; background:linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(139,92,246,0.1) 100%); border-radius:16px; margin-bottom:16px; overflow:hidden;">
-                    <!-- Ambient Background -->
-                    <div style="position:absolute; top:-50px; right:-50px; width:200px; height:200px; background:radial-gradient(circle, rgba(139,92,246,0.2), transparent); filter:blur(40px); pointer-events:none;"></div>
+                <!-- ═══ iOS TARZ PREMIUM PROFILE HEADER ═══ -->
+                <div style="position:relative; margin:-20px -20px 20px -20px; padding:40px 20px 25px; background:linear-gradient(180deg, rgba(59,130,246,0.12) 0%, rgba(139,92,246,0.08) 50%, transparent 100%); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-bottom:1px solid rgba(255,255,255,0.06);">
+                    
+                    <!-- Glassmorphism Circles -->
+                    <div style="position:absolute; top:20px; right:30px; width:120px; height:120px; background:radial-gradient(circle, rgba(139,92,246,0.15), transparent 70%); border-radius:50%; filter:blur(30px); pointer-events:none;"></div>
+                    <div style="position:absolute; bottom:10px; left:30px; width:100px; height:100px; background:radial-gradient(circle, rgba(59,130,246,0.15), transparent 70%); border-radius:50%; filter:blur(30px); pointer-events:none;"></div>
                     
                     <!-- Avatar Section -->
                     <div style="text-align:center; position:relative; z-index:1;">
-                        <div style="position:relative; display:inline-block; margin-bottom:10px;">
-                            <img id="displayProfileImg" src="https://ui-avatars.com/api/?name=User&background=3b82f6&color=fff&size=256" 
-                                 style="width:80px; height:80px; border-radius:50%; border:3px solid var(--accent); box-shadow:0 6px 24px rgba(59,130,246,0.4);">
-                            <label style="position:absolute; bottom:0; right:0; width:28px; height:28px; background:linear-gradient(135deg, var(--accent), #8b5cf6); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:2px solid var(--bg-card); box-shadow:0 3px 8px rgba(0,0,0,0.3);">
+                        <div style="position:relative; display:inline-block; margin-bottom:12px;">
+                            <!-- iOS-style Avatar Container -->
+                            <div style="position:relative; width:90px; height:90px; border-radius:50%; background:linear-gradient(135deg, rgba(59,130,246,0.3), rgba(139,92,246,0.3)); padding:3px; box-shadow:0 8px 32px rgba(59,130,246,0.3), inset 0 1px 2px rgba(255,255,255,0.1);">
+                                <img id="displayProfileImg" src="https://ui-avatars.com/api/?name=User&background=3b82f6&color=fff&size=256" 
+                                     style="width:84px; height:84px; border-radius:50%; border:2px solid var(--bg-body); object-fit:cover;">
+                            </div>
+                            <!-- Camera Button - iOS Style -->
+                            <label style="position:absolute; bottom:0; right:-2px; width:30px; height:30px; background:linear-gradient(135deg, #3b82f6, #2563eb); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:3px solid var(--bg-body); box-shadow:0 4px 12px rgba(59,130,246,0.4); transition:transform 0.2s;">
                                 <i class="fas fa-camera" style="font-size:11px; color:#fff;"></i>
                                 <input type="file" id="imgUploadInput" style="display:none;" accept="image/*" onchange="uploadProfileImg(this)">
                             </label>
                         </div>
                         
-                        <!-- Name & Email -->
-                        <div id="profileDisplayName" style="font-size:18px; font-weight:800; color:#fff; margin-bottom:3px;">Kullanıcı</div>
-                        <div id="profileDisplayEmail" style="font-size:12px; color:var(--text-sub); margin-bottom:8px;">--</div>
+                        <!-- Name & Email - iOS Typography -->
+                        <div id="profileDisplayName" style="font-size:22px; font-weight:700; color:#fff; margin-bottom:4px; letter-spacing:-0.3px;">Kullanıcı</div>
+                        <div id="profileDisplayEmail" style="font-size:13px; color:rgba(255,255,255,0.55); margin-bottom:12px; font-weight:500;">--</div>
                         
-                        <!-- PRO Badge -->
-                        <div id="profileProBadge" style="display:none; margin-bottom:8px;">
-                            <span style="display:inline-flex; align-items:center; gap:4px; padding:4px 12px; border-radius:100px; font-size:10px; font-weight:800; background:linear-gradient(135deg, #FFD60A, #FF9500); color:#000; box-shadow:0 3px 12px rgba(255,214,10,0.4);">
-                                <i class="fas fa-crown"></i> PRO ÜYE
-                            </span>
-                        </div>
-                        
-                        <!-- Connection Status -->
-                        <div id="profileConnectionStatus" style="display:inline-flex; align-items:center; gap:5px; padding:5px 12px; background:rgba(255,159,64,0.15); border:1px solid rgba(255,159,64,0.3); border-radius:100px; font-size:10px; font-weight:600; color:#ff9f40;">
-                            <i class="fas fa-exclamation-circle"></i>
-                            <span id="profileConnectionText">Bağlantı yok</span>
+                        <!-- Status Row - iOS Style Pills -->
+                        <div style="display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap;">
+                            <!-- PRO Badge - iOS Gold -->
+                            <div id="profileProBadge" style="display:none;">
+                                <span style="display:inline-flex; align-items:center; gap:5px; padding:6px 14px; border-radius:100px; font-size:11px; font-weight:700; background:linear-gradient(135deg, #FFD60A 0%, #FF9500 100%); color:#000; box-shadow:0 4px 16px rgba(255,214,10,0.35), inset 0 1px 1px rgba(255,255,255,0.3); letter-spacing:0.3px;">
+                                    <i class="fas fa-crown" style="font-size:10px;"></i> PRO
+                                </span>
+                            </div>
+                            <!-- Connection Status - iOS Style -->
+                            <div id="profileConnectionStatus" style="display:inline-flex; align-items:center; gap:5px; padding:6px 14px; background:rgba(255,159,64,0.12); border:1px solid rgba(255,159,64,0.25); border-radius:100px; font-size:11px; font-weight:600; color:#ff9f40; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);">
+                                <div style="width:6px; height:6px; border-radius:50%; background:#ff9f40; box-shadow:0 0 8px #ff9f40;"></div>
+                                <span id="profileConnectionText">Bağlantı yok</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -12326,7 +12334,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -23705,7 +23713,6 @@ function updateAccountUI(user) {
     const loggedOut = document.getElementById('accountLoggedOut');
     const loggedIn = document.getElementById('accountLoggedIn');
     const menuStatus = document.getElementById('accountMenuStatus');
-    const premiumHint = document.getElementById('premiumLoginHint');
     const btnUpgrade = document.getElementById('btnUpgrade');
     
     if (user) {
@@ -23715,6 +23722,30 @@ function updateAccountUI(user) {
         
         // Menu status
         if (menuStatus) menuStatus.innerText = user.email || 'Bağlı';
+        
+        // ═══ AYARLAR ANA SAYFA PROFİL KARTI ═══
+        const menuProfileImg = document.getElementById('menuProfileImg');
+        const menuProfileName = document.getElementById('menuProfileName');
+        const mainBadge = document.getElementById('mainBadge');
+        
+        if (menuProfileImg) {
+            menuProfileImg.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'U')}&background=3b82f6&color=fff&size=150`;
+        }
+        if (menuProfileName) {
+            menuProfileName.textContent = user.displayName || 'Kullanıcı';
+        }
+        
+        // PRO badge güncelle (ayarlar sayfası)
+        const isPro = localStorage.getItem('userPlan') === 'PRO';
+        if (mainBadge) {
+            if (isPro) {
+                mainBadge.className = 'ps-badge pro pbc-badge';
+                mainBadge.innerHTML = '<i class="fas fa-crown"></i> PRO ÜYE';
+            } else {
+                mainBadge.className = 'ps-badge free pbc-badge';
+                mainBadge.innerHTML = '<i class="fas fa-user"></i> FREE ÜYE';
+            }
+        }
         
         // ═══ PROFİL SAYFASI SENKRONIZASYONU ═══
         console.log('[TradeVia] Google bilgileri profil sayfasına aktarılıyor...');
@@ -23737,22 +23768,22 @@ function updateAccountUI(user) {
             profileDisplayEmail.textContent = user.email || '--';
         }
         
-        // Bağlantı durumu
+        // Bağlantı durumu - iOS tarzı yeşil
         const profileConnectionStatus = document.getElementById('profileConnectionStatus');
         const profileConnectionText = document.getElementById('profileConnectionText');
         if (profileConnectionStatus) {
-            profileConnectionStatus.style.background = 'rgba(16,185,129,0.15)';
-            profileConnectionStatus.style.borderColor = 'rgba(16,185,129,0.3)';
-            profileConnectionStatus.style.color = 'var(--success)';
+            profileConnectionStatus.style.background = 'rgba(16,185,129,0.12)';
+            profileConnectionStatus.style.borderColor = 'rgba(16,185,129,0.25)';
+            profileConnectionStatus.style.color = '#10b981';
         }
         if (profileConnectionText) {
-            profileConnectionText.textContent = 'Google hesabı bağlı';
+            profileConnectionText.innerHTML = 'Bağlı'; // Nokta HTML'de var
         }
         
         // PRO badge (profil sayfası)
         const profileProBadge = document.getElementById('profileProBadge');
         if (profileProBadge) {
-            profileProBadge.style.display = (localStorage.getItem('userPlan') === 'PRO') ? 'block' : 'none';
+            profileProBadge.style.display = isPro ? 'block' : 'none';
         }
         
         // Edit card'ı gizle (Google bilgileri var)
@@ -23778,9 +23809,23 @@ function updateAccountUI(user) {
         if (menuStatus) menuStatus.innerText = 'Giriş yapılmadı';
         if (btnUpgrade) btnUpgrade.style.display = 'none';
         
-        // ═══ ÇIKIŞ YAPILDIĞINDA PROFİLİ SIFIRLA ═══
-        console.log('[TradeVia] Çıkış yapıldı, profil temizleniyor...');
+        // ═══ AYARLAR ANA SAYFA PROFİL KARTI SIFIRLA ═══
+        const menuProfileImg = document.getElementById('menuProfileImg');
+        const menuProfileName = document.getElementById('menuProfileName');
+        const mainBadge = document.getElementById('mainBadge');
         
+        if (menuProfileImg) {
+            menuProfileImg.src = 'https://via.placeholder.com/150/1e2538/ffffff?text=TR';
+        }
+        if (menuProfileName) {
+            menuProfileName.textContent = 'Yükleniyor...';
+        }
+        if (mainBadge) {
+            mainBadge.className = 'ps-badge free pbc-badge';
+            mainBadge.innerHTML = '<i class="fas fa-user"></i> FREE ÜYE';
+        }
+        
+        // ═══ PROFİL SAYFASI SIFIRLA ═══
         // Profil resmi
         const profileImg = document.getElementById('displayProfileImg');
         if (profileImg) {
@@ -23793,16 +23838,16 @@ function updateAccountUI(user) {
         if (profileDisplayName) profileDisplayName.textContent = 'Kullanıcı';
         if (profileDisplayEmail) profileDisplayEmail.textContent = '--';
         
-        // Bağlantı durumu
+        // Bağlantı durumu - iOS tarzı turuncu
         const profileConnectionStatus = document.getElementById('profileConnectionStatus');
         const profileConnectionText = document.getElementById('profileConnectionText');
         if (profileConnectionStatus) {
-            profileConnectionStatus.style.background = 'rgba(255,159,64,0.15)';
-            profileConnectionStatus.style.borderColor = 'rgba(255,159,64,0.3)';
+            profileConnectionStatus.style.background = 'rgba(255,159,64,0.12)';
+            profileConnectionStatus.style.borderColor = 'rgba(255,159,64,0.25)';
             profileConnectionStatus.style.color = '#ff9f40';
         }
         if (profileConnectionText) {
-            profileConnectionText.textContent = 'Bağlantı yok';
+            profileConnectionText.innerHTML = 'Bağlantı yok'; // Nokta HTML'de var
         }
         
         // PRO badge gizle
