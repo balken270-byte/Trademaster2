@@ -12324,7 +12324,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.5"; 
+    const CURRENT_VERSION = "1.7"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -21877,9 +21877,32 @@ const MembershipSystem = {
     },
     
     downgrade: function() {
-        if(confirm("Free pakete dönmek istediğine emin misin?")) {
-            this.setFree();
-            location.reload();
+        if(confirm("Üyeliği iptal etmek istediğinize emin misiniz?\n\nNot: Mevcut PRO süreniz dolana kadar özelliklerden yararlanmaya devam edebilirsiniz.")) {
+            const endDate = localStorage.getItem('proEndDate');
+            if (!endDate) {
+                // Eğer bitiş tarihi yoksa hemen FREE yap
+                this.setFree();
+                location.reload();
+                return;
+            }
+            
+            // Bitiş tarihi var, iptal işaretini koy
+            localStorage.setItem('proCancelled', 'true');
+            
+            // Buluta da kaydet
+            const user = fbAuth.currentUser;
+            if (user) {
+                fbDb.collection('users').doc(user.uid).set({
+                    proCancelled: true
+                }, { merge: true }).catch(e => console.warn('Cancel sync error:', e));
+            }
+            
+            alert("✅ Üyelik İptal Edildi\n\n" + new Date(endDate).toLocaleDateString('tr-TR') + " tarihine kadar PRO özelliklerden yararlanabilirsiniz.\n\nBu tarihten sonra otomatik olarak FREE plana geçilecektir.");
+            
+            // UI'ı güncelle
+            if (typeof updateMembershipUI === 'function') updateMembershipUI();
+            if (typeof updateMembershipBtnUI === 'function') updateMembershipBtnUI();
+            this.refreshUI();
         }
     },
 
@@ -21901,6 +21924,14 @@ const MembershipSystem = {
             this.setFree();
             location.reload();
         }
+    },
+    
+    // Durumu kontrol et ve UI'ı güncelle (her sayfa yüklendiğinde çağrılmalı)
+    checkStatus: function() {
+        this.checkExpiration();
+        this.refreshUI();
+        if (typeof updateMembershipUI === 'function') updateMembershipUI();
+        if (typeof updateMembershipBtnUI === 'function') updateMembershipBtnUI();
     },
     
     // --- GÜNLÜK LİMİT KONTROLÜ (3 HAK) ---
@@ -21929,6 +21960,7 @@ const MembershipSystem = {
 
     refreshUI: function() {
         const isPro = this.isPro();
+        const isCancelled = localStorage.getItem('proCancelled') === 'true';
         
         let img = document.getElementById('menuProfileImg');
         if(img) {
@@ -21957,11 +21989,37 @@ const MembershipSystem = {
         let btnUp = document.getElementById('btnUpgrade');
         let btnDown = document.getElementById('btnDowngrade');
         
+        // PRO ise upgrade butonu gizle, downgrade butonu göster
+        // Ama iptal edilmişse downgrade butonunu da gizle
         if(btnUp) btnUp.style.display = isPro ? 'none' : 'flex';
-        if(btnDown) btnDown.style.display = isPro ? 'block' : 'none';
+        if(btnDown) {
+            if (isPro && !isCancelled) {
+                btnDown.style.display = 'block';
+                btnDown.innerHTML = '<i class="fas fa-times-circle"></i> Üyeliği İptal Et';
+            } else if (isPro && isCancelled) {
+                // İptal edilmiş ama süre devam ediyor - yeniden aktifleştirme butonu göster
+                btnDown.style.display = 'block';
+                btnDown.innerHTML = '<i class="fas fa-redo"></i> Yeniden Aktifleştir';
+                btnDown.onclick = () => {
+                    if (confirm('PRO üyeliğinizi yeniden aktifleştirmek istiyor musunuz?\n\nÜyelik otomatik yenilenmeye devam edecektir.')) {
+                        localStorage.removeItem('proCancelled');
+                        const user = fbAuth.currentUser;
+                        if (user) {
+                            fbDb.collection('users').doc(user.uid).set({
+                                proCancelled: false
+                            }, { merge: true }).catch(e => console.warn('Reactivate sync error:', e));
+                        }
+                        alert('✅ Üyelik Yeniden Aktifleştirildi\n\nPRO üyeliğiniz otomatik yenilenmeye devam edecektir.');
+                        if (typeof updateMembershipUI === 'function') updateMembershipUI();
+                        this.refreshUI();
+                    }
+                };
+            } else {
+                btnDown.style.display = 'none';
+            }
+        }
         
         if(btnUp) btnUp.onclick = () => this.processPayment();
-        if(btnDown) btnDown.onclick = () => this.downgrade();
 
         let statusContainer = document.getElementById('planStatusText');
         if(statusContainer) {
@@ -21982,6 +22040,11 @@ const MembershipSystem = {
                 let percent = ((30 - diffDays) / 30) * 100;
                 if(percent > 100) percent = 100; if(percent < 0) percent = 0;
 
+                let cancelledBadge = '';
+                if (isCancelled) {
+                    cancelledBadge = '<div style="margin-top:8px; padding:6px 10px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); border-radius:8px; font-size:10px; color:#ef4444;"><i class="fas fa-info-circle"></i> İptal Edildi - Süre bitene kadar aktif</div>';
+                }
+
                 statusContainer.innerHTML = `
                     <div class="membership-card card-pro">
                         <div class="mc-header"><div class="mc-title"><i class="fas fa-crown"></i> PRO MEMBER</div><div class="mc-badge badge-pro">PREMIUM</div></div>
@@ -21989,6 +22052,7 @@ const MembershipSystem = {
                             <div style="margin-top:8px; font-size:13px; font-weight:bold; color:#fbbf24;">Kalan: ${diffDays} Gün</div>
                         </div>
                         <div class="mc-progress-bg"><div class="mc-progress-fill" style="width:${100 - percent}%"></div></div>
+                        ${cancelledBadge}
                     </div>`;
             }
         }
@@ -23696,6 +23760,18 @@ fbAuth.onAuthStateChanged(function(user) {
     if (user) {
         // Firestore'dan PRO durumunu çek
         syncProStatus(user.uid);
+        
+        // MembershipSystem durumunu kontrol et ve UI'ı güncelle
+        if (typeof MembershipSystem !== 'undefined' && typeof MembershipSystem.checkStatus === 'function') {
+            setTimeout(() => {
+                MembershipSystem.checkStatus();
+            }, 500); // syncProStatus'un tamamlanması için kısa bir gecikme
+        }
+    } else {
+        // Kullanıcı çıkış yaptı, UI'ı güncelle
+        if (typeof MembershipSystem !== 'undefined' && typeof MembershipSystem.refreshUI === 'function') {
+            MembershipSystem.refreshUI();
+        }
     }
 });
 
@@ -23894,21 +23970,43 @@ function updateMembershipUI() {
     
     const isPro = localStorage.getItem('userPlan') === 'PRO';
     const endDate = localStorage.getItem('proEndDate');
+    const isCancelled = localStorage.getItem('proCancelled') === 'true';
     
     if (isPro && endDate) {
         const d = new Date(endDate);
         const remaining = Math.max(0, Math.ceil((d - new Date()) / 86400000));
-        infoEl.innerHTML = `
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-                <span style="display:inline-flex; align-items:center; gap:4px; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:800; background:linear-gradient(135deg, #FFD60A, #FF9500); color:#000;">
-                    <i class="fas fa-crown"></i> PRO AKTİF
-                </span>
-                <span style="font-size:12px; color:var(--text-sub);">${remaining} gün kaldı</span>
-            </div>
-            <div style="font-size:11px; color:var(--text-sub);">
-                Bitiş: ${d.toLocaleDateString('tr-TR')}
-            </div>`;
+        
+        // İptal edilmiş ama hala aktif PRO
+        if (isCancelled) {
+            infoEl.innerHTML = `
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                    <span style="display:inline-flex; align-items:center; gap:4px; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:800; background:linear-gradient(135deg, #FFD60A, #FF9500); color:#000;">
+                        <i class="fas fa-crown"></i> PRO AKTİF
+                    </span>
+                    <span style="font-size:12px; color:var(--text-sub);">${remaining} gün kaldı</span>
+                </div>
+                <div style="font-size:11px; color:var(--text-sub); margin-bottom:8px;">
+                    Bitiş: ${d.toLocaleDateString('tr-TR')}
+                </div>
+                <div style="padding:10px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); border-radius:8px; font-size:10px; color:#ef4444; line-height:1.5;">
+                    <i class="fas fa-info-circle"></i> <strong>Üyelik İptal Edildi</strong><br>
+                    ${d.toLocaleDateString('tr-TR')} tarihine kadar PRO özelliklerden yararlanabilirsiniz.
+                </div>`;
+        } else {
+            // Aktif PRO üyelik
+            infoEl.innerHTML = `
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                    <span style="display:inline-flex; align-items:center; gap:4px; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:800; background:linear-gradient(135deg, #FFD60A, #FF9500); color:#000;">
+                        <i class="fas fa-crown"></i> PRO AKTİF
+                    </span>
+                    <span style="font-size:12px; color:var(--text-sub);">${remaining} gün kaldı</span>
+                </div>
+                <div style="font-size:11px; color:var(--text-sub);">
+                    Bitiş: ${d.toLocaleDateString('tr-TR')}
+                </div>`;
+        }
     } else {
+        // FREE üye
         infoEl.innerHTML = `
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
                 <span style="padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700; background:rgba(255,255,255,0.05); color:var(--text-sub); border:1px solid rgba(255,255,255,0.1);">
@@ -24046,6 +24144,9 @@ const _origActivatePro = MembershipSystem.activatePro;
 MembershipSystem.activatePro = function() {
     _origActivatePro.call(this);
     
+    // İptal bayrağını temizle (yeni satın alma)
+    localStorage.removeItem('proCancelled');
+    
     // Firestore'a da kaydet
     const user = fbAuth.currentUser;
     if (user) {
@@ -24053,27 +24154,69 @@ MembershipSystem.activatePro = function() {
             isPro: true,
             proStartDate: new Date().toISOString(),
             proEndDate: localStorage.getItem('proEndDate'),
+            proCancelled: false, // Yeni üyelik, iptal yok
             email: user.email,
             name: user.displayName
         }, { merge: true }).catch(e => console.warn('Pro sync error:', e));
     }
 };
 
-// PRO durumunu Firestore'dan oku
+// PRO durumunu Firestore'dan oku ve senkronize et
 async function syncProStatus(uid) {
     try {
         const doc = await fbDb.collection('users').doc(uid).get();
-        if (doc.exists && doc.data().isPro) {
-            const endDate = doc.data().proEndDate;
-            if (endDate && new Date(endDate) > new Date()) {
-                // Bulutta PRO aktif ama lokalde değilse, lokali güncelle
-                if (localStorage.getItem('userPlan') !== 'PRO') {
+        if (doc.exists) {
+            const cloudData = doc.data();
+            const cloudIsPro = cloudData.isPro || false;
+            const cloudEndDate = cloudData.proEndDate;
+            const cloudStartDate = cloudData.proStartDate;
+            const cloudCancelled = cloudData.proCancelled || false; // İptal bilgisi
+            
+            // Bitiş tarihini kontrol et
+            const isExpired = cloudEndDate && new Date(cloudEndDate) <= new Date();
+            
+            if (cloudIsPro && cloudEndDate && !isExpired) {
+                // Bulutta aktif PRO var
+                const localPlan = localStorage.getItem('userPlan');
+                const localEndDate = localStorage.getItem('proEndDate');
+                
+                // Lokal ile bulut arasında fark varsa bulut verisini kullan
+                if (localPlan !== 'PRO' || localEndDate !== cloudEndDate) {
                     localStorage.setItem('userPlan', 'PRO');
-                    localStorage.setItem('proStartDate', doc.data().proStartDate || new Date().toISOString());
-                    localStorage.setItem('proEndDate', endDate);
-                    console.log('[TradeVia] PRO üyelik buluttan senkronize edildi.');
-                    // UI güncelle
+                    localStorage.setItem('proStartDate', cloudStartDate || new Date().toISOString());
+                    localStorage.setItem('proEndDate', cloudEndDate);
+                    if (cloudCancelled) {
+                        localStorage.setItem('proCancelled', 'true');
+                    } else {
+                        localStorage.removeItem('proCancelled');
+                    }
+                    console.log('[TradeVia] ✅ PRO üyelik buluttan senkronize edildi.');
+                    
+                    // UI'ı hemen güncelle
                     if (typeof loadProfile === 'function') loadProfile();
+                    if (typeof updateMembershipUI === 'function') updateMembershipUI();
+                    if (typeof updateMembershipBtnUI === 'function') updateMembershipBtnUI();
+                    if (typeof MembershipSystem !== 'undefined' && typeof MembershipSystem.refreshUI === 'function') {
+                        MembershipSystem.refreshUI();
+                    }
+                }
+            } else if (isExpired || !cloudIsPro) {
+                // Bulutta PRO süresi dolmuş veya yok
+                if (localStorage.getItem('userPlan') === 'PRO') {
+                    const localEndDate = localStorage.getItem('proEndDate');
+                    const localExpired = localEndDate && new Date(localEndDate) <= new Date();
+                    
+                    if (localExpired) {
+                        // Her iki tarafta da süresi dolmuş, FREE'ye geç
+                        localStorage.setItem('userPlan', 'FREE');
+                        localStorage.removeItem('proStartDate');
+                        localStorage.removeItem('proEndDate');
+                        localStorage.removeItem('proCancelled');
+                        console.log('[TradeVia] ⚠️ PRO süresi doldu, FREE plana geçildi.');
+                        if (typeof loadProfile === 'function') loadProfile();
+                        if (typeof updateMembershipUI === 'function') updateMembershipUI();
+                        if (typeof updateMembershipBtnUI === 'function') updateMembershipBtnUI();
+                    }
                 }
             }
         }
