@@ -11049,47 +11049,61 @@ function openLabFullscreen() {
             <!-- ===== PROFİL SAYFASI (PREMIUM TASARIM) ===== -->
             <div id="set-profile" class="settings-content" style="display:none;">
                 
-                <!-- ═══ iOS TARZ PREMIUM PROFILE HEADER ═══ -->
-                <div style="position:relative; margin:-20px -20px 20px -20px; padding:40px 20px 25px; background:linear-gradient(180deg, rgba(59,130,246,0.12) 0%, rgba(139,92,246,0.08) 50%, transparent 100%); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-bottom:1px solid rgba(255,255,255,0.06);">
+                <!-- ═══ ULTRA PROFESYONEL PROFILE HEADER ═══ -->
+                <div style="margin:-20px -20px 24px -20px; padding:0; background:var(--bg-card); position:relative; overflow:hidden;">
                     
-                    <!-- Glassmorphism Circles -->
-                    <div style="position:absolute; top:20px; right:30px; width:120px; height:120px; background:radial-gradient(circle, rgba(139,92,246,0.15), transparent 70%); border-radius:50%; filter:blur(30px); pointer-events:none;"></div>
-                    <div style="position:absolute; bottom:10px; left:30px; width:100px; height:100px; background:radial-gradient(circle, rgba(59,130,246,0.15), transparent 70%); border-radius:50%; filter:blur(30px); pointer-events:none;"></div>
+                    <!-- Top Gradient Bar -->
+                    <div style="height:4px; background:linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899); opacity:0.6;"></div>
                     
-                    <!-- Avatar Section -->
-                    <div style="text-align:center; position:relative; z-index:1;">
-                        <div style="position:relative; display:inline-block; margin-bottom:12px;">
-                            <!-- iOS-style Avatar Container -->
-                            <div style="position:relative; width:90px; height:90px; border-radius:50%; background:linear-gradient(135deg, rgba(59,130,246,0.3), rgba(139,92,246,0.3)); padding:3px; box-shadow:0 8px 32px rgba(59,130,246,0.3), inset 0 1px 2px rgba(255,255,255,0.1);">
-                                <img id="displayProfileImg" src="https://ui-avatars.com/api/?name=User&background=3b82f6&color=fff&size=256" 
-                                     style="width:84px; height:84px; border-radius:50%; border:2px solid var(--bg-body); object-fit:cover;">
+                    <!-- Main Profile Section -->
+                    <div style="padding:32px 24px 28px; position:relative;">
+                        
+                        <!-- Avatar + Info -->
+                        <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px;">
+                            <!-- Avatar Circle -->
+                            <div style="position:relative; flex-shrink:0;">
+                                <div style="width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); padding:2px; box-shadow:0 4px 16px rgba(59,130,246,0.25);">
+                                    <img id="displayProfileImg" 
+                                         src="https://ui-avatars.com/api/?name=User&background=1f2937&color=fff&size=256" 
+                                         style="width:68px; height:68px; border-radius:50%; object-fit:cover; border:2px solid var(--bg-card);">
+                                </div>
+                                <!-- Online Indicator -->
+                                <div id="profileOnlineDot" style="position:absolute; bottom:2px; right:2px; width:16px; height:16px; background:#10b981; border:3px solid var(--bg-card); border-radius:50%; box-shadow:0 0 0 2px rgba(16,185,129,0.2); display:none;"></div>
                             </div>
-                            <!-- Camera Button - iOS Style -->
-                            <label style="position:absolute; bottom:0; right:-2px; width:30px; height:30px; background:linear-gradient(135deg, #3b82f6, #2563eb); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:3px solid var(--bg-body); box-shadow:0 4px 12px rgba(59,130,246,0.4); transition:transform 0.2s;">
-                                <i class="fas fa-camera" style="font-size:11px; color:#fff;"></i>
+                            
+                            <!-- Name & Email -->
+                            <div style="flex:1; min-width:0;">
+                                <div id="profileDisplayName" style="font-size:20px; font-weight:700; color:#fff; margin-bottom:2px; letter-spacing:-0.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Misafir</div>
+                                <div id="profileDisplayEmail" style="font-size:13px; color:rgba(255,255,255,0.5); font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Giriş yapmadınız</div>
+                            </div>
+                            
+                            <!-- Edit Button -->
+                            <label style="width:36px; height:36px; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.3); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:all 0.2s;">
+                                <i class="fas fa-camera" style="font-size:14px; color:#3b82f6;"></i>
                                 <input type="file" id="imgUploadInput" style="display:none;" accept="image/*" onchange="uploadProfileImg(this)">
                             </label>
                         </div>
                         
-                        <!-- Name & Email - iOS Typography -->
-                        <div id="profileDisplayName" style="font-size:22px; font-weight:700; color:#fff; margin-bottom:4px; letter-spacing:-0.3px;">Kullanıcı</div>
-                        <div id="profileDisplayEmail" style="font-size:13px; color:rgba(255,255,255,0.55); margin-bottom:12px; font-weight:500;">--</div>
-                        
-                        <!-- Status Row - iOS Style Pills -->
-                        <div style="display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap;">
-                            <!-- PRO Badge - iOS Gold -->
+                        <!-- Status Badges Row -->
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                            <!-- PRO Badge -->
                             <div id="profileProBadge" style="display:none;">
-                                <span style="display:inline-flex; align-items:center; gap:5px; padding:6px 14px; border-radius:100px; font-size:11px; font-weight:700; background:linear-gradient(135deg, #FFD60A 0%, #FF9500 100%); color:#000; box-shadow:0 4px 16px rgba(255,214,10,0.35), inset 0 1px 1px rgba(255,255,255,0.3); letter-spacing:0.3px;">
-                                    <i class="fas fa-crown" style="font-size:10px;"></i> PRO
-                                </span>
+                                <div style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:linear-gradient(135deg, #fbbf24, #f59e0b); border-radius:8px; box-shadow:0 2px 8px rgba(251,191,36,0.3);">
+                                    <i class="fas fa-crown" style="font-size:11px; color:#000;"></i>
+                                    <span style="font-size:11px; font-weight:700; color:#000; letter-spacing:0.3px;">PRO</span>
+                                </div>
                             </div>
-                            <!-- Connection Status - iOS Style -->
-                            <div id="profileConnectionStatus" style="display:inline-flex; align-items:center; gap:5px; padding:6px 14px; background:rgba(255,159,64,0.12); border:1px solid rgba(255,159,64,0.25); border-radius:100px; font-size:11px; font-weight:600; color:#ff9f40; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);">
-                                <div style="width:6px; height:6px; border-radius:50%; background:#ff9f40; box-shadow:0 0 8px #ff9f40;"></div>
-                                <span id="profileConnectionText">Bağlantı yok</span>
+                            
+                            <!-- Connection Status -->
+                            <div id="profileConnectionStatus" style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); border-radius:8px;">
+                                <div style="width:6px; height:6px; border-radius:50%; background:#ef4444;"></div>
+                                <span id="profileConnectionText" style="font-size:11px; font-weight:600; color:#ef4444;">Bağlı Değil</span>
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Bottom Border -->
+                    <div style="height:1px; background:rgba(255,255,255,0.06);"></div>
                 </div>
 
                 <!-- EDITABLE INFO CARD (KOMPAKT) -->
@@ -11110,19 +11124,19 @@ function openLabFullscreen() {
                     </div>
                 </div>
 
-                <!-- STATISTICS (KOMPAKT) -->
+                <!-- STATISTICS -->
                 <div class="ps-card card" style="margin-bottom:16px; padding:16px;">
                     <div class="ps-card-label lbl-sm" style="margin-bottom:12px;">
                         <i class="fas fa-chart-line"></i> İstatistikler
                     </div>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                        <div style="background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.2); border-radius:12px; padding:12px; text-align:center;">
-                            <div style="font-size:10px; font-weight:600; color:var(--text-sub); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;">Toplam İşlem</div>
-                            <div id="profileTradeCount" style="font-size:24px; font-weight:800; color:var(--accent);">0</div>
+                        <div style="background:var(--bg-card); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:14px; text-align:center;">
+                            <div style="font-size:10px; font-weight:600; color:var(--text-sub); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Toplam İşlem</div>
+                            <div id="profileTradeCount" style="font-size:26px; font-weight:800; color:#fff;">0</div>
                         </div>
-                        <div style="background:rgba(139,92,246,0.1); border:1px solid rgba(139,92,246,0.2); border-radius:12px; padding:12px; text-align:center;">
-                            <div style="font-size:10px; font-weight:600; color:var(--text-sub); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;">Üyelik Tarihi</div>
-                            <div id="profileJoinDate" style="font-size:16px; font-weight:700; color:#8b5cf6;">--</div>
+                        <div style="background:var(--bg-card); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:14px; text-align:center;">
+                            <div style="font-size:10px; font-weight:600; color:var(--text-sub); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Üyelik Tarihi</div>
+                            <div id="profileJoinDate" style="font-size:15px; font-weight:700; color:rgba(255,255,255,0.7);">--</div>
                         </div>
                     </div>
                 </div>
@@ -12334,7 +12348,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.3"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -23753,7 +23767,7 @@ function updateAccountUI(user) {
         // Profil resmi
         const profileImg = document.getElementById('displayProfileImg');
         if (profileImg) {
-            profileImg.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}&background=3b82f6&color=fff&size=256`;
+            profileImg.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}&background=1f2937&color=fff&size=256`;
         }
         
         // İsim
@@ -23765,19 +23779,28 @@ function updateAccountUI(user) {
         // E-posta
         const profileDisplayEmail = document.getElementById('profileDisplayEmail');
         if (profileDisplayEmail) {
-            profileDisplayEmail.textContent = user.email || '--';
+            profileDisplayEmail.textContent = user.email || 'email@example.com';
         }
         
-        // Bağlantı durumu - iOS tarzı yeşil
+        // Online Dot - Göster
+        const profileOnlineDot = document.getElementById('profileOnlineDot');
+        if (profileOnlineDot) {
+            profileOnlineDot.style.display = 'block';
+        }
+        
+        // Bağlantı durumu - Yeşil
         const profileConnectionStatus = document.getElementById('profileConnectionStatus');
         const profileConnectionText = document.getElementById('profileConnectionText');
         if (profileConnectionStatus) {
-            profileConnectionStatus.style.background = 'rgba(16,185,129,0.12)';
-            profileConnectionStatus.style.borderColor = 'rgba(16,185,129,0.25)';
+            profileConnectionStatus.style.background = 'rgba(16,185,129,0.1)';
+            profileConnectionStatus.style.borderColor = 'rgba(16,185,129,0.2)';
             profileConnectionStatus.style.color = '#10b981';
+            // Dot rengini güncelle
+            const dot = profileConnectionStatus.querySelector('div');
+            if (dot) dot.style.background = '#10b981';
         }
         if (profileConnectionText) {
-            profileConnectionText.innerHTML = 'Bağlı'; // Nokta HTML'de var
+            profileConnectionText.textContent = 'Bağlı';
         }
         
         // PRO badge (profil sayfası)
@@ -23829,25 +23852,34 @@ function updateAccountUI(user) {
         // Profil resmi
         const profileImg = document.getElementById('displayProfileImg');
         if (profileImg) {
-            profileImg.src = 'https://ui-avatars.com/api/?name=User&background=3b82f6&color=fff&size=256';
+            profileImg.src = 'https://ui-avatars.com/api/?name=User&background=1f2937&color=fff&size=256';
         }
         
         // İsim ve e-posta
         const profileDisplayName = document.getElementById('profileDisplayName');
         const profileDisplayEmail = document.getElementById('profileDisplayEmail');
-        if (profileDisplayName) profileDisplayName.textContent = 'Kullanıcı';
-        if (profileDisplayEmail) profileDisplayEmail.textContent = '--';
+        if (profileDisplayName) profileDisplayName.textContent = 'Misafir';
+        if (profileDisplayEmail) profileDisplayEmail.textContent = 'Giriş yapmadınız';
         
-        // Bağlantı durumu - iOS tarzı turuncu
+        // Online Dot - Gizle
+        const profileOnlineDot = document.getElementById('profileOnlineDot');
+        if (profileOnlineDot) {
+            profileOnlineDot.style.display = 'none';
+        }
+        
+        // Bağlantı durumu - Kırmızı
         const profileConnectionStatus = document.getElementById('profileConnectionStatus');
         const profileConnectionText = document.getElementById('profileConnectionText');
         if (profileConnectionStatus) {
-            profileConnectionStatus.style.background = 'rgba(255,159,64,0.12)';
-            profileConnectionStatus.style.borderColor = 'rgba(255,159,64,0.25)';
-            profileConnectionStatus.style.color = '#ff9f40';
+            profileConnectionStatus.style.background = 'rgba(239,68,68,0.1)';
+            profileConnectionStatus.style.borderColor = 'rgba(239,68,68,0.2)';
+            profileConnectionStatus.style.color = '#ef4444';
+            // Dot rengini güncelle
+            const dot = profileConnectionStatus.querySelector('div');
+            if (dot) dot.style.background = '#ef4444';
         }
         if (profileConnectionText) {
-            profileConnectionText.innerHTML = 'Bağlantı yok'; // Nokta HTML'de var
+            profileConnectionText.textContent = 'Bağlı Değil';
         }
         
         // PRO badge gizle
