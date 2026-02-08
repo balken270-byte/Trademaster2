@@ -11047,10 +11047,10 @@ function openLabFullscreen() {
             </div>
 
             <!-- ===== PROFİL SAYFASI (PREMIUM TASARIM - YENİ) ===== -->
-            <div id="set-profile" class="settings-content" style="display:none;">
+            <div id="set-profile" class="settings-content" style="display:none; padding-top:8px !important;">
                 
                 <!-- ═══ MODERN PROFILE HEADER (KOMPAKT) ═══ -->
-                <div style="background:var(--bg-card); border-radius:16px; padding:20px; margin-bottom:16px; border:1px solid rgba(255,255,255,0.05);">
+                <div style="background:var(--bg-card); border-radius:16px; padding:20px; margin-bottom:16px; margin-top:0; border:1px solid rgba(255,255,255,0.05);">
                     
                     <!-- Avatar + Info (Yan Yana) -->
                     <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
@@ -11494,7 +11494,9 @@ function closePremiumModal(event) {
 }
 
 function updatePremiumModalUI() {
-    var isPro = (typeof Membership !== 'undefined' && Membership.isPro());
+    // Firebase üyelik kontrolü ekle
+    const firebasePro = (localStorage.getItem('userPlan') === 'PRO');
+    var isPro = (typeof Membership !== 'undefined' && Membership.isPro()) || firebasePro;
     var header = document.getElementById('premiumModalHeader');
     var icon = document.getElementById('premiumModalIcon');
     var title = document.getElementById('premiumModalTitle');
@@ -12322,7 +12324,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.4"; 
+    const CURRENT_VERSION = "1.5"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -23737,11 +23739,24 @@ function updateAccountUI(user) {
         
         // ═══ PROFİL SAYFASI SENKRONIZASYONU ═══
         console.log('[TradeVia] Google bilgileri profil sayfasına aktarılıyor...');
+        console.log('[TradeVia] User photoURL:', user.photoURL);
+        console.log('[TradeVia] User displayName:', user.displayName);
         
         // Profil resmi
         const profileImg = document.getElementById('displayProfileImg');
         if (profileImg) {
-            profileImg.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}&background=1f2937&color=fff&size=256`;
+            const photoURL = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}&background=1f2937&color=fff&size=256`;
+            console.log('[TradeVia] Setting profile image to:', photoURL);
+            profileImg.src = photoURL;
+            
+            // Resmin yüklenmesini bekle
+            profileImg.onload = function() {
+                console.log('[TradeVia] ✓ Profil resmi yüklendi');
+            };
+            profileImg.onerror = function() {
+                console.error('[TradeVia] ✗ Profil resmi yüklenemedi, fallback kullanılıyor');
+                profileImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}&background=3b82f6&color=fff&size=256`;
+            };
         }
         
         // İsim
@@ -23954,6 +23969,11 @@ async function firebaseLogout() {
             localStorage.setItem('userPlan', 'FREE');
             localStorage.removeItem('proStartDate');
             localStorage.removeItem('proEndDate');
+            
+            // Membership sistemini de güncelle
+            if (typeof MembershipSystem !== 'undefined' && typeof MembershipSystem.downgrade === 'function') {
+                MembershipSystem.downgrade();
+            }
         }
         
         await fbAuth.signOut();
@@ -23965,6 +23985,11 @@ async function firebaseLogout() {
                 showToast('info', 'Çıkış Yapıldı', 'Hesabınızın bağlantısı kesildi.');
             }
         }
+        
+        // UI'ları güncelle
+        if (typeof updateMembershipBtnUI === 'function') updateMembershipBtnUI();
+        if (typeof updatePremiumModalUI === 'function') updatePremiumModalUI();
+        if (typeof updateMembershipUI === 'function') updateMembershipUI();
         
         // Sayfayı yenile
         setTimeout(() => location.reload(), 1500);
