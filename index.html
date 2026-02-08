@@ -11480,6 +11480,34 @@ function openLabFullscreen() {
 <script>
 // Premium Modal Fonksiyonları
 function openPremiumModal() {
+    // Giriş kontrolü - eğer kullanıcı giriş yapmamışsa profil sayfasına yönlendir
+    const user = fbAuth.currentUser;
+    if (!user) {
+        // Profil sayfasına geç
+        switchPage('settings', document.querySelectorAll('.nav-item')[4]);
+        
+        // Toast göster
+        if (typeof showToast === 'function') {
+            showToast('info', 'PRO Üyelik', 'PRO üyelik için önce giriş yapmalısınız.');
+        }
+        
+        // Login section'ı vurgula (varsa)
+        setTimeout(() => {
+            const loginSection = document.getElementById('settingsLoginSection');
+            if (loginSection && loginSection.style.display !== 'none') {
+                loginSection.style.animation = 'pulse 1s ease-in-out 3';
+                loginSection.style.border = '2px solid #f59e0b';
+                loginSection.style.borderRadius = '16px';
+                setTimeout(() => {
+                    loginSection.style.animation = '';
+                    loginSection.style.border = '';
+                }, 3000);
+            }
+        }, 300);
+        return;
+    }
+    
+    // Giriş yapılmışsa modal'ı aç
     var overlay = document.getElementById('premiumModalOverlay');
     overlay.style.display = 'flex';
     setTimeout(function() { overlay.classList.add('active'); }, 10);
@@ -12324,7 +12352,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.5"; 
+    const CURRENT_VERSION = "1.6"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -21887,6 +21915,23 @@ const MembershipSystem = {
         localStorage.setItem('userPlan', 'FREE');
         localStorage.removeItem('proStartDate');
         localStorage.removeItem('proEndDate');
+        
+        // Firebase'de de iptal et
+        const user = fbAuth.currentUser;
+        if (user) {
+            fbDb.collection('users').doc(user.uid).set({
+                isPro: false,
+                proEndDate: null
+            }, { merge: true })
+            .then(() => {
+                console.log('[TradeVia] PRO üyelik Firebase\'de iptal edildi');
+                // UI'ları güncelle
+                if (typeof updateMembershipUI === 'function') updateMembershipUI();
+                if (typeof updateMembershipBtnUI === 'function') updateMembershipBtnUI();
+            })
+            .catch(e => console.warn('PRO iptal hatası:', e));
+        }
+        
         alert("Paketiniz Free'ye düşürüldü.");
     },
     
@@ -23694,8 +23739,29 @@ document.addEventListener('DOMContentLoaded', function() {
 fbAuth.onAuthStateChanged(function(user) {
     updateAccountUI(user);
     if (user) {
-        // Firestore'dan PRO durumunu çek
+        // Firestore'dan PRO durumunu çek ve senkronize et
         syncProStatus(user.uid);
+    } else {
+        // Giriş yapılmamış - local de kontrol et
+        const isPro = localStorage.getItem('userPlan') === 'PRO';
+        const endDate = localStorage.getItem('proEndDate');
+        
+        if (isPro && endDate) {
+            const endDateObj = new Date(endDate);
+            const now = new Date();
+            
+            // Süresi dolmuşsa FREE'ye çevir
+            if (endDateObj <= now) {
+                console.log('[TradeVia] PRO süresi doldu (giriş yok), FREE\'ye çevrildi.');
+                localStorage.setItem('userPlan', 'FREE');
+                localStorage.removeItem('proStartDate');
+                localStorage.removeItem('proEndDate');
+                
+                // UI güncelle
+                if (typeof updateMembershipUI === 'function') updateMembershipUI();
+                if (typeof updateMembershipBtnUI === 'function') updateMembershipBtnUI();
+            }
+        }
     }
 });
 
@@ -23896,19 +23962,57 @@ function updateMembershipUI() {
     const endDate = localStorage.getItem('proEndDate');
     
     if (isPro && endDate) {
-        const d = new Date(endDate);
-        const remaining = Math.max(0, Math.ceil((d - new Date()) / 86400000));
-        infoEl.innerHTML = `
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-                <span style="display:inline-flex; align-items:center; gap:4px; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:800; background:linear-gradient(135deg, #FFD60A, #FF9500); color:#000;">
-                    <i class="fas fa-crown"></i> PRO AKTİF
-                </span>
-                <span style="font-size:12px; color:var(--text-sub);">${remaining} gün kaldı</span>
-            </div>
-            <div style="font-size:11px; color:var(--text-sub);">
-                Bitiş: ${d.toLocaleDateString('tr-TR')}
-            </div>`;
+        const endDateObj = new Date(endDate);
+        const now = new Date();
+        
+        // Süre kontrolü - bitmiş mi?
+        if (endDateObj <= now) {
+            // Süresi dolmuş, FREE'ye çevir
+            localStorage.setItem('userPlan', 'FREE');
+            localStorage.removeItem('proStartDate');
+            localStorage.removeItem('proEndDate');
+            
+            // Firebase'de de güncelle
+            const user = fbAuth.currentUser;
+            if (user) {
+                fbDb.collection('users').doc(user.uid).set({
+                    isPro: false,
+                    proEndDate: null
+                }, { merge: true }).catch(e => console.warn('Cloud update error:', e));
+            }
+            
+            // FREE UI göster
+            infoEl.innerHTML = `
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                    <span style="padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700; background:rgba(255,255,255,0.05); color:var(--text-sub); border:1px solid rgba(255,255,255,0.1);">
+                        FREE
+                    </span>
+                </div>
+                <button onclick="openPremiumModal()" style="
+                    width:100%; padding:12px; border:none; border-radius:10px; cursor:pointer;
+                    background:linear-gradient(135deg, #FFD60A, #FF9500); color:#000;
+                    font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <i class="fas fa-crown"></i> PRO'ya Geç
+                </button>`;
+            
+            // Diğer UI'ları da güncelle
+            if (typeof updateMembershipBtnUI === 'function') updateMembershipBtnUI();
+        } else {
+            // PRO aktif ve süre dolmamış
+            const remaining = Math.max(0, Math.ceil((endDateObj - now) / 86400000));
+            infoEl.innerHTML = `
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                    <span style="display:inline-flex; align-items:center; gap:4px; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:800; background:linear-gradient(135deg, #FFD60A, #FF9500); color:#000;">
+                        <i class="fas fa-crown"></i> PRO AKTİF
+                    </span>
+                    <span style="font-size:12px; color:var(--text-sub);">${remaining} gün kaldı</span>
+                </div>
+                <div style="font-size:11px; color:var(--text-sub);">
+                    Bitiş: ${endDateObj.toLocaleDateString('tr-TR')}
+                </div>`;
+        }
     } else {
+        // FREE kullanıcı
         infoEl.innerHTML = `
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
                 <span style="padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700; background:rgba(255,255,255,0.05); color:var(--text-sub); border:1px solid rgba(255,255,255,0.1);">
@@ -24049,34 +24153,67 @@ MembershipSystem.activatePro = function() {
     // Firestore'a da kaydet
     const user = fbAuth.currentUser;
     if (user) {
+        const endDate = localStorage.getItem('proEndDate');
         fbDb.collection('users').doc(user.uid).set({
             isPro: true,
             proStartDate: new Date().toISOString(),
-            proEndDate: localStorage.getItem('proEndDate'),
+            proEndDate: endDate,
             email: user.email,
             name: user.displayName
-        }, { merge: true }).catch(e => console.warn('Pro sync error:', e));
+        }, { merge: true })
+        .then(() => {
+            console.log('[TradeVia] PRO üyelik Firebase\'e kaydedildi');
+            // UI'ları güncelle
+            if (typeof updateMembershipUI === 'function') updateMembershipUI();
+            if (typeof updateMembershipBtnUI === 'function') updateMembershipBtnUI();
+        })
+        .catch(e => console.warn('Pro sync error:', e));
     }
 };
 
-// PRO durumunu Firestore'dan oku
+// PRO durumunu Firestore'dan oku ve senkronize et
 async function syncProStatus(uid) {
     try {
         const doc = await fbDb.collection('users').doc(uid).get();
-        if (doc.exists && doc.data().isPro) {
-            const endDate = doc.data().proEndDate;
-            if (endDate && new Date(endDate) > new Date()) {
-                // Bulutta PRO aktif ama lokalde değilse, lokali güncelle
-                if (localStorage.getItem('userPlan') !== 'PRO') {
-                    localStorage.setItem('userPlan', 'PRO');
-                    localStorage.setItem('proStartDate', doc.data().proStartDate || new Date().toISOString());
-                    localStorage.setItem('proEndDate', endDate);
-                    console.log('[TradeVia] PRO üyelik buluttan senkronize edildi.');
-                    // UI güncelle
-                    if (typeof loadProfile === 'function') loadProfile();
-                }
+        if (!doc.exists) return;
+        
+        const userData = doc.data();
+        const cloudIsPro = userData.isPro || false;
+        const endDate = userData.proEndDate;
+        
+        // Süre kontrolü - bitiş tarihini kontrol et
+        const isExpired = endDate ? new Date(endDate) <= new Date() : true;
+        
+        // PRO aktif VE süre bitmemiş
+        if (cloudIsPro && !isExpired) {
+            // Local'e senkronize et
+            localStorage.setItem('userPlan', 'PRO');
+            localStorage.setItem('proStartDate', userData.proStartDate || new Date().toISOString());
+            localStorage.setItem('proEndDate', endDate);
+            console.log('[TradeVia] PRO üyelik aktif - buluttan senkronize edildi.');
+        } 
+        // PRO iptal veya süresi dolmuş
+        else {
+            // FREE'ye çevir
+            localStorage.setItem('userPlan', 'FREE');
+            localStorage.removeItem('proStartDate');
+            localStorage.removeItem('proEndDate');
+            
+            // Cloud'da hala isPro:true ise güncelle
+            if (cloudIsPro) {
+                console.log('[TradeVia] PRO üyelik süresi doldu veya iptal - cloud güncelleniyor...');
+                await fbDb.collection('users').doc(uid).set({
+                    isPro: false,
+                    proEndDate: null
+                }, { merge: true });
             }
         }
+        
+        // UI'ları güncelle
+        if (typeof updateMembershipUI === 'function') updateMembershipUI();
+        if (typeof updateMembershipBtnUI === 'function') updateMembershipBtnUI();
+        if (typeof loadProfile === 'function') loadProfile();
+        
     } catch(e) {
         console.warn('syncProStatus error:', e);
     }
