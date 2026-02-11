@@ -12324,7 +12324,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -24060,27 +24060,52 @@ function cancelProMembership() {
 
 // Üyeliği Yeniden Aktifleştir (Profil sayfasından)
 function reactivateProMembership() {
-    if (confirm('PRO üyeliğinizi yeniden aktifleştirmek istiyor musunuz?\n\nÜyelik otomatik yenilenmeye devam edecektir.')) {
-        localStorage.removeItem('proCancelled');
-        
-        const user = fbAuth.currentUser;
-        if (user) {
+    const user = fbAuth.currentUser;
+    
+    if (!user) {
+        if (typeof showToast === 'function') {
+            showToast('danger', 'Giriş Gerekli', 'Lütfen önce giriş yapın');
+        }
+        return;
+    }
+    
+    const endDate = localStorage.getItem('proEndDate');
+    const now = new Date();
+    
+    // Süre dolmuş mu kontrol et
+    if (endDate && new Date(endDate) < now) {
+        // Süre dolmuş - Yeni ödeme gerekli
+        if (confirm('PRO üyeliğinizin süresi dolmuş.\n\nYeni abonelik satın almak ister misiniz?')) {
+            // Yeni ödeme başlat
+            if (typeof startProPayment === 'function') {
+                startProPayment();
+            } else {
+                console.error('startProPayment fonksiyonu bulunamadı!');
+                if (typeof showToast === 'function') {
+                    showToast('danger', 'Hata', 'Ödeme sistemi yüklenemedi');
+                }
+            }
+        }
+    } else {
+        // Süre dolmamış - Sadece iptali geri al
+        if (confirm('PRO üyeliğinizi yeniden aktifleştirmek istiyor musunuz?\n\nÜyelik otomatik yenilenmeye devam edecektir.')) {
+            localStorage.removeItem('proCancelled');
+            
             const startDate = localStorage.getItem('proStartDate');
-            const endDate = localStorage.getItem('proEndDate');
             
             fbDb.collection('users').doc(user.uid).set({
                 isPro: true,
                 proStartDate: startDate,
                 proEndDate: endDate,
-                proCancelled: false, // Artık iptal yok
-                reactivatedAt: new Date().toISOString(), // Yeniden aktifleştirme tarihi
+                proCancelled: false,
+                reactivatedAt: new Date().toISOString(),
                 email: user.email,
                 name: user.displayName
             }, { merge: true }).then(() => {
                 console.log('[TradeVia] ✅ Yeniden aktifleştirme Firebase\'e kaydedildi');
                 
                 if (typeof showToast === 'function') {
-                    showToast('success', 'Yeniden Aktifleştirildi ✓', 'PRO üyeliğiniz otomatik yenilenmeye devam edecek.');
+                    showToast('success', 'Yeniden Aktifleştirildi ✓', 'PRO üyeliğiniz devam ediyor.');
                 }
                 
                 alert('✅ Üyelik Yeniden Aktifleştirildi\n\nPRO üyeliğiniz otomatik yenilenmeye devam edecektir.');
@@ -24095,9 +24120,6 @@ function reactivateProMembership() {
                 console.error('[TradeVia] ❌ Firebase kayıt hatası:', e);
                 alert('⚠️ Uyarı: Bulut senkronizasyonunda hata oluştu.\nLütfen internet bağlantınızı kontrol edin.');
             });
-        } else {
-            console.warn('[TradeVia] ⚠️ Kullanıcı giriş yapmamış');
-            alert('⚠️ Uyarı: Google hesabınızla giriş yapmadığınız için işlem buluta kaydedilmedi.');
         }
     }
 }
