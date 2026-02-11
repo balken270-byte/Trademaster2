@@ -12324,7 +12324,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -21854,13 +21854,13 @@ const MembershipSystem = {
         const modal = document.getElementById('premiumModalOverlay');
         if(modal) { modal.classList.remove('active'); setTimeout(() => modal.style.display = 'none', 300); }
 
-        // iyzico Ödeme Sistemi
-        if (typeof startProPayment === 'function') {
-            startProPayment();
+        if (window.Android && window.Android.buyPro) {
+            // Android ödeme sistemi (Google Play)
+            window.Android.buyPro(); 
         } else {
-            console.error('startProPayment fonksiyonu bulunamadı!');
-            if (typeof showToast === 'function') {
-                showToast('danger', 'Hata', 'Ödeme sistemi yüklenemedi');
+            // TEST MODU
+            if(confirm("🛠️ TEST MODU: Google Play bağlantısı yok.\n\nKullanıcı: " + user.email + "\n\nÖdeme başarılı sayılsın mı?")) {
+                this.activatePro();
             }
         }
     },
@@ -24060,52 +24060,27 @@ function cancelProMembership() {
 
 // Üyeliği Yeniden Aktifleştir (Profil sayfasından)
 function reactivateProMembership() {
-    const user = fbAuth.currentUser;
-    
-    if (!user) {
-        if (typeof showToast === 'function') {
-            showToast('danger', 'Giriş Gerekli', 'Lütfen önce giriş yapın');
-        }
-        return;
-    }
-    
-    const endDate = localStorage.getItem('proEndDate');
-    const now = new Date();
-    
-    // Süre dolmuş mu kontrol et
-    if (endDate && new Date(endDate) < now) {
-        // Süre dolmuş - Yeni ödeme gerekli
-        if (confirm('PRO üyeliğinizin süresi dolmuş.\n\nYeni abonelik satın almak ister misiniz?')) {
-            // Yeni ödeme başlat
-            if (typeof startProPayment === 'function') {
-                startProPayment();
-            } else {
-                console.error('startProPayment fonksiyonu bulunamadı!');
-                if (typeof showToast === 'function') {
-                    showToast('danger', 'Hata', 'Ödeme sistemi yüklenemedi');
-                }
-            }
-        }
-    } else {
-        // Süre dolmamış - Sadece iptali geri al
-        if (confirm('PRO üyeliğinizi yeniden aktifleştirmek istiyor musunuz?\n\nÜyelik otomatik yenilenmeye devam edecektir.')) {
-            localStorage.removeItem('proCancelled');
-            
+    if (confirm('PRO üyeliğinizi yeniden aktifleştirmek istiyor musunuz?\n\nÜyelik otomatik yenilenmeye devam edecektir.')) {
+        localStorage.removeItem('proCancelled');
+        
+        const user = fbAuth.currentUser;
+        if (user) {
             const startDate = localStorage.getItem('proStartDate');
+            const endDate = localStorage.getItem('proEndDate');
             
             fbDb.collection('users').doc(user.uid).set({
                 isPro: true,
                 proStartDate: startDate,
                 proEndDate: endDate,
-                proCancelled: false,
-                reactivatedAt: new Date().toISOString(),
+                proCancelled: false, // Artık iptal yok
+                reactivatedAt: new Date().toISOString(), // Yeniden aktifleştirme tarihi
                 email: user.email,
                 name: user.displayName
             }, { merge: true }).then(() => {
                 console.log('[TradeVia] ✅ Yeniden aktifleştirme Firebase\'e kaydedildi');
                 
                 if (typeof showToast === 'function') {
-                    showToast('success', 'Yeniden Aktifleştirildi ✓', 'PRO üyeliğiniz devam ediyor.');
+                    showToast('success', 'Yeniden Aktifleştirildi ✓', 'PRO üyeliğiniz otomatik yenilenmeye devam edecek.');
                 }
                 
                 alert('✅ Üyelik Yeniden Aktifleştirildi\n\nPRO üyeliğiniz otomatik yenilenmeye devam edecektir.');
@@ -24120,6 +24095,9 @@ function reactivateProMembership() {
                 console.error('[TradeVia] ❌ Firebase kayıt hatası:', e);
                 alert('⚠️ Uyarı: Bulut senkronizasyonunda hata oluştu.\nLütfen internet bağlantınızı kontrol edin.');
             });
+        } else {
+            console.warn('[TradeVia] ⚠️ Kullanıcı giriş yapmamış');
+            alert('⚠️ Uyarı: Google hesabınızla giriş yapmadığınız için işlem buluta kaydedilmedi.');
         }
     }
 }
@@ -24454,126 +24432,6 @@ async function checkLastBackup(uid) {
 </script>
 
 <script src="lang.js"></script>
-
-
-
-<!-- ========== PRO ÜYELİK ÖDEME SİSTEMİ ========== -->
-<script>
-// TRADEVIA PRO ÖDEME SİSTEMİ
-const PRO_PAYMENT_BACKEND = 'https://iyzico-server--balken444.replit.app';
-
-// Ödeme Başlat
-async function startProPayment() {
-    const user = fbAuth.currentUser;
-    
-    if (!user) {
-        if (typeof showToast === 'function') {
-            showToast('danger', 'Giriş Gerekli', 'Lütfen önce giriş yapın!');
-        } else {
-            alert('Lütfen önce giriş yapın!');
-        }
-        return;
-    }
-    
-    try {
-        const userEmail = user.email || 'user@example.com';
-        const userName = user.displayName || user.email.split('@')[0];
-        
-        console.log('Pro ödeme başlatılıyor...');
-        
-        const response = await fetch(`${PRO_PAYMENT_BACKEND}/api/payment/init`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                userId: user.uid,
-                email: userEmail,
-                name: userName,
-                price: '199.00'
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.paymentPageUrl) {
-            console.log('iyzico sayfasına yönlendiriliyor...');
-            window.location.href = data.paymentPageUrl;
-        } else {
-            throw new Error('Ödeme URL\'si alınamadı');
-        }
-        
-    } catch (error) {
-        console.error('Ödeme hatası:', error);
-        if (typeof showToast === 'function') {
-            showToast('danger', 'Ödeme Hatası', error.message);
-        } else {
-            alert('Ödeme hatası: ' + error.message);
-        }
-    }
-}
-
-// Ödeme Callback Kontrol
-window.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-    if (token) {
-        console.log('Ödeme callback token bulundu');
-        verifyProPayment(token);
-    }
-});
-
-// Ödeme Doğrulama
-async function verifyProPayment(token) {
-    try {
-        console.log('Ödeme doğrulanıyor...');
-        
-        const response = await fetch(`${PRO_PAYMENT_BACKEND}/api/payment/callback`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token })
-        });
-        
-        const data = await response.json();
-        
-        if (data.status === 'success') {
-            const user = fbAuth.currentUser;
-            if (user) {
-                await fbDb.collection('users').doc(user.uid).update({
-                    isPro: true,
-                    proStartDate: firebase.firestore.FieldValue.serverTimestamp(),
-                    proEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-                    lastPaymentId: data.paymentId || '',
-                    lastPaymentDate: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                console.log('✅ Kullanıcı Pro yapıldı!');
-            }
-            
-            if (typeof showToast === 'function') {
-                showToast('success', 'Başarılı! 🎉', 'Pro üyeliğiniz aktif!');
-            } else {
-                alert('🎉 Pro üyeliğiniz aktif edildi!');
-            }
-            
-            window.history.replaceState({}, document.title, window.location.pathname);
-            setTimeout(() => location.reload(), 2000);
-        } else {
-            throw new Error('Ödeme doğrulanamadı');
-        }
-    } catch (error) {
-        console.error('Doğrulama hatası:', error);
-        if (typeof showToast === 'function') {
-            showToast('danger', 'Hata', 'Ödeme doğrulanamadı');
-        } else {
-            alert('Ödeme doğrulanamadı!');
-        }
-    }
-}
-
-console.log('✅ Pro Ödeme Sistemi yüklendi!');
-</script>
 
 </body>
 </html>
