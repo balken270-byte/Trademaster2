@@ -4596,6 +4596,8 @@ input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 16px;
     margin-bottom: 15px;
+    position: relative;
+    z-index: 10;
 }
 
 .summary-stat {
@@ -4619,6 +4621,39 @@ input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
     font-size: 14px;
     font-weight: 800;
     color: var(--text-main);
+}
+
+/* ISI HARİTASI STİLLERİ - BASİTLEŞTİRİLMİŞ */
+.infinite-item.heat-extreme-gain {
+    background: linear-gradient(90deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05)) !important;
+}
+
+.infinite-item.heat-high-gain {
+    background: linear-gradient(90deg, rgba(52, 211, 153, 0.12), rgba(52, 211, 153, 0.04)) !important;
+}
+
+.infinite-item.heat-medium-gain {
+    background: linear-gradient(90deg, rgba(110, 231, 183, 0.08), rgba(110, 231, 183, 0.02)) !important;
+}
+
+.infinite-item.heat-low-gain {
+    background: linear-gradient(90deg, rgba(134, 239, 172, 0.06), rgba(134, 239, 172, 0.01)) !important;
+}
+
+.infinite-item.heat-low-loss {
+    background: linear-gradient(90deg, rgba(254, 215, 170, 0.06), rgba(254, 215, 170, 0.01)) !important;
+}
+
+.infinite-item.heat-medium-loss {
+    background: linear-gradient(90deg, rgba(251, 146, 60, 0.08), rgba(251, 146, 60, 0.02)) !important;
+}
+
+.infinite-item.heat-high-loss {
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.12), rgba(239, 68, 68, 0.04)) !important;
+}
+
+.infinite-item.heat-extreme-loss {
+    background: linear-gradient(90deg, rgba(220, 38, 38, 0.15), rgba(220, 38, 38, 0.05)) !important;
 }
 
 .empty-state-card {
@@ -12668,7 +12703,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.4"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -16644,6 +16679,24 @@ function renderSpecificBatch(batch) {
         let cIcon = isUp ? '<i class="fas fa-caret-up"></i>' : '<i class="fas fa-caret-down"></i>';
         let cStr = item.change !== undefined ? `${cIcon}%${Math.abs(item.change).toFixed(2)}` : "--";
         
+        // ISI HARİTASI SINIFI - BASİTLEŞTİRİLMİŞ (Her değişim renkli)
+        let heatClass = '';
+        if (item.change !== undefined && item.change !== null) {
+            if (item.change > 0) {
+                // Pozitif = Yeşil tonlar
+                if (item.change >= 15) heatClass = 'heat-extreme-gain';
+                else if (item.change >= 8) heatClass = 'heat-high-gain';
+                else if (item.change >= 3) heatClass = 'heat-medium-gain';
+                else heatClass = 'heat-low-gain'; // 0.01+ bile yeşil
+            } else if (item.change < 0) {
+                // Negatif = Kırmızı tonlar
+                if (item.change <= -15) heatClass = 'heat-extreme-loss';
+                else if (item.change <= -8) heatClass = 'heat-high-loss';
+                else if (item.change <= -3) heatClass = 'heat-medium-loss';
+                else heatClass = 'heat-low-loss'; // -0.01 bile kırmızı
+            }
+        }
+        
         let logo = "";
         if (item.image) {
             logo = `<div class="asset-logo-wrap" style="background:transparent; border:none; width:32px; height:32px;"><img src="${item.image}" class="asset-logo-img"></div>`;
@@ -16670,7 +16723,7 @@ function renderSpecificBatch(batch) {
         let uniqueId = `m_item_${item.symbol.replace(/[^a-zA-Z0-9]/g, '')}`;
 
         html += `
-        <div class="infinite-item" id="${uniqueId}" onclick="openMarketDetail('${item.symbol}')">
+        <div class="infinite-item ${heatClass}" id="${uniqueId}" onclick="openMarketDetail('${item.symbol}')">
             <div class="ii-left">
                 <div class="ii-rank ${rankClass}">${globalIdx}</div>
                 ${logo}
@@ -24859,39 +24912,126 @@ function applyMarketSort() {
     }
 }
 
-// Trend filtreleme (mevcut cache'i kullanarak)
-function filterByTrend(trend, btn) {
+// Trend filtreleme (CoinGecko'dan gerçek veri çekerek)
+async function filterByTrend(trend, btn) {
     // Buton durumlarını güncelle
     document.querySelectorAll('.filter-chip').forEach(chip => {
         chip.classList.remove('active');
     });
     btn.classList.add('active');
     
-    if (!marketDataCache || marketDataCache.length === 0) return;
-    
-    let filtered = [...marketDataCache];
-    
-    switch(trend) {
-        case 'gainers':
-            filtered = filtered.filter(item => (item.change || 0) > 0);
-            filtered.sort((a, b) => (b.change || 0) - (a.change || 0));
-            break;
-        case 'losers':
-            filtered = filtered.filter(item => (item.change || 0) < 0);
-            filtered.sort((a, b) => (a.change || 0) - (b.change || 0));
-            break;
-        case 'all':
-        default:
-            // Orijinal listeyi göster
-            filtered = marketDataCache;
-            break;
+    // "Tümü" seçildiğinde normal listeyi yeniden yükle
+    if (trend === 'all') {
+        currentPage = 1;
+        marketDataCache = [];
+        const listEl = document.getElementById('infiniteMarketList');
+        if (listEl) listEl.innerHTML = '';
+        
+        // Normal kategori yüklemeyi tetikle
+        if (typeof loadMarketCategory === 'function') {
+            loadMarketCategory(currentCategory, null);
+        }
+        return;
     }
     
-    // Listeyi yeniden render et
+    // Loader göster
     const listEl = document.getElementById('infiniteMarketList');
+    const loader = document.getElementById('marketLoader');
+    if (loader) loader.classList.add('active');
     if (listEl) {
-        listEl.innerHTML = '';
-        renderSpecificBatch(filtered);
+        listEl.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-sub);"><i class="fas fa-spinner fa-spin" style="font-size:24px;"></i><br><br>Piyasa taranıyor...</div>';
+    }
+    
+    try {
+        const apiKey = coingeckoApiKey;
+        if (!apiKey || currentCategory !== 'kripto') {
+            // Kripto değilse veya API yoksa sadece cache'i kullan
+            let filtered = [...marketDataCache];
+            
+            if (trend === 'gainers') {
+                filtered = filtered.filter(item => (item.change || 0) > 0);
+                filtered.sort((a, b) => (b.change || 0) - (a.change || 0));
+            } else if (trend === 'losers') {
+                filtered = filtered.filter(item => (item.change || 0) < 0);
+                filtered.sort((a, b) => (a.change || 0) - (b.change || 0));
+            }
+            
+            if (listEl) listEl.innerHTML = '';
+            renderSpecificBatch(filtered);
+            if (loader) loader.classList.remove('active');
+            return;
+        }
+        
+        // CoinGecko'dan trend bazlı veri çek (Top 100 coin)
+        let url;
+        
+        if (trend === 'gainers') {
+            // En çok yükselenler - Price change descending order
+            url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h&x_cg_demo_api_key=${apiKey}`;
+        } else if (trend === 'losers') {
+            // En çok düşenler - Price change ascending order  
+            url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h&x_cg_demo_api_key=${apiKey}`;
+        }
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (Array.isArray(data) && data.length > 0) {
+            // Veriyi formatla
+            let formattedData = data.map(d => ({
+                symbol: d.symbol.toUpperCase(),
+                name: d.name,
+                price: d.current_price,
+                change: d.price_change_percentage_24h,
+                vol: d.total_volume,
+                image: d.image,
+                source: 'RANK #' + d.market_cap_rank,
+                id: d.id
+            }));
+            
+            // Manuel sıralama (API her zaman doğru sıralamıyor)
+            if (trend === 'gainers') {
+                formattedData = formattedData
+                    .filter(item => item.change > 0)
+                    .sort((a, b) => (b.change || 0) - (a.change || 0))
+                    .slice(0, 100);
+            } else if (trend === 'losers') {
+                formattedData = formattedData
+                    .filter(item => item.change < 0)
+                    .sort((a, b) => (a.change || 0) - (b.change || 0))
+                    .slice(0, 100);
+            }
+            
+            // Cache'i güncelle (sadece bu filtre için)
+            marketDataCache = formattedData;
+            
+            // Render et
+            if (listEl) listEl.innerHTML = '';
+            renderSpecificBatch(formattedData);
+            
+            // Bilgilendirme toast
+            if (typeof showToast === 'function') {
+                if (trend === 'gainers') {
+                    const topGainer = formattedData[0];
+                    showToast('success', 'Yükselenler 🚀', `${topGainer.symbol} %${topGainer.change.toFixed(2)} ile zirvede!`);
+                } else if (trend === 'losers') {
+                    const topLoser = formattedData[0];
+                    showToast('danger', 'Düşenler 📉', `${topLoser.symbol} %${topLoser.change.toFixed(2)} ile en çok düşen`);
+                }
+            }
+        }
+        
+    } catch (error) {
+        console.error('Trend filtreleme hatası:', error);
+        if (typeof showToast === 'function') {
+            showToast('danger', 'Hata', 'Veriler yüklenemedi');
+        }
+        
+        // Hata durumunda cache'i kullan
+        if (listEl) listEl.innerHTML = '';
+        renderSpecificBatch(marketDataCache);
+    } finally {
+        if (loader) loader.classList.remove('active');
     }
 }
 
