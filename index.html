@@ -4590,14 +4590,15 @@ input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
 .market-summary-card {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    padding: 15px;
+    gap: 6px;
+    padding: 12px 10px;
     background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(139, 92, 246, 0.05));
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 16px;
     margin-bottom: 15px;
     position: relative;
     z-index: 10;
+    overflow: hidden;
 }
 
 .summary-stat {
@@ -4605,22 +4606,28 @@ input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
 }
 
 .summary-label {
-    font-size: 9px;
+    font-size: 8px;
     color: var(--text-sub);
-    margin-bottom: 5px;
+    margin-bottom: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 3px;
     text-transform: uppercase;
     font-weight: 700;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .summary-value {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 800;
     color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 /* ISI HARİTASI STİLLERİ - BASİTLEŞTİRİLMİŞ */
@@ -4720,20 +4727,32 @@ input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
     color: var(--accent);
 }
 
-/* Responsive İyileştirmeler */
-@media (max-width: 380px) {
+/* Sadece çok küçük ekranlar için (iPhone SE vb.) */
+@media (max-width: 350px) {
     .market-summary-card {
         grid-template-columns: 1fr;
-        gap: 12px;
+        gap: 8px;
     }
     
     .summary-stat {
-        padding: 8px 0;
+        padding: 6px 0;
         border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
     }
     
     .summary-stat:last-child {
         border-bottom: none;
+    }
+    
+    .summary-label {
+        margin-bottom: 0;
+    }
+    
+    .summary-value {
+        font-size: 14px;
     }
 }
 </style>
@@ -12703,7 +12722,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.4"; 
+    const CURRENT_VERSION = "1.5"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -13477,10 +13496,7 @@ async function loadMarketCategory(cat) {
     let symbols = [];
     
     // KATEGORİYE GÖRE LİSTE BELİRLE
-    if(cat === 'hisse') {
-        // Sadece Massive ve Yahoo çalışacak
-        symbols = ['AAPL', 'TSLA', 'AMZN', 'MSFT', 'GOOGL', 'NVDA', 'THYAO.IS', 'ASELS.IS', 'GARAN.IS', 'SASA.IS'];
-    } else if(cat === 'emtia') {
+    if(cat === 'emtia') {
         symbols = ['ONS', 'GRAM HAS', 'ÇEYREK', 'USDTRY', 'EURTRY'];
     } else {
         // Kripto (Varsayılan)
@@ -15733,9 +15749,7 @@ function changeStartPage(val) {
         /* --- 1. KISIM: GÜNCELLENMİŞ MARKET PRESETS --- */
     const marketPresets = { 
         'kripto': ['BTC', 'ETH', 'SOL', 'AVAX', 'XRP', 'DOGE', 'PEPE', 'SHIB', 'BNB', 'ADA'], 
-        'hisse': ['THYAO.IS', 'ASELS.IS', 'GARAN.IS', 'AKBNK.IS', 'EREGL.IS', 'SASA.IS', 'KCHOL.IS', 'TUPRS.IS', 'SISE.IS', 'BIMAS.IS'], 
-        // Yeni Hızlı Motorlar bu anahtarlara ihtiyaç duymadan otomatik liste getirecek, 
-        // ancak tanımların burada temiz kalması iyidir.
+        'hisse': [],
         'altin': ['ONS', 'GRAM', 'GUMUS'], 
         'doviz': ['USDTRY', 'EURTRY', 'EURUSD', 'GBPTRY'] 
     };
@@ -16437,15 +16451,6 @@ switchPage = function(p, btn) {
 
 /* --- YENİ INFINITE SCROLL & LIVE MARKET MOTORU --- */
 
-// Genişletilmiş BIST Listesi (Infinite Scroll hissi vermek için)
-const bistExtended = [
-    'THYAO','GARAN','AKBNK','ASELS','EREGL','SASA','KCHOL','SISE','BIMAS','TUPRS',
-    'YKBNK','ISCTR','FROTO','EKGYO','PETKM','HALKB','VAKBN','TCELL','KOZAL','ASTOR',
-    'ENKAI','ARCLK','TOASO','HEKTS','ODAS','ALARK','TTKOM','MGROS','GUBRF','OYAKC',
-    'PGSUS','SAHOL','SOKM','KONTR','EUPWR','SMRTG','GESAN','CANTE','ISGYO','DOHOL',
-    'VESTL','TKFEN','ZOREN','KRDMD','TSKB','SKBNK','QUAGR','BERA','MAVI','CIMSA'
-];
-
 let marketDataCache = []; // Tüm çekilen veriyi tutar
 let displayedData = [];   // Ekranda o an gösterilen veri
 let currentCategory = 'kripto';
@@ -16487,6 +16492,9 @@ async function fetchMarketData() {
     const loader = document.getElementById('marketLoader');
     if(loader) loader.classList.add('active');
     isMarketLoading = true;
+    
+    // Hangi kategoride başladığımızı kaydet (async tamamlanınca kontrol ederiz)
+    const fetchedForCategory = currentCategory;
 
     try {
         // --- SENARYO 1: KRİPTO (COINGECKO) ---
@@ -16517,6 +16525,9 @@ async function fetchMarketData() {
                         !marketDataCache.some(existing => existing.symbol === newItem.symbol)
                     );
 
+                    // KATEGORI GUARD: Fetch tamamlanırken kategori değiştiyse render etme
+                    if(fetchedForCategory !== currentCategory) return;
+
                     if(currentPage === 1) {
                         marketDataCache = uniqueNewItems;
                     } else {
@@ -16534,69 +16545,29 @@ async function fetchMarketData() {
             }
         } 
         
-        // --- SENARYO 2: HİSSE (BIST + ABD - MASSIVE/YAHOO) ---
+        // --- SENARYO 2: HİSSE (BORSA) ---
         else if(currentCategory === 'hisse') {
             if(currentPage === 1) {
-                // İlk yüklemede skeleton göster
                 const listEl = document.getElementById('infiniteMarketList');
-                listEl.innerHTML = Array(10).fill('<div class="infinite-item" style="opacity:0.3;height:56px;"></div>').join('');
-                
-                marketDataCache = [];
-                
-                // Paralel fiyat çekimi (Promise.allSettled ile güvenli)
-                const results = await Promise.allSettled(
-                    bistExtended.map(async (sym) => {
-                        let s = sym.includes('.IS') || sym.includes('=') ? sym : sym + '.IS';
-                        let data = await getPrice(s, 'BORSA');
-                        
-                        // Logo çekimi - Yahoo/Polygon'dan gelen image varsa kullan
-                        let logo = data.image || null;
-                        
-                        // Eğer logo yoksa clearbit ile dene (.IS'siz temiz isim)
-                        if(!logo) {
-                            let cleanName = sym.replace('.IS','').toLowerCase();
-                            // Bilinen Türk şirketleri için domain mapping
-                            const domainMap = {
-                                'THYAO':'turkishairlines','GARAN':'garantibbva','AKBNK':'akbank',
-                                'ASELS':'aselsan','EREGL':'ereglidemir','SASA':'sasapolyester',
-                                'KCHOL':'kocholding','SISE':'sisecam','BIMAS':'bim',
-                                'TUPRS':'tupras','YKBNK':'yapikredi','ISCTR':'isbank',
-                                'FROTO':'ford','PETKM':'petkim','HALKB':'halkbank',
-                                'VAKBN':'vakifbank','TCELL':'turkcell','PGSUS':'flypgs',
-                                'ARCLK':'arcelik','TOASO':'tofas','TTKOM':'turktelekom',
-                                'MGROS':'migros','SAHOL':'sabancı','SOKM':'sok',
-                                'VESTL':'vestel','MAVI':'mavicompany'
-                            };
-                            let domain = domainMap[sym] || cleanName;
-                            logo = `https://logo.clearbit.com/${domain}.com.tr`;
-                        }
-                        
-                        return {
-                            symbol: sym,
-                            name: sym.replace('.IS',''),
-                            price: data.price || 0,
-                            change: data.change || 0,
-                            vol: 0,
-                            source: data.source || 'BIST',
-                            image: logo
-                        };
-                    })
-                );
-                
-                marketDataCache = results
-                    .filter(r => r.status === 'fulfilled')
-                    .map(r => r.value);
-                
-                processAndRenderData(marketDataCache);
+                if(listEl) {
+                    listEl.innerHTML = `
+                        <div style="text-align:center; padding:60px 20px; color:var(--text-sub);">
+                            <i class="fas fa-chart-line" style="font-size:36px; opacity:0.3; margin-bottom:16px; display:block;"></i>
+                            <div style="font-size:15px; font-weight:700; color:var(--text-main); margin-bottom:8px;">BORSA Verileri</div>
+                            <div style="font-size:13px; opacity:0.6; line-height:1.6;">Bu bölüm yakında aktif olacak.</div>
+                        </div>`;
+                }
             }
-        } 
+        }
         
-        // --- SENARYO 3 & 4: DÖVİZ & ALTIN ---
+        // --- SENARYO 3: DÖVİZ & ALTIN ---
         else if(currentCategory === 'doviz' || currentCategory === 'altin') {
             if(currentPage === 1) {
                 if(currentCategory === 'doviz') marketDataCache = await fetchFastForex();
                 else marketDataCache = await fetchFastGold();
                 
+                // KATEGORI GUARD
+                if(fetchedForCategory !== currentCategory) return;
                 processAndRenderData(marketDataCache);
             }
         }
@@ -16606,23 +16577,6 @@ async function fetchMarketData() {
     } finally {
         isMarketLoading = false;
         if(loader) loader.classList.remove('active');
-    }
-}
-
-// 4. BIST ve Diğerleri İçin Fiyat Güncelleme (Arka Planda)
-async function updateBistPrices() {
-    for(let item of marketDataCache) {
-        // Hızlı sonuç için mevcut getPrice fonksiyonunu kullan
-        let s = item.symbol.includes('=') ? item.symbol : item.symbol + '.IS';
-        getPrice(s).then(res => {
-            if(res && res.price > 0) {
-                item.price = res.price;
-                item.change = res.change;
-                // Değişim olduğunda ilgili DOM elementini güncelle (Live effect)
-                updateDomItem(item);
-            }
-        });
-        await new Promise(r => setTimeout(r, 100)); // API limitine takılmamak için gecikme
     }
 }
 
@@ -17058,8 +17012,6 @@ function initMdChart(rawSymbol) {
         if(majorCoins.includes(clean)) {
             tvSymbol = "BINANCE:" + clean + "USDT";
         } else {
-            // DİĞERLERİ: Binance zorlamasını kaldır! 
-            // Sadece "PEPEUSDT" gönderiyoruz, TradingView en uygun borsayı (OKX, GATE, BYBIT) kendi seçsin.
             tvSymbol = clean + "USDT";
         }
     }
@@ -17536,11 +17488,25 @@ loadMarketCategory = function(cat, btn) {
         document.querySelectorAll('.muh-tab').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
     }
-    // Eski mantığı çağır
+    // KRİTİK: Kategori değişince her şeyi temizle
     currentCategory = cat;
     currentPage = 1;
-    marketDataCache = [];
-    document.getElementById('infiniteMarketList').innerHTML = '';
+    marketDataCache = []; // Önceki kategori verisini kesinlikle temizle
+    isMarketLoading = false; // Önceki yüklemeyi iptal et
+    const listEl = document.getElementById('infiniteMarketList');
+    if(listEl) listEl.innerHTML = '';
+
+    // Trend filtrelerini sıfırla
+    document.querySelectorAll('.filter-chip').forEach(function(c) { c.classList.remove('active'); });
+    const allChip = document.querySelector('.filter-chip[data-trend="all"]');
+    if(allChip) allChip.classList.add('active');
+
+    // Piyasa ozet kartini sadece kripto kategorisinde goster
+    const summaryCard = document.getElementById('marketSummaryCard');
+    if(summaryCard) {
+        summaryCard.style.display = (cat === 'kripto') ? 'grid' : 'none';
+    }
+
     fetchMarketData();
 };
 
