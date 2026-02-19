@@ -41,8 +41,8 @@
             measurementId: "G-VPRPTP4QSJ"
         };
         firebase.initializeApp(firebaseConfig);
-        const fbAuth = firebase.auth();
-        const fbDb = firebase.firestore();
+        var fbAuth = firebase.auth();
+        var fbDb = firebase.firestore();
         // Persistence: redirect sonrası oturum korunur
         fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     </script>
@@ -74,6 +74,286 @@ body {
             padding-bottom: env(safe-area-inset-bottom); /* iPhone çizgisi için */
         }
 
+        /* ===== SOSYAL ÖZELLİK STİLLERİ ===== */
+        
+        /* Social Modal Overlay */
+        .social-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);
+            z-index: 99998; display: none; align-items: flex-end; justify-content: center;
+        }
+        .social-modal-overlay.open { display: flex; }
+        
+        /* Social Sheet */
+        .social-sheet {
+            width: 100%; max-width: 480px; max-height: 90vh;
+            background: linear-gradient(180deg, #1a2035 0%, #0f1628 100%);
+            border-radius: 28px 28px 0 0;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-bottom: none;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+            animation: slideUpSheet 0.4s cubic-bezier(0.34, 1.2, 0.64, 1);
+            box-shadow: 0 -20px 60px rgba(0,0,0,0.5);
+        }
+        @keyframes slideUpSheet {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Sheet Handle */
+        .social-handle {
+            width: 40px; height: 4px; background: rgba(255,255,255,0.15);
+            border-radius: 2px; margin: 12px auto 0 auto; flex-shrink: 0;
+        }
+        
+        /* Sheet Header */
+        .social-header {
+            padding: 16px 20px 12px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            flex-shrink: 0;
+        }
+        .social-header-left { display: flex; align-items: center; gap: 12px; }
+        .social-asset-icon {
+            width: 44px; height: 44px; border-radius: 14px;
+            background: linear-gradient(135deg, rgba(59,130,246,0.3), rgba(139,92,246,0.3));
+            border: 1px solid rgba(59,130,246,0.4);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; font-weight: 900; color: #60a5fa;
+            overflow: hidden;
+        }
+        .social-asset-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 14px; }
+        .social-asset-name { font-size: 16px; font-weight: 800; color: white; }
+        .social-asset-subtitle { font-size: 11px; color: var(--text-sub); margin-top: 1px; }
+        .social-close-btn {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(255,255,255,0.07); border: none; color: var(--text-sub);
+            display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px;
+            transition: 0.2s;
+        }
+        .social-close-btn:active { background: rgba(255,255,255,0.15); transform: scale(0.9); }
+        
+        /* Sentiment Bar */
+        .sentiment-bar-wrap {
+            padding: 12px 20px;
+            flex-shrink: 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .sentiment-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .sentiment-label { font-size: 11px; font-weight: 700; color: var(--text-sub); letter-spacing: 0.5px; }
+        .sentiment-counts { display: flex; gap: 12px; }
+        .sent-count { font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+        .sent-count.bull { color: var(--success); }
+        .sent-count.bear { color: var(--danger); }
+        .sentiment-track {
+            height: 8px; border-radius: 4px; overflow: hidden;
+            background: rgba(239,68,68,0.3);
+            position: relative;
+        }
+        .sentiment-fill {
+            height: 100%; border-radius: 4px;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        /* React Buttons */
+        .react-row {
+            padding: 10px 20px;
+            display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
+            flex-shrink: 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .react-row::-webkit-scrollbar { display: none; }
+        .react-btn {
+            display: flex; align-items: center; gap: 6px;
+            padding: 7px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.04); color: var(--text-sub);
+            font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .react-btn:active { transform: scale(0.93); }
+        .react-btn.active-bull { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.5); color: #34d399; }
+        .react-btn.active-bear { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.5); color: #f87171; }
+        .react-btn.active-neutral { background: rgba(245,158,11,0.15); border-color: rgba(245,158,11,0.5); color: #fbbf24; }
+        .react-btn.active-fire { background: rgba(249,115,22,0.15); border-color: rgba(249,115,22,0.5); color: #fb923c; }
+        .react-btn.active-moon { background: rgba(139,92,246,0.15); border-color: rgba(139,92,246,0.5); color: #a78bfa; }
+        .react-emoji { font-size: 16px; }
+        .react-count { font-size: 11px; }
+        
+        /* Comments Feed */
+        .social-feed {
+            flex: 1; overflow-y: auto; padding: 12px 20px;
+            scrollbar-width: none; display: flex; flex-direction: column; gap: 12px;
+        }
+        .social-feed::-webkit-scrollbar { display: none; }
+        
+        /* Comment Item */
+        .comment-item {
+            display: flex; gap: 10px; animation: fadeInComment 0.3s ease;
+        }
+        @keyframes fadeInComment {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .comment-avatar {
+            width: 36px; height: 36px; border-radius: 12px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 800; color: white;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        }
+        .comment-body { flex: 1; }
+        .comment-header { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+        .comment-author { font-size: 13px; font-weight: 700; color: white; }
+        .comment-badge {
+            font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 6px;
+            letter-spacing: 0.5px;
+        }
+        .badge-bull { background: rgba(16,185,129,0.2); color: #34d399; }
+        .badge-bear { background: rgba(239,68,68,0.2); color: #f87171; }
+        .badge-neutral { background: rgba(245,158,11,0.2); color: #fbbf24; }
+        .comment-time { font-size: 10px; color: var(--text-sub); margin-left: auto; }
+        .comment-text {
+            font-size: 13px; color: rgba(255,255,255,0.88); line-height: 1.55;
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+            padding: 10px 14px; border-radius: 0 14px 14px 14px;
+            word-break: break-word;
+        }
+        .comment-actions {
+            display: flex; gap: 12px; margin-top: 6px; align-items: center;
+        }
+        .cmt-like-btn, .cmt-reply-btn {
+            display: flex; align-items: center; gap: 4px;
+            font-size: 11px; color: var(--text-sub); cursor: pointer; transition: 0.2s;
+            background: none; border: none; padding: 2px 0;
+        }
+        .cmt-like-btn:active, .cmt-reply-btn:active { transform: scale(0.9); }
+        .cmt-like-btn.liked { color: #f87171; }
+        .cmt-like-btn i { font-size: 12px; }
+        .cmt-reply-btn i { font-size: 11px; }
+        
+        /* Replies */
+        .replies-container { margin-top: 8px; margin-left: 2px; display: flex; flex-direction: column; gap: 8px; }
+        .reply-item { display: flex; gap: 8px; }
+        .reply-avatar {
+            width: 28px; height: 28px; border-radius: 9px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 800; color: white;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        }
+        .reply-bubble {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 0 12px 12px 12px; padding: 8px 12px; flex: 1;
+        }
+        .reply-author { font-size: 11px; font-weight: 700; color: #a78bfa; margin-bottom: 3px; }
+        .reply-text { font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.45; }
+        .reply-time { font-size: 10px; color: var(--text-sub); margin-top: 4px; }
+        
+        /* Reply Input */
+        .reply-input-wrap {
+            display: none; margin-top: 8px; gap: 8px; align-items: center;
+        }
+        .reply-input-wrap.visible { display: flex; }
+        .reply-input {
+            flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px; color: white; padding: 8px 12px; font-size: 13px;
+            outline: none; font-family: inherit;
+        }
+        .reply-input::placeholder { color: rgba(255,255,255,0.3); }
+        .reply-send-btn {
+            width: 32px; height: 32px; border-radius: 10px; border: none;
+            background: var(--accent); color: white; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 13px;
+            transition: 0.2s; flex-shrink: 0;
+        }
+        .reply-send-btn:active { transform: scale(0.9); }
+        
+        /* Empty State */
+        .social-empty {
+            text-align: center; padding: 40px 20px; color: var(--text-sub);
+        }
+        .social-empty i { font-size: 36px; opacity: 0.3; margin-bottom: 12px; display: block; }
+        .social-empty p { font-size: 13px; opacity: 0.6; }
+        
+        /* Loading Skeleton */
+        .comment-skeleton {
+            display: flex; gap: 10px; padding: 4px 0;
+        }
+        .cs-avatar { width: 36px; height: 36px; border-radius: 12px; background: rgba(255,255,255,0.05); flex-shrink: 0; animation: shimmer 2s infinite; background-size: 200% 100%; }
+        .cs-lines { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+        .cs-line { height: 12px; border-radius: 6px; background: rgba(255,255,255,0.05); animation: shimmer 2s infinite; background-size: 200% 100%; }
+        
+        /* Comment Input Area */
+        .social-input-area {
+            padding: 12px 20px;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+            border-top: 1px solid rgba(255,255,255,0.07);
+            flex-shrink: 0;
+            background: rgba(0,0,0,0.2);
+        }
+        .comment-input-row { display: flex; gap: 8px; align-items: flex-end; }
+        .comment-textarea {
+            flex: 1; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 16px; color: white; padding: 12px 16px; font-size: 14px;
+            outline: none; font-family: inherit; resize: none; max-height: 80px;
+            min-height: 44px; transition: border-color 0.2s; line-height: 1.4;
+        }
+        .comment-textarea:focus { border-color: rgba(59,130,246,0.6); }
+        .comment-textarea::placeholder { color: rgba(255,255,255,0.3); }
+        .comment-send-btn {
+            width: 44px; height: 44px; border-radius: 14px; border: none;
+            background: linear-gradient(135deg, var(--accent), #6366f1);
+            color: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 16px; transition: 0.2s; flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(59,130,246,0.4);
+        }
+        .comment-send-btn:active { transform: scale(0.88); }
+        .comment-send-btn:disabled { opacity: 0.4; }
+        
+        /* Sentiment vote in comment form */
+        .comment-sentiment-row { display: flex; gap: 6px; margin-bottom: 10px; }
+        .cs-vote-btn {
+            flex: 1; padding: 8px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.04); cursor: pointer; font-size: 12px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+            transition: all 0.2s; color: var(--text-sub);
+        }
+        .cs-vote-btn.bull.selected { background: rgba(16,185,129,0.2); border-color: #10b981; color: #34d399; }
+        .cs-vote-btn.bear.selected { background: rgba(239,68,68,0.2); border-color: #ef4444; color: #f87171; }
+        .cs-vote-btn.neutral.selected { background: rgba(245,158,11,0.2); border-color: #f59e0b; color: #fbbf24; }
+        
+        /* Social button in asset footer */
+        .tool-btn-social {
+            background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.2)) !important;
+            border-color: rgba(139,92,246,0.4) !important;
+            color: #a78bfa !important;
+            position: relative;
+        }
+        .social-notif-dot {
+            position: absolute; top: -3px; right: -3px; width: 8px; height: 8px;
+            border-radius: 50%; background: #a78bfa; border: 1.5px solid var(--bg-card);
+        }
+        
+        /* Market Detail Social Tab */
+        .social-tab-in-modal .social-sheet {
+            border-radius: 0; max-height: none; animation: none;
+            background: transparent; border: none; box-shadow: none;
+        }
+        .social-tab-in-modal .social-handle,
+        .social-tab-in-modal .social-header { display: none; }
+        .social-tab-in-modal .social-feed { padding: 8px 0; }
+        .social-tab-in-modal .social-input-area { padding: 12px 0; background: transparent; }
+        .social-tab-in-modal .sentiment-bar-wrap { padding: 10px 0; }
+        .social-tab-in-modal .react-row { padding: 8px 0; }
+        
+        /* Live counter badge */
+        .live-count-badge {
+            background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3);
+            padding: 3px 8px; border-radius: 8px; font-size: 10px; font-weight: 700;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .live-dot { width: 6px; height: 6px; border-radius: 50%; background: #34d399; animation: pulse-dot 1.5s infinite; }
+        @keyframes pulse-dot { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+        
         /* ===== TOAST BİLDİRİM ===== */
         .toast-container { position:fixed; top:0; left:0; right:0; z-index:999999; display:flex; flex-direction:column; align-items:center; pointer-events:none; padding-top:calc(env(safe-area-inset-top,0px) + 12px); gap:8px; }
         .toast-msg { background:linear-gradient(135deg,rgba(16,185,129,0.97),rgba(5,150,105,0.97)); color:#fff; padding:14px 20px; border-radius:16px; font-size:14px; font-weight:700; display:flex; align-items:center; gap:12px; box-shadow:0 10px 40px rgba(16,185,129,0.4),0 4px 12px rgba(0,0,0,0.3); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); transform:translateY(-120px) scale(0.9); opacity:0; transition:all 0.45s cubic-bezier(0.34,1.56,0.64,1); pointer-events:auto; border:1px solid rgba(255,255,255,0.2); max-width:92%; min-width:260px; }
@@ -12280,6 +12560,7 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
                 <div class="md-tab active" onclick="switchMdTab('overview', this)">GENEL BAKIŞ</div>
                 <div class="md-tab" onclick="switchMdTab('chart', this)">GRAFİK</div>
                 <div class="md-tab" onclick="switchMdTab('news', this)">HABERLER</div>
+                <div class="md-tab" onclick="switchMdTab('social', this)">SOSYAL</div>
                 <div class="md-tab" onclick="switchMdTab('calc', this)">İŞLEM</div>
             </div>
 
@@ -12314,6 +12595,47 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
 
             <div id="md-tab-news" class="md-content">
                 <div id="mdNewsContainer" class="md-news-wrap"></div>
+            </div>
+
+            <div id="md-tab-social" class="md-content social-tab-in-modal">
+                <!-- Sentiment Bar -->
+                <div class="sentiment-bar-wrap" id="mdSocialSentimentWrap">
+                    <div class="sentiment-label-row">
+                        <span class="sentiment-label">TOPLULUK DUYARLILIĞI</span>
+                        <div class="sentiment-counts">
+                            <span class="sent-count bull"><span id="mdSocialBullCount">0</span> 🚀</span>
+                            <span class="sent-count bear"><span id="mdSocialBearCount">0</span> 🐻</span>
+                        </div>
+                    </div>
+                    <div class="sentiment-track">
+                        <div class="sentiment-fill" id="mdSocialSentimentFill" style="width:50%"></div>
+                    </div>
+                </div>
+                
+                <!-- React Row -->
+                <div class="react-row" id="mdReactRow">
+                    <button class="react-btn" id="mdReactBull" onclick="mdDoReact('bull')"><span class="react-emoji">🚀</span><span id="mdRCntBull">0</span></button>
+                    <button class="react-btn" id="mdReactBear" onclick="mdDoReact('bear')"><span class="react-emoji">🐻</span><span id="mdRCntBear">0</span></button>
+                    <button class="react-btn" id="mdReactFire" onclick="mdDoReact('fire')"><span class="react-emoji">🔥</span><span id="mdRCntFire">0</span></button>
+                    <button class="react-btn" id="mdReactMoon" onclick="mdDoReact('moon')"><span class="react-emoji">🌙</span><span id="mdRCntMoon">0</span></button>
+                    <button class="react-btn" id="mdReactDiamond" onclick="mdDoReact('diamond')"><span class="react-emoji">💎</span><span id="mdRCntDiamond">0</span></button>
+                </div>
+                
+                <!-- Comment Feed -->
+                <div class="social-feed" id="mdSocialFeed" style="max-height:280px; flex:none;"></div>
+                
+                <!-- Input -->
+                <div class="social-input-area" style="padding:10px 0 0 0; background:transparent; border-top:1px solid rgba(255,255,255,0.07);">
+                    <div class="comment-sentiment-row">
+                        <button class="cs-vote-btn bull" id="mdCsBull" onclick="mdSelectSentiment('bull')"><span>🚀</span> Yükseliş</button>
+                        <button class="cs-vote-btn neutral selected" id="mdCsNeutral" onclick="mdSelectSentiment('neutral')" style="flex:0.8;"><span>😐</span> Nötr</button>
+                        <button class="cs-vote-btn bear" id="mdCsBear" onclick="mdSelectSentiment('bear')"><span>🐻</span> Düşüş</button>
+                    </div>
+                    <div class="comment-input-row">
+                        <textarea class="comment-textarea" id="mdCommentTextarea" placeholder="Analizini paylaş..." rows="1" oninput="autoGrowTextarea(this)"></textarea>
+                        <button class="comment-send-btn" onclick="mdPostComment()"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
             </div>
 
             <div id="md-tab-calc" class="md-content">
@@ -12722,7 +13044,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.5"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -13651,7 +13973,7 @@ function renderPortfolioHTML(as) {
                     <button class="tool-btn ${a.alarm?'active-alarm':''}" onclick="openAlarmModal(${a.originalIndex})"><i class="fas fa-bell"></i></button>
                     <button class="tool-btn" onclick="toggleAssetNews('${a.name.replace('.IS','')}', 'asset-news-${a.originalIndex}', this)"><i class="fas fa-newspaper"></i></button>
                     <button class="tool-btn active-sim" onclick="openSimulator(${a.originalIndex})"><i class="fas fa-magic"></i></button>
-                    
+                    <button class="tool-btn tool-btn-social" onclick="openSocialPanel('${a.name.replace('.IS','')}', '${a.name.replace('.IS','')}', '${a.image||''}')"><i class="fas fa-comments"></i><div class="social-notif-dot"></div></button>
                     <button class="tool-btn" onclick="CompareApp.open('${a.name}', '${a.name}')"><i class="fas fa-balance-scale"></i></button>
                     <button class="tool-btn" onclick="editNote(${a.originalIndex})"><i class="fas fa-edit"></i></button>
                     <button class="tool-btn" onclick="openSell(${a.originalIndex})"><i class="fas fa-coins"></i></button>
@@ -16883,7 +17205,136 @@ function switchMdTab(tab, btn) {
     if (tab === 'news' && typeof currentMdSymbol !== 'undefined' && currentMdSymbol) {
         loadMdNews(currentMdSymbol);
     }
+    
+    // Sosyal tabı açıldığında yükle
+    if (tab === 'social' && typeof currentMdSymbol !== 'undefined' && currentMdSymbol) {
+        initMdSocial(currentMdSymbol);
+    }
 }
+
+// === MARKET DETAIL SOCIAL ===
+let mdSocialUnsub = null;
+let mdSocialSymbol = null;
+let mdSocialSentiment = 'neutral';
+
+function initMdSocial(sym) {
+    mdSocialSymbol = sym ? sym.replace('.IS','').replace('USDT','').toUpperCase() : null;
+    if (!mdSocialSymbol) return;
+    
+    document.getElementById('mdSocialFeed').innerHTML = '<div class="comment-skeleton"><div class="cs-avatar"></div><div class="cs-lines"><div class="cs-line" style="width:70%"></div><div class="cs-line" style="width:50%"></div></div></div>';
+    
+    if (mdSocialUnsub) { mdSocialUnsub(); mdSocialUnsub = null; }
+    
+    // Subscribe reactions
+    fbDb.collection('social_reactions').where('symbol', '==', mdSocialSymbol).onSnapshot(snap => {
+        const counts = { bull: 0, bear: 0, fire: 0, moon: 0, diamond: 0 };
+        let bullSent = 0, bearSent = 0;
+        const uid = window.mdGetUid ? window.mdGetUid() : localStorage.getItem('socialAnonId') || 'anon';
+        let myTypes = [];
+        snap.forEach(doc => {
+            const d = doc.data();
+            (d.types||[]).forEach(t => { if(counts[t]!==undefined) counts[t]++; });
+            if (d.uid === uid) myTypes = d.types || [];
+            if ((d.types||[]).includes('bull')) bullSent++;
+            if ((d.types||[]).includes('bear') || (d.types||[]).includes('crash')) bearSent++;
+        });
+        Object.keys(counts).forEach(t => {
+            const el = document.getElementById('mdRCnt' + t.charAt(0).toUpperCase() + t.slice(1));
+            if (el) el.textContent = counts[t];
+        });
+        const total = bullSent + bearSent;
+        const pct = total > 0 ? Math.round(bullSent/total*100) : 50;
+        const fill = document.getElementById('mdSocialSentimentFill');
+        if (fill) fill.style.width = pct + '%';
+        document.getElementById('mdSocialBullCount').textContent = bullSent;
+        document.getElementById('mdSocialBearCount').textContent = bearSent;
+        // Active reaction buttons
+        const rMap = { bull:'active-bull', bear:'active-bear', fire:'active-fire', moon:'active-moon', diamond:'active-neutral' };
+        Object.keys(rMap).forEach(t => {
+            const btn = document.getElementById('mdReact' + t.charAt(0).toUpperCase() + t.slice(1));
+            if (btn) { btn.className = 'react-btn'; if (myTypes.includes(t)) btn.classList.add(rMap[t]); }
+        });
+    });
+    
+    // Subscribe comments
+    mdSocialUnsub = fbDb.collection('social_comments')
+        .where('symbol', '==', mdSocialSymbol)
+        .limit(30)
+        .onSnapshot(snap => {
+            const comments = [];
+            snap.forEach(d => comments.push({ id: d.id, ...d.data() }));
+            comments.sort((a,b)=>{
+                const ta=a.createdAt?(a.createdAt.toMillis?a.createdAt.toMillis():a.createdAt.seconds*1000):0;
+                const tb=b.createdAt?(b.createdAt.toMillis?b.createdAt.toMillis():b.createdAt.seconds*1000):0;
+                return tb-ta;
+            });
+            renderMdComments(comments);
+        });
+}
+
+function renderMdComments(comments) {
+    const feed = document.getElementById('mdSocialFeed');
+    if (!feed) return;
+    if (!comments.length) {
+        feed.innerHTML = '<div class="social-empty"><i class="fas fa-comments"></i><p>Henüz yorum yok</p></div>';
+        return;
+    }
+    const uid = localStorage.getItem('socialAnonId') || '';
+    let html = '';
+    comments.forEach(c => {
+        const initial = (c.authorName||'T')[0].toUpperCase();
+        const colors = ['linear-gradient(135deg,#3b82f6,#6366f1)','linear-gradient(135deg,#10b981,#059669)','linear-gradient(135deg,#f59e0b,#d97706)','linear-gradient(135deg,#8b5cf6,#7c3aed)'];
+        let h = 0; for(let i=0;i<(c.authorName||'').length;i++) h+=c.authorName.charCodeAt(i);
+        const aColor = colors[Math.abs(h)%colors.length];
+        const now = Date.now();
+        const ts = c.createdAt ? (c.createdAt.toMillis ? c.createdAt.toMillis() : c.createdAt.seconds*1000) : now;
+        const diff = Math.floor((now-ts)/1000);
+        const ago = diff<60?'az önce':diff<3600?Math.floor(diff/60)+'d':diff<86400?Math.floor(diff/3600)+'s':Math.floor(diff/86400)+'g';
+        const badge = c.sentiment==='bull'?'<span class="comment-badge badge-bull">🚀</span>':c.sentiment==='bear'?'<span class="comment-badge badge-bear">🐻</span>':'<span class="comment-badge badge-neutral">😐</span>';
+        const esc = str => String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        html += `<div class="comment-item"><div class="comment-avatar" style="background:${aColor}">${initial}</div><div class="comment-body"><div class="comment-header"><span class="comment-author">${esc(c.authorName||'Trader')}</span>${badge}<span class="comment-time">${ago} önce</span></div><div class="comment-text">${esc(c.text)}</div></div></div>`;
+    });
+    feed.innerHTML = html;
+}
+
+window.mdDoReact = function(type) {
+    const sym = mdSocialSymbol;
+    if (!sym) return;
+    let uid = localStorage.getItem('socialAnonId');
+    if (!uid) { const u = typeof fbAuth!=='undefined'&&fbAuth.currentUser; uid = u ? u.uid : 'anon_'+Date.now(); localStorage.setItem('socialAnonId', uid); }
+    const ref = fbDb.collection('social_reactions').doc(`${sym}_${uid}`);
+    ref.get().then(doc => {
+        const types = doc.exists ? (doc.data().types||[]) : [];
+        const newTypes = types.includes(type) ? types.filter(t=>t!==type) : [...types, type];
+        return ref.set({ uid, symbol: sym, types: newTypes, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    });
+};
+
+window.mdSelectSentiment = function(type) {
+    mdSocialSentiment = type;
+    ['bull','neutral','bear'].forEach(t => {
+        const btn = document.getElementById('mdCs' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (btn) btn.classList.toggle('selected', t === type);
+    });
+};
+
+window.mdPostComment = function() {
+    const ta = document.getElementById('mdCommentTextarea');
+    const text = ta.value.trim();
+    if (!text || !mdSocialSymbol) return;
+    let uid = localStorage.getItem('socialAnonId');
+    if (!uid) { uid = 'anon_'+Date.now(); localStorage.setItem('socialAnonId', uid); }
+    const name = (typeof fbAuth!=='undefined'&&fbAuth.currentUser&&fbAuth.currentUser.displayName) || localStorage.getItem('socialDisplayName') || ('Trader'+Math.floor(Math.random()*9000+1000));
+    localStorage.setItem('socialDisplayName', name);
+    fbDb.collection('social_comments').add({
+        symbol: mdSocialSymbol, text, sentiment: mdSocialSentiment,
+        authorId: uid, authorName: name,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        likedBy: [], replies: []
+    }).then(() => { ta.value = ''; if(typeof showToast==='function') showToast('success','Yayınlandı','Yorumun paylaşıldı!'); })
+      .catch(() => { if(typeof showToast==='function') showToast('danger','Hata','Gönderilemedi'); });
+};
+
 
 // FORMAT VOLUME FONKSİYONU
 function formatVolume(val, sym) {
@@ -25111,6 +25562,536 @@ setTimeout(function() {
 </script>
 
 <script src="lang.js"></script>
+
+<!-- ===== SOSYAL PANEL HTML ===== -->
+<div id="socialModalOverlay" class="social-modal-overlay" onclick="closeSocialPanel(event)">
+    <div class="social-sheet" onclick="event.stopPropagation()">
+        <div class="social-handle"></div>
+        <div class="social-header">
+            <div class="social-header-left">
+                <div class="social-asset-icon" id="socialAssetIcon">?</div>
+                <div>
+                    <div class="social-asset-name" id="socialAssetName">--</div>
+                    <div class="social-asset-subtitle">Topluluk Görüşleri</div>
+                </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div class="live-count-badge">
+                    <div class="live-dot"></div>
+                    <span id="socialLiveCount">0</span>
+                </div>
+                <button class="social-close-btn" onclick="closeSocialPanel()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Sentiment Bar -->
+        <div class="sentiment-bar-wrap" id="socialSentimentWrap">
+            <div class="sentiment-label-row">
+                <span class="sentiment-label">TOPLULUK DUYARLILIĞI</span>
+                <div class="sentiment-counts">
+                    <span class="sent-count bull"><i class="fas fa-arrow-trend-up"></i> <span id="socialBullCount">0</span> Yükseliş</span>
+                    <span class="sent-count bear"><i class="fas fa-arrow-trend-down"></i> <span id="socialBearCount">0</span> Düşüş</span>
+                </div>
+            </div>
+            <div class="sentiment-track">
+                <div class="sentiment-fill" id="socialSentimentFill" style="width:50%"></div>
+            </div>
+        </div>
+        
+        <!-- Emoji Reactions -->
+        <div class="react-row" id="socialReactRow">
+            <button class="react-btn" id="reactBull" onclick="doReact('bull')">
+                <span class="react-emoji">🚀</span><span class="react-count" id="rCntBull">0</span>
+            </button>
+            <button class="react-btn" id="reactBear" onclick="doReact('bear')">
+                <span class="react-emoji">🐻</span><span class="react-count" id="rCntBear">0</span>
+            </button>
+            <button class="react-btn" id="reactFire" onclick="doReact('fire')">
+                <span class="react-emoji">🔥</span><span class="react-count" id="rCntFire">0</span>
+            </button>
+            <button class="react-btn" id="reactMoon" onclick="doReact('moon')">
+                <span class="react-emoji">🌙</span><span class="react-count" id="rCntMoon">0</span>
+            </button>
+            <button class="react-btn" id="reactDiamond" onclick="doReact('diamond')">
+                <span class="react-emoji">💎</span><span class="react-count" id="rCntDiamond">0</span>
+            </button>
+            <button class="react-btn" id="reactCrash" onclick="doReact('crash')">
+                <span class="react-emoji">📉</span><span class="react-count" id="rCntCrash">0</span>
+            </button>
+        </div>
+        
+        <!-- Comments Feed -->
+        <div class="social-feed" id="socialFeed">
+            <div class="social-empty" id="socialEmptyState">
+                <i class="fas fa-comments"></i>
+                <p>Henüz yorum yok.<br>İlk analizi sen yaz!</p>
+            </div>
+        </div>
+        
+        <!-- Input Area -->
+        <div class="social-input-area">
+            <div class="comment-sentiment-row">
+                <button class="cs-vote-btn bull" id="csBull" onclick="selectCommentSentiment('bull')">
+                    <span>🚀</span> Yükseliş
+                </button>
+                <button class="cs-vote-btn neutral" id="csNeutral" onclick="selectCommentSentiment('neutral')" style="flex:0.8;">
+                    <span>😐</span> Nötr
+                </button>
+                <button class="cs-vote-btn bear" id="csBear" onclick="selectCommentSentiment('bear')">
+                    <span>🐻</span> Düşüş
+                </button>
+            </div>
+            <div class="comment-input-row">
+                <textarea class="comment-textarea" id="commentTextarea" 
+                    placeholder="Analizini paylaş..." rows="1"
+                    oninput="autoGrowTextarea(this)"></textarea>
+                <button class="comment-send-btn" id="commentSendBtn" onclick="postComment()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SOSYAL JS ===== -->
+<script>
+(function() {
+    'use strict';
+    
+    // ---- STATE ----
+    let currentSocialSymbol = null;
+    let currentSocialAssetName = null;
+    let currentCommentSentiment = 'neutral';
+    let socialUnsubscribe = null;
+    let currentUserReactions = {};  // symbol -> set of reaction types
+    let currentUserCommentLikes = {}; // commentId -> bool
+    
+    // ---- UTILS ----
+    function getDisplayName() {
+        // Try to get user display name from Firebase Auth or local storage
+        const user = typeof fbAuth !== 'undefined' && fbAuth.currentUser;
+        if (user) {
+            return user.displayName || user.email?.split('@')[0] || 'Kullanıcı';
+        }
+        let name = localStorage.getItem('socialDisplayName');
+        if (!name) {
+            name = 'Trader' + Math.floor(Math.random() * 9000 + 1000);
+            localStorage.setItem('socialDisplayName', name);
+        }
+        return name;
+    }
+    
+    function getUserId() {
+        const user = typeof fbAuth !== 'undefined' && fbAuth.currentUser;
+        if (user) return user.uid;
+        let uid = localStorage.getItem('socialAnonId');
+        if (!uid) {
+            uid = 'anon_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('socialAnonId', uid);
+        }
+        return uid;
+    }
+    
+    function getAvatarColor(name) {
+        const colors = [
+            'linear-gradient(135deg,#3b82f6,#6366f1)',
+            'linear-gradient(135deg,#10b981,#059669)',
+            'linear-gradient(135deg,#f59e0b,#d97706)',
+            'linear-gradient(135deg,#ef4444,#dc2626)',
+            'linear-gradient(135deg,#8b5cf6,#7c3aed)',
+            'linear-gradient(135deg,#ec4899,#db2777)',
+            'linear-gradient(135deg,#06b6d4,#0891b2)',
+        ];
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        return colors[Math.abs(hash) % colors.length];
+    }
+    
+    function formatTimeAgo(ts) {
+        if (!ts) return '';
+        const now = Date.now();
+        const then = ts.toMillis ? ts.toMillis() : (ts.seconds ? ts.seconds * 1000 : ts);
+        const diff = Math.floor((now - then) / 1000);
+        if (diff < 60) return 'az önce';
+        if (diff < 3600) return Math.floor(diff / 60) + 'd önce';
+        if (diff < 86400) return Math.floor(diff / 3600) + 's önce';
+        return Math.floor(diff / 86400) + 'g önce';
+    }
+    
+    // ---- OPEN / CLOSE ----
+    window.openSocialPanel = function(symbol, assetName, imageUrl) {
+        currentSocialSymbol = symbol ? symbol.toUpperCase().replace('.IS','') : 'GENEL';
+        currentSocialAssetName = assetName || symbol;
+        
+        // Set header
+        document.getElementById('socialAssetName').textContent = currentSocialAssetName;
+        
+        // Set icon
+        const iconEl = document.getElementById('socialAssetIcon');
+        if (imageUrl) {
+            iconEl.innerHTML = `<img src="${imageUrl}" onerror="this.parentElement.textContent='${(currentSocialSymbol||'?')[0]}'">`;
+        } else {
+            iconEl.textContent = (currentSocialSymbol || '?')[0];
+        }
+        
+        // Reset state
+        currentCommentSentiment = 'neutral';
+        document.getElementById('commentTextarea').value = '';
+        selectCommentSentiment('neutral');
+        document.getElementById('socialFeed').innerHTML = renderSkeletons(4);
+        
+        // Show
+        const overlay = document.getElementById('socialModalOverlay');
+        overlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        
+        // Load user reactions
+        loadUserReactions();
+        
+        // Subscribe to real-time comments
+        subscribeToComments();
+        
+        // Subscribe to reactions
+        subscribeToReactions();
+    };
+    
+    window.closeSocialPanel = function(e) {
+        if (e && e.target !== document.getElementById('socialModalOverlay')) return;
+        document.getElementById('socialModalOverlay').classList.remove('open');
+        document.body.style.overflow = '';
+        if (socialUnsubscribe) { socialUnsubscribe(); socialUnsubscribe = null; }
+    };
+    
+    // ---- SENTIMENT ----
+    window.selectCommentSentiment = function(type) {
+        currentCommentSentiment = type;
+        ['bull', 'neutral', 'bear'].forEach(t => {
+            const btn = document.getElementById('cs' + t.charAt(0).toUpperCase() + t.slice(1));
+            if (btn) btn.classList.toggle('selected', t === type);
+        });
+    };
+    
+    // ---- REACTIONS ----
+    window.doReact = function(type) {
+        const uid = getUserId();
+        const sym = currentSocialSymbol;
+        if (!sym) return;
+        
+        const reactionDoc = fbDb.collection('social_reactions').doc(`${sym}_${uid}`);
+        reactionDoc.get().then(doc => {
+            const data = doc.exists ? doc.data() : {};
+            const activeTypes = data.types || [];
+            
+            let newTypes;
+            if (activeTypes.includes(type)) {
+                newTypes = activeTypes.filter(t => t !== type);
+            } else {
+                newTypes = [...activeTypes, type];
+            }
+            
+            return reactionDoc.set({ uid, symbol: sym, types: newTypes, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+        }).then(() => {
+            if (typeof showToast === 'function') showToast('success', 'Reaksiyon', 'Eklendi!');
+        }).catch(err => console.error('Reaction error:', err));
+    };
+    
+    function subscribeToReactions() {
+        const sym = currentSocialSymbol;
+        if (!sym || typeof fbDb === 'undefined') return;
+        
+        fbDb.collection('social_reactions').where('symbol', '==', sym).onSnapshot(snap => {
+            const counts = { bull: 0, bear: 0, fire: 0, moon: 0, diamond: 0, crash: 0 };
+            let bullSentiment = 0, bearSentiment = 0;
+            const uid = getUserId();
+            let myTypes = [];
+            
+            snap.forEach(doc => {
+                const d = doc.data();
+                (d.types || []).forEach(t => {
+                    if (counts[t] !== undefined) counts[t]++;
+                });
+                if (d.uid === uid) myTypes = d.types || [];
+                if ((d.types||[]).includes('bull')) bullSentiment++;
+                if ((d.types||[]).includes('bear') || (d.types||[]).includes('crash')) bearSentiment++;
+            });
+            
+            // Update counts
+            Object.keys(counts).forEach(t => {
+                const el = document.getElementById('rCnt' + t.charAt(0).toUpperCase() + t.slice(1));
+                if (el) el.textContent = counts[t];
+            });
+            
+            // Update active states
+            const reactionMap = { bull: 'active-bull', bear: 'active-bear', fire: 'active-fire', moon: 'active-moon', diamond: 'active-neutral', crash: 'active-bear' };
+            Object.keys(reactionMap).forEach(t => {
+                const btn = document.getElementById('react' + t.charAt(0).toUpperCase() + t.slice(1));
+                if (btn) {
+                    btn.className = 'react-btn';
+                    if (myTypes.includes(t)) btn.classList.add(reactionMap[t]);
+                }
+            });
+            
+            // Sentiment bar
+            const total = bullSentiment + bearSentiment;
+            const bullPct = total > 0 ? Math.round((bullSentiment / total) * 100) : 50;
+            document.getElementById('socialSentimentFill').style.width = bullPct + '%';
+            document.getElementById('socialBullCount').textContent = bullSentiment;
+            document.getElementById('socialBearCount').textContent = bearSentiment;
+        });
+    }
+    
+    function loadUserReactions() {
+        const uid = getUserId();
+        const sym = currentSocialSymbol;
+        if (!sym || !uid) return;
+        fbDb.collection('social_reactions').doc(`${sym}_${uid}`).get().then(doc => {
+            if (doc.exists) currentUserReactions[sym] = doc.data().types || [];
+        });
+    }
+    
+    // ---- COMMENTS ----
+    function subscribeToComments() {
+        if (socialUnsubscribe) socialUnsubscribe();
+        const sym = currentSocialSymbol;
+        if (!sym || typeof fbDb === 'undefined') return;
+        
+        // orderBy kaldırıldı - index gerektirmiyor, client sıralar
+        socialUnsubscribe = fbDb.collection('social_comments')
+            .where('symbol', '==', sym)
+            .limit(50)
+            .onSnapshot(snap => {
+                const comments = [];
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    comments.push({ id: doc.id, ...d });
+                });
+                // En yeni üstte - client sıralama
+                comments.sort((a, b) => {
+                    const ta = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : a.createdAt.seconds * 1000) : 0;
+                    const tb = b.createdAt ? (b.createdAt.toMillis ? b.createdAt.toMillis() : b.createdAt.seconds * 1000) : 0;
+                    return tb - ta;
+                });
+                renderComments(comments);
+                const liveEl = document.getElementById('socialLiveCount');
+                if (liveEl) liveEl.textContent = comments.length;
+            }, err => {
+                console.error('Comments subscription error:', err);
+                const feed = document.getElementById('socialFeed');
+                if (feed) feed.innerHTML = '<div class="social-empty"><i class="fas fa-wifi-slash"></i><p>Hata: ' + (err.code||err.message) + '</p></div>';
+            });
+    }
+    
+    function renderSkeletons(count) {
+        let html = '';
+        for (let i = 0; i < count; i++) {
+            html += `<div class="comment-skeleton">
+                <div class="cs-avatar"></div>
+                <div class="cs-lines">
+                    <div class="cs-line" style="width:${60+Math.random()*30}%"></div>
+                    <div class="cs-line" style="width:${40+Math.random()*40}%"></div>
+                </div>
+            </div>`;
+        }
+        return html;
+    }
+    
+    function renderComments(comments) {
+        const feed = document.getElementById('socialFeed');
+        if (!feed) return;
+        
+        if (comments.length === 0) {
+            feed.innerHTML = `<div class="social-empty" id="socialEmptyState">
+                <i class="fas fa-comments"></i>
+                <p>Henüz yorum yok.<br>İlk analizi sen yaz!</p>
+            </div>`;
+            return;
+        }
+        
+        const uid = getUserId();
+        let html = '';
+        
+        comments.forEach(c => {
+            const initial = (c.authorName || 'T')[0].toUpperCase();
+            const avatarColor = getAvatarColor(c.authorName || 'T');
+            const timeAgo = formatTimeAgo(c.createdAt);
+            const likedByMe = (c.likedBy || []).includes(uid);
+            const likeCount = (c.likedBy || []).length;
+            
+            let badgeHtml = '';
+            if (c.sentiment === 'bull') badgeHtml = '<span class="comment-badge badge-bull">🚀 YÜKSELIŞ</span>';
+            else if (c.sentiment === 'bear') badgeHtml = '<span class="comment-badge badge-bear">🐻 DÜŞÜŞ</span>';
+            else badgeHtml = '<span class="comment-badge badge-neutral">😐 NÖTR</span>';
+            
+            // Replies
+            let repliesHtml = '';
+            if (c.replies && c.replies.length > 0) {
+                repliesHtml = '<div class="replies-container">';
+                c.replies.forEach(r => {
+                    const rInitial = (r.authorName || 'T')[0].toUpperCase();
+                    repliesHtml += `<div class="reply-item">
+                        <div class="reply-avatar" style="background:${getAvatarColor(r.authorName||'T')}">${rInitial}</div>
+                        <div class="reply-bubble">
+                            <div class="reply-author">${r.authorName}</div>
+                            <div class="reply-text">${escapeHtml(r.text)}</div>
+                            <div class="reply-time">${formatTimeAgo(r.createdAt)}</div>
+                        </div>
+                    </div>`;
+                });
+                repliesHtml += '</div>';
+            }
+            
+            html += `<div class="comment-item" id="comment-${c.id}">
+                <div class="comment-avatar" style="background:${avatarColor}">${initial}</div>
+                <div class="comment-body">
+                    <div class="comment-header">
+                        <span class="comment-author">${escapeHtml(c.authorName || 'Trader')}</span>
+                        ${badgeHtml}
+                        <span class="comment-time">${timeAgo}</span>
+                    </div>
+                    <div class="comment-text">${escapeHtml(c.text)}</div>
+                    <div class="comment-actions">
+                        <button class="cmt-like-btn ${likedByMe ? 'liked' : ''}" onclick="toggleCommentLike('${c.id}')">
+                            <i class="fas fa-heart"></i> ${likeCount > 0 ? likeCount : ''}
+                        </button>
+                        <button class="cmt-reply-btn" onclick="toggleReplyInput('${c.id}')">
+                            <i class="fas fa-reply"></i> Yanıtla
+                        </button>
+                        ${c.authorId === uid ? `<button class="cmt-reply-btn" onclick="deleteComment('${c.id}')" style="color:var(--danger)"><i class="fas fa-trash"></i></button>` : ''}
+                    </div>
+                    ${repliesHtml}
+                    <div class="reply-input-wrap" id="replyWrap-${c.id}">
+                        <input type="text" class="reply-input" id="replyInput-${c.id}" placeholder="Yanıtını yaz..." onkeydown="if(event.key==='Enter')postReply('${c.id}')">
+                        <button class="reply-send-btn" onclick="postReply('${c.id}')"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>`;
+        });
+        
+        feed.innerHTML = html;
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    
+    // ---- POST COMMENT ----
+    window.postComment = function() {
+        const textarea = document.getElementById('commentTextarea');
+        const text = textarea.value.trim();
+        if (!text || text.length < 2) {
+            textarea.style.borderColor = 'rgba(239,68,68,0.6)';
+            setTimeout(() => textarea.style.borderColor = '', 1500);
+            return;
+        }
+        if (text.length > 500) {
+            if (typeof showToast === 'function') showToast('danger', 'Çok Uzun', 'Max 500 karakter');
+            return;
+        }
+        
+        const btn = document.getElementById('commentSendBtn');
+        btn.disabled = true;
+        
+        const uid = getUserId();
+        const authorName = getDisplayName();
+        
+        fbDb.collection('social_comments').add({
+            symbol: currentSocialSymbol,
+            text: text,
+            sentiment: currentCommentSentiment,
+            authorId: uid,
+            authorName: authorName,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            likedBy: [],
+            replies: []
+        }).then(() => {
+            textarea.value = '';
+            textarea.style.height = '';
+            selectCommentSentiment('neutral');
+            if (typeof showToast === 'function') showToast('success', 'Yayınlandı', 'Yorumun paylaşıldı!');
+        }).catch(err => {
+            console.error('Post comment error:', err);
+            if (typeof showToast === 'function') showToast('danger', 'Hata', 'Yorum gönderilemedi');
+        }).finally(() => {
+            btn.disabled = false;
+        });
+    };
+    
+    // ---- LIKE COMMENT ----
+    window.toggleCommentLike = function(commentId) {
+        const uid = getUserId();
+        const ref = fbDb.collection('social_comments').doc(commentId);
+        ref.get().then(doc => {
+            if (!doc.exists) return;
+            const likedBy = doc.data().likedBy || [];
+            let newLikedBy;
+            if (likedBy.includes(uid)) {
+                newLikedBy = likedBy.filter(id => id !== uid);
+            } else {
+                newLikedBy = [...likedBy, uid];
+            }
+            return ref.update({ likedBy: newLikedBy });
+        }).catch(err => console.error('Like error:', err));
+    };
+    
+    // ---- DELETE COMMENT ----
+    window.deleteComment = function(commentId) {
+        if (!confirm('Yorum silinsin mi?')) return;
+        fbDb.collection('social_comments').doc(commentId).delete()
+            .then(() => { if (typeof showToast === 'function') showToast('success', 'Silindi', ''); })
+            .catch(err => console.error('Delete error:', err));
+    };
+    
+    // ---- REPLY ----
+    window.toggleReplyInput = function(commentId) {
+        const wrap = document.getElementById('replyWrap-' + commentId);
+        if (!wrap) return;
+        const visible = wrap.classList.toggle('visible');
+        if (visible) document.getElementById('replyInput-' + commentId)?.focus();
+    };
+    
+    window.postReply = function(commentId) {
+        const input = document.getElementById('replyInput-' + commentId);
+        if (!input) return;
+        const text = input.value.trim();
+        if (!text) return;
+        
+        const uid = getUserId();
+        const authorName = getDisplayName();
+        const reply = {
+            authorId: uid,
+            authorName: authorName,
+            text: text,
+            createdAt: firebase.firestore.Timestamp.now()
+        };
+        
+        fbDb.collection('social_comments').doc(commentId).update({
+            replies: firebase.firestore.FieldValue.arrayUnion(reply)
+        }).then(() => {
+            input.value = '';
+            document.getElementById('replyWrap-' + commentId)?.classList.remove('visible');
+            if (typeof showToast === 'function') showToast('success', 'Yanıt', 'Gönderildi!');
+        }).catch(err => {
+            console.error('Reply error:', err);
+            if (typeof showToast === 'function') showToast('danger', 'Hata', 'Yanıt gönderilemedi');
+        });
+    };
+    
+    // ---- AUTO GROW TEXTAREA ----
+    window.autoGrowTextarea = function(el) {
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 80) + 'px';
+    };
+    
+    // ---- MARKET DETAIL SOCIAL TAB ----
+    window.openMarketDetailSocial = function(symbol, name, imageUrl) {
+        openSocialPanel(symbol, name, imageUrl);
+    };
+    
+})();
+</script>
 
 </body>
 </html>
