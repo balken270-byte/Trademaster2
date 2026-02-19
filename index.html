@@ -2156,7 +2156,7 @@ body {
     letter-spacing: 0;
     min-width: 0;
 }
-.md-tab .tab-icon { font-size: 18px; line-height: 1; }
+.md-tab .tab-icon { font-size: 16px; line-height: 1; display:block; }
 .md-tab .tab-label { font-size: 8.5px; font-weight: 700; letter-spacing: -0.2px; }
 .md-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
@@ -12561,23 +12561,23 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
         <div style="padding: 0 16px; background: inherit; flex-shrink:0; position:sticky; top:0; z-index:10;">
             <div class="md-tabs">
                 <div class="md-tab active" onclick="switchMdTab('overview', this)">
-                    <span class="tab-icon">📊</span>
+                    <i class="fas fa-chart-bar tab-icon"></i>
                     <span class="tab-label">GENEL</span>
                 </div>
                 <div class="md-tab" onclick="switchMdTab('chart', this)">
-                    <span class="tab-icon">📈</span>
+                    <i class="fas fa-chart-line tab-icon"></i>
                     <span class="tab-label">GRAFİK</span>
                 </div>
                 <div class="md-tab" onclick="switchMdTab('news', this)">
-                    <span class="tab-icon">📰</span>
+                    <i class="fas fa-newspaper tab-icon"></i>
                     <span class="tab-label">HABERLER</span>
                 </div>
                 <div class="md-tab" onclick="switchMdTab('social', this)">
-                    <span class="tab-icon">👥</span>
+                    <i class="fas fa-users tab-icon"></i>
                     <span class="tab-label">TOPLULUK</span>
                 </div>
                 <div class="md-tab" onclick="switchMdTab('calc', this)">
-                    <span class="tab-icon">💱</span>
+                    <i class="fas fa-exchange-alt tab-icon"></i>
                     <span class="tab-label">İŞLEM</span>
                 </div>
             </div>
@@ -13069,7 +13069,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.3"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -15995,8 +15995,10 @@ function addNotification(type, title, msg) {
     let category = 'trade'; 
     if(title.includes('Alarm') || title.includes('HEDEF') || title.includes('DİKKAT')) category = 'price';
     else if(title.includes('Haber')) category = 'news';
+    else if(title.includes('Yanıt') || title.includes('Beğeni') || title.includes('Bildirim') || title.includes('💬') || title.includes('❤️')) category = 'social';
     
-    if(typeof notifySettings !== 'undefined' && !notifySettings[category]) return;
+    // Sosyal bildirimler her zaman geçsin (kategori filtresi yok)
+    if(category !== 'social' && typeof notifySettings !== 'undefined' && !notifySettings[category]) return;
 
     // 4. SES VE TİTREŞİM
     if(typeof notifySettings !== 'undefined' && notifySettings.sound && typeof playNotificationSound === 'function') {
@@ -16015,6 +16017,15 @@ if (window.Android && window.Android.showNotification) {
 }
 
 // YÖNTEM B: Web / Mobil Tarayıcı (Service Worker veya Klasik)
+// İzin henüz verilmemişse sosyal bildirimler için iste
+if ("Notification" in window && Notification.permission === "default" && (title.includes('Yanıt') || title.includes('Beğeni') || title.includes('💬') || title.includes('❤️'))) {
+    Notification.requestPermission().then(function(perm) {
+        if (perm === "granted") {
+            try { new Notification(title, { body: msg, icon: "ikon.png" }); } catch(e) {}
+        }
+    });
+    return;
+}
 if ("Notification" in window && Notification.permission === "granted") {
     
     // --- DEĞİŞİKLİK BURADA: Senin ikonunu tanımladık ---
@@ -26553,12 +26564,50 @@ setTimeout(function() {
                     if (!msg) return;
 
                     // 1) Uygulama içi toast
-                    if (typeof showToast === 'function') showToast('info', title, msg, 5000);
+                    if (typeof showToast === 'function') showToast('info', title, msg, 6000);
 
-                    // 2) Bildirim merkezi + telefon bildirim çubuğu
+                    // 2) Bildirim merkezi
                     if (typeof addNotification === 'function') addNotification('info', title, msg);
 
-                    // 3) Okundu işaretle
+                    // 3) Telefon bildirim çubuğu — direkt dene
+                    (function() {
+                        var notifTitle = title;
+                        var notifBody = msg;
+                        var iconPath = 'ikon.png';
+                        if ('Notification' in window) {
+                            if (Notification.permission === 'granted') {
+                                // SW varsa onunla, yoksa direkt
+                                if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+                                    navigator.serviceWorker.ready.then(function(reg) {
+                                        reg.showNotification(notifTitle, {
+                                            body: notifBody,
+                                            icon: iconPath,
+                                            badge: iconPath,
+                                            tag: 'social-notif',
+                                            renotify: true
+                                        });
+                                    }).catch(function() {
+                                        try { new Notification(notifTitle, { body: notifBody, icon: iconPath }); } catch(e) {}
+                                    });
+                                } else {
+                                    try { new Notification(notifTitle, { body: notifBody, icon: iconPath }); } catch(e) {}
+                                }
+                            } else if (Notification.permission === 'default') {
+                                // Henüz sorulmadıysa sor
+                                Notification.requestPermission().then(function(p) {
+                                    if (p === 'granted') {
+                                        try { new Notification(notifTitle, { body: notifBody, icon: iconPath }); } catch(e) {}
+                                    }
+                                });
+                            }
+                        }
+                        // Android WebView köprüsü
+                        if (window.Android && window.Android.showNotification) {
+                            window.Android.showNotification(notifTitle, notifBody);
+                        }
+                    })();
+
+                    // 4) Okundu işaretle
                     setTimeout(function() {
                         change.doc.ref.update({ read: true }).catch(function() {});
                     }, 3000);
