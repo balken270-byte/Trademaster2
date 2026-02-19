@@ -2132,8 +2132,32 @@ body {
 .md-change-pill { font-size: 14px; font-weight: 700; padding: 4px 12px; border-radius: 12px; display: inline-block; }
 
 /* Sekmeler */
-.md-tabs { display: flex; gap: 4px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.md-tab { padding: 10px 10px; font-size: 11px; font-weight: 700; color: var(--text-sub); cursor: pointer; border-bottom: 2px solid transparent; transition: 0.2s; white-space: nowrap; }
+.md-tabs {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    margin-bottom: 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    gap: 0;
+}
+.md-tab {
+    padding: 8px 2px 7px;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text-sub);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: 0.2s;
+    white-space: nowrap;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    letter-spacing: 0;
+    min-width: 0;
+}
+.md-tab .tab-icon { font-size: 18px; line-height: 1; }
+.md-tab .tab-label { font-size: 8.5px; font-weight: 700; letter-spacing: -0.2px; }
 .md-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
 /* İçerik Alanları */
@@ -12533,15 +12557,33 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
             <div id="mdChangePill" class="md-change-pill">--</div>
         </div>
 
-        <div style="padding: 0 20px 20px 20px; overflow-y: auto;">
+        <!-- Tabs: padding dışında, full genişlik -->
+        <div style="padding: 0 16px; background: inherit; flex-shrink:0; position:sticky; top:0; z-index:10;">
             <div class="md-tabs">
-                <div class="md-tab active" onclick="switchMdTab('overview', this)">GENEL BAKIŞ</div>
-                <div class="md-tab" onclick="switchMdTab('chart', this)">GRAFİK</div>
-                <div class="md-tab" onclick="switchMdTab('news', this)">HABERLER</div>
-                <div class="md-tab" onclick="switchMdTab('social', this)">TOPLULUK</div>
-                <div class="md-tab" onclick="switchMdTab('calc', this)">İŞLEM</div>
+                <div class="md-tab active" onclick="switchMdTab('overview', this)">
+                    <span class="tab-icon">📊</span>
+                    <span class="tab-label">GENEL</span>
+                </div>
+                <div class="md-tab" onclick="switchMdTab('chart', this)">
+                    <span class="tab-icon">📈</span>
+                    <span class="tab-label">GRAFİK</span>
+                </div>
+                <div class="md-tab" onclick="switchMdTab('news', this)">
+                    <span class="tab-icon">📰</span>
+                    <span class="tab-label">HABERLER</span>
+                </div>
+                <div class="md-tab" onclick="switchMdTab('social', this)">
+                    <span class="tab-icon">👥</span>
+                    <span class="tab-label">TOPLULUK</span>
+                </div>
+                <div class="md-tab" onclick="switchMdTab('calc', this)">
+                    <span class="tab-icon">💱</span>
+                    <span class="tab-label">İŞLEM</span>
+                </div>
             </div>
+        </div><!-- /tabs sticky wrapper -->
 
+        <div style="padding: 0 20px 20px 20px; overflow-y: auto; flex:1;">
             <div id="md-tab-overview" class="md-content active">
     <div class="range-container">
         <div class="range-labels">
@@ -13027,7 +13069,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.0"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -24778,7 +24820,18 @@ fbAuth.onAuthStateChanged(function(user) {
         if (typeof MembershipSystem !== 'undefined' && typeof MembershipSystem.checkStatus === 'function') {
             setTimeout(() => {
                 MembershipSystem.checkStatus();
-            }, 500); // syncProStatus'un tamamlanması için kısa bir gecikme
+            }, 500);
+        }
+
+        // Bildirim izni iste (henüz verilmemişse)
+        if ('Notification' in window && Notification.permission === 'default') {
+            setTimeout(function() {
+                Notification.requestPermission().then(function(perm) {
+                    if (perm === 'granted' && typeof addNotification === 'function') {
+                        addNotification('success', '🔔 Bildirimler Açık', 'Yanıt ve beğeni bildirimleri alacaksınız.');
+                    }
+                });
+            }, 2000);
         }
     } else {
         // Kullanıcı çıkış yaptı, UI'ı güncelle
@@ -26357,15 +26410,30 @@ setTimeout(function() {
     // ---- LIKE COMMENT ----
     window.toggleCommentLike = function(commentId) {
         const uid = getUserId();
+        const senderName = getDisplayName();
         const ref = fbDb.collection('social_comments').doc(commentId);
         ref.get().then(doc => {
             if (!doc.exists) return;
-            const likedBy = doc.data().likedBy || [];
+            const data = doc.data();
+            const likedBy = data.likedBy || [];
             let newLikedBy;
-            if (likedBy.includes(uid)) {
+            const alreadyLiked = likedBy.includes(uid);
+            if (alreadyLiked) {
                 newLikedBy = likedBy.filter(id => id !== uid);
             } else {
                 newLikedBy = [...likedBy, uid];
+                // Beğeni bildirimi — kendi yorumu değilse
+                if (data.authorId && data.authorId !== uid) {
+                    fbDb.collection('notifications').add({
+                        type: 'like',
+                        recipientId: data.authorId,
+                        senderName: senderName,
+                        commentText: (data.text || '').substring(0, 60),
+                        symbol: currentSocialSymbol || '',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        read: false
+                    }).catch(function() {});
+                }
             }
             return ref.update({ likedBy: newLikedBy });
         }).catch(err => console.error('Like error:', err));
@@ -26445,6 +26513,92 @@ setTimeout(function() {
 
 </script>
 
+
+<script>
+// ===== SOSYAL BİLDİRİM DİNLEYİCİSİ =====
+// Firestore notifications koleksiyonunu izler → addNotification ile bildirim merkezine + telefon çubuğuna düşürür
+(function() {
+    var _seen = Date.now();
+    var _unsub = null;
+
+    function startListening(uid) {
+        if (_unsub) { _unsub(); _unsub = null; }
+        if (!uid || typeof fbDb === 'undefined') return;
+
+        // Basit sorgu — composite index gerektirmesin
+        _unsub = fbDb.collection('notifications')
+            .where('recipientId', '==', uid)
+            .onSnapshot(function(snap) {
+                snap.docChanges().forEach(function(change) {
+                    if (change.type !== 'added') return;
+                    var d = change.doc.data();
+                    var ts = d.createdAt
+                        ? (d.createdAt.toMillis ? d.createdAt.toMillis() : (d.createdAt.seconds || 0) * 1000)
+                        : 0;
+                    if (d.read === true) return; // okunmuş bildirimleri atla
+                    if (ts > 0 && ts < _seen - 5000) return; // eski kayıtları atla
+
+                    var title = '🔔 Bildirim';
+                    var msg = '';
+                    if (d.type === 'reply') {
+                        title = '💬 Yeni Yanıt';
+                        msg = (d.senderName || 'Biri') + ' yorumuna yanıt verdi';
+                        if (d.symbol) msg += ' (' + d.symbol + ')';
+                    } else if (d.type === 'like') {
+                        title = '❤️ Beğeni';
+                        msg = (d.senderName || 'Biri') + ' yorumunu beğendi';
+                        if (d.symbol) msg += ' (' + d.symbol + ')';
+                    }
+
+                    if (!msg) return;
+
+                    // 1) Uygulama içi toast
+                    if (typeof showToast === 'function') showToast('info', title, msg, 5000);
+
+                    // 2) Bildirim merkezi + telefon bildirim çubuğu
+                    if (typeof addNotification === 'function') addNotification('info', title, msg);
+
+                    // 3) Okundu işaretle
+                    setTimeout(function() {
+                        change.doc.ref.update({ read: true }).catch(function() {});
+                    }, 3000);
+                });
+            }, function(err) {
+                console.warn('Sosyal bildirim dinleyici hatası:', err);
+            });
+    }
+
+    function tryInit() {
+        if (typeof fbAuth === 'undefined' || typeof fbDb === 'undefined') {
+            setTimeout(tryInit, 800);
+            return;
+        }
+        fbAuth.onAuthStateChanged(function(user) {
+            if (user) {
+                _seen = Date.now();
+                startListening(user.uid);
+                // İlk kez giriş yapıldıysa bildirim izni iste
+                if ('Notification' in window && Notification.permission === 'default') {
+                    setTimeout(function() {
+                        Notification.requestPermission();
+                    }, 1500);
+                }
+            } else {
+                // Çıkış: anonim uid varsa onunla da dinle
+                var anonId = localStorage.getItem('socialAnonId');
+                if (anonId) {
+                    _seen = Date.now();
+                    startListening(anonId);
+                } else {
+                    if (_unsub) { _unsub(); _unsub = null; }
+                }
+            }
+        });
+    }
+
+    setTimeout(tryInit, 1500);
+})();
+</script>
 </body>
 </html>
 
