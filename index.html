@@ -13069,7 +13069,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.3"; 
+    const CURRENT_VERSION = "1.4"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -13183,6 +13183,7 @@ let usdTryRate = 36.5;
 let cashBalance = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
 let tradeHistory = JSON.parse(localStorage.getItem('tm_full_trade_history')) || [];
 let notifications = JSON.parse(localStorage.getItem('tm_notifications')) || [];
+window.notifications = notifications; // global erişim için
 let realizedPnL = parseFloat(localStorage.getItem('tm_realized_pnl')) || 0;
 
 let entryCurrency = 'TRY'; let exitCurrency = 'TRY';
@@ -15978,17 +15979,18 @@ function addNotification(type, title, msg) {
     // 2. UYGULAMA İÇİ KAYIT
     let n = { type: type, title: title, msg: msg, time: new Date().toLocaleTimeString(), read: false };
     
-    if(typeof notifications !== 'undefined') {
-        notifications.unshift(n);
-        if(notifications.length > 50) notifications.pop();
-        localStorage.setItem('tm_notifications', JSON.stringify(notifications));
-        
-        if(typeof updateBadge === 'function') updateBadge();
-        
-        let pageNotif = document.getElementById('page-notifications');
-        if(pageNotif && pageNotif.classList.contains('active') && typeof renderNotifications === 'function') {
-            renderNotifications();
-        }
+    // notifications değişkenini her zaman güncelle (farklı script bloklarından erişim için)
+    if(typeof window.notifications === 'undefined') window.notifications = [];
+    window.notifications.unshift(n);
+    if(window.notifications.length > 50) window.notifications.pop();
+    notifications = window.notifications; // yerel referansı da güncelle
+    localStorage.setItem('tm_notifications', JSON.stringify(notifications));
+    
+    if(typeof updateBadge === 'function') updateBadge();
+    
+    let pageNotif = document.getElementById('page-notifications');
+    if(pageNotif && pageNotif.classList.contains('active') && typeof renderNotifications === 'function') {
+        renderNotifications();
     }
 
     // 3. KATEGORİ AYARLARI KONTROLÜ
@@ -16082,8 +16084,8 @@ try {
 }
 }
 
-    function renderNotifications(){ let l = document.getElementById('notificationList'); l.innerHTML = ""; if(notifications.length === 0){ l.innerHTML = "<div style='text-align:center; padding:30px; color:var(--text-sub); opacity:0.6;'><i class='fas fa-bell-slash' style='font-size:24px; margin-bottom:10px;'></i><br>Bildirim Yok</div>"; return; } notifications.forEach(n => { let icon = 'info-circle'; let cls = 'n-info'; if(n.type === 'success') { icon = 'check-circle'; cls = 'n-success'; } if(n.type === 'danger') { icon = 'exclamation-circle'; cls = 'n-danger'; } if(n.type === 'warn') { icon = 'bell'; cls = 'n-warn'; } l.innerHTML += `<div class="notif-card ${cls} ${n.read ? '' : 'unread'}"><div class="notif-icon-box"><i class="fas fa-${icon}"></i></div><div class="notif-content"><div class="notif-title">${n.title}</div><div class="notif-msg">${n.msg}</div></div><div class="notif-time">${n.time}</div></div>`; }); notifications.forEach(n => n.read = true); localStorage.setItem('tm_notifications', JSON.stringify(notifications)); updateBadge(); }
-    function updateBadge(){ let unread = notifications.filter(n => !n.read).length; let b = document.getElementById('notifBadge'); if(unread > 0){ b.innerText = unread; b.classList.add('active'); } else { b.classList.remove('active'); } }
+    window.renderNotifications = function renderNotifications(){ let l = document.getElementById('notificationList'); l.innerHTML = ""; if(notifications.length === 0){ l.innerHTML = "<div style='text-align:center; padding:30px; color:var(--text-sub); opacity:0.6;'><i class='fas fa-bell-slash' style='font-size:24px; margin-bottom:10px;'></i><br>Bildirim Yok</div>"; return; } notifications.forEach(n => { let icon = 'info-circle'; let cls = 'n-info'; if(n.type === 'success') { icon = 'check-circle'; cls = 'n-success'; } if(n.type === 'danger') { icon = 'exclamation-circle'; cls = 'n-danger'; } if(n.type === 'warn') { icon = 'bell'; cls = 'n-warn'; } l.innerHTML += `<div class="notif-card ${cls} ${n.read ? '' : 'unread'}"><div class="notif-icon-box"><i class="fas fa-${icon}"></i></div><div class="notif-content"><div class="notif-title">${n.title}</div><div class="notif-msg">${n.msg}</div></div><div class="notif-time">${n.time}</div></div>`; }); notifications.forEach(n => n.read = true); localStorage.setItem('tm_notifications', JSON.stringify(notifications)); updateBadge(); }
+    window.updateBadge = function updateBadge(){ let unread = notifications.filter(n => !n.read).length; let b = document.getElementById('notifBadge'); if(unread > 0){ b.innerText = unread; b.classList.add('active'); } else { b.classList.remove('active'); } }
     function clearNotifications(){ if(confirm("Tüm bildirimler silinsin mi?")){ notifications = []; localStorage.setItem('tm_notifications', JSON.stringify(notifications)); renderNotifications(); updateBadge(); } }
     
     function applyTheme(t){ document.body.setAttribute('data-theme', t); }
@@ -17426,11 +17428,26 @@ window.mdSelectSentiment = function(type) {
 
 window.mdLikeComment = function(id) {
     var uid = getMdUid();
+    var senderName = getMdName();
     var ref = fbDb.collection('social_comments').doc(id);
     ref.get().then(function(doc) {
         if (!doc.exists) return;
-        var liked = doc.data().likedBy || [];
-        var newLiked = liked.indexOf(uid)>-1 ? liked.filter(function(x){return x!==uid;}) : liked.concat([uid]);
+        var data = doc.data();
+        var liked = data.likedBy || [];
+        var alreadyLiked = liked.indexOf(uid) > -1;
+        var newLiked = alreadyLiked ? liked.filter(function(x){return x!==uid;}) : liked.concat([uid]);
+        // Beğeni bildirimi — kendi yorumu değilse ve yeni beğeniyse
+        if (!alreadyLiked && data.authorId && data.authorId !== uid) {
+            fbDb.collection('notifications').add({
+                type: 'like',
+                recipientId: data.authorId,
+                senderName: senderName,
+                commentText: (data.text||'').substring(0,60),
+                symbol: mdSocialSymbol || '',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                read: false
+            }).catch(function(){});
+        }
         return ref.update({ likedBy: newLiked });
     });
 };
@@ -24821,6 +24838,82 @@ document.addEventListener('DOMContentLoaded', function() {
    ═══════════════════════════════════════════════════════════ */
 
 // --- Auth State Listener ---
+// ===== SOSYAL BİLDİRİM DİNLEYİCİSİ =====
+var _socialNotifUnsub = null;
+var _socialNotifSeen = 0;
+
+function startSocialNotifListener(uid) {
+    if (_socialNotifUnsub) { _socialNotifUnsub(); _socialNotifUnsub = null; }
+    if (!uid) return;
+    _socialNotifSeen = Date.now();
+
+    _socialNotifUnsub = fbDb.collection('notifications')
+        .where('recipientId', '==', uid)
+        .onSnapshot(function(snap) {
+            snap.docChanges().forEach(function(change) {
+                if (change.type !== 'added') return;
+                var d = change.doc.data();
+                if (d.read === true) return;
+                var ts = d.createdAt
+                    ? (d.createdAt.toMillis ? d.createdAt.toMillis() : (d.createdAt.seconds || 0) * 1000)
+                    : 0;
+                if (ts > 0 && ts < _socialNotifSeen - 5000) return;
+
+                var title = '🔔 Bildirim';
+                var msg = '';
+                if (d.type === 'reply') {
+                    title = '💬 Yeni Yanıt';
+                    msg = (d.senderName || 'Biri') + ' yorumuna yanıt verdi';
+                    if (d.symbol) msg += ' (' + d.symbol + ')';
+                } else if (d.type === 'like') {
+                    title = '❤️ Beğeni';
+                    msg = (d.senderName || 'Biri') + ' yorumunu beğendi';
+                    if (d.symbol) msg += ' (' + d.symbol + ')';
+                }
+                if (!msg) return;
+
+                // Uygulama içi toast
+                if (typeof showToast === 'function') showToast('info', title, msg, 6000);
+
+                // Bildirim merkezine kaydet - DOĞRUDAN notifications dizisine ekle
+                // Bildirim merkezine direkt window üzerinden ekle (farklı script bloğu sorununu aşar)
+                if (!window.notifications) window.notifications = JSON.parse(localStorage.getItem('tm_notifications') || '[]');
+                var nItem = { type: 'info', title: title, msg: msg, time: new Date().toLocaleTimeString(), read: false };
+                window.notifications.unshift(nItem);
+                if (window.notifications.length > 50) window.notifications.pop();
+                localStorage.setItem('tm_notifications', JSON.stringify(window.notifications));
+                if (typeof window.updateBadge === 'function') window.updateBadge();
+                var pageNotif = document.getElementById('page-notifications');
+                if (pageNotif && pageNotif.classList.contains('active') && typeof window.renderNotifications === 'function') {
+                    window.renderNotifications();
+                }
+
+                // Telefon bildirim çubuğu
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    try {
+                        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+                            navigator.serviceWorker.ready.then(function(reg) {
+                                reg.showNotification(title, { body: msg, icon: 'ikon.png', badge: 'ikon.png', tag: 'social', renotify: true });
+                            }).catch(function() {
+                                new Notification(title, { body: msg, icon: 'ikon.png' });
+                            });
+                        } else {
+                            new Notification(title, { body: msg, icon: 'ikon.png' });
+                        }
+                    } catch(e) {}
+                }
+                if (window.Android && window.Android.showNotification) {
+                    window.Android.showNotification(title, msg);
+                }
+
+                // Okundu işaretle
+                setTimeout(function() { change.doc.ref.update({ read: true }).catch(function(){}); }, 3000);
+            });
+        }, function(err) {
+            console.warn('Sosyal bildirim hatası:', err.code, err.message);
+        });
+}
+
 fbAuth.onAuthStateChanged(function(user) {
     updateAccountUI(user);
     if (user) {
@@ -24834,11 +24927,14 @@ fbAuth.onAuthStateChanged(function(user) {
             }, 500);
         }
 
+        // Sosyal bildirim dinleyicisini başlat
+        setTimeout(function() { startSocialNotifListener(user.uid); }, 1000);
+
         // Bildirim izni iste (henüz verilmemişse)
         if ('Notification' in window && Notification.permission === 'default') {
             setTimeout(function() {
                 Notification.requestPermission().then(function(perm) {
-                    if (perm === 'granted' && typeof addNotification === 'function') {
+                    if (perm === 'granted') {
                         addNotification('success', '🔔 Bildirimler Açık', 'Yanıt ve beğeni bildirimleri alacaksınız.');
                     }
                 });
@@ -26525,129 +26621,6 @@ setTimeout(function() {
 </script>
 
 
-<script>
-// ===== SOSYAL BİLDİRİM DİNLEYİCİSİ =====
-// Firestore notifications koleksiyonunu izler → addNotification ile bildirim merkezine + telefon çubuğuna düşürür
-(function() {
-    var _seen = Date.now();
-    var _unsub = null;
-
-    function startListening(uid) {
-        if (_unsub) { _unsub(); _unsub = null; }
-        if (!uid || typeof fbDb === 'undefined') return;
-
-        // Basit sorgu — composite index gerektirmesin
-        _unsub = fbDb.collection('notifications')
-            .where('recipientId', '==', uid)
-            .onSnapshot(function(snap) {
-                snap.docChanges().forEach(function(change) {
-                    if (change.type !== 'added') return;
-                    var d = change.doc.data();
-                    var ts = d.createdAt
-                        ? (d.createdAt.toMillis ? d.createdAt.toMillis() : (d.createdAt.seconds || 0) * 1000)
-                        : 0;
-                    if (d.read === true) return; // okunmuş bildirimleri atla
-                    if (ts > 0 && ts < _seen - 5000) return; // eski kayıtları atla
-
-                    var title = '🔔 Bildirim';
-                    var msg = '';
-                    if (d.type === 'reply') {
-                        title = '💬 Yeni Yanıt';
-                        msg = (d.senderName || 'Biri') + ' yorumuna yanıt verdi';
-                        if (d.symbol) msg += ' (' + d.symbol + ')';
-                    } else if (d.type === 'like') {
-                        title = '❤️ Beğeni';
-                        msg = (d.senderName || 'Biri') + ' yorumunu beğendi';
-                        if (d.symbol) msg += ' (' + d.symbol + ')';
-                    }
-
-                    if (!msg) return;
-
-                    // 1) Uygulama içi toast
-                    if (typeof showToast === 'function') showToast('info', title, msg, 6000);
-
-                    // 2) Bildirim merkezi
-                    if (typeof addNotification === 'function') addNotification('info', title, msg);
-
-                    // 3) Telefon bildirim çubuğu — direkt dene
-                    (function() {
-                        var notifTitle = title;
-                        var notifBody = msg;
-                        var iconPath = 'ikon.png';
-                        if ('Notification' in window) {
-                            if (Notification.permission === 'granted') {
-                                // SW varsa onunla, yoksa direkt
-                                if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-                                    navigator.serviceWorker.ready.then(function(reg) {
-                                        reg.showNotification(notifTitle, {
-                                            body: notifBody,
-                                            icon: iconPath,
-                                            badge: iconPath,
-                                            tag: 'social-notif',
-                                            renotify: true
-                                        });
-                                    }).catch(function() {
-                                        try { new Notification(notifTitle, { body: notifBody, icon: iconPath }); } catch(e) {}
-                                    });
-                                } else {
-                                    try { new Notification(notifTitle, { body: notifBody, icon: iconPath }); } catch(e) {}
-                                }
-                            } else if (Notification.permission === 'default') {
-                                // Henüz sorulmadıysa sor
-                                Notification.requestPermission().then(function(p) {
-                                    if (p === 'granted') {
-                                        try { new Notification(notifTitle, { body: notifBody, icon: iconPath }); } catch(e) {}
-                                    }
-                                });
-                            }
-                        }
-                        // Android WebView köprüsü
-                        if (window.Android && window.Android.showNotification) {
-                            window.Android.showNotification(notifTitle, notifBody);
-                        }
-                    })();
-
-                    // 4) Okundu işaretle
-                    setTimeout(function() {
-                        change.doc.ref.update({ read: true }).catch(function() {});
-                    }, 3000);
-                });
-            }, function(err) {
-                console.warn('Sosyal bildirim dinleyici hatası:', err);
-            });
-    }
-
-    function tryInit() {
-        if (typeof fbAuth === 'undefined' || typeof fbDb === 'undefined') {
-            setTimeout(tryInit, 800);
-            return;
-        }
-        fbAuth.onAuthStateChanged(function(user) {
-            if (user) {
-                _seen = Date.now();
-                startListening(user.uid);
-                // İlk kez giriş yapıldıysa bildirim izni iste
-                if ('Notification' in window && Notification.permission === 'default') {
-                    setTimeout(function() {
-                        Notification.requestPermission();
-                    }, 1500);
-                }
-            } else {
-                // Çıkış: anonim uid varsa onunla da dinle
-                var anonId = localStorage.getItem('socialAnonId');
-                if (anonId) {
-                    _seen = Date.now();
-                    startListening(anonId);
-                } else {
-                    if (_unsub) { _unsub(); _unsub = null; }
-                }
-            }
-        });
-    }
-
-    setTimeout(tryInit, 1500);
-})();
-</script>
 </body>
 </html>
 
