@@ -13083,7 +13083,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.6"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -13177,58 +13177,8 @@ if ('serviceWorker' in navigator) {
     
 /* --- AYARLAR VE GLOBAL DEĞİŞKENLER --- */
         
-// ── CoinGecko API artık doğrudan çağrılmıyor ──
-// Tüm istekler Firebase Cloud Function proxy'den geçiyor.
-// API key sunucu tarafında saklı (functions/index.js).
-const AUTO_CG_KEY = null; // Artık client'ta key yok
-let coingeckoApiKey = AUTO_CG_KEY;
-
-// Proxy endpoint'leri (Firebase deploy sonrası güncel URL'yi buraya yaz)
-// Örnek: "https://us-central1-tradevia-b9fd0.cloudfunctions.net"
-const CG_PROXY_BASE = "https://us-central1-tradevia-b9fd0.cloudfunctions.net";
-
-/**
- * CoinGecko Proxy Yardımcı Fonksiyonları
- * Tüm istekler bu fonksiyonlar üzerinden geçer → sunucu cache'leri → tek API çağrısı
- */
-async function cgProxyMarkets({ per_page = 50, page = 1, ids = "", order = "market_cap_desc", price_change_percentage = "" } = {}) {
-    const params = new URLSearchParams({ per_page, page, order });
-    if (ids) params.set("ids", ids);
-    if (price_change_percentage) params.set("price_change_percentage", price_change_percentage);
-    const res = await fetch(`${CG_PROXY_BASE}/cgMarkets?${params}`);
-    const json = await res.json();
-    return json.data;
-}
-
-async function cgProxySearch(query) {
-    const res = await fetch(`${CG_PROXY_BASE}/cgSearch?query=${encodeURIComponent(query)}`);
-    const json = await res.json();
-    return json.data;
-}
-
-async function cgProxyCoinDetail(id) {
-    const res = await fetch(`${CG_PROXY_BASE}/cgCoinDetail?id=${id}`);
-    const json = await res.json();
-    return json.data;
-}
-
-async function cgProxyMarketChart(id, days = 30) {
-    const res = await fetch(`${CG_PROXY_BASE}/cgMarketChart?id=${id}&days=${days}`);
-    const json = await res.json();
-    return json.data;
-}
-
-async function cgProxyGlobal() {
-    const res = await fetch(`${CG_PROXY_BASE}/cgGlobal`);
-    const json = await res.json();
-    return json.data;
-}
-
-async function cgProxySimplePrice(ids) {
-    const res = await fetch(`${CG_PROXY_BASE}/cgSimplePrice?ids=${ids}`);
-    const json = await res.json();
-    return json.data;
-}
+const AUTO_CG_KEY = "CG-G2hRKmRzcPTYJUA3L79dg8Ta";
+let coingeckoApiKey = AUTO_CG_KEY; 
   
 let notifySettings = JSON.parse(localStorage.getItem('tm_notify_settings')) || {
     price: true, trade: true, news: false, sound: true, vibrate: true
@@ -13579,12 +13529,13 @@ async function getPrice(s, forceCategory = null) {
         // CoinGecko (Varsa)
         if(typeof coingeckoApiKey !== 'undefined' && coingeckoApiKey) {
             try {
-                const searchRes = await cgProxySearch(s);
-                const searchData = searchRes;
+                const searchRes = await fetch(`https://api.coingecko.com/api/v3/search?query=${s}&x_cg_demo_api_key=${coingeckoApiKey}`);
+                const searchData = await searchRes.json();
                 if(searchData.coins && searchData.coins.length > 0) {
                     let coin = searchData.coins.find(c => c.symbol.toUpperCase() === s) || searchData.coins[0];
                     if(coin) {
-                        const priceData = await cgProxySimplePrice(coin.id);
+                        const priceRes = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coin.id}&vs_currencies=usd&include_24hr_change=true&x_cg_demo_api_key=${coingeckoApiKey}`);
+                        const priceData = await priceRes.json();
                         if(priceData[coin.id]) {
                             return { 
                                 price: priceData[coin.id].usd, 
@@ -15463,8 +15414,8 @@ async function checkAllAlarms() {
                     if(!coingeckoApiKey) throw new Error("No Key");
 
                     // 1. Arama yapıp ID bul
-                    const searchRes = await cgProxySearch(cleanSym);
-                    const searchData = searchRes;
+                    const searchRes = await fetch(`https://api.coingecko.com/api/v3/search?query=${cleanSym}&x_cg_demo_api_key=${coingeckoApiKey}`);
+                    const searchData = await searchRes.json();
                     
                     if(searchData.coins && searchData.coins.length > 0) {
                         // En iyi eşleşmeyi al
@@ -15473,7 +15424,8 @@ async function checkAllAlarms() {
                         if(exact) coinId = exact.id;
 
                         // 2. 30 Günlük Market Chart Çek
-                        const chartData = await cgProxyMarketChart(coinId, 30);
+                        const chartRes = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=30&x_cg_demo_api_key=${coingeckoApiKey}`);
+                        const chartData = await chartRes.json();
 
                         if(chartData.prices && chartData.prices.length > 0) {
                             // Fiyatları tara
@@ -15780,9 +15732,11 @@ function filterUnifiedList(val) {
             let foundAny = false;
 
             // A) COINGECKO ARAMASI (Kripto Modundaysak)
-            if (currentCategory === 'kripto') {
+            if (currentCategory === 'kripto' && coingeckoApiKey) {
                 try {
-                    const data = await cgProxySearch(val);
+                    const url = `https://api.coingecko.com/api/v3/search?query=${val}&x_cg_demo_api_key=${coingeckoApiKey}`;
+                    const res = await fetch(url);
+                    const data = await res.json();
                     
                     if (data.coins && data.coins.length > 0) {
                         let html = `<div style="font-size:10px; font-weight:700; color:var(--accent); margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;">KRİPTO SONUÇLARI</div>`;
@@ -16920,10 +16874,13 @@ async function fetchMarketData() {
     try {
         // --- SENARYO 1: KRİPTO (COINGECKO) ---
         if(currentCategory === 'kripto') {
-            if (true) { // Proxy her zaman aktif
+            if (coingeckoApiKey) {
                 // Sayfa başına 50 coin çekelim (Daha akıcı olur)
                 const fetchLimit = 50; 
-                const data = await cgProxyMarkets({ per_page: fetchLimit, page: currentPage });
+                const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${fetchLimit}&page=${currentPage}&sparkline=false&x_cg_demo_api_key=${coingeckoApiKey}`;
+                
+                const res = await fetch(url);
+                const data = await res.json();
                 
                 if(Array.isArray(data) && data.length > 0) {
                     const cgData = data.map(d => ({
@@ -18143,7 +18100,9 @@ async function openMarketDetail(rawSymbol) {
     if(!dataFound && currentCategory === 'kripto' && coingeckoApiKey) {
         try {
             // Önce: Sembolden ID bul (Search API)
-            const searchData = await cgProxySearch(rawSymbol);
+            const searchUrl = `https://api.coingecko.com/api/v3/search?query=${rawSymbol}&x_cg_demo_api_key=${coingeckoApiKey}`;
+            const searchRes = await fetch(searchUrl);
+            const searchData = await searchRes.json();
             
             let coinId = null;
             if(searchData.coins && searchData.coins.length > 0) {
@@ -18161,7 +18120,9 @@ async function openMarketDetail(rawSymbol) {
             if(coinId) {
                 // Sonra: ID ile detay çek (Market Data API)
                 // Bu endpoint High, Low, Vol her şeyi verir.
-                const detailData = await cgProxyMarkets({ ids: coinId });
+                const detailUrl = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${coinId}&x_cg_demo_api_key=${coingeckoApiKey}`;
+                const detailRes = await fetch(detailUrl);
+                const detailData = await detailRes.json();
 
                 if(detailData && detailData.length > 0) {
                     const d = detailData[0];
@@ -18379,7 +18340,9 @@ function filterUnifiedList(val) {
             // CoinGecko Search API (Her şeyi bulur)
             if(coingeckoApiKey) {
                 try {
-                    const data = await cgProxySearch(val);
+                    const url = `https://api.coingecko.com/api/v3/search?query=${val}&x_cg_demo_api_key=${coingeckoApiKey}`;
+                    const res = await fetch(url);
+                    const data = await res.json();
                     
                     // İlk 5 sonucu al (Çok fazla sonuç gelebilir)
                     const coins = data.coins ? data.coins.slice(0, 5) : [];
@@ -18468,7 +18431,9 @@ async function openCoinGeckoDetail(coinId) {
     
     try {
         // 1. COİN DETAYLARINI ÇEK
-        const coinData = await cgProxyCoinDetail(coinId);
+        const detailUrl = `https://api.coingecko.com/api/v3/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false&x_cg_demo_api_key=${coingeckoApiKey}`;
+        const detailRes = await fetch(detailUrl);
+        const coinData = await detailRes.json();
         
         if(!coinData || !coinData.market_data) throw new Error("Veri yok");
 
@@ -21197,7 +21162,9 @@ async function tryCoinGecko(symbol) {
     let cleanSym = symbol.replace('USDT', '').replace('TRY', '');
     
     // ID Bul
-    const searchData = await cgProxySearch(cleanSym);
+    const searchRes = await fetch(`https://api.coingecko.com/api/v3/search?query=${cleanSym}`);
+    if(!searchRes.ok) throw new Error("Arama başarısız");
+    const searchData = await searchRes.json();
     
     if(!searchData.coins || searchData.coins.length === 0) throw new Error("Coin yok");
     
@@ -21206,7 +21173,8 @@ async function tryCoinGecko(symbol) {
     if(exactMatch) coinId = exactMatch.id;
 
     // Tarihçe Çek (Dolar bazlı gelir)
-    const data = await cgProxyMarketChart(coinId, "max");
+    const historyRes = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=max&interval=daily`);
+    const data = await historyRes.json();
 
     if(!data.prices || data.prices.length === 0) throw new Error("Fiyat verisi yok");
 
@@ -25888,8 +25856,19 @@ async function filterByTrend(trend, btn) {
             return;
         }
         
-        // CoinGecko'dan trend bazlı veri çek (Top 250 coin)
-        const data = await cgProxyMarkets({ per_page: 250, page: 1, price_change_percentage: "24h" });
+        // CoinGecko'dan trend bazlı veri çek (Top 100 coin)
+        let url;
+        
+        if (trend === 'gainers') {
+            // En çok yükselenler - Price change descending order
+            url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h&x_cg_demo_api_key=${apiKey}`;
+        } else if (trend === 'losers') {
+            // En çok düşenler - Price change ascending order  
+            url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h&x_cg_demo_api_key=${apiKey}`;
+        }
+        
+        const response = await fetch(url);
+        const data = await response.json();
         
         if (Array.isArray(data) && data.length > 0) {
             // Veriyi formatla
@@ -25956,7 +25935,8 @@ async function updateMarketSummary() {
         const apiKey = coingeckoApiKey;
         if (!apiKey) return;
         
-        const data = await cgProxyGlobal();
+        const response = await fetch(`https://api.coingecko.com/api/v3/global?x_cg_demo_api_key=${apiKey}`);
+        const data = await response.json();
         
         if (data && data.data) {
             const globalData = data.data;
@@ -26016,7 +25996,8 @@ async function loadWatchlist() {
         }
         
         const ids = watchlist.map(item => item.id).join(',');
-        const data = await cgProxyMarkets({ ids });
+        const response = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}&order=market_cap_desc&sparkline=false&x_cg_demo_api_key=${apiKey}`);
+        const data = await response.json();
         
         if (listContainer) {
             listContainer.innerHTML = '';
