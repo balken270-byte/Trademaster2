@@ -4805,18 +4805,52 @@ input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
 }
 
 .muh-filters {
-    padding: 15px;
+    padding: 12px 15px;
     background: rgba(0, 0, 0, 0.2);
     border-radius: 12px;
     margin-top: 12px;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: nowrap;
 }
 
 .filter-group {
-    margin-bottom: 15px;
+    margin-bottom: 0;
+    flex: 1;
+    min-width: 0;
 }
 
 .filter-group:last-child {
     margin-bottom: 0;
+}
+
+#unifiedFilters {
+    flex-direction: column;
+    gap: 12px;
+    overflow-x: visible;
+    padding: 12px 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    margin-top: 12px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#unifiedFilters .filter-group {
+    width: 100%;
+    margin-bottom: 0;
+    box-sizing: border-box;
+}
+
+#unifiedFilters .filter-select {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#unifiedFilters .filter-chips {
+    flex-wrap: nowrap;
 }
 
 .filter-label {
@@ -4854,7 +4888,7 @@ input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
 
 .filter-chips {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
 }
 
@@ -13083,7 +13117,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -25737,7 +25771,7 @@ async function checkLastBackup(uid) {
 function toggleMarketFilters() {
     const filters = document.getElementById('unifiedFilters');
     if (filters.style.display === 'none' || !filters.style.display) {
-        filters.style.display = 'block';
+        filters.style.display = 'flex';
     } else {
         filters.style.display = 'none';
     }
