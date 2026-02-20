@@ -10129,6 +10129,30 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 /* Monthly Report */
+#an-view-lab .lab-preset-btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 9px 12px;
+    border-radius: 12px;
+    border: 1.5px solid rgba(251,191,36,0.2);
+    background: rgba(251,191,36,0.06);
+    color: rgba(251,191,36,0.7);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    transition: all 0.2s;
+}
+#an-view-lab .lab-preset-btn.active,
+#an-view-lab .lab-preset-btn:active {
+    background: rgba(251,191,36,0.15);
+    border-color: rgba(251,191,36,0.5);
+    color: #fbbf24;
+    box-shadow: 0 4px 18px rgba(251,191,36,0.15);
+}
 #an-view-lab .lab-monthly-report {
     max-height: 350px;
     overflow-y: auto;
@@ -10294,20 +10318,42 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="lab-form-grid">
                 <div class="lab-form-group">
                     <label class="lab-form-label"><i class="fas fa-wallet"></i> Başlangıç Sermayesi</label>
-                    <input type="number" id="labStart" class="lab-input" placeholder="Örn: 10000">
+                    <input type="number" id="labStart" class="lab-input" placeholder="Örn: 10000" oninput="runLabTestDebounced()">
                 </div>
                 <div class="lab-form-group">
                     <label class="lab-form-label"><i class="fas fa-percent"></i> İşlem Başı Kâr Hedefi (%)</label>
-                    <input type="number" id="labWinPct" class="lab-input" value="2">
+                    <input type="number" id="labWinPct" class="lab-input" value="2" oninput="runLabTestDebounced()">
                 </div>
                 <div class="lab-form-group">
                     <label class="lab-form-label"><i class="fas fa-repeat"></i> Haftalık İşlem Sayısı</label>
-                    <input type="number" id="labFreq" class="lab-input" value="2">
+                    <input type="number" id="labFreq" class="lab-input" value="2" oninput="runLabTestDebounced()">
                 </div>
                 <div class="lab-form-group">
                     <label class="lab-form-label"><i class="fas fa-calendar"></i> Süre (Ay)</label>
-                    <input type="number" id="labDuration" class="lab-input" value="12">
+                    <input type="number" id="labDuration" class="lab-input" value="12" oninput="runLabTestDebounced()">
                 </div>
+                <div class="lab-form-group">
+                    <label class="lab-form-label"><i class="fas fa-bullseye"></i> Kazanma Oranı (%)</label>
+                    <input type="number" id="labWinRate" class="lab-input" value="60" min="1" max="100" oninput="runLabTestDebounced()">
+                </div>
+                <div class="lab-form-group">
+                    <label class="lab-form-label"><i class="fas fa-arrow-trend-down"></i> Zarar Oranı (%)</label>
+                    <input type="number" id="labLossPct" class="lab-input" value="1" oninput="runLabTestDebounced()">
+                </div>
+            </div>
+
+            <!-- Preset Scenarios -->
+            <div class="lab-section-label" style="margin-top:8px;">Hazır Senaryolar</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
+                <button class="lab-preset-btn" onclick="applyLabPreset(2,60,1,2,12)">
+                    <i class="fas fa-seedling"></i> Muhafazakâr
+                </button>
+                <button class="lab-preset-btn active" onclick="applyLabPreset(3,65,1.5,3,12)">
+                    <i class="fas fa-fire"></i> Dengeli
+                </button>
+                <button class="lab-preset-btn" onclick="applyLabPreset(5,55,2,5,12)">
+                    <i class="fas fa-rocket"></i> Agresif
+                </button>
             </div>
 
             <button class="lab-btn-primary" onclick="runLabTest()">
@@ -10317,25 +10363,58 @@ document.addEventListener('DOMContentLoaded', function() {
 
         <!-- Results -->
         <div id="labResults" style="display:none;">
-            <div class="lab-results-card gold">
-                <div class="lab-section-label" style="color: var(--lab-accent-gold);">Deney Sonucu</div>
-                <div class="lab-stats-grid">
-                    <div class="lab-stat-item">
-                        <div class="lab-stat-label">Başlangıç</div>
-                        <div class="lab-stat-value" id="resLabStart">--</div>
-                    </div>
-                    <div class="lab-stat-item">
-                        <div class="lab-stat-label">Bitiş (Tahmini)</div>
-                        <div class="lab-stat-value emerald" id="resLabEnd">--</div>
-                    </div>
+            <!-- Özet Kartlar -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+                <div style="background:rgba(251,191,36,0.08); border:1px solid rgba(251,191,36,0.2); border-radius:16px; padding:14px; text-align:center;">
+                    <div style="font-size:10px; color:rgba(251,191,36,0.7); font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;">Başlangıç</div>
+                    <div style="font-size:17px; font-weight:800; color:#f8fafc;" id="resLabStart">--</div>
                 </div>
-                <div class="lab-big-number">
-                    <div class="lab-big-number-label">Toplam Büyüme</div>
-                    <div class="lab-big-number-value gold" id="resLabGrowth">+0%</div>
+                <div style="background:rgba(52,211,153,0.08); border:1px solid rgba(52,211,153,0.2); border-radius:16px; padding:14px; text-align:center;">
+                    <div style="font-size:10px; color:rgba(52,211,153,0.7); font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;">Tahmini Bitiş</div>
+                    <div style="font-size:17px; font-weight:800; color:#34d399;" id="resLabEnd">--</div>
+                </div>
+                <div style="background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.2); border-radius:16px; padding:14px; text-align:center;">
+                    <div style="font-size:10px; color:rgba(167,139,250,0.7); font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;">Toplam Kâr</div>
+                    <div style="font-size:17px; font-weight:800; color:#a78bfa;" id="resLabProfit">--</div>
+                </div>
+                <div style="background:rgba(249,115,22,0.08); border:1px solid rgba(249,115,22,0.2); border-radius:16px; padding:14px; text-align:center;">
+                    <div style="font-size:10px; color:rgba(249,115,22,0.7); font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;">Büyüme Katsayısı</div>
+                    <div style="font-size:17px; font-weight:800; color:#f97316;" id="resLabMultiple">--</div>
                 </div>
             </div>
 
-            <div class="lab-glass-card" style="margin-top: 16px;">
+            <!-- Büyüme % - Ana Gösterge -->
+            <div class="lab-results-card gold" style="text-align:center; padding:20px;">
+                <div style="font-size:11px; color:rgba(251,191,36,0.7); font-weight:700; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px;">NET TOPLAM BÜYÜME</div>
+                <div class="lab-big-number-value gold" id="resLabGrowth" style="font-size:48px;">+0%</div>
+                <div style="margin-top:12px; display:flex; align-items:center; justify-content:center; gap:16px;">
+                    <div style="text-align:center;">
+                        <div style="font-size:10px; color:rgba(255,255,255,0.4); margin-bottom:3px;">En İyi Ay</div>
+                        <div style="font-size:13px; font-weight:700; color:#34d399;" id="resLabBestMonth">--</div>
+                    </div>
+                    <div style="width:1px; height:28px; background:rgba(255,255,255,0.1);"></div>
+                    <div style="text-align:center;">
+                        <div style="font-size:10px; color:rgba(255,255,255,0.4); margin-bottom:3px;">Toplam İşlem</div>
+                        <div style="font-size:13px; font-weight:700; color:#fbbf24;" id="resLabTrades">--</div>
+                    </div>
+                    <div style="width:1px; height:28px; background:rgba(255,255,255,0.1);"></div>
+                    <div style="text-align:center;">
+                        <div style="font-size:10px; color:rgba(255,255,255,0.4); margin-bottom:3px;">Ort. Aylık Kâr</div>
+                        <div style="font-size:13px; font-weight:700; color:#a78bfa;" id="resLabAvgMonthly">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Büyüme Grafiği -->
+            <div class="lab-glass-card" style="margin-top:14px;">
+                <div class="lab-section-label"><i class="fas fa-chart-area" style="margin-right:6px;"></i>Büyüme Eğrisi</div>
+                <div style="height:200px; position:relative;">
+                    <canvas id="labGrowthChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Aylık İlerleme Raporu -->
+            <div class="lab-glass-card" style="margin-top: 14px;">
                 <div class="lab-section-label">Aylık İlerleme Raporu</div>
                 <div id="labListContainer" class="lab-monthly-report"></div>
             </div>
@@ -13117,7 +13196,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -21451,59 +21530,167 @@ function processAndRenderCompact(priceData, mcapData, volData) {
 }
 
 /* --- BÜYÜME (STRATEJİ TESTİ) HESAPLAMA MOTORU --- */
+let labGrowthChartInst = null;
+let labDebounceTimer = null;
+
+function runLabTestDebounced() {
+    clearTimeout(labDebounceTimer);
+    labDebounceTimer = setTimeout(runLabTest, 400);
+}
+
+function applyLabPreset(winPct, winRate, lossPct, freq, duration) {
+    document.getElementById('labWinPct').value = winPct;
+    document.getElementById('labWinRate').value = winRate;
+    document.getElementById('labLossPct').value = lossPct;
+    document.getElementById('labFreq').value = freq;
+    document.getElementById('labDuration').value = duration;
+    // Preset buton aktif işareti
+    document.querySelectorAll('.lab-preset-btn').forEach(b => b.classList.remove('active'));
+    if (event && event.currentTarget) event.currentTarget.classList.add('active');
+    runLabTest();
+}
+
 function runLabTest() {
     // 1. Girdileri Al
     let startBal = parseFloat(document.getElementById('labStart').value);
     let winPct = parseFloat(document.getElementById('labWinPct').value);
     let freq = parseFloat(document.getElementById('labFreq').value);
     let duration = parseFloat(document.getElementById('labDuration').value);
+    let winRateEl = document.getElementById('labWinRate');
+    let lossPctEl = document.getElementById('labLossPct');
+    let winRate = winRateEl ? (parseFloat(winRateEl.value) || 60) / 100 : 0.6;
+    let lossPct = lossPctEl ? (parseFloat(lossPctEl.value) || 1) : 1;
 
-    // 2. Kontrol Et
-    if (isNaN(startBal) || isNaN(winPct) || isNaN(freq) || isNaN(duration)) {
-        alert("Lütfen tüm alanları doldurunuz.");
+    // 2. Kontrol Et - hata mesajı göster
+    const resultsDiv = document.getElementById('labResults');
+    if (isNaN(startBal) || startBal <= 0) {
+        resultsDiv.style.display = 'none';
+        if (typeof showToast === 'function') showToast('danger', 'Eksik Alan', 'Lütfen Başlangıç Sermayesi girin.');
+        return;
+    }
+    if (isNaN(winPct) || winPct <= 0 || isNaN(freq) || freq <= 0 || isNaN(duration) || duration <= 0) {
+        resultsDiv.style.display = 'none';
         return;
     }
 
-    // 3. Hesaplama (Bileşik Getiri Formülü)
-    let totalTrades = freq * 4 * duration; // Haftalık işlem sayısını aya çevir
+    // 3. Deterministik Hesaplama (Win Rate sabit oran olarak uygulanır)
+    // Her işlemde: winRate kadarı kâr, geri kalanı zarar olarak hesaplanır
     let finalBal = startBal;
     let labList = [];
+    let monthlyBalances = [startBal];
+    let bestMonthGain = 0;
+    let totalTrades = Math.round(freq * 4 * duration);
 
     for (let m = 1; m <= duration; m++) {
-        // Her ay içindeki işlemlerin kümülatif etkisi
-        for (let t = 1; t <= (freq * 4); t++) {
-            finalBal = finalBal * (1 + (winPct / 100));
+        let monthStart = finalBal;
+        let tradesPerMonth = Math.round(freq * 4);
+        // Deterministik: her işlem winRate * kâr + (1-winRate) * zarar net etkisi
+        let netMultiplierPerTrade = (1 + winPct / 100) * winRate + (1 - lossPct / 100) * (1 - winRate);
+        for (let t = 0; t < tradesPerMonth; t++) {
+            finalBal = finalBal * netMultiplierPerTrade;
         }
-        
-        // Aylık raporu listeye ekle
+        let monthGain = finalBal - monthStart;
+        if (monthGain > bestMonthGain) bestMonthGain = monthGain;
+
         labList.push({
             month: m,
             balance: finalBal,
-            profit: finalBal - startBal
+            profit: finalBal - startBal,
+            monthGain: monthGain,
+            monthPct: ((monthGain / monthStart) * 100)
+        });
+        monthlyBalances.push(finalBal);
+    }
+
+    let growth = ((finalBal - startBal) / startBal) * 100;
+    let multiple = (finalBal / startBal).toFixed(2);
+    let totalProfit = finalBal - startBal;
+    let avgMonthly = totalProfit / duration;
+
+    // 4. UI Güncelleme
+    document.getElementById('labResults').style.display = 'block';
+    document.getElementById('resLabStart').innerText = Math.round(startBal).toLocaleString('tr-TR') + ' ₺';
+    document.getElementById('resLabEnd').innerText = Math.round(finalBal).toLocaleString('tr-TR') + ' ₺';
+    document.getElementById('resLabProfit').innerText = '+' + Math.round(totalProfit).toLocaleString('tr-TR') + ' ₺';
+    document.getElementById('resLabMultiple').innerText = multiple + 'x';
+    document.getElementById('resLabGrowth').innerText = (growth >= 0 ? '+' : '') + growth.toFixed(1) + '%';
+    document.getElementById('resLabGrowth').style.color = growth >= 0 ? '#fbbf24' : '#f87171';
+    document.getElementById('resLabBestMonth').innerText = '+' + Math.round(bestMonthGain).toLocaleString('tr-TR') + ' ₺';
+    document.getElementById('resLabTrades').innerText = totalTrades + ' işlem';
+    document.getElementById('resLabAvgMonthly').innerText = '+' + Math.round(avgMonthly).toLocaleString('tr-TR') + ' ₺';
+
+    // 5. Grafik
+    const canvas = document.getElementById('labGrowthChart');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (labGrowthChartInst) labGrowthChartInst.destroy();
+        const labels = ['Başlangıç', ...labList.map(l => l.month + '. Ay')];
+        const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+        gradient.addColorStop(0, 'rgba(251,191,36,0.45)');
+        gradient.addColorStop(1, 'rgba(251,191,36,0.0)');
+        labGrowthChartInst = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Bakiye',
+                    data: monthlyBalances,
+                    borderColor: '#fbbf24',
+                    backgroundColor: gradient,
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    pointBackgroundColor: '#0f172a',
+                    pointBorderColor: '#fbbf24',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                animation: false,
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ' ' + Math.round(ctx.parsed.y).toLocaleString('tr-TR') + ' ₺'
+                        }
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 9 }, maxTicksLimit: 7 } },
+                    y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', font: { size: 9 }, callback: v => (v >= 1000000 ? (v/1000000).toFixed(1)+'M' : v >= 1000 ? (v/1000).toFixed(0)+'K' : v) + ' ₺' } }
+                }
+            }
         });
     }
 
-    // 4. UI Güncelleme (Sonuçları Göster)
-    document.getElementById('labResults').style.display = 'block';
-    document.getElementById('resLabStart').innerText = startBal.toLocaleString() + " ₺";
-    document.getElementById('resLabEnd').innerText = Math.round(finalBal).toLocaleString() + " ₺";
-    
-    let growth = ((finalBal - startBal) / startBal) * 100;
-    document.getElementById('resLabGrowth').innerText = "%" + growth.toFixed(0);
-
-    // 5. Aylık İlerleme Listesini Çiz
+    // 6. Aylık İlerleme Listesi
     let container = document.getElementById('labListContainer');
-    container.innerHTML = "";
+    container.innerHTML = '';
+    const maxBal = Math.max(...labList.map(l => l.balance));
     labList.forEach(item => {
+        const barPct = Math.min(100, (item.balance / maxBal) * 100).toFixed(1);
+        const isPos = item.monthGain >= 0;
         container.innerHTML += `
-            <div class="lab-row">
-                <div class="lab-col-left">
-                    <span class="lab-month-badge">${item.month}. AY</span>
-                    <span class="lab-balance-val">${Math.round(item.balance).toLocaleString()} ₺</span>
+            <div class="lab-row" style="flex-direction:column; align-items:stretch; gap:6px; padding:12px 14px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span class="lab-month-badge">${item.month}. AY</span>
+                        <span class="lab-balance-val">${Math.round(item.balance).toLocaleString('tr-TR')} ₺</span>
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+                        <span style="font-size:12px; font-weight:700; color:${isPos ? '#34d399' : '#f87171'};">
+                            ${isPos ? '+' : ''}${Math.round(item.monthGain).toLocaleString('tr-TR')} ₺
+                        </span>
+                        <span style="font-size:10px; color:${isPos ? 'rgba(52,211,153,0.6)' : 'rgba(248,113,113,0.6)'};">
+                            ${isPos ? '▲' : '▼'} ${Math.abs(item.monthPct).toFixed(1)}%
+                        </span>
+                    </div>
                 </div>
-                <div class="lab-col-right">
-                    <span class="lab-profit-lbl">TOPLAM KÂR</span>
-                    <span class="lab-profit-val">+${Math.round(item.profit).toLocaleString()} ₺</span>
+                <div style="height:5px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden;">
+                    <div style="height:100%; width:${barPct}%; border-radius:3px; background:linear-gradient(90deg,rgba(251,191,36,0.4),rgba(251,191,36,0.9)); transition:width 0.4s;"></div>
                 </div>
             </div>`;
     });
