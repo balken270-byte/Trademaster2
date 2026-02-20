@@ -8,10 +8,25 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      # Repoyu indirir (v4 güncel sürümdür)
+      - uses: actions/checkout@v4
+      
+      # Node.js'i kurar
+      - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - run: npm install -g firebase-tools
-      - run: cd functions && npm install
-      - run: firebase deploy --only functions --project tradevia-b9fd0 --token "${{ secrets.FIREBASE_TOKEN }}"
+          
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+        
+      # 'cd functions' yerine GitHub Actions'ın kendi dizin belirtme özelliğini kullanıyoruz
+      - name: Install Functions Dependencies
+        working-directory: ./functions
+        run: npm install
+        
+      # --token parametresi yerine env variables (ortam değişkeni) kullanıyoruz ve etkileşimi kapatıyoruz
+      - name: Deploy to Firebase
+        run: firebase deploy --only functions --project tradevia-b9fd0 --non-interactive
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          
