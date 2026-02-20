@@ -115,7 +115,8 @@ body {
         /* Comment Card */
         .comment-item { display:flex;gap:10px;animation:fadeInComment 0.35s ease; }
         @keyframes fadeInComment { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-        .comment-avatar { width:40px;height:40px;border-radius:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:white;box-shadow:0 4px 12px rgba(0,0,0,0.3); }
+        .comment-avatar { width:40px;height:40px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:white;box-shadow:0 4px 12px rgba(0,0,0,0.3);overflow:hidden; }
+        .comment-avatar img { width:100%;height:100%;object-fit:cover;border-radius:50%; }
         .comment-body { flex:1;min-width:0; }
         .comment-header { display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap; }
         .comment-author { font-size:13px;font-weight:700;color:rgba(255,255,255,0.97); }
@@ -129,7 +130,11 @@ body {
         .img-fullscreen-overlay { position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.96);display:none;align-items:center;justify-content:center; }
         .img-fullscreen-overlay.open { display:flex; }
         .img-fullscreen-overlay img { max-width:96%;max-height:90vh;border-radius:16px;object-fit:contain; }
-        .comment-text { font-size:13.5px;color:rgba(255,255,255,0.88);line-height:1.6;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);padding:11px 14px;border-radius:4px 16px 16px 16px;word-break:break-word; }
+        /* Sohbet balonu tarzı - kutu yok, temiz */
+        .comment-text { font-size:14px;color:rgba(255,255,255,0.88);line-height:1.65;word-break:break-word;display:block;margin-top:4px;padding:0; background:none; border:none; }
+        /* Uzun metin kısalt */
+        .comment-text.truncated { display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;display:block; }
+        .read-more-btn { font-size:11px;color:#818cf8;cursor:pointer;margin-top:4px;display:inline-block;font-weight:600; }
         .comment-actions { display:flex;gap:14px;margin-top:7px;align-items:center; }
         .cmt-like-btn,.cmt-reply-btn { display:flex;align-items:center;gap:4px;font-size:11px;color:rgba(255,255,255,0.35);cursor:pointer;transition:0.2s;background:none;border:none;padding:3px 0; }
         .cmt-like-btn:active,.cmt-reply-btn:active { transform:scale(0.88); }
@@ -137,13 +142,20 @@ body {
         .cmt-like-btn i { font-size:12px; }
         .replies-container { margin-top:10px;margin-left:4px;display:flex;flex-direction:column;gap:8px;border-left:2px solid rgba(99,102,241,0.18);padding-left:10px; }
         .reply-item { display:flex;gap:8px; }
-        .reply-avatar { width:28px;height:28px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;background:linear-gradient(135deg,#6366f1,#8b5cf6); }
-        .reply-bubble { background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:4px 12px 12px 12px;padding:8px 12px;flex:1; }
+        .reply-avatar { width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;background:linear-gradient(135deg,#6366f1,#8b5cf6);overflow:hidden; }
+        .reply-avatar img { width:100%;height:100%;object-fit:cover;border-radius:50%; }
+        .reply-bubble { flex:1;padding:0; background:none; border:none; }
         .reply-author { font-size:11px;font-weight:700;color:#a78bfa;margin-bottom:3px; }
         .reply-text { font-size:12px;color:rgba(255,255,255,0.75);line-height:1.45; }
         .reply-time { font-size:10px;color:rgba(255,255,255,0.3);margin-top:4px; }
         .reply-input-wrap { display:none;margin-top:8px;gap:8px;align-items:center; }
         .reply-input-wrap.visible { display:flex; }
+        /* Gizli yanıtlar */
+        .reply-hidden { display:none; }
+        .md-reply.reply-hidden { display:none; }
+        .show-more-replies { display:inline-flex; align-items:center; gap:5px; font-size:11px; color:#818cf8; cursor:pointer; font-weight:600; margin-top:6px; padding:3px 0; transition:0.2s; }
+        .show-more-replies i { font-size:10px; transition:transform 0.2s; }
+        .show-more-replies.open i { transform:rotate(180deg); }
         .reply-input {
             flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
             border-radius: 12px; color: white; padding: 8px 12px; font-size: 13px;
@@ -253,12 +265,15 @@ body {
         .md-comment-feed::-webkit-scrollbar { display:none; }
 
         .md-comment { display:flex; gap:10px; animation:fadeInComment 0.3s ease; }
-        .md-cmt-av { width:36px; height:36px; border-radius:12px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:white; box-shadow:0 2px 8px rgba(0,0,0,0.25); }
+        .md-cmt-av { width:36px; height:36px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:white; box-shadow:0 2px 8px rgba(0,0,0,0.25); overflow:hidden; }
+        .md-cmt-av img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
         .md-cmt-body { flex:1; min-width:0; }
         .md-cmt-header { display:flex; align-items:center; gap:5px; margin-bottom:4px; flex-wrap:wrap; }
         .md-cmt-author { font-size:13px; font-weight:700; color:rgba(255,255,255,0.95); }
         .md-cmt-time { font-size:10px; color:rgba(255,255,255,0.35); margin-left:auto; white-space:nowrap; }
-        .md-cmt-text { font-size:13px; color:rgba(255,255,255,0.85); line-height:1.55; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); padding:10px 13px; border-radius:4px 14px 14px 14px; word-break:break-word; }
+        .md-cmt-text { font-size:14px; color:rgba(255,255,255,0.85); line-height:1.65; word-break:break-word; display:block; margin-top:4px; padding:0; background:none; border:none; }
+        .md-cmt-text.truncated { display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; }
+        .md-read-more { font-size:11px; color:#818cf8; cursor:pointer; margin-top:4px; display:inline-block; font-weight:600; }
         .md-cmt-img { margin-top:7px; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.07); cursor:pointer; }
         .md-cmt-img img { width:100%; display:block; object-fit:cover; max-height:180px; }
         .md-cmt-actions { display:flex; gap:12px; margin-top:6px; align-items:center; }
@@ -271,8 +286,9 @@ body {
         /* Replies */
         .md-replies { margin-top:8px; padding-left:10px; border-left:2px solid rgba(99,102,241,0.18); display:flex; flex-direction:column; gap:7px; }
         .md-reply { display:flex; gap:7px; }
-        .md-reply-av { width:26px; height:26px; border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:white; background:linear-gradient(135deg,#6366f1,#8b5cf6); }
-        .md-reply-body { flex:1; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:3px 10px 10px 10px; padding:7px 10px; }
+        .md-reply-av { width:26px; height:26px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:white; background:linear-gradient(135deg,#6366f1,#8b5cf6); overflow:hidden; }
+        .md-reply-av img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+        .md-reply-body { flex:1; background:none; border:none; padding:0; }
         .md-reply-name { font-size:11px; font-weight:700; color:#a78bfa; margin-right:6px; }
         .md-reply-time { font-size:10px; color:rgba(255,255,255,0.3); }
         .md-reply-text { font-size:12px; color:rgba(255,255,255,0.75); margin-top:3px; line-height:1.4; }
@@ -285,12 +301,8 @@ body {
         #md-tab-social .md-sent-vote-row { display:none !important; }
         /* Yorumlarda Nötr badge gizli */
         #md-tab-social .badge-neutral { display:none !important; }
-        /* Like/Reply/Delete butonları GİZLİ (sadece okuma modu) */
-        #md-tab-social .md-cmt-actions { display:none !important; }
-        #md-tab-social .md-reply-inp,
-        #md-tab-social .md-replies { display:none !important; }
         /* Yorum alanı daha geniş olsun */
-        .md-comment-feed { max-height:380px !important; }
+        .md-comment-feed { max-height:420px !important; }
         /* Cüzdana git bildirimi */
         .md-wallet-notice {
             display:flex; align-items:center; gap:9px;
@@ -13070,7 +13082,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.0"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -17364,6 +17376,7 @@ function renderMdComments(comments) {
         return;
     }
     var uid = getMdUid();
+    var MAX_CHARS = 200;
     var html = '';
     comments.forEach(function(c) {
         var initial = (c.authorName||'T')[0].toUpperCase();
@@ -17371,14 +17384,55 @@ function renderMdComments(comments) {
         var timeAgo = mdTimeAgo(c.createdAt);
         var likedByMe = (c.likedBy||[]).indexOf(uid) > -1;
         var likeCount = (c.likedBy||[]).length;
+        var isLong = (c.text||'').length > MAX_CHARS;
         var badgeCls = c.sentiment==='bull' ? 'badge-bull' : c.sentiment==='bear' ? 'badge-bear' : '';
         var badgeTxt = c.sentiment==='bull' ? '📈 Yükseliş' : c.sentiment==='bear' ? '📉 Düşüş' : '';
-        var likeCount = (c.likedBy||[]).length;
         var imgHtml = c.imageBase64 ? '<div class="md-cmt-img"><img src="'+c.imageBase64+'" loading="lazy"></div>' : '';
-        var avInner = c.photoURL
-            ? '<img src="'+c.photoURL+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
-            : initial;
-        var avStyle = c.photoURL ? 'overflow:hidden;padding:0;border-radius:50%' : 'background:'+aColor;
+        
+        // Avatar
+        var avInner = c.photoURL ? '<img src="'+c.photoURL+'">' : initial;
+        var avStyle = c.photoURL ? '' : 'background:'+aColor;
+        
+        // Uzun metin
+        var escapedText = mdEsc(c.text);
+        var textHtml = isLong
+            ? '<div class="md-cmt-text truncated" id="mdcmt-'+c.id+'">'+escapedText+'</div><span class="md-read-more" onclick="mdToggleReadMore(\''+c.id+'\')">Devamını gör</span>'
+            : '<div class="md-cmt-text">'+escapedText+'</div>';
+
+        // Yanıtlar — ilk görünsün, diğerleri gizli
+        var repliesHtml = '';
+        if (c.replies && c.replies.length > 0) {
+            repliesHtml = '<div class="md-replies">';
+            c.replies.forEach(function(r, idx) {
+                var rInit = (r.authorName||'T')[0].toUpperCase();
+                var rAvInner = r.photoURL ? '<img src="'+r.photoURL+'">' : rInit;
+                var rAvStyle = r.photoURL ? '' : 'background:'+getMdAvatarColor(r.authorName||'T');
+                var hiddenCls = idx > 0 ? ' reply-hidden' : '';
+                repliesHtml += '<div class="md-reply'+hiddenCls+'">'
+                    + '<div class="md-reply-av" style="'+rAvStyle+'">'+rAvInner+'</div>'
+                    + '<div class="md-reply-body">'
+                    + '<span class="md-reply-name">'+mdEsc(r.authorName||'Trader')+'</span>'
+                    + '<span class="md-reply-time">'+mdTimeAgo(r.createdAt)+'</span>'
+                    + '<div class="md-reply-text">'+mdEsc(r.text)+'</div>'
+                    + '</div></div>';
+            });
+            if (c.replies.length > 1) {
+                repliesHtml += '<span class="show-more-replies" onclick="mdToggleReplies(\''+c.id+'\', '+(c.replies.length-1)+')">'
+                    + '<i class="fas fa-chevron-down"></i> '+(c.replies.length-1)+' yanıt daha</span>';
+            }
+            repliesHtml += '</div>';
+        }
+
+        // Like sayısı
+        var likeHtml = likeCount > 0 ? '<div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:5px;display:flex;align-items:center;gap:4px"><i class="fas fa-heart" style="color:#f87171;font-size:10px"></i>'+likeCount+'</div>' : '';
+
+        // Aksiyonlar
+        var actionsHtml = '<div class="md-cmt-actions">'
+            + '<button class="md-act-btn'+(likedByMe?' liked':'')+'" onclick="mdLikeComment(\''+c.id+'\')"><i class="fas fa-heart"></i>'+(likeCount>0?' '+likeCount:'')+'</button>'
+            + '<button class="md-act-btn" onclick="mdToggleReply(\''+c.id+'\')"><i class="fas fa-reply"></i> Yanıtla</button>'
+            + (c.authorId===uid ? '<button class="md-act-btn del" onclick="mdDeleteComment(\''+c.id+'\')"><i class="fas fa-trash"></i></button>' : '')
+            + '</div>';
+
         html += '<div class="md-comment" id="mdc-'+c.id+'">'
             + '<div class="md-cmt-av" style="'+avStyle+'">'+avInner+'</div>'
             + '<div class="md-cmt-body">'
@@ -17387,14 +17441,48 @@ function renderMdComments(comments) {
             +     (badgeCls ? '<span class="comment-badge '+badgeCls+'">'+badgeTxt+'</span>' : '')
             +     '<span class="md-cmt-time">'+timeAgo+'</span>'
             +   '</div>'
-            +   '<div class="md-cmt-text">'+mdEsc(c.text)+'</div>'
+            +   textHtml
             +   imgHtml
-            +   (likeCount > 0 ? '<div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:5px;display:flex;align-items:center;gap:4px"><i class="fas fa-heart" style="color:#f87171;font-size:10px"></i>'+likeCount+'</div>' : '')
+            +   actionsHtml
+            +   repliesHtml
+            +   '<div class="md-reply-inp" id="mdRepWrap-'+c.id+'">'
+            +     '<input class="md-rep-input" id="mdRepInp-'+c.id+'" placeholder="Yanıtını yaz..." onkeydown="if(event.keyCode===13)mdPostReply(\''+c.id+'\')">'
+            +     '<button class="md-rep-send" onclick="mdPostReply(\''+c.id+'\')"><i class="fas fa-paper-plane"></i></button>'
+            +   '</div>'
             + '</div>'
             + '</div>';
     });
     feed.innerHTML = html;
 }
+
+window.mdToggleReadMore = function(id) {
+    var el = document.getElementById('mdcmt-' + id);
+    var btn = el ? el.nextElementSibling : null;
+    if (!el || !btn) return;
+    if (el.classList.contains('truncated')) {
+        el.classList.remove('truncated');
+        btn.textContent = 'Daha az göster';
+    } else {
+        el.classList.add('truncated');
+        btn.textContent = 'Devamını gör';
+    }
+};
+
+window.mdToggleReplies = function(commentId, count) {
+    var container = document.querySelector('#mdc-' + commentId + ' .md-replies');
+    if (!container) return;
+    var btn = container.querySelector('.show-more-replies');
+    var isOpen = btn && btn.classList.contains('open');
+    if (isOpen) {
+        container.querySelectorAll('.md-reply.reply-hidden, .md-reply:not(:first-child)').forEach(function(el) {
+            el.style.display = 'none';
+        });
+        if (btn) { btn.classList.remove('open'); btn.innerHTML = '<i class="fas fa-chevron-down"></i> ' + count + ' yanıt daha'; }
+    } else {
+        container.querySelectorAll('.md-reply').forEach(function(el) { el.style.display = 'flex'; el.classList.remove('reply-hidden'); });
+        if (btn) { btn.classList.add('open'); btn.innerHTML = '<i class="fas fa-chevron-up"></i> Yanıtları gizle'; }
+    }
+};
 
 window.mdVoteSentiment = function(type) {
     var uid = getMdUid();
@@ -26311,6 +26399,7 @@ setTimeout(function() {
         
         const uid = getUserId();
         let html = '';
+        const MAX_CHARS = 200;
         
         comments.forEach(c => {
             const initial = (c.authorName || 'T')[0].toUpperCase();
@@ -26318,45 +26407,67 @@ setTimeout(function() {
             const timeAgo = formatTimeAgo(c.createdAt);
             const likedByMe = (c.likedBy || []).includes(uid);
             const likeCount = (c.likedBy || []).length;
+            const isLong = (c.text || '').length > MAX_CHARS;
+            
+            // Avatar: profil resmi varsa göster, yoksa baş harf
+            const avatarInner = c.photoURL
+                ? `<img src="${c.photoURL}" alt="${escapeHtml(c.authorName||'')}">`
+                : initial;
+            const avatarStyle = c.photoURL ? '' : `background:${avatarColor}`;
             
             let badgeHtml = '';
             if (c.sentiment === 'bull') badgeHtml = '<span class="comment-badge badge-bull">🚀 YÜKSELIŞ</span>';
             else if (c.sentiment === 'bear') badgeHtml = '<span class="comment-badge badge-bear">🐻 DÜŞÜŞ</span>';
             else badgeHtml = '<span class="comment-badge badge-neutral">😐 NÖTR</span>';
             
-            // Replies
+            // Yanıtlar — ilk görünsün, diğerleri gizli
             let repliesHtml = '';
             if (c.replies && c.replies.length > 0) {
                 repliesHtml = '<div class="replies-container">';
-                c.replies.forEach(r => {
+                c.replies.forEach((r, idx) => {
                     const rInitial = (r.authorName || 'T')[0].toUpperCase();
-                    repliesHtml += `<div class="reply-item">
-                        <div class="reply-avatar" style="background:${getAvatarColor(r.authorName||'T')}">${rInitial}</div>
+                    const rAvatarInner = r.photoURL ? `<img src="${r.photoURL}">` : rInitial;
+                    const rAvatarStyle = r.photoURL ? '' : `background:${getAvatarColor(r.authorName||'T')}`;
+                    const hiddenClass = idx > 0 ? ' reply-hidden' : '';
+                    repliesHtml += `<div class="reply-item${hiddenClass}">
+                        <div class="reply-avatar" style="${rAvatarStyle}">${rAvatarInner}</div>
                         <div class="reply-bubble">
-                            <div class="reply-author">${r.authorName}</div>
+                            <div class="reply-author">${escapeHtml(r.authorName)}</div>
                             <div class="reply-text">${escapeHtml(r.text)}</div>
                             <div class="reply-time">${formatTimeAgo(r.createdAt)}</div>
                         </div>
                     </div>`;
                 });
+                if (c.replies.length > 1) {
+                    repliesHtml += `<span class="show-more-replies" onclick="toggleReplies('${c.id}', ${c.replies.length - 1})">
+                        <i class="fas fa-chevron-down"></i> ${c.replies.length - 1} yanıt daha
+                    </span>`;
+                }
                 repliesHtml += '</div>';
             }
             
-            // Image HTML
+            // Görsel
             var imageHtml = '';
             if (c.imageBase64) {
                 imageHtml = '<div class="comment-image-wrap" onclick="openFullscreenImg(this.querySelector(\'img\').src)"><img src="' + c.imageBase64 + '" loading="lazy"></div>';
             }
 
+            // Uzun metin
+            const textContent = escapeHtml(c.text);
+            const textHtml = isLong
+                ? `<div class="comment-text truncated" id="cmt-text-${c.id}">${textContent}</div>
+                   <span class="read-more-btn" onclick="toggleReadMore('${c.id}')">Devamını gör</span>`
+                : `<div class="comment-text">${textContent}</div>`;
+
             html += `<div class="comment-item" id="comment-${c.id}">
-                <div class="comment-avatar" style="background:${avatarColor}">${initial}</div>
+                <div class="comment-avatar" style="${avatarStyle}">${avatarInner}</div>
                 <div class="comment-body">
                     <div class="comment-header">
                         <span class="comment-author">${escapeHtml(c.authorName || 'Trader')}</span>
                         ${badgeHtml}
                         <span class="comment-time">${timeAgo}</span>
                     </div>
-                    <div class="comment-text">${escapeHtml(c.text)}</div>
+                    ${textHtml}
                     ${imageHtml}
                     <div class="comment-actions">
                         <button class="cmt-like-btn ${likedByMe ? 'liked' : ''}" onclick="toggleCommentLike('${c.id}')">
@@ -26378,6 +26489,35 @@ setTimeout(function() {
         
         feed.innerHTML = html;
     }
+
+    // Uzun metin aç/kapat
+    window.toggleReadMore = function(id) {
+        var el = document.getElementById('cmt-text-' + id);
+        var btn = el ? el.nextElementSibling : null;
+        if (!el || !btn) return;
+        if (el.classList.contains('truncated')) {
+            el.classList.remove('truncated');
+            btn.textContent = 'Daha az göster';
+        } else {
+            el.classList.add('truncated');
+            btn.textContent = 'Devamını gör';
+        }
+    };
+
+    window.toggleReplies = function(commentId, count) {
+        var container = document.querySelector('#comment-' + commentId + ' .replies-container');
+        if (!container) return;
+        var hidden = container.querySelectorAll('.reply-hidden');
+        var btn = container.querySelector('.show-more-replies');
+        var isOpen = btn && btn.classList.contains('open');
+        if (isOpen) {
+            hidden.forEach(function(el) { el.style.display = 'none'; el.classList.add('reply-hidden'); });
+            if (btn) { btn.classList.remove('open'); btn.innerHTML = '<i class="fas fa-chevron-down"></i> ' + count + ' yanıt daha'; }
+        } else {
+            container.querySelectorAll('.reply-item').forEach(function(el) { el.style.display = 'flex'; el.classList.remove('reply-hidden'); });
+            if (btn) { btn.classList.add('open'); btn.innerHTML = '<i class="fas fa-chevron-up"></i> Yanıtları gizle'; }
+        }
+    };
     
     function escapeHtml(str) {
         if (!str) return '';
