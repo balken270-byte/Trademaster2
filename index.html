@@ -13083,7 +13083,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -26219,7 +26219,29 @@ setTimeout(function() {
         
         // Reset state
         currentCommentSentiment = 'neutral';
-        document.getElementById('commentTextarea').value = '';
+        var cTextarea = document.getElementById('commentTextarea');
+        cTextarea.value = '';
+        // Giriş kontrolü: üye değilse textarea devre dışı
+        var panelUser = typeof fbAuth !== 'undefined' && fbAuth.currentUser;
+        if (!panelUser) {
+            cTextarea.placeholder = 'Yorum yapmak için giriş yapmalısınız...';
+            cTextarea.disabled = true;
+            cTextarea.style.opacity = '0.45';
+            cTextarea.style.cursor = 'not-allowed';
+            var imgBtn = document.querySelector('.comment-img-btn');
+            var sendBtn = document.getElementById('commentSendBtn');
+            if (imgBtn) { imgBtn.disabled = true; imgBtn.style.opacity = '0.45'; }
+            if (sendBtn) { sendBtn.disabled = true; sendBtn.style.opacity = '0.45'; }
+        } else {
+            cTextarea.placeholder = 'Analizini paylaş...';
+            cTextarea.disabled = false;
+            cTextarea.style.opacity = '';
+            cTextarea.style.cursor = '';
+            var imgBtn2 = document.querySelector('.comment-img-btn');
+            var sendBtn2 = document.getElementById('commentSendBtn');
+            if (imgBtn2) { imgBtn2.disabled = false; imgBtn2.style.opacity = ''; }
+            if (sendBtn2) { sendBtn2.disabled = false; sendBtn2.style.opacity = ''; }
+        }
         selectCommentSentiment('neutral');
         document.getElementById('socialFeed').innerHTML = renderSkeletons(4);
         
@@ -26672,6 +26694,13 @@ setTimeout(function() {
 
     // ---- POST COMMENT ----
     window.postComment = function() {
+        // Üyelik kontrolü: giriş yapılmamışsa engelle
+        const currentUserCheck = typeof fbAuth !== 'undefined' && fbAuth.currentUser;
+        if (!currentUserCheck) {
+            if (typeof showToast === 'function') showToast('danger', 'Giriş Gerekli', 'Yorum yapabilmek için giriş yapmalısınız.');
+            return;
+        }
+        
         const textarea = document.getElementById('commentTextarea');
         const text = textarea.value.trim();
         if (!text || text.length < 2) {
@@ -26690,12 +26719,17 @@ setTimeout(function() {
         const uid = getUserId();
         const authorName = getDisplayName();
         
+        // Giriş yapmış kullanıcının profil fotoğrafını al
+        const currentUser = typeof fbAuth !== 'undefined' && fbAuth.currentUser;
+        const photoURL = (currentUser && currentUser.photoURL) ? currentUser.photoURL : null;
+        
         var payload = {
             symbol: currentSocialSymbol, text: text, sentiment: currentCommentSentiment,
             authorId: uid, authorName: authorName,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             likedBy: [], replies: []
         };
+        if (photoURL) payload.photoURL = photoURL;
         if (currentCommentImageBase64) payload.imageBase64 = currentCommentImageBase64;
         fbDb.collection('social_comments').add(payload).then(function() {
             textarea.value = '';
@@ -26760,6 +26794,13 @@ setTimeout(function() {
     };
     
     window.postReply = function(commentId) {
+        // Üyelik kontrolü
+        const replyUserCheck = typeof fbAuth !== 'undefined' && fbAuth.currentUser;
+        if (!replyUserCheck) {
+            if (typeof showToast === 'function') showToast('danger', 'Giriş Gerekli', 'Yanıt yazabilmek için giriş yapmalısınız.');
+            return;
+        }
+        
         const input = document.getElementById('replyInput-' + commentId);
         if (!input) return;
         const text = input.value.trim();
@@ -26767,12 +26808,15 @@ setTimeout(function() {
         
         const uid = getUserId();
         const authorName = getDisplayName();
+        const replyCurrentUser = typeof fbAuth !== 'undefined' && fbAuth.currentUser;
+        const replyPhotoURL = (replyCurrentUser && replyCurrentUser.photoURL) ? replyCurrentUser.photoURL : null;
         const reply = {
             authorId: uid,
             authorName: authorName,
             text: text,
             createdAt: firebase.firestore.Timestamp.now()
         };
+        if (replyPhotoURL) reply.photoURL = replyPhotoURL;
         
         fbDb.collection('social_comments').doc(commentId).update({
             replies: firebase.firestore.FieldValue.arrayUnion(reply)
