@@ -4518,7 +4518,7 @@ input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
     <div class="trade-header collapsible-header" onclick="toggleTradeMenu()">
                 <div class="trade-title">
                     <i class="fas fa-chevron-down rotate-icon" id="tradeChevron" style="font-size:12px; margin-right:5px; color:var(--text-sub);"></i>
-                    <i class="fas fa-bolt" style="color:var(--gold)"></i> Hızlı İşlem
+                    Hızlı İşlem
                 </div>
                 <button id="currencyToggle" class="currency-toggle-btn active-try" onclick="event.stopPropagation(); toggleEntryCurrency()">₺</button>
             </div>
@@ -13083,7 +13083,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.3"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -13967,21 +13967,8 @@ function renderPortfolioHTML(as) {
         let chartId = `mini_chart_${a.originalIndex}`; 
         let percentBadge = `<span id="live_pct_${a.originalIndex}" style="font-size:10px; opacity:0.8; margin-right:4px;">(%${a.pnlPercent.toFixed(1)})</span>`; 
         
-        // --- YENİ ETİKET MANTIĞI BURADA ---
+        // --- ETİKET GİZLENDİ ---
         let sourceBadge = "";
-        if(a.source) {
-            let sColor = "#94a3b8"; // Varsayılan Gri
-            let sText = a.source;
-            
-            if(a.source === 'CG' || a.source.includes('RANK')) { sColor = "#8bc34a"; sText = "GECKO"; } // Yeşil
-            else if(a.source === 'BINANCE') { sColor = "#f59e0b"; } // Turuncu
-            else if(a.source === 'BIST') { sColor = "#3b82f6"; } // Mavi
-            else if(a.source === 'YAHOO') { sColor = "#8b5cf6"; } // Mor
-            
-            sourceBadge = `<span style="font-size:8px; font-weight:800; background:${sColor}20; color:${sColor}; padding:2px 6px; border-radius:4px; margin-left:6px; letter-spacing:0.5px;">${sText}</span>`;
-        }
-        
-        
         // ----------------------------------
 
             htmlBuilder += `<div class="${cardColorClass}" id="card_bg_${a.originalIndex}">
@@ -14562,20 +14549,9 @@ function debouncedPreview(val) {
         
         if (res.price > 0) { 
             let sym = res.origin === 'USD' ? '$' : '₺'; 
-            let sourceColor = "var(--text-sub)";
-            let sourceText = res.source || "PİYASA";
-
-            // Kaynağa göre renkler
-            if(sourceText === 'CG') { sourceText = "COINGECKO"; sourceColor = "#8bc34a"; }
-            else if(sourceText === 'BINANCE') { sourceColor = "#f59e0b"; }
-            else if(sourceText === 'BIST') { sourceColor = "#3b82f6"; }
-            else if(sourceText.includes('MASSIVE')) { sourceColor = "#06b6d4"; }
 
             infoDiv.innerHTML = `
-                <span style="color:var(--success); font-weight:700;">
-                    ${val.toUpperCase()} 
-                    <span style="font-size:9px; background:${sourceColor}20; color:${sourceColor}; padding:2px 5px; border-radius:4px; margin-left:5px;">${sourceText}</span>
-                </span>
+                <span style="color:var(--success); font-weight:700;">${val.toUpperCase()}</span>
                 <span style="color:white; margin-left:5px;">
                     : ${sym}${res.price.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:6})}
                 </span>`; 
