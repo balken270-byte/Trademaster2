@@ -133,7 +133,7 @@ body {
         /* Sohbet balonu tarzı - kutu yok, temiz */
         .comment-text { font-size:14px;color:rgba(255,255,255,0.88);line-height:1.65;word-break:break-word;display:block;margin-top:4px;padding:0; background:none; border:none; }
         /* Uzun metin kısalt */
-        .comment-text.truncated { display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;display:block; }
+        .comment-text.truncated { display:-webkit-box !important;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden; }
         .read-more-btn { font-size:11px;color:#818cf8;cursor:pointer;margin-top:4px;display:inline-block;font-weight:600; }
         .comment-actions { display:flex;gap:14px;margin-top:7px;align-items:center; }
         .cmt-like-btn,.cmt-reply-btn { display:flex;align-items:center;gap:4px;font-size:11px;color:rgba(255,255,255,0.35);cursor:pointer;transition:0.2s;background:none;border:none;padding:3px 0; }
@@ -13083,7 +13083,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.4"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -17475,12 +17475,11 @@ window.mdToggleReplies = function(commentId, count) {
     var btn = container.querySelector('.show-more-replies');
     var isOpen = btn && btn.classList.contains('open');
     if (isOpen) {
-        container.querySelectorAll('.md-reply.reply-hidden, .md-reply:not(:first-child)').forEach(function(el) {
-            el.style.display = 'none';
-        });
+        var all = container.querySelectorAll('.md-reply');
+        all.forEach(function(el, idx) { if (idx > 0) el.style.display = 'none'; });
         if (btn) { btn.classList.remove('open'); btn.innerHTML = '<i class="fas fa-chevron-down"></i> ' + count + ' yanıt daha'; }
     } else {
-        container.querySelectorAll('.md-reply').forEach(function(el) { el.style.display = 'flex'; el.classList.remove('reply-hidden'); });
+        container.querySelectorAll('.md-reply').forEach(function(el) { el.style.display = 'flex'; });
         if (btn) { btn.classList.add('open'); btn.innerHTML = '<i class="fas fa-chevron-up"></i> Yanıtları gizle'; }
     }
 };
@@ -26508,14 +26507,14 @@ setTimeout(function() {
     window.toggleReplies = function(commentId, count) {
         var container = document.querySelector('#comment-' + commentId + ' .replies-container');
         if (!container) return;
-        var hidden = container.querySelectorAll('.reply-hidden');
         var btn = container.querySelector('.show-more-replies');
         var isOpen = btn && btn.classList.contains('open');
+        var hiddenItems = container.querySelectorAll('.reply-item.reply-hidden, .reply-item:not(:first-child)');
         if (isOpen) {
-            hidden.forEach(function(el) { el.style.display = 'none'; el.classList.add('reply-hidden'); });
+            hiddenItems.forEach(function(el) { el.style.display = 'none'; });
             if (btn) { btn.classList.remove('open'); btn.innerHTML = '<i class="fas fa-chevron-down"></i> ' + count + ' yanıt daha'; }
         } else {
-            container.querySelectorAll('.reply-item').forEach(function(el) { el.style.display = 'flex'; el.classList.remove('reply-hidden'); });
+            container.querySelectorAll('.reply-item').forEach(function(el) { el.style.display = 'flex'; });
             if (btn) { btn.classList.add('open'); btn.innerHTML = '<i class="fas fa-chevron-up"></i> Yanıtları gizle'; }
         }
     };
