@@ -13083,7 +13083,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -13177,7 +13177,7 @@ if ('serviceWorker' in navigator) {
     
 /* --- AYARLAR VE GLOBAL DEĞİŞKENLER --- */
         
-const AUTO_CG_KEY = "CG-ufWXFF5T5UzW7J7SmKAf5eoN";
+const AUTO_CG_KEY = "CG-G2hRKmRzcPTYJUA3L79dg8Ta";
 let coingeckoApiKey = AUTO_CG_KEY; 
   
 let notifySettings = JSON.parse(localStorage.getItem('tm_notify_settings')) || {
@@ -16612,7 +16612,7 @@ function exportComprehensiveReport() {
         if (profileImg && userProfile.img && !fbAuth.currentUser) profileImg.src = userProfile.img; // Sadece giriş yoksa
     }
     function saveProfileData() { let name = document.getElementById('profileNameInput').value; let bio = document.getElementById('profileBioInput').value; if(name) userProfile.name = name; if(bio) userProfile.bio = bio; localStorage.setItem('tm_user_profile', JSON.stringify(userProfile)); loadProfile(); addNotification('success', 'Profil', 'Bilgileriniz güncellendi.'); }
-    function uploadProfileImg(input) { if (input.files && input.files[0]) { var reader = new FileReader(); reader.onload = function (e) { try { userProfile.img = e.target.result; localStorage.setItem('tm_user_profile', JSON.stringify(userProfile)); document.getElementById('displayProfileImg').src = userProfile.img; addNotification('success', 'Fotoğraf', 'Profil fotoğrafı yüklendi.'); } catch (error) { addNotification('danger', 'Hata', 'Fotoğraf boyutu çok büyük!'); } }; reader.readAsDataURL(input.files[0]); } }
+    function uploadProfileImg(input) { if (input.files && input.files[0]) { var reader = new FileReader(); reader.onload = function (e) { try { userProfile.img = e.target.result; localStorage.setItem('tm_user_profile', JSON.stringify(userProfile)); document.getElementById('displayProfileImg').src = userProfile.img; // Firestore'a da kaydet var uid = fbAuth.currentUser ? fbAuth.currentUser.uid : null; if (uid) { fbDb.collection('users').doc(uid).set({ photoURL: e.target.result }, { merge: true }).catch(function(){}); } addNotification('success', 'Fotoğraf', 'Profil fotoğrafı yüklendi.'); } catch (error) { addNotification('danger', 'Hata', 'Fotoğraf boyutu çok büyük!'); } }; reader.readAsDataURL(input.files[0]); } }
         function switchMarketMode(mode, btn){ 
         document.querySelectorAll('.vt-btn').forEach(b => b.classList.remove('active')); 
         if(btn) btn.classList.add('active'); 
@@ -17560,8 +17560,14 @@ window.mdPostReply = function(id) {
     if (!text) return;
     var uid = getMdUid();
     var name = getMdName();
+    var mdRepPhoto = (function() {
+        var u = fbAuth.currentUser;
+        if (u && u.photoURL) return u.photoURL;
+        try { var p = JSON.parse(localStorage.getItem('tm_user_profile')||'{}'); if(p.img) return p.img; } catch(e){}
+        return '';
+    })();
     fbDb.collection('social_comments').doc(id).update({
-        replies: firebase.firestore.FieldValue.arrayUnion({ authorId:uid, authorName:name, text:text, createdAt:firebase.firestore.Timestamp.now() })
+        replies: firebase.firestore.FieldValue.arrayUnion({ authorId:uid, authorName:name, photoURL: mdRepPhoto, text:text, createdAt:firebase.firestore.Timestamp.now() })
     }).then(function() {
         inp.value = '';
         var wrap = document.getElementById('mdRepWrap-'+id);
@@ -17645,9 +17651,16 @@ window.mdPostComment = function() {
     if (!text || !mdSocialSymbol) { ta.style.borderColor='rgba(239,68,68,0.6)'; setTimeout(function(){ta.style.borderColor='';},1500); return; }
     var uid = getMdUid();
     var name = getMdName();
+    var photoURL = (function() {
+        var u = fbAuth.currentUser;
+        if (u && u.photoURL) return u.photoURL;
+        try { var p = JSON.parse(localStorage.getItem('tm_user_profile')||'{}'); if(p.img) return p.img; } catch(e){}
+        return '';
+    })();
     var payload = {
         symbol: mdSocialSymbol, text: text, sentiment: mdSocialSentiment,
         authorId: uid, authorName: name,
+        photoURL: photoURL,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         likedBy: [], replies: []
     };
@@ -26163,7 +26176,7 @@ setTimeout(function() {
         }
         return name;
     }
-    
+
     function getUserId() {
         const user = typeof fbAuth !== 'undefined' && fbAuth.currentUser;
         if (user) return user.uid;
@@ -26173,6 +26186,19 @@ setTimeout(function() {
             localStorage.setItem('socialAnonId', uid);
         }
         return uid;
+    }
+
+    // Profil fotoğrafını al — önce localStorage, yoksa Firebase Auth
+    function getPhotoURL() {
+        const user = typeof fbAuth !== 'undefined' && fbAuth.currentUser;
+        // Firebase Auth'ta varsa (Google girişi)
+        if (user && user.photoURL) return user.photoURL;
+        // localStorage'da yüklenen fotoğraf varsa
+        try {
+            const profile = JSON.parse(localStorage.getItem('tm_user_profile') || '{}');
+            if (profile.img) return profile.img;
+        } catch(e) {}
+        return '';
     }
     
     function getAvatarColor(name) {
@@ -26689,10 +26715,12 @@ setTimeout(function() {
         
         const uid = getUserId();
         const authorName = getDisplayName();
+        const photoURL = getPhotoURL();
         
         var payload = {
             symbol: currentSocialSymbol, text: text, sentiment: currentCommentSentiment,
             authorId: uid, authorName: authorName,
+            photoURL: photoURL,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             likedBy: [], replies: []
         };
@@ -26767,9 +26795,11 @@ setTimeout(function() {
         
         const uid = getUserId();
         const authorName = getDisplayName();
+        const photoURL = getPhotoURL();
         const reply = {
             authorId: uid,
             authorName: authorName,
+            photoURL: photoURL,
             text: text,
             createdAt: firebase.firestore.Timestamp.now()
         };
