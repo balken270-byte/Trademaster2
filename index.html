@@ -30,6 +30,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCqXkIAaDXMvXyZXStRtAU_mVZCZiDjriA",
@@ -13069,7 +13070,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.4"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -24838,26 +24839,92 @@ document.addEventListener('DOMContentLoaded', function() {
    ═══════════════════════════════════════════════════════════ */
 
 // --- Auth State Listener ---
+// ===== FCM TOKEN ALMA =====
+async function initFCM(uid) {
+    try {
+        if (!('Notification' in window)) return;
+        if (!firebase.messaging) return;
+        const messaging = firebase.messaging();
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') return;
+        const token = await messaging.getToken({
+            vapidKey: 'BItUWr6Qk6tgDrb1V1MGPyIGYP9pksfJbNTGsfjETUgIm7ds48SvBK-OQPnHzdRSxewba1Eb6kavwlT5WJ7shNY',
+            serviceWorkerRegistration: await navigator.serviceWorker.register('./sw.js')
+        });
+        if (token && uid) {
+            await fbDb.collection('users').doc(uid).set({ fcmToken: token }, { merge: true });
+            console.log('FCM token kaydedildi');
+        }
+    } catch(e) {
+        console.warn('FCM init hatası:', e);
+    }
+}
+
 // ===== SOSYAL BİLDİRİM DİNLEYİCİSİ =====
 var _socialNotifUnsub = null;
-var _socialNotifSeen = 0;
+
+function showPushNotification(title, msg) {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'granted') {
+        try {
+            if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.ready.then(function(reg) {
+                    reg.showNotification(title, {
+                        body: msg,
+                        icon: '/apple-touch-icon.svg',
+                        badge: '/apple-touch-icon.svg',
+                        tag: 'social-notif',
+                        renotify: true,
+                        vibrate: [200, 100, 200]
+                    });
+                }).catch(function() {
+                    new Notification(title, { body: msg, icon: '/apple-touch-icon.svg' });
+                });
+            } else {
+                new Notification(title, { body: msg, icon: '/apple-touch-icon.svg' });
+            }
+        } catch(e) { console.warn('Push notif error:', e); }
+    }
+    // Android WebView desteği
+    if (window.Android && window.Android.showNotification) {
+        window.Android.showNotification(title, msg);
+    }
+}
+
+function addToNotifCenter(title, msg) {
+    if (!window.notifications) window.notifications = JSON.parse(localStorage.getItem('tm_notifications') || '[]');
+    var nItem = { type: 'info', title: title, msg: msg, time: new Date().toLocaleTimeString(), read: false };
+    window.notifications.unshift(nItem);
+    if (window.notifications.length > 50) window.notifications.pop();
+    localStorage.setItem('tm_notifications', JSON.stringify(window.notifications));
+    if (typeof window.updateBadge === 'function') window.updateBadge();
+    var pageNotif = document.getElementById('page-notifications');
+    if (pageNotif && pageNotif.classList.contains('active') && typeof window.renderNotifications === 'function') {
+        window.renderNotifications();
+    }
+}
 
 function startSocialNotifListener(uid) {
     if (_socialNotifUnsub) { _socialNotifUnsub(); _socialNotifUnsub = null; }
     if (!uid) return;
-    _socialNotifSeen = Date.now();
+
+    // Sadece okunmamış bildirimleri çek — listener başladığı andan itibaren
+    var listenerStartTime = firebase.firestore.Timestamp.now();
 
     _socialNotifUnsub = fbDb.collection('notifications')
         .where('recipientId', '==', uid)
+        .where('read', '==', false)
         .onSnapshot(function(snap) {
             snap.docChanges().forEach(function(change) {
                 if (change.type !== 'added') return;
                 var d = change.doc.data();
-                if (d.read === true) return;
+                
+                // Listener başlamadan önce yazılmış eski bildirimleri atla
                 var ts = d.createdAt
                     ? (d.createdAt.toMillis ? d.createdAt.toMillis() : (d.createdAt.seconds || 0) * 1000)
                     : 0;
-                if (ts > 0 && ts < _socialNotifSeen - 5000) return;
+                var startMs = listenerStartTime.toMillis ? listenerStartTime.toMillis() : listenerStartTime.seconds * 1000;
+                if (ts > 0 && ts < startMs - 10000) return;
 
                 var title = '🔔 Bildirim';
                 var msg = '';
@@ -24872,42 +24939,19 @@ function startSocialNotifListener(uid) {
                 }
                 if (!msg) return;
 
-                // Uygulama içi toast
+                // 1) Uygulama içi toast
                 if (typeof showToast === 'function') showToast('info', title, msg, 6000);
 
-                // Bildirim merkezine kaydet - DOĞRUDAN notifications dizisine ekle
-                // Bildirim merkezine direkt window üzerinden ekle (farklı script bloğu sorununu aşar)
-                if (!window.notifications) window.notifications = JSON.parse(localStorage.getItem('tm_notifications') || '[]');
-                var nItem = { type: 'info', title: title, msg: msg, time: new Date().toLocaleTimeString(), read: false };
-                window.notifications.unshift(nItem);
-                if (window.notifications.length > 50) window.notifications.pop();
-                localStorage.setItem('tm_notifications', JSON.stringify(window.notifications));
-                if (typeof window.updateBadge === 'function') window.updateBadge();
-                var pageNotif = document.getElementById('page-notifications');
-                if (pageNotif && pageNotif.classList.contains('active') && typeof window.renderNotifications === 'function') {
-                    window.renderNotifications();
-                }
+                // 2) Bildirim merkezine ekle
+                addToNotifCenter(title, msg);
 
-                // Telefon bildirim çubuğu
-                if ('Notification' in window && Notification.permission === 'granted') {
-                    try {
-                        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-                            navigator.serviceWorker.ready.then(function(reg) {
-                                reg.showNotification(title, { body: msg, icon: 'ikon.png', badge: 'ikon.png', tag: 'social', renotify: true });
-                            }).catch(function() {
-                                new Notification(title, { body: msg, icon: 'ikon.png' });
-                            });
-                        } else {
-                            new Notification(title, { body: msg, icon: 'ikon.png' });
-                        }
-                    } catch(e) {}
-                }
-                if (window.Android && window.Android.showNotification) {
-                    window.Android.showNotification(title, msg);
-                }
+                // 3) Telefon çubuğuna push
+                showPushNotification(title, msg);
 
-                // Okundu işaretle
-                setTimeout(function() { change.doc.ref.update({ read: true }).catch(function(){}); }, 3000);
+                // 4) Firestore'da okundu işaretle (3 sn sonra)
+                setTimeout(function() {
+                    change.doc.ref.update({ read: true }).catch(function(){});
+                }, 3000);
             });
         }, function(err) {
             console.warn('Sosyal bildirim hatası:', err.code, err.message);
@@ -24927,18 +24971,31 @@ fbAuth.onAuthStateChanged(function(user) {
             }, 500);
         }
 
-        // Sosyal bildirim dinleyicisini başlat
-        setTimeout(function() { startSocialNotifListener(user.uid); }, 1000);
+        // FCM Push token al ve kaydet
+        initFCM(user.uid);
 
-        // Bildirim izni iste (henüz verilmemişse)
-        if ('Notification' in window && Notification.permission === 'default') {
-            setTimeout(function() {
-                Notification.requestPermission().then(function(perm) {
-                    if (perm === 'granted') {
-                        addNotification('success', '🔔 Bildirimler Açık', 'Yanıt ve beğeni bildirimleri alacaksınız.');
-                    }
-                });
-            }, 2000);
+        // Bildirim izni iste, sonra dinleyiciyi başlat
+        function _startListenerAfterPermission() {
+            setTimeout(function() { startSocialNotifListener(user.uid); }, 800);
+        }
+        if ('Notification' in window) {
+            if (Notification.permission === 'granted') {
+                _startListenerAfterPermission();
+            } else if (Notification.permission === 'default') {
+                setTimeout(function() {
+                    Notification.requestPermission().then(function(perm) {
+                        if (perm === 'granted') {
+                            if (typeof addNotification === 'function') addNotification('success', '🔔 Bildirimler Açık', 'Yanıt ve beğeni bildirimleri alacaksınız.');
+                        }
+                        _startListenerAfterPermission();
+                    });
+                }, 1500);
+            } else {
+                // İzin reddedilmiş — sadece uygulama içi bildirimler çalışır
+                _startListenerAfterPermission();
+            }
+        } else {
+            _startListenerAfterPermission();
         }
     } else {
         // Kullanıcı çıkış yaptı, UI'ı güncelle
