@@ -13206,7 +13206,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -22381,7 +22381,9 @@ async function runDeepDiveAnalysis() {
     for (var i = 0; i < losers.length; i++) {
         var asset = losers[i];
         var rawSym = asset.name.replace('BINANCE:','').replace('BIST:','').replace('USDT','').replace('.IS','').trim();
-        
+
+        updateLog((i+1) + "/" + losers.length + " — " + rawSym + " analiz ediliyor...");
+
         var candles = await fetchCandleHistory(rawSym, asset.name);
         var metrics = calculateTechnicalMetrics(candles, asset.buy, (asset.curr || asset.buy));
         
@@ -22390,7 +22392,7 @@ async function runDeepDiveAnalysis() {
         newObj.cleanSym = rawSym;
         analyzedAssets.push(newObj);
 
-        await new Promise(function(resolve) { setTimeout(resolve, 200); });
+        await new Promise(function(resolve) { setTimeout(resolve, 300); });
     }
 
     updateLog("Yapay zeka portföy yoğunluğunu ve psikolojinizi analiz ediyor...");
@@ -22891,38 +22893,171 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile) {
 // 1. VERİ ÇEKME MOTORU (Düz Array Döndürür)
 // ==========================================
 async function fetchCandleHistory(symbol, originalName) {
-    var cleanSym = symbol.toUpperCase();
+    var cleanSym = symbol.toUpperCase().replace('BINANCE:','').replace('USDT','').replace('.IS','').trim();
+    var isBIST = originalName && (originalName.includes('.IS') || (typeof originalName === 'string' && originalName.toUpperCase().includes('BIST:')));
+    var isUSStock = !isBIST && cleanSym.length >= 1 && cleanSym.length <= 5 && !/^(BTC|ETH|XRP|SOL|BNB|ADA|DOT|AVAX|MATIC|LINK|DOGE|SHIB|PEPE|TON|ARB|OP|SUI|APT|INJ|TIA|WIF|BONK|NEAR|FTM|ATOM|LTC|BCH|ETC|XLM|TRX|ALGO|VET|HBAR|FLOW|THETA|NEO|DASH|ZEC|XMR|GRT|BAT|MKR|COMP|AAVE|SNX|CRV|YFI|UNI|SUSHI|APE|GMT|GALA|SAND|MANA|AXS|CHZ|ENJ|IMX|LRC|ZRX|PYTH|JUP|SEI|FLOKI|FET|RENDER|TAO)$/.test(cleanSym);
 
-    if (originalName && originalName.includes('.IS')) return null;
+    // ── 1. BIST HİSSELERİ (Yahoo Finance) ──────────────────────────────
+    if (isBIST) {
+        try {
+            var bistSym = cleanSym + '.IS';
+            var end = Math.floor(Date.now() / 1000);
+            var start = end - (90 * 24 * 60 * 60);
+            var yahooUrl = 'https://query1.finance.yahoo.com/v8/finance/chart/' + bistSym + '?interval=1d&period1=' + start + '&period2=' + end;
+            var proxy = 'https://api.allorigins.win/raw?url=';
+            var res = await fetch(proxy + encodeURIComponent(yahooUrl));
+            if (res.ok) {
+                var d = await res.json();
+                if (d.chart && d.chart.result && d.chart.result[0]) {
+                    var r = d.chart.result[0];
+                    var timestamps = r.timestamp || [];
+                    var ohlcv = r.indicators.quote[0];
+                    if (timestamps.length > 10) {
+                        return timestamps.map(function(_, i) {
+                            return {
+                                open:   ohlcv.open[i]   || 0,
+                                high:   ohlcv.high[i]   || 0,
+                                low:    ohlcv.low[i]    || 0,
+                                close:  ohlcv.close[i]  || 0,
+                                volume: ohlcv.volume[i] || 0
+                            };
+                        }).filter(function(c){ return c.close > 0; });
+                    }
+                }
+            }
+        } catch(e) { console.warn('BIST Yahoo mum hatası:', e); }
+        return null;
+    }
 
-    // Binance — OHLCV tam veri (open, high, low, close, volume)
+    // ── 2. ABD HİSSELERİ (Polygon) ─────────────────────────────────────
+    if (isUSStock) {
+        try {
+            var pKey = (typeof polyApiKey !== 'undefined' && polyApiKey) ? polyApiKey : '';
+            if (pKey) {
+                var endDate = new Date();
+                var startDate = new Date();
+                startDate.setDate(startDate.getDate() - 90);
+                var from = startDate.toISOString().split('T')[0];
+                var to   = endDate.toISOString().split('T')[0];
+                var polyUrl = 'https://api.polygon.io/v2/aggs/ticker/' + cleanSym + '/range/1/day/' + from + '/' + to + '?adjusted=true&sort=asc&limit=90&apiKey=' + pKey;
+                var pRes = await fetch(polyUrl);
+                if (pRes.ok) {
+                    var pData = await pRes.json();
+                    if (pData.results && pData.results.length > 10) {
+                        return pData.results.map(function(d) {
+                            return {
+                                open:   d.o,
+                                high:   d.h,
+                                low:    d.l,
+                                close:  d.c,
+                                volume: d.v
+                            };
+                        });
+                    }
+                }
+            }
+        } catch(e) { console.warn('Polygon mum hatası:', e); }
+
+        // Polygon başarısızsa Yahoo yedek (ABD hisseleri için .IS ekleme)
+        try {
+            var end2 = Math.floor(Date.now() / 1000);
+            var start2 = end2 - (90 * 24 * 60 * 60);
+            var yhUrl = 'https://query1.finance.yahoo.com/v8/finance/chart/' + cleanSym + '?interval=1d&period1=' + start2 + '&period2=' + end2;
+            var proxy2 = 'https://api.allorigins.win/raw?url=';
+            var yRes = await fetch(proxy2 + encodeURIComponent(yhUrl));
+            if (yRes.ok) {
+                var yD = await yRes.json();
+                if (yD.chart && yD.chart.result && yD.chart.result[0]) {
+                    var yr = yD.chart.result[0];
+                    var yTimestamps = yr.timestamp || [];
+                    var yQ = yr.indicators.quote[0];
+                    if (yTimestamps.length > 10) {
+                        return yTimestamps.map(function(_, i) {
+                            return {
+                                open: yQ.open[i] || 0, high: yQ.high[i] || 0,
+                                low: yQ.low[i] || 0, close: yQ.close[i] || 0,
+                                volume: yQ.volume[i] || 0
+                            };
+                        }).filter(function(c){ return c.close > 0; });
+                    }
+                }
+            }
+        } catch(e) {}
+        return null;
+    }
+
+    // ── KRİPTO (CoinGecko → Binance → CryptoCompare) ──────────────────
+
+    // 1. CoinGecko (uygulamanın ana kaynağı — aynı API key)
     try {
-        let binanceSym = cleanSym + "USDT";
-        const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${binanceSym}&interval=1d&limit=90`);
+        var cgKey = (typeof coingeckoApiKey !== 'undefined' && coingeckoApiKey) ? coingeckoApiKey : '';
+        if (cgKey) {
+            // Önce coin ID'sini bul
+            var searchRes = await fetch('https://api.coingecko.com/api/v3/search?query=' + cleanSym + '&x_cg_demo_api_key=' + cgKey);
+            if (searchRes.ok) {
+                var searchData = await searchRes.json();
+                if (searchData.coins && searchData.coins.length > 0) {
+                    var coin = searchData.coins.find(function(c){ return c.symbol.toUpperCase() === cleanSym; }) || searchData.coins[0];
+                    if (coin && coin.id) {
+                        // 90 günlük OHLCV
+                        var ohlcRes = await fetch('https://api.coingecko.com/api/v3/coins/' + coin.id + '/ohlc?vs_currency=usd&days=90&x_cg_demo_api_key=' + cgKey);
+                        if (ohlcRes.ok) {
+                            var ohlcData = await ohlcRes.json();
+                            if (ohlcData && ohlcData.length > 10) {
+                                // CoinGecko OHLC format: [timestamp, open, high, low, close]
+                                // Hacim için market_chart'tan çek
+                                var volRes = await fetch('https://api.coingecko.com/api/v3/coins/' + coin.id + '/market_chart?vs_currency=usd&days=90&interval=daily&x_cg_demo_api_key=' + cgKey);
+                                var volumes = [];
+                                if (volRes.ok) {
+                                    var volData = await volRes.json();
+                                    volumes = (volData.total_volumes || []).map(function(v){ return v[1]; });
+                                }
+                                return ohlcData.map(function(d, i) {
+                                    return {
+                                        open:   d[1],
+                                        high:   d[2],
+                                        low:    d[3],
+                                        close:  d[4],
+                                        volume: volumes[i] || 0
+                                    };
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } catch (err) { console.warn('CoinGecko mum verisi alınamadı:', err); }
+
+    // 2. Binance yedek
+    try {
+        var binanceSym = cleanSym + 'USDT';
+        var response = await fetch('https://api.binance.com/api/v3/klines?symbol=' + binanceSym + '&interval=1d&limit=90');
         if (response.ok) {
-            const data = await response.json();
+            var data = await response.json();
             if (data && data.length > 10) {
-                return data.map(d => ({
-                    open:   parseFloat(d[1]),
-                    high:   parseFloat(d[2]),
-                    low:    parseFloat(d[3]),
-                    close:  parseFloat(d[4]),
-                    volume: parseFloat(d[5])
-                }));
+                return data.map(function(d) {
+                    return {
+                        open:   parseFloat(d[1]),
+                        high:   parseFloat(d[2]),
+                        low:    parseFloat(d[3]),
+                        close:  parseFloat(d[4]),
+                        volume: parseFloat(d[5])
+                    };
+                });
             }
         }
     } catch (err) {}
 
-    // CryptoCompare yedek
+    // 3. CryptoCompare son yedek
     try {
-        const response = await fetch(`https://min-api.cryptocompare.com/data/v2/histoday?fsym=${cleanSym}&tsym=USD&limit=90`);
-        if (response.ok) {
-            const data = await response.json();
-            if (data.Response === 'Success' && data.Data && data.Data.Data) {
-                return data.Data.Data.map(d => ({
-                    open: d.open, high: d.high, low: d.low,
-                    close: d.close, volume: d.volumeto
-                }));
+        var response2 = await fetch('https://min-api.cryptocompare.com/data/v2/histoday?fsym=' + cleanSym + '&tsym=USD&limit=90');
+        if (response2.ok) {
+            var data2 = await response2.json();
+            if (data2.Response === 'Success' && data2.Data && data2.Data.Data) {
+                return data2.Data.Data.map(function(d) {
+                    return { open: d.open, high: d.high, low: d.low, close: d.close, volume: d.volumeto };
+                });
             }
         }
     } catch (err) {}
@@ -23685,7 +23820,7 @@ window.removeAlarm = function(id) {
 if (!window.original_runDeepDiveAnalysis) window.original_runDeepDiveAnalysis = window.runDeepDiveAnalysis;
 window.runDeepDiveAnalysis = async function() {
     if (!MembershipSystem.isPro()) {
-        if (!MembershipSystem.checkUsageLimit('aiRescue', 50, 'AI Kurtarıcı')) return;
+        if (!MembershipSystem.checkUsageLimit('aiRescue', 1, 'AI Kurtarıcı')) return;
     }
     if(typeof window.original_runDeepDiveAnalysis === 'function') await window.original_runDeepDiveAnalysis();
 };
