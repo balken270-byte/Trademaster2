@@ -278,53 +278,99 @@ var LangSystem = {
         el.removeAttribute('data-translated');
     },
 
-    /* ── ÇEVİRİ API ───────────────────────────────────── */
+    /* ── ÇEVİRİ API — 4 Katmanlı Cache ──────────────────
+       1. Bellek (anında)
+       2. localStorage (hızlı, yerel)
+       3. Firebase translations koleksiyonu (ortak, zenginleşen)
+       4. Google Translate API (son çare) + Firebase'e kaydet
+    ─────────────────────────────────────────────────── */
     getTranslation: function(text, fromLang, toLang, callback) {
         var cacheKey = fromLang + '→' + toLang + '|' + text;
-        var dictKey = fromLang + '_to_' + toLang;
+        var dictKey  = fromLang + '_to_' + toLang;
+        var self     = this;
 
+        // 1. Sabit sözlük
         if (dictionary[dictKey] && dictionary[dictKey][text]) {
             callback(dictionary[dictKey][text]); return;
         }
+
+        // 2. Bellek cache
         if (this.dynamicCache[cacheKey]) {
             callback(this.dynamicCache[cacheKey]); return;
         }
+
+        // 3. Kuyruk — aynı metin zaten soruluyorsa beklet
         if (this.pendingRequests[cacheKey]) {
             this.pendingRequests[cacheKey].push(callback); return;
         }
         this.pendingRequests[cacheKey] = [callback];
 
-        var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl='
-            + fromLang + '&tl=' + toLang + '&dt=t&q=' + encodeURIComponent(text);
-        var self = this;
+        function deliver(result) {
+            // Belleğe ve localStorage'a kaydet
+            self.dynamicCache[cacheKey] = result;
+            try { localStorage.setItem(self.cacheKey, JSON.stringify(self.dynamicCache)); } catch(e) {}
+            // Kuyruktakilere dağıt
+            var waiting = self.pendingRequests[cacheKey];
+            if (waiting) {
+                waiting.forEach(function(cb) { cb(result); });
+                delete self.pendingRequests[cacheKey];
+            }
+        }
 
-        fetch(url)
-            .then(function(res) { return res.json(); })
-            .then(function(data) {
-                var result = text;
-                if (data && data[0]) {
-                    result = data[0]
-                        .filter(function(p) { return p && p[0]; })
-                        .map(function(p) { return p[0]; })
-                        .join('');
-                }
-                if (result && result !== text) {
-                    self.dynamicCache[cacheKey] = result;
-                    try { localStorage.setItem(self.cacheKey, JSON.stringify(self.dynamicCache)); } catch(e) {}
-                }
-                var waiting = self.pendingRequests[cacheKey];
-                if (waiting) {
-                    waiting.forEach(function(cb) { cb(result); });
-                    delete self.pendingRequests[cacheKey];
-                }
-            })
-            .catch(function() {
-                var waiting = self.pendingRequests[cacheKey];
-                if (waiting) {
-                    waiting.forEach(function(cb) { cb(text); });
-                    delete self.pendingRequests[cacheKey];
-                }
-            });
+        function fetchFromGoogle(fbDocId) {
+            var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl='
+                + fromLang + '&tl=' + toLang + '&dt=t&q=' + encodeURIComponent(text);
+
+            fetch(url)
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    var result = text;
+                    if (data && data[0]) {
+                        result = data[0]
+                            .filter(function(p) { return p && p[0]; })
+                            .map(function(p) { return p[0]; })
+                            .join('');
+                    }
+
+                    // Firebase'e kaydet (topluluk cache)
+                    if (result && result !== text && typeof fbDb !== 'undefined' && fbDocId) {
+                        var docData = { translation: result, from: fromLang, to: toLang, hits: 1, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+                        fbDb.collection('translations').doc(fbDocId).set(docData, { merge: true }).catch(function() {});
+                    }
+
+                    deliver(result);
+                })
+                .catch(function() { deliver(text); });
+        }
+
+        // 4. Firebase koleksiyonuna bak
+        // Doc ID: "tr-en_merhaba_dunya" gibi — özel karakterleri temizle
+        var safeText = text.substring(0, 80).replace(/[\/\\.#\[\]]/g, '_');
+        var fbDocId  = fromLang + '-' + toLang + '_' + safeText;
+
+        if (typeof fbDb !== 'undefined') {
+            fbDb.collection('translations').doc(fbDocId).get()
+                .then(function(doc) {
+                    if (doc.exists && doc.data().translation) {
+                        var result = doc.data().translation;
+                        // Hit sayacını artır (kullanım istatistiği)
+                        fbDb.collection('translations').doc(fbDocId)
+                            .update({ hits: firebase.firestore.FieldValue.increment(1) })
+                            .catch(function() {});
+                        deliver(result);
+                    } else {
+                        // Firebase'de yok → Google'a sor
+                        fetchFromGoogle(fbDocId);
+                    }
+                })
+                .catch(function() {
+                    // Firebase erişim hatası → direkt Google
+                    fetchFromGoogle(null);
+                });
+        } else {
+            // Firebase yok → direkt Google
+            fetchFromGoogle(null);
+        }
     }
 };
 
