@@ -13349,7 +13349,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.3"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -27102,10 +27102,11 @@ setTimeout(function() {
         currentCommentSentiment = 'neutral';
         var cTextarea = document.getElementById('commentTextarea');
         cTextarea.value = '';
-        // Giriş kontrolü: üye değilse textarea devre dışı
+        // Giriş kontrolü: giriş yapmamış veya anonim ise textarea devre dışı
         var panelUser = typeof fbAuth !== 'undefined' && fbAuth.currentUser;
-        if (!panelUser) {
-            cTextarea.placeholder = 'Yorum yapmak için giriş yapmalısınız...';
+        var isBlocked = !panelUser || panelUser.isAnonymous;
+        if (isBlocked) {
+            cTextarea.placeholder = 'Yorum yapmak için Google ile giriş yapmalısınız...';
             cTextarea.disabled = true;
             cTextarea.style.opacity = '0.45';
             cTextarea.style.cursor = 'not-allowed';
@@ -27575,10 +27576,10 @@ setTimeout(function() {
 
     // ---- POST COMMENT ----
     window.postComment = function() {
-        // Üyelik kontrolü: giriş yapılmamışsa engelle
+        // Üyelik kontrolü: giriş yapılmamış veya anonim ise engelle
         const currentUserCheck = typeof fbAuth !== 'undefined' && fbAuth.currentUser;
-        if (!currentUserCheck) {
-            if (typeof showToast === 'function') showToast('danger', 'Giriş Gerekli', 'Yorum yapabilmek için giriş yapmalısınız.');
+        if (!currentUserCheck || currentUserCheck.isAnonymous) {
+            if (typeof showToast === 'function') showToast('danger', 'Giriş Gerekli', 'Yorum yapabilmek için Google ile giriş yapmalısınız.');
             return;
         }
         
@@ -27834,17 +27835,19 @@ setTimeout(function() {
     // Firestore'dan logo oku, yoksa CoinGecko'dan al ve kaydet
     function getLogoFromFirebase(symbol, callback) {
         var sym = symbol.toUpperCase();
+        var cb = typeof callback === 'function' ? callback : null;
+
         // 1. RAM cache
-        if(_fbLogoCache[sym] !== undefined) { if(_fbLogoCache[sym]) callback(_fbLogoCache[sym]); return; }
+        if(_fbLogoCache[sym] !== undefined) { if(_fbLogoCache[sym] && cb) cb(_fbLogoCache[sym]); return; }
         // 2. knownAssets'te zaten logo var
-        if(knownAssets[sym] && knownAssets[sym].logo) { _fbLogoCache[sym] = knownAssets[sym].logo; callback(knownAssets[sym].logo); return; }
+        if(knownAssets[sym] && knownAssets[sym].logo) { _fbLogoCache[sym] = knownAssets[sym].logo; if(cb) cb(knownAssets[sym].logo); return; }
         // 3. Paralel istek koruması
-        if(_fbLogoPending[sym]) { if(callback) _fbLogoPending[sym].push(callback); return; }
-        _fbLogoPending[sym] = callback ? [callback] : [];
+        if(_fbLogoPending[sym]) { if(cb) _fbLogoPending[sym].push(cb); return; }
+        _fbLogoPending[sym] = cb ? [cb] : [];
 
         var flush = function(logoUrl) {
             _fbLogoCache[sym] = logoUrl || '';
-            (_fbLogoPending[sym] || []).forEach(function(cb){ if(logoUrl) cb(logoUrl); });
+            (_fbLogoPending[sym] || []).forEach(function(fn){ if(logoUrl && typeof fn === 'function') fn(logoUrl); });
             delete _fbLogoPending[sym];
         };
 
@@ -27862,11 +27865,10 @@ setTimeout(function() {
                         .then(function(r){ return r.json(); })
                         .then(function(data) {
                             var coins = data.coins || [];
-                            // Tam sembol eşleşmesi öncelikli
                             var match = coins.find(function(c){ return c.symbol.toUpperCase() === sym; }) || null;
-                            if(!match) { flush(''); return; } // CoinGecko'da yok → kaydetme
+                            if(!match) { flush(''); return; }
                             var logoUrl = match.large || match.thumb || '';
-                            if(!logoUrl) { flush(''); return; } // Logo yok → kaydetme
+                            if(!logoUrl) { flush(''); return; }
                             var coinName = match.name || sym;
                             var color = knownAssets[sym] ? knownAssets[sym].color : _assetColor(sym);
                             if(!knownAssets[sym]) knownAssets[sym] = { name: coinName, logo: logoUrl, color: color };
@@ -28223,39 +28225,67 @@ setTimeout(function() {
         feed.style.display = 'flex';
         feed.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-sub);"><i class="fas fa-circle-notch fa-spin" style="font-size:20px;opacity:0.4;"></i></div>';
 
-        if(commChatUnsubscribe) { commChatUnsubscribe(); commChatUnsubscribe = null; }
+        var _renderedMsgIds = {}; // Zaten ekranda olan mesaj ID'leri
 
-        // where + orderBy composite index gerektirir — sadece where kullan, client sort yap
+        if(commChatUnsubscribe) { commChatUnsubscribe(); commChatUnsubscribe = null; }
+        _renderedMsgIds = {};
+
         commChatUnsubscribe = fbDb.collection('community_messages')
             .where('symbol', '==', symbol)
             .onSnapshot(function(snap) {
-                // Client-side sırala
-                var docs = [];
-                snap.forEach(function(doc) { docs.push({ id: doc.id, data: doc.data() }); });
-                docs.sort(function(a, b) {
-                    var ta = a.data.createdAt ? (a.data.createdAt.toMillis ? a.data.createdAt.toMillis() : 0) : 0;
-                    var tb = b.data.createdAt ? (b.data.createdAt.toMillis ? b.data.createdAt.toMillis() : 0) : 0;
-                    return ta - tb;
-                });
-                // Son 80
-                if(docs.length > 80) docs = docs.slice(docs.length - 80);
-                if(docs.length === 0) {
-                    feed.innerHTML = buildChatWelcome(symbol);
-                    return;
+                // Sadece değişen (eklenen/silinen) mesajları işle
+                var changes = snap.docChanges();
+                var isFirstLoad = Object.keys(_renderedMsgIds).length === 0;
+
+                if(isFirstLoad) {
+                    // İlk yükleme — tümünü sırala ve ekrana bas
+                    var docs = [];
+                    snap.forEach(function(doc) { docs.push({ id: doc.id, data: doc.data() }); });
+                    docs.sort(function(a, b) {
+                        var ta = a.data.createdAt ? (a.data.createdAt.toMillis ? a.data.createdAt.toMillis() : 0) : 0;
+                        var tb = b.data.createdAt ? (b.data.createdAt.toMillis ? b.data.createdAt.toMillis() : 0) : 0;
+                        return ta - tb;
+                    });
+                    if(docs.length > 80) docs = docs.slice(docs.length - 80);
+                    if(docs.length === 0) { feed.innerHTML = buildChatWelcome(symbol); return; }
+                    feed.innerHTML = '';
+                    var prevDate = null;
+                    docs.forEach(function(item) {
+                        var d = item.data;
+                        var ts = d.createdAt ? (d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt)) : new Date();
+                        var dateStr = ts.toLocaleDateString('tr-TR', {day:'numeric',month:'long',year:'numeric'});
+                        if(dateStr !== prevDate) {
+                            var sep = document.createElement('div');
+                            sep.style.cssText = 'text-align:center;margin:10px 0;';
+                            sep.innerHTML = '<span style="font-size:10px;color:rgba(255,255,255,0.25);background:rgba(255,255,255,0.05);padding:2px 10px;border-radius:8px;">' + dateStr + '</span>';
+                            feed.appendChild(sep);
+                            prevDate = dateStr;
+                        }
+                        var el = document.createElement('div');
+                        el.innerHTML = buildChatMessage(item.id, d, ts);
+                        feed.appendChild(el.firstChild);
+                        _renderedMsgIds[item.id] = true;
+                    });
+                    setTimeout(function(){ feed.scrollTop = feed.scrollHeight; }, 60);
+                } else {
+                    // Sonraki güncellemeler — sadece yeni eklenen/silinen mesajlar
+                    var wasAtBottom = feed.scrollHeight - feed.scrollTop - feed.clientHeight < 80;
+                    changes.forEach(function(change) {
+                        if(change.type === 'added' && !_renderedMsgIds[change.doc.id]) {
+                            var d = change.doc.data();
+                            var ts = d.createdAt ? (d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt)) : new Date();
+                            var el = document.createElement('div');
+                            el.innerHTML = buildChatMessage(change.doc.id, d, ts);
+                            feed.appendChild(el.firstChild);
+                            _renderedMsgIds[change.doc.id] = true;
+                            if(wasAtBottom) setTimeout(function(){ feed.scrollTop = feed.scrollHeight; }, 40);
+                        } else if(change.type === 'removed') {
+                            var existing = document.getElementById('msg-' + change.doc.id);
+                            if(existing) existing.remove();
+                            delete _renderedMsgIds[change.doc.id];
+                        }
+                    });
                 }
-                feed.innerHTML = '';
-                var prevDate = null;
-                docs.forEach(function(item) {
-                    var d = item.data;
-                    var ts = d.createdAt ? (d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt)) : new Date();
-                    var dateStr = ts.toLocaleDateString('tr-TR', {day:'numeric',month:'long',year:'numeric'});
-                    if(dateStr !== prevDate) {
-                        feed.innerHTML += '<div style="text-align:center;margin:10px 0;"><span style="font-size:10px;color:rgba(255,255,255,0.25);background:rgba(255,255,255,0.05);padding:2px 10px;border-radius:8px;">' + dateStr + '</span></div>';
-                        prevDate = dateStr;
-                    }
-                    feed.innerHTML += buildChatMessage(item.id, d, ts);
-                });
-                setTimeout(function(){ feed.scrollTop = feed.scrollHeight; }, 60);
             }, function(err) {
                 console.error('Community messages error:', err);
                 feed.innerHTML = buildChatWelcome(symbol);
@@ -28282,34 +28312,93 @@ setTimeout(function() {
             ? '<img src="' + d.photoURL + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'
             : initials;
         var imageHtml = d.imageUrl
-            ? '<img src="' + d.imageUrl + '" style="max-width:100%;border-radius:10px;display:block;margin-top:5px;">'
+            ? '<img src="' + d.imageUrl + '" style="max-width:100%;border-radius:10px;display:block;margin-top:5px;cursor:pointer;" onclick="openFullscreenImg(this.src)">'
             : '';
         var deleteHtml = isMe
-            ? '<span onclick="deleteCommunityMessage(\'' + id + '\')" style="font-size:10px;color:rgba(255,255,255,0.3);cursor:pointer;margin-left:5px;"><i class="fas fa-trash"></i></span>'
+            ? '<span onclick="deleteCommunityMessage(\'' + id + '\')" style="font-size:10px;color:rgba(255,255,255,0.3);cursor:pointer;margin-left:6px;"><i class="fas fa-trash"></i></span>'
+            : '';
+        // Yanıt butonu — giriş yapmış kullanıcılar için
+        var canReply = currentUser && !currentUser.isAnonymous;
+        var replyBtn = canReply
+            ? '<span onclick="startCommReply(\'' + id + '\',\'' + escapeHtml(d.authorName||'Kullanıcı') + '\')" style="font-size:10px;color:rgba(255,255,255,0.3);cursor:pointer;margin-left:6px;"><i class="fas fa-reply"></i></span>'
             : '';
 
+        // Yanıt gösterimi (eğer bu mesaj birine yanıtsa)
+        var replyPreview = '';
+        if(d.replyTo) {
+            replyPreview = '<div style="border-left:3px solid rgba(99,102,241,0.6);padding:4px 8px;margin-bottom:5px;border-radius:0 6px 6px 0;background:rgba(99,102,241,0.1);">' +
+                '<div style="font-size:10px;font-weight:700;color:#818cf8;margin-bottom:2px;">' + escapeHtml(d.replyTo.authorName||'') + '</div>' +
+                '<div style="font-size:11px;color:rgba(255,255,255,0.45);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;">' + escapeHtml((d.replyTo.text||'').substring(0,60)) + '</div>' +
+            '</div>';
+        }
+
         if(isMe) {
-            // Sağ taraf — mavi balon, avatar yok
-            return '<div style="display:flex;justify-content:flex-end;margin-bottom:6px;padding-left:60px;">' +
+            return '<div id="msg-' + id + '" style="display:flex;justify-content:flex-end;margin-bottom:6px;padding-left:60px;">' +
                 '<div style="max-width:82%;">' +
                     (imageHtml ? '<div style="text-align:right;margin-bottom:2px;">' + imageHtml + '</div>' : '') +
-                    (d.text ? '<div style="background:linear-gradient(135deg,#2b6cb0,#3b82f6);color:white;padding:9px 13px;border-radius:18px 18px 4px 18px;font-size:14px;line-height:1.5;word-break:break-word;display:inline-block;float:right;clear:both;">' + escapeHtml(d.text) + '</div>' : '') +
-                    '<div style="clear:both;font-size:10px;color:rgba(255,255,255,0.3);text-align:right;margin-top:3px;">' + timeStr + deleteHtml + '</div>' +
+                    '<div style="background:linear-gradient(135deg,#2b6cb0,#3b82f6);color:white;padding:9px 13px;border-radius:18px 18px 4px 18px;font-size:14px;line-height:1.5;word-break:break-word;display:inline-block;float:right;clear:both;">' +
+                        replyPreview +
+                        (d.text ? escapeHtml(d.text) : '') +
+                    '</div>' +
+                    '<div style="clear:both;font-size:10px;color:rgba(255,255,255,0.3);text-align:right;margin-top:3px;">' + timeStr + replyBtn + deleteHtml + '</div>' +
                 '</div>' +
             '</div>';
         } else {
-            // Sol taraf — gri balon + avatar + isim
-            return '<div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:6px;padding-right:60px;">' +
+            return '<div id="msg-' + id + '" style="display:flex;align-items:flex-end;gap:8px;margin-bottom:6px;padding-right:60px;">' +
                 '<div style="width:30px;height:30px;border-radius:50%;background:' + avatarColor + ';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;flex-shrink:0;overflow:hidden;">' + avatarHtml + '</div>' +
                 '<div style="max-width:82%;">' +
                     '<div style="font-size:11px;font-weight:700;color:' + avatarColor + ';margin-bottom:3px;padding-left:2px;">' + escapeHtml(d.authorName || 'Anonim') + '</div>' +
                     (imageHtml ? '<div style="margin-bottom:2px;">' + imageHtml + '</div>' : '') +
-                    (d.text ? '<div style="background:rgba(255,255,255,0.09);color:rgba(255,255,255,0.9);padding:9px 13px;border-radius:18px 18px 18px 4px;font-size:14px;line-height:1.5;word-break:break-word;display:inline-block;">' + escapeHtml(d.text) + '</div>' : '') +
-                    '<div style="font-size:10px;color:rgba(255,255,255,0.28);margin-top:3px;padding-left:2px;">' + timeStr + '</div>' +
+                    '<div style="background:rgba(255,255,255,0.09);color:rgba(255,255,255,0.9);padding:9px 13px;border-radius:18px 18px 18px 4px;font-size:14px;line-height:1.5;word-break:break-word;display:inline-block;">' +
+                        replyPreview +
+                        (d.text ? escapeHtml(d.text) : '') +
+                    '</div>' +
+                    '<div style="font-size:10px;color:rgba(255,255,255,0.28);margin-top:3px;padding-left:2px;">' + timeStr + replyBtn + '</div>' +
                 '</div>' +
             '</div>';
         }
     }
+
+    // Yanıt vermek için seçilen mesaj
+    var _commReplyTo = null;
+
+    window.startCommReply = function(msgId, authorName) {
+        _commReplyTo = { msgId: msgId, authorName: authorName };
+        // Input üstünde önizleme göster
+        var preview = document.getElementById('commReplyPreview');
+        if(!preview) {
+            // Dinamik oluştur
+            var inputArea = document.getElementById('commChatInput').parentNode;
+            preview = document.createElement('div');
+            preview.id = 'commReplyPreview';
+            preview.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 12px;background:rgba(99,102,241,0.12);border-left:3px solid #6366f1;margin-bottom:6px;border-radius:0 8px 8px 0;';
+            inputArea.parentNode.insertBefore(preview, inputArea);
+        }
+        preview.style.display = 'flex';
+        preview.innerHTML =
+            '<i class="fas fa-reply" style="color:#818cf8;font-size:11px;flex-shrink:0;"></i>' +
+            '<div style="flex:1;min-width:0;">' +
+                '<div style="font-size:10px;font-weight:700;color:#818cf8;">' + escapeHtml(authorName) + '\'a yanıt</div>' +
+            '</div>' +
+            '<span onclick="cancelCommReply()" style="font-size:13px;color:rgba(255,255,255,0.3);cursor:pointer;padding:2px 4px;"><i class="fas fa-times"></i></span>';
+        // Input'a focus
+        var inp = document.getElementById('commChatInput');
+        if(inp) inp.focus();
+        // Yanıtlanan mesajı vurgula
+        var msgEl = document.getElementById('msg-' + msgId);
+        if(msgEl) {
+            msgEl.style.transition = 'background 0.3s';
+            msgEl.style.background = 'rgba(99,102,241,0.12)';
+            msgEl.style.borderRadius = '12px';
+            setTimeout(function(){ msgEl.style.background = ''; msgEl.style.borderRadius = ''; }, 1200);
+        }
+    };
+
+    window.cancelCommReply = function() {
+        _commReplyTo = null;
+        var preview = document.getElementById('commReplyPreview');
+        if(preview) preview.style.display = 'none';
+    };
 
     function escapeHtml(str) {
         return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -28343,11 +28432,22 @@ setTimeout(function() {
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
         if(photoURL) payload.photoURL = photoURL;
+        // Yanıt verisi ekle
+        if(_commReplyTo) {
+            var replyMsgEl = document.getElementById('msg-' + _commReplyTo.msgId);
+            var replyText = '';
+            if(replyMsgEl) {
+                var bubble = replyMsgEl.querySelector('[style*="border-radius:18px"]');
+                if(bubble) replyText = (bubble.textContent || '').trim().substring(0, 80);
+            }
+            payload.replyTo = { msgId: _commReplyTo.msgId, authorName: _commReplyTo.authorName, text: replyText };
+        }
 
         var doSend = function(finalPayload) {
             fbDb.collection('community_messages').add(finalPayload).then(function(){
                 if(input) { input.value = ''; input.style.height = ''; }
                 removeCommImage();
+                cancelCommReply(); // Yanıt seçimini temizle
                 var lastMsgText = finalPayload.text || '📷 Fotoğraf';
                 var ts = firebase.firestore.FieldValue.serverTimestamp();
                 // Ortak grup belgesi güncelle
