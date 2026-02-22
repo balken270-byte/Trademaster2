@@ -1,15 +1,11 @@
 /* ============================================================
    TRADEVIA — PRO LINGUISTIC ENGINE V4
-   Yenilikler:
-   1. Sohbet Mesajı Çevirisi (Satır içi çeviri butonu)
-   2. Otomatik Dil Algılama (TR/EN fark etmez)
-   3. Çift Yönlü Çeviri (TR→EN ve EN→TR)
-   4. CSS/JS Koruması
-   5. Akıllı Kuyruk
-   6. Kalıcı Cache
+   - Otomatik sohbet çevirisi (buton yok, sessiz)
+   - Çift yönlü TR↔EN
+   - Dil algılama
+   - Reload yok — canlı geçiş
    ============================================================ */
 
-// ── SABİT SÖZLÜK ──────────────────────────────────────────
 const dictionary = {
     tr_to_en: {
         "Cüzdan":"Wallet","Piyasa":"Market","Analiz":"Analytics","Haber":"News",
@@ -48,19 +44,16 @@ const dictionary = {
     }
 };
 
-/* ── DİL ALGILAMA ─────────────────────────────────────── */
 function detectLang(text) {
     if (/[ğüşıöçĞÜŞİÖÇ]/.test(text)) return 'tr';
-    const trWords = ['bir','ve','bu','ile','için','olan','değil','ama','çok','var',
-                     'daha','ben','sen','biz','siz','olan','nasıl','neden','olan'];
-    const words = text.toLowerCase().split(/\s+/);
-    const trCount = words.filter(w => trWords.includes(w)).length;
+    var trWords = ['bir','ve','bu','ile','için','olan','değil','ama','çok','var','daha','ben','sen'];
+    var words = text.toLowerCase().split(/\s+/);
+    var trCount = words.filter(function(w) { return trWords.indexOf(w) > -1; }).length;
     if (trCount >= 2 || (trCount >= 1 && words.length <= 5)) return 'tr';
     return 'en';
 }
 
-/* ── ANA SİSTEM ───────────────────────────────────────── */
-const LangSystem = {
+var LangSystem = {
     currentLang: 'tr',
     observer: null,
     cacheKey: 'tradevia_lang_cache_v4',
@@ -69,62 +62,55 @@ const LangSystem = {
     ignoredTags: ['SCRIPT','STYLE','NOSCRIPT','TEXTAREA','CODE','PRE','LINK','META','IFRAME'],
 
     init: function() {
-        const settings = JSON.parse(localStorage.getItem('tm_settings') || '{}');
+        var settings = JSON.parse(localStorage.getItem('tm_settings') || '{}');
         this.currentLang = settings.lang || 'tr';
-        const savedCache = localStorage.getItem(this.cacheKey);
+        var savedCache = localStorage.getItem(this.cacheKey);
         if (savedCache) {
             try { this.dynamicCache = JSON.parse(savedCache); } catch(e) { this.dynamicCache = {}; }
         }
-        console.log('🌍 Dil Motoru V4: ' + this.currentLang.toUpperCase() + ' | Chat Çevirisi AKTİF');
+        console.log('🌍 LangSystem V4: ' + this.currentLang.toUpperCase());
         if (this.currentLang === 'en') {
             this.startTranslation();
         }
-        this._initChatTranslation();
+        this._initChatAutoTranslate();
     },
 
     set: function(lang) {
-        const prevLang = this.currentLang;
+        var prevLang = this.currentLang;
         this.currentLang = lang;
-
-        // Ayarı kaydet
-        let settings = JSON.parse(localStorage.getItem('tm_settings') || '{}');
+        var settings = JSON.parse(localStorage.getItem('tm_settings') || '{}');
         settings.lang = lang;
         localStorage.setItem('tm_settings', JSON.stringify(settings));
-
-        // Aynı dil seçildiyse bir şey yapma
         if (prevLang === lang) return;
 
         if (lang === 'en') {
-            // TR → EN: Tüm sayfayı çevir + observer başlat
             this.startTranslation();
         } else {
-            // EN → TR: Sayfayı orijinaline döndür
             this._restoreOriginal();
-            // Observer'ı durdur
             if (this.observer) { this.observer.disconnect(); this.observer = null; }
         }
 
-        // Chat butonlarını güncelle (mevcut mesajlar)
-        const self = this;
+        // Chat mesajlarını yeni dile göre yeniden çevir
+        var self = this;
         setTimeout(function() {
-            const feed = document.getElementById('commChatMessages');
+            var feed = document.getElementById('commChatMessages');
             if (!feed) return;
-            // Eski translate butonlarını kaldır, yeniden enjekte et
-            feed.querySelectorAll('.chat-translate-btn').forEach(function(btn) { btn.remove(); });
-            Array.from(feed.children).forEach(function(child) { self._injectTranslateButtons(child); });
+            Array.from(feed.children).forEach(function(child) {
+                if (child.id && child.id.startsWith('msg-')) {
+                    // Önce orijinale döndür
+                    self._restoreChatMsg(child);
+                    // Sonra yeni dile çevir
+                    self._autoTranslateChatMsg(child);
+                }
+            });
         }, 100);
     },
 
-    // Sayfayı orijinal TR'ye döndür
     _restoreOriginal: function() {
-        const self = this;
-        // data-original-text attribute'u ile saklanan orijinal metinleri geri yükle
         document.querySelectorAll('[data-original-text]').forEach(function(el) {
             el.textContent = el.getAttribute('data-original-text');
             el.removeAttribute('data-original-text');
         });
-        // Cache'i temizleme — sadece DOM'u geri yükle
-        // Placeholder'ları geri yükle
         document.querySelectorAll('[data-original-placeholder]').forEach(function(el) {
             el.setAttribute('placeholder', el.getAttribute('data-original-placeholder'));
             el.removeAttribute('data-original-placeholder');
@@ -133,11 +119,10 @@ const LangSystem = {
 
     startTranslation: function() {
         this.translateNode(document.body);
-        const self = this;
+        var self = this;
         this.observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
                 mutation.addedNodes.forEach(function(node) {
-                    if (node.nodeType === 1) self._injectTranslateButtons(node);
                     self.translateNode(node);
                 });
                 if (mutation.type === 'characterData') {
@@ -152,17 +137,14 @@ const LangSystem = {
 
     isIgnored: function(node) {
         if (!node) return false;
-        if (node.tagName && this.ignoredTags.includes(node.tagName.toUpperCase())) return true;
+        if (node.tagName && this.ignoredTags.indexOf(node.tagName.toUpperCase()) > -1) return true;
         if (node.parentNode && node.parentNode.tagName &&
-            this.ignoredTags.includes(node.parentNode.tagName.toUpperCase())) return true;
+            this.ignoredTags.indexOf(node.parentNode.tagName.toUpperCase()) > -1) return true;
         if (node.classList && (node.classList.contains('goog-te-menu-value') ||
-            node.id === 'google_translate_element' ||
-            node.classList.contains('chat-translate-btn') ||
-            node.classList.contains('chat-translated-text'))) return true;
-        // Chat mesajlarını koru — çeviri butonu ayrıca hallediyor
+            node.id === 'google_translate_element')) return true;
+        // Chat alanını koru — kendi sistemimiz hallediyor
         if (node.id === 'commChatMessages') return true;
         if (node.id && node.id.startsWith('msg-')) return true;
-        // Herhangi bir ebeveyn commChatMessages ise koru
         var parent = node.parentNode;
         while (parent) {
             if (parent.id === 'commChatMessages') return true;
@@ -176,7 +158,7 @@ const LangSystem = {
         if (node.nodeType === 3) { this.processTextNode(node); return; }
         if (node.nodeType === 1) {
             if (node.hasAttribute('placeholder')) {
-                const ph = node.getAttribute('placeholder');
+                var ph = node.getAttribute('placeholder');
                 if (ph && ph.trim()) {
                     if (!node.hasAttribute('data-original-placeholder')) {
                         node.setAttribute('data-original-placeholder', ph);
@@ -185,24 +167,23 @@ const LangSystem = {
                 }
             }
             if (node.tagName === 'INPUT' && (node.type === 'button' || node.type === 'submit')) {
-                const val = node.value;
+                var val = node.value;
                 if (val && val.trim()) {
                     this.getTranslation(val, 'tr', 'en', function(res) { if (res) node.value = res; });
                 }
             }
-            node.childNodes.forEach(child => this.translateNode(child));
+            var self = this;
+            node.childNodes.forEach(function(child) { self.translateNode(child); });
         }
     },
 
     processTextNode: function(node) {
-        const text = node.nodeValue.trim();
+        var text = node.nodeValue.trim();
         if (!text || text.length < 2 || !/[a-zA-ZğüşıöçĞÜŞİÖÇ]/.test(text)) return;
         if (text.length <= 5 && text === text.toUpperCase()) return;
-        const self = this;
         this.getTranslation(text, 'tr', 'en', function(translatedText) {
             if (translatedText && translatedText !== text && node.parentNode) {
-                // Orijinali parent element'e sakla (geri dönüş için)
-                if (node.parentNode && !node.parentNode.hasAttribute('data-original-text')) {
+                if (!node.parentNode.hasAttribute('data-original-text')) {
                     node.parentNode.setAttribute('data-original-text', text);
                 }
                 node.nodeValue = translatedText;
@@ -210,23 +191,28 @@ const LangSystem = {
         });
     },
 
-    /* ── SOHBET MESAJ ÇEVİRİ BUTONU ─────────────────── */
-    _initChatTranslation: function() {
-        const self = this;
-        const chatObserver = new MutationObserver(function(mutations) {
+    /* ── OTOMATİK SOHBET ÇEVİRİSİ ───────────────────── */
+    _initChatAutoTranslate: function() {
+        var self = this;
+        var chatObserver = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
                 mutation.addedNodes.forEach(function(node) {
-                    if (node.nodeType === 1) self._injectTranslateButtons(node);
+                    if (node.nodeType === 1 && node.id && node.id.startsWith('msg-')) {
+                        self._autoTranslateChatMsg(node);
+                    }
                 });
             });
         });
 
         function tryObserve() {
-            const feed = document.getElementById('commChatMessages');
+            var feed = document.getElementById('commChatMessages');
             if (feed) {
                 chatObserver.observe(feed, { childList: true, subtree: false });
+                // Zaten yüklü mesajları çevir
                 Array.from(feed.children).forEach(function(child) {
-                    self._injectTranslateButtons(child);
+                    if (child.id && child.id.startsWith('msg-')) {
+                        self._autoTranslateChatMsg(child);
+                    }
                 });
             } else {
                 setTimeout(tryObserve, 800);
@@ -238,144 +224,84 @@ const LangSystem = {
         } else {
             tryObserve();
         }
-
-        // commChatModal açıldığında da tara
-        const origShowComm = window.showCommChatModal;
-        if (origShowComm) {
-            window.showCommChatModal = function() {
-                origShowComm.apply(this, arguments);
-                setTimeout(function() {
-                    const feed = document.getElementById('commChatMessages');
-                    if (feed) {
-                        chatObserver.observe(feed, { childList: true, subtree: false });
-                        Array.from(feed.children).forEach(function(c) { self._injectTranslateButtons(c); });
-                    }
-                }, 600);
-            };
-        }
     },
 
-    _injectTranslateButtons: function(el) {
+    _autoTranslateChatMsg: function(el) {
         if (!el || !el.id || !el.id.startsWith('msg-')) return;
-        if (el.querySelector('.chat-translate-btn')) return;
+        if (el.getAttribute('data-translated')) return;
 
-        const self = this;
-        const appLang = this.currentLang; // 'tr' veya 'en'
+        var self = this;
+        var appLang = this.currentLang;
 
-        // Mesaj baloncuklarını bul
-        const bubbles = el.querySelectorAll('[style*="line-height:1.55"]');
+        var bubbles = el.querySelectorAll('[style*="line-height:1.55"]');
         bubbles.forEach(function(bubble) {
-            // Metin içeren div'i bul (ikonlu/saatli divleri atla)
-            let textDiv = null;
-            const allDivs = bubble.querySelectorAll('div');
-            allDivs.forEach(function(d) {
-                if (d.querySelector('.chat-translate-btn')) return;
-                if (d.querySelector('i.fas')) return;  // İkon içeriyorsa meta satır
-                if (d.querySelector('span[style*="font-size:10px"]')) return; // Saat satırı
-                const txt = d.textContent.trim();
-                if (txt.length > 3 && !textDiv) textDiv = d;
-            });
+            // Metin div'ini bul — ikon ve saat içerenleri atla
+            var textDiv = null;
+            var divs = bubble.querySelectorAll('div');
+            for (var i = 0; i < divs.length; i++) {
+                var d = divs[i];
+                if (d.querySelector('i.fas')) continue;
+                if (d.querySelector('span[style*="font-size:10px"]')) continue;
+                if (d.querySelector('span[style*="font-size:11px"]')) continue;
+                if (d.children.length > 2) continue; // Karmaşık container atla
+                var txt = d.textContent.trim();
+                if (txt.length >= 2 && !textDiv) { textDiv = d; break; }
+            }
             if (!textDiv) return;
 
-            const originalText = textDiv.textContent.trim();
-            if (!originalText || originalText.length < 3) return;
+            var originalText = textDiv.textContent.trim();
+            if (!originalText || originalText.length < 2) return;
 
-            const msgLang = detectLang(originalText);
+            var msgLang = detectLang(originalText);
+            if (msgLang === appLang) return; // Zaten doğru dilde
 
-            // Hedef dil: mesaj dili ≠ uygulama dili ise çeviri yap
-            // TR kullanıcı EN mesaj görüyor → EN→TR butonu göster
-            // EN kullanıcı TR mesaj görüyor → TR→EN butonu göster
-            // Aynı dildeyse de butonu gizleme — kullanıcı tercihine bırak
-            const targetLang = msgLang === 'tr' ? 'en' : 'tr';
-            const btnLabel = msgLang === 'tr'
-                ? (appLang === 'en' ? '🌐 Translate' : '🌐 Çevir')
-                : (appLang === 'en' ? '🌐 Translate' : '🌐 Çevir');
-            const origLabel = appLang === 'en' ? '↩ Original' : '↩ Orijinal';
+            // Orijinali sakla
+            if (!textDiv.hasAttribute('data-orig')) {
+                textDiv.setAttribute('data-orig', originalText);
+            }
 
-            // Buton oluştur
-            const btn = document.createElement('div');
-            btn.className = 'chat-translate-btn';
-            btn.setAttribute('data-original', originalText);
-            btn.setAttribute('data-translated', '');
-            btn.setAttribute('data-state', 'original');
-            btn.style.cssText = 'display:inline-flex;align-items:center;gap:5px;margin-top:6px;cursor:pointer;font-size:11px;color:rgba(147,210,255,0.9);background:rgba(147,210,255,0.07);border:1px solid rgba(147,210,255,0.18);border-radius:10px;padding:4px 10px;user-select:none;-webkit-user-select:none;transition:background 0.18s;';
-
-            btn.innerHTML = '<i class="fas fa-language" style="font-size:12px;"></i>&nbsp;' + btnLabel;
-
-            btn.addEventListener('touchstart', function() { btn.style.background = 'rgba(147,210,255,0.15)'; });
-            btn.addEventListener('touchend', function() { btn.style.background = 'rgba(147,210,255,0.07)'; });
-
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const state = btn.getAttribute('data-state');
-
-                if (state === 'translated') {
-                    textDiv.textContent = btn.getAttribute('data-original');
-                    btn.innerHTML = '<i class="fas fa-language" style="font-size:12px;"></i>&nbsp;' + btnLabel;
-                    btn.setAttribute('data-state', 'original');
-                    return;
-                }
-
-                const cached = btn.getAttribute('data-translated');
-                if (cached) {
-                    textDiv.textContent = cached;
-                    btn.innerHTML = '<i class="fas fa-undo" style="font-size:11px;"></i>&nbsp;' + origLabel;
-                    btn.setAttribute('data-state', 'translated');
-                    return;
-                }
-
-                // Spinner
-                btn.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="font-size:11px;"></i>';
-                btn.style.pointerEvents = 'none';
-
-                self.getTranslation(originalText, msgLang, targetLang, function(result) {
-                    btn.style.pointerEvents = '';
-                    if (!result || result === originalText) {
-                        btn.innerHTML = '<i class="fas fa-exclamation-triangle" style="font-size:11px;"></i>';
-                        setTimeout(function() {
-                            btn.innerHTML = '<i class="fas fa-language" style="font-size:12px;"></i>&nbsp;' + btnLabel;
-                        }, 2000);
-                        return;
-                    }
-                    btn.setAttribute('data-translated', result);
-                    textDiv.textContent = result;
-                    btn.innerHTML = '<i class="fas fa-undo" style="font-size:11px;"></i>&nbsp;' + origLabel;
-                    btn.setAttribute('data-state', 'translated');
-                });
+            self.getTranslation(originalText, msgLang, appLang, function(result) {
+                if (!result || result === originalText) return;
+                textDiv.textContent = result;
             });
-
-            bubble.appendChild(btn);
         });
+
+        el.setAttribute('data-translated', '1');
+    },
+
+    _restoreChatMsg: function(el) {
+        if (!el) return;
+        el.querySelectorAll('[data-orig]').forEach(function(d) {
+            d.textContent = d.getAttribute('data-orig');
+            d.removeAttribute('data-orig');
+        });
+        el.removeAttribute('data-translated');
     },
 
     /* ── ÇEVİRİ API ───────────────────────────────────── */
     getTranslation: function(text, fromLang, toLang, callback) {
-        const cacheKey = fromLang + '→' + toLang + '|' + text;
-        const dictKey = fromLang + '_to_' + toLang;
+        var cacheKey = fromLang + '→' + toLang + '|' + text;
+        var dictKey = fromLang + '_to_' + toLang;
 
-        // 1. Sabit sözlük
         if (dictionary[dictKey] && dictionary[dictKey][text]) {
             callback(dictionary[dictKey][text]); return;
         }
-        // 2. Cache
         if (this.dynamicCache[cacheKey]) {
             callback(this.dynamicCache[cacheKey]); return;
         }
-        // 3. Kuyruk
         if (this.pendingRequests[cacheKey]) {
             this.pendingRequests[cacheKey].push(callback); return;
         }
         this.pendingRequests[cacheKey] = [callback];
 
-        // 4. Google Translate
-        const url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl='
+        var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl='
             + fromLang + '&tl=' + toLang + '&dt=t&q=' + encodeURIComponent(text);
-        const self = this;
+        var self = this;
 
         fetch(url)
             .then(function(res) { return res.json(); })
             .then(function(data) {
-                let result = text;
+                var result = text;
                 if (data && data[0]) {
                     result = data[0]
                         .filter(function(p) { return p && p[0]; })
@@ -386,14 +312,14 @@ const LangSystem = {
                     self.dynamicCache[cacheKey] = result;
                     try { localStorage.setItem(self.cacheKey, JSON.stringify(self.dynamicCache)); } catch(e) {}
                 }
-                const waiting = self.pendingRequests[cacheKey];
+                var waiting = self.pendingRequests[cacheKey];
                 if (waiting) {
                     waiting.forEach(function(cb) { cb(result); });
                     delete self.pendingRequests[cacheKey];
                 }
             })
             .catch(function() {
-                const waiting = self.pendingRequests[cacheKey];
+                var waiting = self.pendingRequests[cacheKey];
                 if (waiting) {
                     waiting.forEach(function(cb) { cb(text); });
                     delete self.pendingRequests[cacheKey];
@@ -402,7 +328,6 @@ const LangSystem = {
     }
 };
 
-/* ── BAŞLATICI ─────────────────────────────────────────── */
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() { LangSystem.init(); });
 } else {
@@ -412,7 +337,11 @@ if (document.readyState === 'loading') {
 function changeLanguage(val) { LangSystem.set(val); }
 window.LangSystem = LangSystem;
 
-/* buildChatMessage sonrası çağrılacak global hook */
+/* index.html'den çağrılır — mesaj DOM'a eklenince hemen çevir */
 window.injectChatTranslateBtn = function(msgEl) {
-    setTimeout(function() { LangSystem._injectTranslateButtons(msgEl); }, 50);
+    setTimeout(function() {
+        if (typeof LangSystem !== 'undefined') {
+            LangSystem._autoTranslateChatMsg(msgEl);
+        }
+    }, 80);
 };
