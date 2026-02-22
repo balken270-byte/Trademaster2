@@ -13570,7 +13570,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.4"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -16678,7 +16678,13 @@ try {
     
     function applyTheme(t){ document.body.setAttribute('data-theme', t); }
     function changeTheme(val){ appSettings.theme = val; localStorage.setItem('tm_settings', JSON.stringify(appSettings)); applyTheme(val); }
-    function changeLanguage(val){ appSettings.lang = val; localStorage.setItem('tm_settings', JSON.stringify(appSettings)); applyLang(); }
+    function changeLanguage(val){ 
+        appSettings.lang = val; 
+        localStorage.setItem('tm_settings', JSON.stringify(appSettings)); 
+        applyLang(); 
+        // LangSystem ile canlı çeviri — sayfa yenilenmez
+        if (typeof LangSystem !== 'undefined') { LangSystem.set(val); }
+    }
     function applyLang(){ const t = trans[appSettings.lang]; document.querySelectorAll('[data-lang]').forEach(e => { const key = e.getAttribute('data-lang'); if(t[key]) e.innerText = t[key]; }); }
     function setEntryCurrency(curr) { entryCurrency = curr; let btn = document.getElementById('currencyToggle'); if(btn) { if(curr === 'TRY') { btn.innerText = '₺'; btn.className = 'currency-toggle-btn active-try'; } else { btn.innerText = '$'; btn.className = 'currency-toggle-btn active-usd'; } } calcDca(); calcLiveTotal(); }
     function toggleEntryCurrency() { entryCurrency === 'TRY' ? setEntryCurrency('USD') : setEntryCurrency('TRY'); }
@@ -28646,7 +28652,8 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.style.display = 'flex';
         modal.style.flexDirection = 'column';
 
-        document.getElementById('commChatName').textContent = symbol + ' Topluluğu';
+        var _isEN = (typeof LangSystem !== 'undefined') && LangSystem.currentLang === 'en';
+        document.getElementById('commChatName').textContent = symbol + (_isEN ? ' Community' : ' Topluluğu');
         document.getElementById('commChatSymbol').textContent = symbol;
         document.getElementById('commChatPrice').textContent = '';
         document.getElementById('commChatChange').textContent = '';
@@ -28658,16 +28665,18 @@ document.addEventListener('DOMContentLoaded', function() {
         fbDb.collection('community_messages').where('symbol','==',symbol).get().then(function(snap){
             var memberEl = document.getElementById('commChatMemberCount');
             if(memberEl) {
-                // Benzersiz kullanıcı sayısı
                 var uids = {};
                 snap.forEach(function(d){ uids[d.data().authorId] = 1; });
                 var cnt = Object.keys(uids).length || 1;
-                memberEl.textContent = cnt + ' üye · ' + snap.size + ' mesaj';
+                memberEl.textContent = _isEN
+                    ? cnt + ' members · ' + snap.size + ' messages'
+                    : cnt + ' üye · ' + snap.size + ' mesaj';
             }
         }).catch(function(){});
 
-        // Giriş yapılmışsa grubu oluştur/güncelle
-        var user = fbAuth.currentUser;
+        // Input placeholder dile göre
+        var chatInp = document.getElementById('commChatInput');
+        if (chatInp) chatInp.placeholder = _isEN ? 'Write a message...' : 'Mesaj yaz...';
         if(user && !user.isAnonymous) {
             fbDb.collection('community_groups').doc(symbol).set({
                 name: getAssetInfo(symbol).name,
@@ -28720,10 +28729,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     if(docs.length === 0) { feed.innerHTML = buildChatWelcome(symbol); return; }
                     feed.innerHTML = '';
                     var prevDate = null;
+                    var appLang = (typeof LangSystem !== 'undefined') ? LangSystem.currentLang : 'tr';
                     docs.forEach(function(item) {
                         var d = item.data;
                         var ts = d.createdAt ? (d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt)) : new Date();
-                        var dateStr = ts.toLocaleDateString('tr-TR', {day:'numeric',month:'long',year:'numeric'});
+                        var dateLocale = appLang === 'en' ? 'en-US' : 'tr-TR';
+                        var dateStr = ts.toLocaleDateString(dateLocale, {day:'numeric',month:'long',year:'numeric'});
                         if(dateStr !== prevDate) {
                             var sep = document.createElement('div');
                             sep.style.cssText = 'text-align:center;margin:10px 0;';
@@ -28733,8 +28744,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                         var el = document.createElement('div');
                         el.innerHTML = buildChatMessage(item.id, d, ts);
-                        feed.appendChild(el.firstChild);
+                        var msgNode = el.firstChild;
+                        feed.appendChild(msgNode);
                         _renderedMsgIds[item.id] = true;
+                        // Çeviri butonu enjekte et
+                        if (typeof window.injectChatTranslateBtn === 'function') {
+                            window.injectChatTranslateBtn(msgNode);
+                        }
                     });
                     setTimeout(function(){ feed.scrollTop = feed.scrollHeight; }, 60);
                 } else {
@@ -28746,8 +28762,13 @@ document.addEventListener('DOMContentLoaded', function() {
                             var ts = d.createdAt ? (d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt)) : new Date();
                             var el = document.createElement('div');
                             el.innerHTML = buildChatMessage(change.doc.id, d, ts);
-                            feed.appendChild(el.firstChild);
+                            var msgNode = el.firstChild;
+                            feed.appendChild(msgNode);
                             _renderedMsgIds[change.doc.id] = true;
+                            // Çeviri butonu enjekte et
+                            if (typeof window.injectChatTranslateBtn === 'function') {
+                                window.injectChatTranslateBtn(msgNode);
+                            }
                             if(wasAtBottom) setTimeout(function(){ feed.scrollTop = feed.scrollHeight; }, 40);
                         } else if(change.type === 'removed') {
                             var existing = document.getElementById('msg-' + change.doc.id);
