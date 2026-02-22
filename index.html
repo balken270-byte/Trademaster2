@@ -13349,7 +13349,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.3"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -16364,7 +16364,94 @@ try {
 }
 }
 
-    window.renderNotifications = function renderNotifications(){ let l = document.getElementById('notificationList'); l.innerHTML = ""; if(notifications.length === 0){ l.innerHTML = "<div style='text-align:center; padding:30px; color:var(--text-sub); opacity:0.6;'><i class='fas fa-bell-slash' style='font-size:24px; margin-bottom:10px;'></i><br>Bildirim Yok</div>"; return; } notifications.forEach(n => { let icon = 'info-circle'; let cls = 'n-info'; if(n.type === 'success') { icon = 'check-circle'; cls = 'n-success'; } if(n.type === 'danger') { icon = 'exclamation-circle'; cls = 'n-danger'; } if(n.type === 'warn') { icon = 'bell'; cls = 'n-warn'; } l.innerHTML += `<div class="notif-card ${cls} ${n.read ? '' : 'unread'}"><div class="notif-icon-box"><i class="fas fa-${icon}"></i></div><div class="notif-content"><div class="notif-title">${n.title}</div><div class="notif-msg">${n.msg}</div></div><div class="notif-time">${n.time}</div></div>`; }); notifications.forEach(n => n.read = true); localStorage.setItem('tm_notifications', JSON.stringify(notifications)); updateBadge(); }
+    window.renderNotifications = function renderNotifications(){
+        let l = document.getElementById('notificationList');
+        l.innerHTML = "";
+        if(notifications.length === 0){
+            l.innerHTML = "<div style='text-align:center; padding:30px; color:var(--text-sub); opacity:0.6;'><i class='fas fa-bell-slash' style='font-size:24px; margin-bottom:10px;'></i><br>Bildirim Yok</div>";
+            return;
+        }
+        notifications.forEach((n, idx) => {
+            let icon = 'info-circle'; let cls = 'n-info';
+            if(n.type === 'success') { icon = 'check-circle'; cls = 'n-success'; }
+            if(n.type === 'danger')  { icon = 'exclamation-circle'; cls = 'n-danger'; }
+            if(n.type === 'warn')    { icon = 'bell'; cls = 'n-warn'; }
+
+            // Topluluk yanıtı bildirimi — tıklanabilir, farklı görünüm
+            var isCommNotif = n.notifType === 'comm_reply' || n.notifType === 'reply';
+            var clickAttr = '';
+            var navigateHint = '';
+            if(isCommNotif && n.symbol) {
+                clickAttr = 'onclick="goToCommNotif(\'' + n.symbol + '\',\'' + (n.msgId || '') + '\')" style="cursor:pointer;"';
+                navigateHint = '<div style="font-size:10px;color:#818cf8;margin-top:4px;display:flex;align-items:center;gap:4px;"><i class="fas fa-arrow-right"></i> ' + n.symbol + ' Topluluğuna Git</div>';
+                icon = 'reply';
+                cls = 'n-info';
+            }
+
+            l.innerHTML += `<div class="notif-card ${cls} ${n.read ? '' : 'unread'}" ${clickAttr}>
+                <div class="notif-icon-box"><i class="fas fa-${icon}"></i></div>
+                <div class="notif-content">
+                    <div class="notif-title">${n.title}</div>
+                    <div class="notif-msg">${n.msg}</div>
+                    ${navigateHint}
+                </div>
+                <div class="notif-time">${n.time}</div>
+            </div>`;
+        });
+        notifications.forEach(n => n.read = true);
+        localStorage.setItem('tm_notifications', JSON.stringify(notifications));
+        updateBadge();
+    };
+
+    // Topluluk bildiriminden direkt o topluluğa git ve mesajı vurgula
+    window.goToCommNotif = function(symbol, msgId) {
+        // 1. Market sayfasına geç
+        var marketNavBtn = document.querySelector('.nav-item[onclick*="market"]') ||
+                           document.querySelector('[onclick*="switchPage"][onclick*="market"]');
+        if(typeof switchPage === 'function') switchPage('market', marketNavBtn);
+
+        // 2. Kısa gecikme sonra Topluluk sekmesine geç
+        setTimeout(function() {
+            var communityBtn = document.getElementById('btn-view-community');
+            if(communityBtn && typeof switchMarketMode === 'function') {
+                switchMarketMode('community', communityBtn);
+            }
+
+            // 3. Topluluğu aç
+            setTimeout(function() {
+                var info = getAssetInfo(symbol);
+                if(typeof openCommunityChat === 'function') {
+                    openCommunityChat(symbol, info.name || symbol);
+                }
+
+                // 4. Mesajı bul ve vurgula (önce hemen, sonra 1.5s bekleyerek dene)
+                function highlightMsg(id) {
+                    var el = document.getElementById('msg-' + id);
+                    if(!el) return false;
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    el.style.transition = 'background 0.3s, border-left 0.3s';
+                    el.style.background = 'rgba(251,191,36,0.2)';
+                    el.style.borderRadius = '12px';
+                    el.style.borderLeft = '3px solid rgba(251,191,36,0.7)';
+                    setTimeout(function() {
+                        el.style.background = '';
+                        el.style.borderRadius = '';
+                        el.style.borderLeft = '';
+                    }, 3000);
+                    return true;
+                }
+
+                if(msgId) {
+                    setTimeout(function() {
+                        if(!highlightMsg(msgId)) {
+                            // Mesaj henüz render edilmemişse 1.5s sonra tekrar dene
+                            setTimeout(function() { highlightMsg(msgId); }, 1500);
+                        }
+                    }, 700);
+                }
+            }, 300);
+        }, 200);
+    };
     window.updateBadge = function updateBadge(){ let unread = notifications.filter(n => !n.read).length; let b = document.getElementById('notifBadge'); if(unread > 0){ b.innerText = unread; b.classList.add('active'); } else { b.classList.remove('active'); } }
     function clearNotifications(){ if(confirm("Tüm bildirimler silinsin mi?")){ notifications = []; localStorage.setItem('tm_notifications', JSON.stringify(notifications)); renderNotifications(); updateBadge(); } }
     
@@ -25860,9 +25947,14 @@ function showPushNotification(title, msg) {
     }
 }
 
-function addToNotifCenter(title, msg) {
+function addToNotifCenter(title, msg, extraData) {
     if (!window.notifications) window.notifications = JSON.parse(localStorage.getItem('tm_notifications') || '[]');
     var nItem = { type: 'info', title: title, msg: msg, time: new Date().toLocaleTimeString(), read: false };
+    if (extraData) {
+        if (extraData.symbol)  nItem.symbol  = extraData.symbol;
+        if (extraData.msgId)   nItem.msgId   = extraData.msgId;
+        if (extraData.notifType) nItem.notifType = extraData.notifType;
+    }
     window.notifications.unshift(nItem);
     if (window.notifications.length > 50) window.notifications.pop();
     localStorage.setItem('tm_notifications', JSON.stringify(window.notifications));
@@ -25901,6 +25993,10 @@ function startSocialNotifListener(uid) {
                     title = '💬 Yeni Yanıt';
                     msg = (d.senderName || 'Biri') + ' yorumuna yanıt verdi';
                     if (d.symbol) msg += ' (' + d.symbol + ')';
+                } else if (d.type === 'comm_reply') {
+                    title = '↩️ Mesajına Yanıt';
+                    msg = (d.senderName || 'Biri') + ', ' + (d.symbol || '') + ' topluluğunda mesajına yanıt verdi';
+                    if (d.replyText) msg += ': "' + d.replyText.substring(0, 50) + '"';
                 } else if (d.type === 'like') {
                     title = '❤️ Beğeni';
                     msg = (d.senderName || 'Biri') + ' yorumunu beğendi';
@@ -25908,11 +26004,32 @@ function startSocialNotifListener(uid) {
                 }
                 if (!msg) return;
 
-                // 1) Uygulama içi toast
-                if (typeof showToast === 'function') showToast('info', title, msg, 6000);
+                // Navigasyon verisi (topluluğa yönlendirme için)
+                var navData = {
+                    notifType: d.type,
+                    symbol: d.symbol || null,
+                    msgId: d.msgId || null
+                };
 
-                // 2) Bildirim merkezine ekle
-                addToNotifCenter(title, msg);
+                // 1) Uygulama içi toast — comm_reply ise tıklanabilir
+                if (typeof showToast === 'function') {
+                    showToast('info', title, msg, 6000);
+                    if (d.symbol && d.type === 'comm_reply') {
+                        setTimeout(function() {
+                            var lastToast = document.querySelector('.toast-item');
+                            if (lastToast) {
+                                lastToast.style.cursor = 'pointer';
+                                lastToast.title = 'Mesaja git';
+                                var capturedSymbol = d.symbol;
+                                var capturedMsgId = d.msgId || null;
+                                lastToast.onclick = function() { goToCommNotif(capturedSymbol, capturedMsgId); };
+                            }
+                        }, 100);
+                    }
+                }
+
+                // 2) Bildirim merkezine ekle (tıklama verisiyle)
+                addToNotifCenter(title, msg, navData);
 
                 // 3) Telefon çubuğuna push
                 showPushNotification(title, msg);
@@ -28460,6 +28577,30 @@ setTimeout(function() {
                 fbDb.collection('user_memberships').doc(user.uid).collection('groups').doc(activeCommunitySymbol).set({
                     lastMsg: lastMsgText, lastAt: ts
                 }, { merge: true }).catch(function(){});
+
+                // ✅ Yanıt bildirimi — yanıtlanan mesajın sahibine gönder
+                if(finalPayload.replyTo && finalPayload.replyTo.msgId) {
+                    fbDb.collection('community_messages').doc(finalPayload.replyTo.msgId).get()
+                        .then(function(doc) {
+                            if(!doc.exists) return;
+                            var originalMsg = doc.data();
+                            var recipientId = originalMsg.authorId;
+                            // Kendi mesajına yanıt veriyorsa bildirim gönderme
+                            if(!recipientId || recipientId === user.uid) return;
+                            fbDb.collection('notifications').add({
+                                type: 'comm_reply',
+                                recipientId: recipientId,
+                                senderName: authorName,
+                                senderPhoto: photoURL || null,
+                                symbol: activeCommunitySymbol,
+                                msgId: finalPayload.replyTo.msgId,
+                                replyText: (finalPayload.text || '').substring(0, 80),
+                                originalText: (originalMsg.text || '').substring(0, 60),
+                                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                                read: false
+                            }).catch(function(){});
+                        }).catch(function(){});
+                }
             }).catch(function(err){
                 console.error('send err:', err.code, err.message);
                 if(typeof showToast==='function') showToast('danger','Gönderilemedi', err.code === 'permission-denied' ? 'Firebase kurallarını kontrol et' : err.message);
