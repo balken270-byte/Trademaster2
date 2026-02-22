@@ -475,6 +475,32 @@ body {
 
 
         /* ÜST BAR */
+/* ===== TRADEVIA MARKA YAZISI - TÜM BARLARDA ORTAK ===== */
+.tradevia-brand-logo {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0;
+    text-decoration: none;
+}
+.tradevia-brand-logo .tv-trade {
+    font-size: inherit;
+    background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.tradevia-brand-logo .tv-via {
+    font-size: inherit;
+    background: linear-gradient(135deg, #60a5fa 0%, #34d399 50%, #fcd34d 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
 .top-bar {
     /* --- SENİN MEVCUT ÖZELLİKLERİN --- */
     flex-shrink: 0;
@@ -956,16 +982,18 @@ body {
             left: 0; 
             width: 100%; 
             height: 100%; 
-            background: rgba(0, 0, 0, 0.85); 
+            /* Siyah yerine blur/frosted glass arka plan */
+            background: rgba(5, 8, 20, 0.55); 
             z-index: 200; 
             
-            /* Merkezleme ve Dış Boşluk */
             display: none; 
             align-items: center !important; 
             justify-content: center !important; 
             
-            backdrop-filter: blur(5px); 
-            padding: 20px; /* Dış çerçeve güvenli alanı */
+            /* Güçlü blur efekti - profesyonel frosted glass */
+            backdrop-filter: blur(18px) saturate(160%); 
+            -webkit-backdrop-filter: blur(18px) saturate(160%);
+            padding: 20px;
         }
 
         .modal { 
@@ -1035,7 +1063,20 @@ body {
         .tm-shield-outer { animation-delay: 0.1s; } .tm-shield-blue { animation-delay: 0.2s; } .tm-shield-gold { animation-delay: 0.3s; }
         .tm-bull-bear { animation-delay: 0.4s; } .tm-letters { animation-delay: 0.5s; } .tm-arrow { animation-delay: 0.6s; transform-origin: center; animation: drawArrowOriginal 0.6s ease-out forwards 0.6s; opacity: 0; }
         .splash-brand-name { margin-top: 30px; font-family: 'Inter', sans-serif; font-size: 28px; letter-spacing: 4px; background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; opacity: 0; animation: fadeUpText 0.5s ease-out forwards 0.7s; }
-        .splash-loader-bar { width: 140px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 20px; overflow: hidden; opacity: 0; animation: fadeInPart 0.3s ease-out forwards 0.8s; }
+        .splash-loader-bar { 
+            width: 160px; 
+            height: 4px; 
+            background: rgba(255,255,255,0.1); 
+            border-radius: 2px; 
+            overflow: hidden; 
+            opacity: 0; 
+            animation: fadeInPart 0.3s ease-out forwards 0.8s;
+            /* Ekranın altına, footer'ın hemen üstüne sabitle */
+            position: absolute;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
         .splash-loader-bar::after { content: ''; display: block; width: 40%; height: 100%; background: linear-gradient(90deg, #f59e0b, #d97706); animation: loadingMove 1s infinite ease-in-out; }
         @keyframes zoomInLogo { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         @keyframes fadeInPart { from { opacity: 0; } to { opacity: 1; } }
@@ -2152,21 +2193,36 @@ body {
 .md-change-pill { font-size: 14px; font-weight: 700; padding: 4px 12px; border-radius: 12px; display: inline-block; }
 
 /* Sekmeler */
+/* ===== FLAT CAROUSEL TAB BAR ===== */
 .md-tabs {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    margin-bottom: 15px;
-    border-bottom: 1px solid rgba(255,255,255,0.07);
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    /* Grid yerine flex - tüm sekmeler eşit genişlikte, sığmazsa scroll */
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    margin-bottom: 0;
+    border-bottom: none;
     gap: 0;
+    position: relative;
+    background: rgba(0,0,0,0.12);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 0 4px;
 }
+.md-tabs::-webkit-scrollbar { display: none; }
+
 .md-tab {
-    padding: 7px 1px 6px;
+    flex: 1 0 0;          /* Eşit genişlik - hepsi aynı boyut */
+    min-width: 52px;
+    padding: 9px 4px 8px;
     font-size: 9px;
     font-weight: 700;
-    color: var(--text-sub);
+    color: rgba(255,255,255,0.32);   /* Pasif: soluk */
     cursor: pointer;
     border-bottom: 2px solid transparent;
-    transition: 0.2s;
+    transition: color 0.2s, opacity 0.2s, background 0.2s;
     white-space: nowrap;
     text-align: center;
     display: flex;
@@ -2174,13 +2230,29 @@ body {
     align-items: center;
     gap: 3px;
     letter-spacing: 0;
-    min-width: 0;
+    opacity: 0.5;          /* Pasif: yarı saydam */
+    border-radius: 0;
 }
-.md-tab .tab-icon { font-size: 14px; line-height: 1; display:block; }
-.md-tab .tab-label { font-size: 7.5px; font-weight: 700; letter-spacing: -0.3px; }
-.md-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.md-tab .tab-icon { 
+    font-size: 15px; 
+    line-height: 1; 
+    display:block; 
+}
+.md-tab .tab-label { 
+    font-size: 7.5px; 
+    font-weight: 700; 
+    letter-spacing: -0.3px; 
+}
 
-/* İçerik Alanları */
+/* Aktif sekme: tam parlak, altında çizgi */
+.md-tab.active { 
+    color: var(--accent) !important;
+    border-bottom-color: var(--accent) !important;
+    opacity: 1 !important;
+    background: rgba(99,102,241,0.07);
+}
+
+/* İçerik Alanları - İçeriğe göre dinamik */
 .md-content { display: none; animation: fadeIn 0.3s; }
 .md-content.active { display: block; }
 
@@ -2291,24 +2363,28 @@ body {
 
 /* --- ORTALI MODAL DÜZELTMESİ --- */
 
-/* Dış Kaplayıcıyı Ortala */
+/* Dış Kaplayıcıyı Ortala - Navigasyonun üzerinde kalacak şekilde */
 #marketDetailModal {
-    align-items: center !important; /* En alttan ortaya çeker */
+    align-items: center !important;
     justify-content: center !important;
-    padding: 20px; /* Kenarlardan biraz boşluk kalsın */
+    /* Üst: 10px, Alt: navigasyon(70px) + safe-area + buffer */
+    padding: 10px 10px calc(70px + env(safe-area-inset-bottom) + 10px) 10px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
 }
 
-/* Modal Kutusunun Şeklini Değiştir */
+/* Modal Kutusu - İçeriğe göre dinamik, navigasyona kadar büyür */
 .market-sheet {
-    width: 95% !important;        /* Mobilde ekranı tam kaplamasın, kenar kalsın */
-    max-width: 400px !important;  /* Tablet/PC'de çok genişlemesin */
-    border-radius: 24px !important; /* Sadece üstler değil, her köşe yuvarlak olsun */
-    max-height: 85vh;             /* Ekranın %85'inden büyük olmasın */
-    margin: 0 auto !important;    /* Ortala */
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); /* Derinlik gölgesi ekle */
-    
-    /* Animasyonu değiştirelim (Alttan kayma yerine, ortada büyüme) */
+    width: 95% !important;
+    max-width: 420px !important;
+    border-radius: 24px !important;
+    /* Sabit height kaldırıldı - içeriğe göre büyür, max'a kadar */
+    max-height: calc(100dvh - 70px - env(safe-area-inset-bottom) - 20px) !important;
+    height: auto !important;
+    margin: 0 auto !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
     animation: modalZoomIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    overflow: hidden !important;
 }
 
 /* Yeni Animasyon: Hafif Büyüyerek Açılma */
@@ -4418,7 +4494,11 @@ input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
             <i class="fas fa-arrow-left" style="font-size:18px; color:white;"></i>
         </div>
         
-        <div class="app-title">Trade<span>Via</span></div>
+        <div class="app-title">
+            <span class="tradevia-brand-logo" style="font-size:26px;">
+                <span class="tv-trade">TRADE</span><span class="tv-via">VIA</span>
+            </span>
+        </div>
         
         <div  
         <span style="font-size:12px; color:#f59e0b; opacity:0.8;">BETA</span></div>
@@ -8396,7 +8476,9 @@ input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
             <i class="fas fa-arrow-left"></i>
         </button>
         <div class="vision-topbar-title">
-            <span class="vision-topbar-brand">TradeVia</span>
+            <span class="tradevia-brand-logo" style="font-size:20px;">
+                <span class="tv-trade">TRADE</span><span class="tv-via">VIA</span>
+            </span>
             <span class="vision-topbar-beta">BETA</span>
         </div>
         <div style="width: 40px;"></div>
@@ -10448,7 +10530,9 @@ document.addEventListener('DOMContentLoaded', function() {
             <i class="fas fa-arrow-left"></i>
         </button>
         <div class="lab-topbar-title">
-            <span class="lab-topbar-brand">TradeVia</span>
+            <span class="tradevia-brand-logo" style="font-size:20px;">
+                <span class="tv-trade">TRADE</span><span class="tv-via">VIA</span>
+            </span>
             <span class="lab-topbar-beta">BETA</span>
         </div>
         <div style="width: 40px;"></div>
@@ -12858,7 +12942,7 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
 </div>
 
 <div id="marketDetailModal" class="modal-overlay" style="align-items: center; justify-content: center;">
-    <div class="modal market-sheet" style="padding: 0; overflow: hidden; max-height: 85vh; display: flex; flex-direction: column; width: 95%; max-width: 400px; border-radius: 24px;">
+    <div class="modal market-sheet" style="padding: 0; overflow: hidden; display: flex; flex-direction: column; width: 95%; max-width: 420px; border-radius: 24px;">
         
         <div id="mdHero" class="md-header-hero">
             <div style="display:flex; justify-content:space-between; padding: 0 20px;">
@@ -12878,9 +12962,9 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
             <div id="mdChangePill" class="md-change-pill">--</div>
         </div>
 
-        <!-- Tabs: padding dışında, full genişlik -->
-        <div style="padding: 0 16px; background: inherit; flex-shrink:0; position:sticky; top:0; z-index:10;">
-            <div class="md-tabs">
+        <!-- Tabs: flat carousel -->
+        <div style="padding: 0; background: inherit; flex-shrink:0; position:sticky; top:0; z-index:10;">
+            <div class="md-tabs" id="mdTabsBar">
                 <div class="md-tab active" onclick="switchMdTab('overview', this)">
                     <i class="fas fa-chart-bar tab-icon"></i>
                     <span class="tab-label">GENEL</span>
@@ -12898,8 +12982,8 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
                     <span class="tab-label">TOPLULUK</span>
                 </div>
                 <div class="md-tab" id="mdCommQuickTab" onclick="mdOpenCommunityChat()" style="position:relative;">
-                    <i class="fas fa-comment-dots tab-icon" style="color:#818cf8;"></i>
-                    <span class="tab-label" id="mdCommTabLabel" style="color:#818cf8;">SOHBET</span>
+                    <i class="fas fa-comment-dots tab-icon"></i>
+                    <span class="tab-label" id="mdCommTabLabel">SOHBET</span>
                 </div>
                 <div class="md-tab" onclick="switchMdTab('calc', this)">
                     <i class="fas fa-exchange-alt tab-icon"></i>
@@ -12908,7 +12992,7 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
             </div>
         </div><!-- /tabs sticky wrapper -->
 
-        <div style="padding: 0 20px 20px 20px; overflow-y: auto; flex:1;">
+        <div style="padding: 0 20px 20px 20px; overflow-y: auto; flex:1; min-height:0;">
             <div id="md-tab-overview" class="md-content active">
     <div class="range-container">
         <div class="range-labels">
