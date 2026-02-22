@@ -982,16 +982,14 @@ body {
             left: 0; 
             width: 100%; 
             height: 100%; 
-            background: rgba(0, 0, 0, 0.85); 
+            background: rgba(4, 7, 18, 0.55); 
             z-index: 200; 
-            
-            /* Merkezleme ve Dış Boşluk */
             display: none; 
             align-items: center !important; 
             justify-content: center !important; 
-            
-            backdrop-filter: blur(5px); 
-            padding: 20px; /* Dış çerçeve güvenli alanı */
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+            padding: 20px;
         }
 
         .modal { 
@@ -2363,23 +2361,20 @@ body {
 
 /* Dış Kaplayıcıyı Ortala - Navigasyonun üzerinde kalacak şekilde */
 #marketDetailModal {
-    align-items: flex-start !important;
+    align-items: center !important;
     justify-content: center !important;
-    /* Üstten biraz boşluk, alttan navigasyon yüksekliği kadar + safe area */
-    padding: 10px 10px 0 10px !important;
-    padding-bottom: calc(70px + env(safe-area-inset-bottom) + 8px) !important;
+    padding: 10px 10px calc(70px + env(safe-area-inset-bottom) + 10px) 10px !important;
     box-sizing: border-box !important;
     overflow: hidden !important;
 }
 
-/* Modal Kutusu - Kalan alana sığacak şekilde */
+/* Modal Kutusu - İçeriğe göre dinamik büyür, navigasyona çarpmaz */
 .market-sheet {
     width: 95% !important;
     max-width: 420px !important;
     border-radius: 24px !important;
-    /* Navigasyon (70px) + safe area + üst/alt padding hesabı */
-    max-height: calc(100dvh - 70px - env(safe-area-inset-bottom) - 28px) !important;
-    height: calc(100dvh - 70px - env(safe-area-inset-bottom) - 28px) !important;
+    max-height: calc(100dvh - 70px - env(safe-area-inset-bottom) - 20px) !important;
+    height: auto !important;
     margin: 0 auto !important;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
     animation: modalZoomIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
@@ -13478,7 +13473,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -28998,36 +28993,11 @@ setTimeout(function() {
 
 <!-- ========== DESTEK PANELİ ========== -->
 <style>
-#spOverlay {
-    position:fixed; inset:0; z-index:999998;
-    background:rgba(4,7,18,0.65);
-    backdrop-filter:blur(20px) saturate(160%);
-    -webkit-backdrop-filter:blur(20px) saturate(160%);
-    display:none; align-items:flex-end; justify-content:center;
-}
-#spOverlay.open { display:flex; }
-
-#spPanel {
-    width:100%; max-width:480px;
-    height:88vh;
-    background:linear-gradient(170deg,#161d2f 0%,#0f1420 100%);
-    border-radius:26px 26px 0 0;
-    border:1px solid rgba(255,255,255,0.07);
-    border-bottom:none;
-    display:flex; flex-direction:column;
-    overflow:hidden;
-    animation:spUp 0.38s cubic-bezier(0.32,1.15,0.64,1);
-    box-shadow:0 -24px 70px rgba(0,0,0,0.55);
-}
-@keyframes spUp {
-    from{transform:translateY(100%);opacity:0}
-    to{transform:translateY(0);opacity:1}
-}
-
-/* Handle */
+#spOverlay{position:fixed;inset:0;z-index:999998;background:rgba(4,7,18,0.65);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);display:none;align-items:flex-end;justify-content:center}
+#spOverlay.open{display:flex}
+#spPanel{width:100%;max-width:480px;height:88vh;background:linear-gradient(170deg,#161d2f 0%,#0f1420 100%);border-radius:26px 26px 0 0;border:1px solid rgba(255,255,255,0.07);border-bottom:none;display:flex;flex-direction:column;overflow:hidden;animation:spUp 0.38s cubic-bezier(0.32,1.15,0.64,1);box-shadow:0 -24px 70px rgba(0,0,0,0.55)}
+@keyframes spUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
 .sp-handle{width:38px;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin:12px auto 0;flex-shrink:0}
-
-/* Header */
 .sp-hdr{padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.05);flex-shrink:0}
 .sp-hdr-l{display:flex;align-items:center;gap:12px}
 .sp-ico{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(99,102,241,0.15));border:1px solid rgba(139,92,246,0.25);display:flex;align-items:center;justify-content:center;font-size:17px;color:#c4b5fd}
@@ -29035,25 +29005,17 @@ setTimeout(function() {
 .sp-sub{font-size:10.5px;color:rgba(255,255,255,0.38);margin-top:2px}
 .sp-x{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.07);color:rgba(255,255,255,0.45);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;transition:.15s}
 .sp-x:active{background:rgba(255,255,255,0.12)}
-
-/* Bilet durumu bandı */
-.sp-ticket-bar{padding:8px 18px;background:rgba(139,92,246,0.08);border-bottom:1px solid rgba(139,92,246,0.12);display:none;align-items:center;justify-content:space-between;flex-shrink:0}
+.sp-ticket-bar{padding:7px 18px;background:rgba(139,92,246,0.08);border-bottom:1px solid rgba(139,92,246,0.12);display:none;align-items:center;justify-content:space-between;flex-shrink:0}
 .sp-ticket-bar.show{display:flex}
 .sp-ticket-id{font-size:10px;font-weight:700;color:#a78bfa;letter-spacing:0.5px}
 .sp-ticket-status{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px}
 .sp-ticket-status.open{background:rgba(16,185,129,0.15);color:#34d399}
 .sp-ticket-status.answered{background:rgba(99,102,241,0.2);color:#a5b4fc}
-
-/* Feed */
 .sp-feed{flex:1;overflow-y:auto;padding:14px 14px 8px;display:flex;flex-direction:column;gap:10px;scrollbar-width:none}
 .sp-feed::-webkit-scrollbar{display:none}
-
-/* Boş durum */
 .sp-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:rgba(255,255,255,0.22);text-align:center;padding:30px}
 .sp-empty i{font-size:40px;opacity:.25}
 .sp-empty p{font-size:13px;line-height:1.65;margin:0}
-
-/* Mesaj balonu */
 .sp-row{display:flex;gap:8px;animation:spIn .28s ease}
 @keyframes spIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .sp-row.usr{flex-direction:row-reverse}
@@ -29067,14 +29029,10 @@ setTimeout(function() {
 .sp-row.usr .sp-bubble{background:linear-gradient(135deg,#4f46e5,#6366f1);border-top-right-radius:4px;box-shadow:0 4px 14px rgba(79,70,229,.3)}
 .sp-meta{font-size:9.5px;color:rgba(255,255,255,.28);margin-top:3px;padding:0 3px}
 .sp-cat-tag{font-size:9.5px;color:rgba(255,255,255,.35);margin-bottom:3px;padding:0 2px}
-
-/* Kategori - tek sıra yatay scroll */
 .sp-cats{display:flex;gap:7px;padding:10px 14px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;border-top:1px solid rgba(255,255,255,.05)}
 .sp-cats::-webkit-scrollbar{display:none}
 .sp-cat{padding:6px 13px;border-radius:20px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);color:rgba(255,255,255,.5);font-size:11.5px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .18s;flex-shrink:0}
 .sp-cat.on{background:rgba(139,92,246,.18);border-color:rgba(167,139,250,.35);color:#c4b5fd}
-
-/* Input satırı */
 .sp-inp-row{display:flex;align-items:flex-end;gap:9px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.05);flex-shrink:0;background:rgba(0,0,0,.12)}
 .sp-ta{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:16px;color:#fff;font-size:14px;padding:11px 14px;outline:none;resize:none;font-family:inherit;line-height:1.4;max-height:88px;min-height:44px;transition:border-color .2s}
 .sp-ta:focus{border-color:rgba(139,92,246,.4)}
@@ -29092,27 +29050,23 @@ setTimeout(function() {
         <div class="sp-ico"><i class="fas fa-headset"></i></div>
         <div>
           <div class="sp-ttl">Destek Merkezi</div>
-          <div class="sp-sub" id="spSubLine">● Genellikle 24 saat içinde yanıtlanır</div>
+          <div class="sp-sub">● Genellikle 24 saat içinde yanıtlanır</div>
         </div>
       </div>
       <div class="sp-x" onclick="closeSupportPanel()"><i class="fas fa-times"></i></div>
     </div>
-    <!-- Bilet no bandı -->
     <div class="sp-ticket-bar" id="spTicketBar">
       <span class="sp-ticket-id" id="spTicketId">BİLET #---</span>
       <span class="sp-ticket-status open" id="spTicketStatus">Açık</span>
     </div>
-    <!-- Mesaj akışı -->
     <div class="sp-feed" id="spFeed"></div>
-    <!-- Kategoriler - tek satır yatay scroll -->
-    <div class="sp-cats" id="spCatRow">
+    <div class="sp-cats">
       <div class="sp-cat on"  onclick="spPickCat(this,'Genel Soru')">💬 Genel</div>
       <div class="sp-cat"     onclick="spPickCat(this,'Teknik Sorun')">🔧 Teknik</div>
       <div class="sp-cat"     onclick="spPickCat(this,'Hesap & Ödeme')">💳 Hesap</div>
       <div class="sp-cat"     onclick="spPickCat(this,'Öneri')">💡 Öneri</div>
       <div class="sp-cat"     onclick="spPickCat(this,'Hata Bildirimi')">🐛 Hata</div>
     </div>
-    <!-- Input -->
     <div class="sp-inp-row">
       <textarea class="sp-ta" id="spTa" placeholder="Mesajınızı yazın..." rows="1"
         oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,88)+'px'"></textarea>
@@ -29123,117 +29077,62 @@ setTimeout(function() {
 
 <script>
 (function(){
-  var _uid, _uname, _uemail, _unsub, _cat='Genel Soru', _ticketId;
+  var _uid,_uname,_uemail,_unsub,_cat='Genel Soru',_ticketId;
 
-  /* -------- helpers -------- */
-  function esc(t){
-    return String(t||'')
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-  }
-  function fmtTime(ts){
-    if(!ts||!ts.toDate) return '';
-    var d=ts.toDate();
-    return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
-  }
-  function scrollFeed(){
-    var f=document.getElementById('spFeed'); if(f) f.scrollTop=f.scrollHeight;
-  }
+  function esc(t){return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+  function fmtTime(ts){if(!ts||!ts.toDate)return '';var d=ts.toDate();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
+  function scrollFeed(){var f=document.getElementById('spFeed');if(f)f.scrollTop=f.scrollHeight;}
+  function getTicketId(uid){var h=0;for(var i=0;i<uid.length;i++)h=(h*31+uid.charCodeAt(i))>>>0;return 'TRV-'+String(h).slice(-6).toUpperCase();}
 
-  /* -------- ticket id -------- */
-  function getTicketId(uid){
-    // Her kullanıcıya sabit bilet numarası - uid'den türet
-    var hash=0;
-    for(var i=0;i<uid.length;i++) hash=(hash*31+uid.charCodeAt(i))>>>0;
-    return 'TRV-' + String(hash).slice(-6).toUpperCase();
-  }
-
-  /* -------- open -------- */
-  window.openSupportPanel = function(){
-    var u = (typeof fbAuth!=='undefined') && fbAuth.currentUser;
-    if(u){ _uid=u.uid; _uname=u.displayName||u.email||'Kullanıcı'; _uemail=u.email||''; }
-    else {
-      var lid=localStorage.getItem('sp_lid');
-      if(!lid){lid='anon_'+Date.now().toString(36);localStorage.setItem('sp_lid',lid);}
-      _uid=lid; _uname=localStorage.getItem('tm_user_name')||'Kullanıcı'; _uemail='';
-    }
-    _ticketId = getTicketId(_uid);
-    document.getElementById('spTicketId').textContent = 'BİLET #'+_ticketId;
+  window.openSupportPanel=function(){
+    var u=(typeof fbAuth!=='undefined')&&fbAuth.currentUser;
+    if(u){_uid=u.uid;_uname=u.displayName||u.email||'Kullanıcı';_uemail=u.email||'';}
+    else{var lid=localStorage.getItem('sp_lid');if(!lid){lid='anon_'+Date.now().toString(36);localStorage.setItem('sp_lid',lid);}
+      _uid=lid;_uname=localStorage.getItem('tm_user_name')||'Kullanıcı';_uemail='';}
+    _ticketId=getTicketId(_uid);
+    document.getElementById('spTicketId').textContent='BİLET #'+_ticketId;
     document.getElementById('spTicketBar').classList.add('show');
     document.getElementById('spOverlay').classList.add('open');
     spLoad();
   };
 
-  window.closeSupportPanel = function(){
+  window.closeSupportPanel=function(){
     document.getElementById('spOverlay').classList.remove('open');
     if(_unsub){_unsub();_unsub=null;}
   };
 
-  window.spPickCat = function(el,cat){
+  window.spPickCat=function(el,cat){
     document.querySelectorAll('.sp-cat').forEach(function(c){c.classList.remove('on');});
-    el.classList.add('on'); _cat=cat;
+    el.classList.add('on');_cat=cat;
     document.getElementById('spTa').placeholder=cat+' hakkında yazın...';
   };
 
-  /* -------- load messages (NO orderBy - avoids index requirement) -------- */
   function spLoad(){
     var feed=document.getElementById('spFeed');
     feed.innerHTML='<div class="sp-empty"><i class="fas fa-circle-notch fa-spin"></i></div>';
-
-    if(typeof fbDb==='undefined'){
-      feed.innerHTML='<div class="sp-empty"><i class="fas fa-wifi-slash"></i><p>Bağlantı kurulamadı.</p></div>';
-      return;
-    }
+    if(typeof fbDb==='undefined'){feed.innerHTML='<div class="sp-empty"><i class="fas fa-wifi-slash"></i><p>Bağlantı kurulamadı.</p></div>';return;}
     if(_unsub){_unsub();_unsub=null;}
-
-    // ticketId alanına göre sorgula - createdAt orderBy YOK (index gerektirmez)
-    _unsub = fbDb.collection('support_tickets')
-      .doc(_ticketId)
-      .collection('messages')
+    _unsub=fbDb.collection('support_tickets').doc(_ticketId).collection('messages')
       .onSnapshot(function(snap){
         var msgs=[];
-        snap.forEach(function(d){ msgs.push(Object.assign({id:d.id},d.data())); });
-        // client-side sırala
-        msgs.sort(function(a,b){
-          var ta=a.createdAt&&a.createdAt.toMillis?a.createdAt.toMillis():0;
-          var tb=b.createdAt&&b.createdAt.toMillis?b.createdAt.toMillis():0;
-          return ta-tb;
-        });
+        snap.forEach(function(d){msgs.push(Object.assign({id:d.id},d.data()));});
+        msgs.sort(function(a,b){var ta=a.createdAt&&a.createdAt.toMillis?a.createdAt.toMillis():0,tb=b.createdAt&&b.createdAt.toMillis?b.createdAt.toMillis():0;return ta-tb;});
         spRender(msgs);
-
-        // Okunmamış admin cevabı
         var hasUnread=msgs.some(function(m){return m.from==='admin'&&!m.readByUser;});
         var badge=document.getElementById('supportUnreadBadge');
-        if(badge) badge.style.display=hasUnread?'block':'none';
-
-        // Okundu işaretle
-        msgs.forEach(function(m){
-          if(m.from==='admin'&&!m.readByUser){
-            fbDb.collection('support_tickets').doc(_ticketId)
-              .collection('messages').doc(m.id).update({readByUser:true}).catch(function(){});
-          }
-        });
-
-        // Bilet durumu
-        var hasAnswer=msgs.some(function(m){return m.from==='admin';});
-        var statusEl=document.getElementById('spTicketStatus');
-        if(statusEl){
-          statusEl.textContent=hasAnswer?'Yanıtlandı':'Açık';
-          statusEl.className='sp-ticket-status '+(hasAnswer?'answered':'open');
-        }
-      }, function(err){
-        console.warn('SP load err:',err);
+        if(badge)badge.style.display=hasUnread?'block':'none';
+        msgs.forEach(function(m){if(m.from==='admin'&&!m.readByUser)fbDb.collection('support_tickets').doc(_ticketId).collection('messages').doc(m.id).update({readByUser:true}).catch(function(){});});
+        var hasAns=msgs.some(function(m){return m.from==='admin';});
+        var st=document.getElementById('spTicketStatus');
+        if(st){st.textContent=hasAns?'Yanıtlandı':'Açık';st.className='sp-ticket-status '+(hasAns?'answered':'open');}
+      },function(err){
         feed.innerHTML='<div class="sp-empty"><i class="fas fa-exclamation-circle"></i><p>Mesajlar yüklenemedi.<br><small style="opacity:.6">'+err.message+'</small></p></div>';
       });
   }
 
-  /* -------- render -------- */
   function spRender(msgs){
     var feed=document.getElementById('spFeed');
-    if(!msgs.length){
-      feed.innerHTML='<div class="sp-empty"><i class="fas fa-comments"></i><p>Henüz mesaj yok.<br>Bir konu seçip mesajınızı yazın.</p></div>';
-      return;
-    }
+    if(!msgs.length){feed.innerHTML='<div class="sp-empty"><i class="fas fa-comments"></i><p>Henüz mesaj yok.<br>Bir konu seçip mesajınızı yazın.</p></div>';return;}
     feed.innerHTML='';
     msgs.forEach(function(m){
       var isUsr=m.from==='user';
@@ -29242,63 +29141,28 @@ setTimeout(function() {
       var av=isUsr?(_uname.charAt(0)||'U').toUpperCase():'TV';
       var avCls=isUsr?'uav':'aav';
       var catTag=isUsr&&m.category?'<div class="sp-cat-tag">'+esc(m.category)+'</div>':'';
-      row.innerHTML=
-        '<div class="sp-av '+avCls+'">'+av+'</div>'+
-        '<div class="sp-bwrap">'+
-          catTag+
-          '<div class="sp-bubble">'+esc(m.text)+'</div>'+
-          '<div class="sp-meta">'+fmtTime(m.createdAt)+'</div>'+
-        '</div>';
+      row.innerHTML='<div class="sp-av '+avCls+'">'+av+'</div><div class="sp-bwrap">'+catTag+'<div class="sp-bubble">'+esc(m.text)+'</div><div class="sp-meta">'+fmtTime(m.createdAt)+'</div></div>';
       feed.appendChild(row);
     });
     scrollFeed();
   }
 
-  /* -------- send -------- */
-  window.spSend = function(){
+  window.spSend=function(){
     var ta=document.getElementById('spTa');
     var text=ta.value.trim();
-    if(!text) return;
+    if(!text)return;
     if(typeof fbDb==='undefined'){alert('Bağlantı yok.');return;}
-
     var btn=document.getElementById('spSendBtn');
     btn.disabled=true;
-    ta.value=''; ta.style.height='auto';
-
-    // Ana bilet belgesini güncelle / oluştur
-    var ticketRef=fbDb.collection('support_tickets').doc(_ticketId);
-    ticketRef.set({
-      ticketId:  _ticketId,
-      userId:    _uid,
-      userName:  _uname,
-      userEmail: _uemail,
-      lastMsg:   text,
-      lastAt:    firebase.firestore.FieldValue.serverTimestamp(),
-      status:    'open',
-      readByAdmin: false
-    },{merge:true});
-
-    // Mesajı sub-collection'a ekle
-    ticketRef.collection('messages').add({
-      from:       'user',
-      category:   _cat,
-      text:       text,
-      createdAt:  firebase.firestore.FieldValue.serverTimestamp(),
-      readByAdmin:false,
-      readByUser: true
-    }).then(function(){
-      btn.disabled=false;
-    }).catch(function(err){
-      console.error('SP send:',err);
-      btn.disabled=false;
-      if(typeof showToast==='function') showToast('danger','Hata','Mesaj gönderilemedi.');
-    });
+    ta.value='';ta.style.height='auto';
+    var ref=fbDb.collection('support_tickets').doc(_ticketId);
+    ref.set({ticketId:_ticketId,userId:_uid,userName:_uname,userEmail:_uemail,lastMsg:text,lastAt:firebase.firestore.FieldValue.serverTimestamp(),status:'open',readByAdmin:false},{merge:true});
+    ref.collection('messages').add({from:'user',category:_cat,text:text,createdAt:firebase.firestore.FieldValue.serverTimestamp(),readByAdmin:false,readByUser:true})
+      .then(function(){btn.disabled=false;})
+      .catch(function(err){console.error(err);btn.disabled=false;if(typeof showToast==='function')showToast('danger','Hata','Mesaj gönderilemedi.');});
   };
 
-  // Backdrop kapat
-  document.getElementById('spOverlay').addEventListener('click',function(e){
-    if(e.target===this) closeSupportPanel();
-  });
+  document.getElementById('spOverlay').addEventListener('click',function(e){if(e.target===this)closeSupportPanel();});
 })();
 </script>
 
