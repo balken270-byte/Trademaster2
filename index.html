@@ -46,6 +46,12 @@
         var fbDb = firebase.firestore();
         // Persistence: redirect sonrası oturum korunur
         fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+        
+        // Kullanıcı oturumunu takip et
+        fbAuth.onAuthStateChanged(function(user) {
+            // Anonim giriş kapalı — sadece Google ile giriş yapanlar işlem yapabilir
+            console.log('Auth state:', user ? (user.isAnonymous ? 'anonim' : user.email) : 'yok');
+        });
     </script>
     
 
@@ -305,17 +311,17 @@ body {
         .md-comment-feed { max-height:420px !important; }
         /* Cüzdana git bildirimi */
         .md-wallet-notice {
-            display:flex; align-items:center; gap:9px;
-            margin: 10px 0 6px;
-            padding: 10px 14px;
-            background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.07));
-            border: 1px solid rgba(99,102,241,0.22);
-            border-radius: 12px;
-            font-size: 12px; color: rgba(255,255,255,0.55);
+            display:flex; align-items:center; gap:7px;
+            margin: 8px 0 4px;
+            padding: 0;
+            background: none;
+            border: none;
+            border-radius: 0;
+            font-size: 12px; color: rgba(255,255,255,0.35);
             cursor: pointer;
         }
-        .md-wallet-notice i:first-child { color:#818cf8; font-size:14px; flex-shrink:0; }
-        .md-wallet-notice b { color:rgba(255,255,255,0.8); font-weight:700; }
+        .md-wallet-notice i:first-child { color:rgba(255,255,255,0.25); font-size:11px; flex-shrink:0; }
+        .md-wallet-notice b { color:rgba(255,255,255,0.5); font-weight:600; }
         .md-rep-input::placeholder { color:rgba(255,255,255,0.3); }
         .md-rep-send { width:30px; height:30px; border-radius:9px; border:none; background:var(--accent); color:white; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; }
 
@@ -2148,13 +2154,13 @@ body {
 /* Sekmeler */
 .md-tabs {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     margin-bottom: 15px;
     border-bottom: 1px solid rgba(255,255,255,0.07);
     gap: 0;
 }
 .md-tab {
-    padding: 8px 2px 7px;
+    padding: 7px 1px 6px;
     font-size: 9px;
     font-weight: 700;
     color: var(--text-sub);
@@ -2170,8 +2176,8 @@ body {
     letter-spacing: 0;
     min-width: 0;
 }
-.md-tab .tab-icon { font-size: 16px; line-height: 1; display:block; }
-.md-tab .tab-label { font-size: 8.5px; font-weight: 700; letter-spacing: -0.2px; }
+.md-tab .tab-icon { font-size: 14px; line-height: 1; display:block; }
+.md-tab .tab-label { font-size: 7.5px; font-weight: 700; letter-spacing: -0.3px; }
 .md-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
 /* İçerik Alanları */
@@ -2353,6 +2359,7 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2px !important;
+    gap: 8px;
 }
 
 /* Sol Taraf: Toggle Switch (Tema Uyumlu) */
@@ -2362,36 +2369,43 @@ body {
     border-radius: 20px;
     padding: 2px;
     display: flex;
+    flex: 1;
+    min-width: 0;
 }
 .vt-btn {
-    padding: 5px 12px;
-    font-size: 11px;
+    flex: 1;
+    text-align: center;
+    padding: 6px 6px;
+    font-size: 10px;
     font-weight: 700;
     color: var(--text-sub);
     border-radius: 16px;
     cursor: pointer;
     transition: all 0.3s ease;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 0;
+    overflow: hidden;
 }
+.vt-btn i { font-size: 12px; flex-shrink: 0; }
+.vt-btn span { overflow: hidden; text-overflow: ellipsis; }
 .vt-btn.active {
     background: var(--accent);
-    
-    /* DÜZELTME: OLED temasında siyah, diğerlerinde beyaz olması için */
     color: var(--text-on-accent) !important; 
-    
     box-shadow: 0 2px 10px var(--accent-glow);
 }
 
 /* Sağ Taraf: Arama İkonu (Tema Uyumlu) */
 .muh-search-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    
-    /* Tema Renkleri */
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
     background: var(--bg-input);
     border: 1px solid var(--border-color);
     color: var(--text-main);
-    
     display: flex;
     align-items: center;
     justify-content: center;
@@ -4596,11 +4610,15 @@ input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
             <div class="view-toggle-group">
                 <div id="btn-view-main" class="vt-btn active" onclick="switchMarketMode('main', this)">
                     <i class="fas fa-chart-line"></i>
-                    Piyasa
+                    <span>Piyasa</span>
                 </div>
                 <div id="btn-view-watch" class="vt-btn" onclick="switchMarketMode('watchlist', this)">
                     <i class="fas fa-star"></i>
-                    İzleme Listem
+                    <span>İzleme</span>
+                </div>
+                <div id="btn-view-community" class="vt-btn" onclick="switchMarketMode('community', this)">
+                    <i class="fas fa-comments"></i>
+                    <span>Topluluk</span>
                 </div>
             </div>
             
@@ -4751,6 +4769,125 @@ input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
             <div id="wlList" style="padding-bottom:100px;"></div>
         </div>
 
+        <!-- TOPLULUK -->
+        <div id="mv-community" class="market-view-section">
+            <div style="position:relative; margin-bottom:8px; margin-top:4px;">
+                <i class="fas fa-search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:rgba(255,255,255,0.3); font-size:12px;"></i>
+                <input type="text" id="communitySearch" placeholder="Topluluk ara... BTC, ETH, THYAO..."
+                    oninput="filterCommunityChannels(this.value)"
+                    style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:12px; color:white; padding:9px 12px 9px 34px; font-size:13px; outline:none; font-family:inherit; box-sizing:border-box;">
+            </div>
+            <div id="communityChannelGrid" style="padding-bottom:100px;">
+                <div style="text-align:center;padding:30px;color:var(--text-sub);"><i class="fas fa-circle-notch fa-spin"></i></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- TOPLULUK CHAT MODAL (Telegram benzeri) -->
+<div id="communityChatModal" style="display:none; position:fixed; inset:0; z-index:99990; background:#111827; flex-direction:column;">
+    
+    <!-- Chat Header — tıklanınca ayarlar açılır -->
+    <div id="commChatHeader" onclick="toggleCommGroupMenu()" style="display:flex; align-items:center; gap:12px; padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 12px; background:linear-gradient(180deg,#1a2540,#151e35); border-bottom:1px solid rgba(255,255,255,0.07); flex-shrink:0; cursor:pointer; -webkit-tap-highlight-color:rgba(255,255,255,0.04);">
+        <div onclick="event.stopPropagation();closeCommunityChat()" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">
+            <i class="fas fa-arrow-left" style="font-size:14px; color:rgba(255,255,255,0.7);"></i>
+        </div>
+        <div id="commChatIconWrap" style="flex-shrink:0;overflow:hidden;width:42px;height:42px;border-radius:50%;"></div>
+        <div style="flex:1; min-width:0;">
+            <div id="commChatName" style="font-size:16px; font-weight:800; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
+            <div style="display:flex; align-items:center; gap:5px; margin-top:2px;">
+                <span class="live-dot" style="width:5px;height:5px;"></span>
+                <span id="commChatMemberCount" style="font-size:11px; color:#34d399; font-weight:600;"></span>
+            </div>
+        </div>
+        <i class="fas fa-chevron-down" id="commHeaderChevron" style="font-size:12px;color:rgba(255,255,255,0.25);transition:transform 0.25s;flex-shrink:0;"></i>
+    </div>
+
+    <!-- Grup Ayarları Drawer -->
+    <div id="commGroupMenu" style="display:none; background:#1a2540; border-bottom:1px solid rgba(255,255,255,0.07); flex-shrink:0; overflow:hidden;">
+        <!-- Üye sayısı & medya özeti -->
+        <div style="display:flex; gap:0; border-bottom:1px solid rgba(255,255,255,0.05);">
+            <div id="commMenuMemberStat" style="flex:1;text-align:center;padding:12px 8px;border-right:1px solid rgba(255,255,255,0.05);">
+                <div style="font-size:18px;font-weight:800;color:white;" id="commMenuMemberCount">—</div>
+                <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:2px;">Üye</div>
+            </div>
+            <div style="flex:1;text-align:center;padding:12px 8px;border-right:1px solid rgba(255,255,255,0.05);">
+                <div style="font-size:18px;font-weight:800;color:white;" id="commMenuMsgCount">—</div>
+                <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:2px;">Mesaj</div>
+            </div>
+            <div style="flex:1;text-align:center;padding:12px 8px;">
+                <div style="font-size:18px;font-weight:800;color:white;" id="commMenuMediaCount">—</div>
+                <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:2px;">Medya</div>
+            </div>
+        </div>
+        <!-- Menü seçenekleri -->
+        <div onclick="commMenuAction('search')" style="display:flex;align-items:center;gap:12px;padding:13px 18px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);">
+            <div style="width:34px;height:34px;border-radius:10px;background:rgba(99,102,241,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="fas fa-search" style="color:#818cf8;font-size:13px;"></i>
+            </div>
+            <span style="font-size:14px;font-weight:600;color:rgba(255,255,255,0.85);">Mesajlarda Ara</span>
+            <i class="fas fa-chevron-right" style="margin-left:auto;font-size:11px;color:rgba(255,255,255,0.2);"></i>
+        </div>
+        <div onclick="commMenuAction('media')" style="display:flex;align-items:center;gap:12px;padding:13px 18px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);">
+            <div style="width:34px;height:34px;border-radius:10px;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="fas fa-photo-video" style="color:#34d399;font-size:13px;"></i>
+            </div>
+            <span style="font-size:14px;font-weight:600;color:rgba(255,255,255,0.85);">Medya & Dosyalar</span>
+            <i class="fas fa-chevron-right" style="margin-left:auto;font-size:11px;color:rgba(255,255,255,0.2);"></i>
+        </div>
+        <div onclick="commMenuAction('mute')" style="display:flex;align-items:center;gap:12px;padding:13px 18px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);">
+            <div style="width:34px;height:34px;border-radius:10px;background:rgba(245,158,11,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i id="commMuteIcon" class="fas fa-bell" style="color:#f59e0b;font-size:13px;"></i>
+            </div>
+            <span id="commMuteText" style="font-size:14px;font-weight:600;color:rgba(255,255,255,0.85);">Bildirimleri Sessize Al</span>
+            <i class="fas fa-chevron-right" style="margin-left:auto;font-size:11px;color:rgba(255,255,255,0.2);"></i>
+        </div>
+        <div onclick="commMenuAction('leave')" style="display:flex;align-items:center;gap:12px;padding:13px 18px;cursor:pointer;">
+            <div style="width:34px;height:34px;border-radius:10px;background:rgba(239,68,68,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="fas fa-sign-out-alt" style="color:#f87171;font-size:13px;"></i>
+            </div>
+            <span style="font-size:14px;font-weight:600;color:#f87171;">Gruptan Ayrıl</span>
+        </div>
+    </div>
+
+    <!-- Pinned Fiyat Şeridi -->
+    <div id="commChatPriceBar" style="display:flex; align-items:center; gap:10px; padding:6px 16px; background:rgba(0,0,0,0.2); border-bottom:1px solid rgba(255,255,255,0.04); flex-shrink:0;">
+        <i class="fas fa-thumbtack" style="font-size:10px; color:rgba(255,255,255,0.2); transform:rotate(45deg);"></i>
+        <span id="commChatSymbol" style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.35);"></span>
+        <span id="commChatPrice" style="font-size:12px; font-weight:800; color:white;"></span>
+        <span id="commChatChange" style="font-size:11px; font-weight:700;"></span>
+        <div style="margin-left:auto; font-size:10px; color:rgba(255,255,255,0.2);">Canlı Fiyat</div>
+    </div>
+
+    <!-- Mesaj Alanı — derinlikli arka plan -->
+    <div id="commChatMessages" style="flex:1; overflow-y:auto; padding:14px 14px 6px; display:flex; flex-direction:column; gap:0; scrollbar-width:none;
+        background-color:#111827;
+        background-image: radial-gradient(circle at 20% 20%, rgba(99,102,241,0.04) 0%, transparent 50%),
+                          radial-gradient(circle at 80% 80%, rgba(59,130,246,0.04) 0%, transparent 50%),
+                          radial-gradient(circle at 50% 50%, rgba(139,92,246,0.02) 0%, transparent 70%);
+    ">
+    </div>
+
+    <!-- Mesaj Gönder -->
+    <div style="padding:10px 12px; padding-bottom:calc(10px + env(safe-area-inset-bottom,0px)); background:linear-gradient(0deg,#151e35,#1a2540); border-top:1px solid rgba(255,255,255,0.06); flex-shrink:0; display:flex; gap:8px; align-items:flex-end;">
+        <div onclick="triggerCommImageUpload()" style="width:40px;height:40px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">
+            <i class="fas fa-image" style="font-size:15px; color:rgba(255,255,255,0.4);"></i>
+        </div>
+        <input type="file" id="commImageInput" accept="image/*" style="display:none;" onchange="handleCommImageSelect(this)">
+        <div style="flex:1; position:relative;">
+            <div id="commImagePreviewBar" style="display:none; margin-bottom:6px; position:relative; width:60px;">
+                <img id="commImagePreview" style="width:60px; height:60px; object-fit:cover; border-radius:10px;">
+                <div onclick="removeCommImage()" style="position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;background:#ef4444;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:9px;color:white;">✕</div>
+            </div>
+            <textarea id="commChatInput" placeholder="Mesaj yaz..." rows="1"
+                oninput="autoGrowCommInput(this)"
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendCommunityMessage();}"
+                style="width:100%; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); border-radius:22px; color:white; padding:11px 16px; font-size:14px; outline:none; font-family:inherit; resize:none; max-height:80px; min-height:42px; line-height:1.45; box-sizing:border-box; display:block;"></textarea>
+        </div>
+        <div onclick="sendCommunityMessage()" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#6366f1);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 4px 15px rgba(59,130,246,0.35);">
+            <i class="fas fa-paper-plane" style="font-size:14px; color:white; margin-left:2px;"></i>
+        </div>
     </div>
 </div>
 
@@ -4759,19 +4896,21 @@ input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
 
 .muh-action-buttons {
     display: flex;
-    gap: 8px;
+    gap: 6px;
+    flex-shrink: 0;
 }
 
 .muh-filter-btn {
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s;
+    font-size: 13px;
 }
 
 .muh-filter-btn:hover {
@@ -12713,6 +12852,10 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
                     <i class="fas fa-users tab-icon"></i>
                     <span class="tab-label">TOPLULUK</span>
                 </div>
+                <div class="md-tab" id="mdCommQuickTab" onclick="mdOpenCommunityChat()" style="position:relative;">
+                    <i class="fas fa-comment-dots tab-icon" style="color:#818cf8;"></i>
+                    <span class="tab-label" id="mdCommTabLabel" style="color:#818cf8;">SOHBET</span>
+                </div>
                 <div class="md-tab" onclick="switchMdTab('calc', this)">
                     <i class="fas fa-exchange-alt tab-icon"></i>
                     <span class="tab-label">İŞLEM</span>
@@ -12755,7 +12898,7 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
             </div>
 
             <div id="md-tab-social" class="md-content md-social-tab">
-                <!-- Sentiment Bar (sadece bar, butonlar kaldırıldı) -->
+
                 <div class="md-sentiment-section">
                     <div class="md-sent-vote-row">
                         <button class="md-sent-btn bull" id="mdSentBull" onclick="mdVoteSentiment('bull')">
@@ -13206,7 +13349,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -17377,16 +17520,77 @@ function switchMdTab(tab, btn) {
     document.querySelectorAll('.md-tab').forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
 
-    // Haberler tabı açıldığında otomatik yükle
     if (tab === 'news' && typeof currentMdSymbol !== 'undefined' && currentMdSymbol) {
         loadMdNews(currentMdSymbol);
     }
     
-    // Sosyal tabı açıldığında yükle
     if (tab === 'social' && typeof currentMdSymbol !== 'undefined' && currentMdSymbol) {
         initMdSocial(currentMdSymbol);
+        loadMdCommunityQuickCard(currentMdSymbol);
     }
 }
+
+function loadMdCommunityQuickCard(symbol) {
+    var card = document.getElementById('mdCommunityQuickCard');
+    var iconEl = document.getElementById('mdCommQuickIcon');
+    var nameEl = document.getElementById('mdCommQuickName');
+    var statEl = document.getElementById('mdCommQuickStat');
+    var btnEl  = document.getElementById('mdCommQuickBtn');
+    if(!card || !nameEl) return;
+
+    nameEl.textContent = symbol + ' Topluluğu';
+    if(iconEl && typeof buildAvatarHtml === 'function') {
+        iconEl.innerHTML = buildAvatarHtml(symbol, 42);
+        iconEl.style.cssText = 'width:42px;height:42px;flex-shrink:0;overflow:hidden;border-radius:12px;';
+    }
+
+    // Firestore'dan grup istatistiği çek
+    if(typeof fbDb !== 'undefined') {
+        fbDb.collection('community_groups').doc(symbol).get().then(function(doc) {
+            if(doc.exists) {
+                var d = doc.data();
+                var cnt = d.msgCount || 0;
+                statEl.textContent = cnt + ' mesaj · Aktif topluluk';
+                if(btnEl) { btnEl.textContent = 'Gir →'; btnEl.style.background = 'linear-gradient(135deg,#3b82f6,#6366f1)'; }
+            } else {
+                statEl.textContent = 'Henüz topluluk yok · İlk sen başlat!';
+                if(btnEl) { btnEl.innerHTML = '<i class="fas fa-plus" style="margin-right:4px;font-size:10px;"></i>Katıl'; }
+            }
+        }).catch(function(){ statEl.textContent = symbol + ' hakkında konuş'; });
+    }
+}
+
+window.mdOpenCommunityChat = function() {
+    if(!currentMdSymbol) return;
+    var sym = currentMdSymbol;
+    var info = typeof getAssetInfo === 'function' ? getAssetInfo(sym) : { name: sym };
+
+    // Önce Firestore'da grup var mı kontrol et
+    if(typeof fbDb !== 'undefined') {
+        fbDb.collection('community_groups').doc(sym).get().then(function(doc) {
+            if(doc.exists) {
+                openCommunityChat(sym, info.name);
+            } else {
+                // Grup yok — katıl (oluştur) ve gir
+                joinCommunityGroupDirect(sym, info.name);
+            }
+        }).catch(function(){ openCommunityChat(sym, info.name); });
+    } else {
+        openCommunityChat(sym, info.name);
+    }
+};
+
+window.joinCommunityGroupDirect = function(symbol, name) {
+    var doJoin = function() {
+        fbDb.collection('community_groups').doc(symbol).set({
+            name: name, lastMsg: '', lastAt: firebase.firestore.FieldValue.serverTimestamp(), msgCount: 0
+        }, { merge: true }).then(function() {
+            openCommunityChat(symbol, name);
+        }).catch(function(){ openCommunityChat(symbol, name); });
+    };
+    if(typeof fbAuth !== 'undefined' && fbAuth.currentUser) { doJoin(); }
+    else if(typeof fbAuth !== 'undefined') { fbAuth.signInAnonymously().then(doJoin).catch(function(){}); }
+};
 
 // === MARKET DETAIL SOCIAL - YENİ SÜRÜM ===
 var mdSocialUnsub = null;
@@ -18368,21 +18572,23 @@ switchMarketMode = function(mode, btn) {
     // Header butonlarını güncelle
     document.querySelectorAll('.vt-btn').forEach(b => b.classList.remove('active'));
     
-    // İzleme ve Piyasa moduna göre butonları ayarla
+    // Piyasa moduna göre butonları ayarla
     if(mode === 'main') {
         document.getElementById('btn-view-main').classList.add('active');
-        // Piyasa modunda kategori ve filtreleri GÖSTER
         document.getElementById('unifiedCategories').style.display = 'flex';
-        document.getElementById('unifiedFilters').style.display = 'flex';
-        
+        const uf = document.getElementById('unifiedFilters');
+        if(uf && uf.dataset.wasOpen === '1') uf.style.display = 'flex';
         loadMarketCategory(currentCategory, null);
-    } else {
+    } else if(mode === 'watchlist') {
         document.getElementById('btn-view-watch').classList.add('active');
-        // İzleme modunda kategori ve filtreleri GİZLE (Sade görünüm)
         document.getElementById('unifiedCategories').style.display = 'none';
         document.getElementById('unifiedFilters').style.display = 'none';
-        
         updateWatchlist();
+    } else if(mode === 'community') {
+        document.getElementById('btn-view-community').classList.add('active');
+        document.getElementById('unifiedCategories').style.display = 'none';
+        document.getElementById('unifiedFilters').style.display = 'none';
+        initCommunityChannels();
     }
 };
 
@@ -27528,17 +27734,695 @@ setTimeout(function() {
         el.style.height = Math.min(el.scrollHeight, 80) + 'px';
     };
     
-    // ---- MARKET DETAIL SOCIAL TAB ----
-    window.openMarketDetailSocial = function(symbol, name, imageUrl) {
-        openSocialPanel(symbol, name, imageUrl);
+    // ---- COMMUNITY CHAT MODULE (v3 - Messenger style) ----
+
+    var activeCommunitySymbol = null;
+    var activeCommunityName = null;
+    var commChatUnsubscribe = null;
+    var commListUnsubscribe = null;
+    var commImageFile = null;
+    var commChannelCache = {};
+    var commJoinedGroups = {}; // Firestore'da var olan gruplar — global cache
+
+    var knownAssets = {
+        'BTC':  { name:'Bitcoin',           logo:'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',        color:'#F7931A' },
+        'ETH':  { name:'Ethereum',          logo:'https://assets.coingecko.com/coins/images/279/large/ethereum.png',      color:'#627EEA' },
+        'XRP':  { name:'Ripple',            logo:'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png', color:'#00AAE4' },
+        'BNB':  { name:'BNB',               logo:'https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png', color:'#F3BA2F' },
+        'SOL':  { name:'Solana',            logo:'https://assets.coingecko.com/coins/images/4128/large/solana.png',       color:'#9945FF' },
+        'DOGE': { name:'Dogecoin',          logo:'https://assets.coingecko.com/coins/images/5/large/dogecoin.png',        color:'#C2A633' },
+        'ADA':  { name:'Cardano',           logo:'https://assets.coingecko.com/coins/images/975/large/cardano.png',       color:'#0033AD' },
+        'AVAX': { name:'Avalanche',         logo:'https://assets.coingecko.com/coins/images/12559/large/Avalanche_Circle_RedWhite_Trans.png', color:'#E84142' },
+        'LINK': { name:'Chainlink',         logo:'https://assets.coingecko.com/coins/images/877/large/chainlink-new-logo.png', color:'#375BD2' },
+        'DOT':  { name:'Polkadot',          logo:'https://assets.coingecko.com/coins/images/12171/large/polkadot.png',    color:'#E6007A' },
+        'MATIC':{ name:'Polygon',           logo:'https://assets.coingecko.com/coins/images/4713/large/matic-token-icon.png', color:'#8247E5' },
+        'UNI':  { name:'Uniswap',           logo:'https://assets.coingecko.com/coins/images/12504/large/uniswap-uni.png', color:'#FF007A' },
+        'LTC':  { name:'Litecoin',          logo:'https://assets.coingecko.com/coins/images/2/large/litecoin.png',        color:'#BFBBBB' },
+        'TRX':  { name:'TRON',              logo:'https://assets.coingecko.com/coins/images/1094/large/tron-logo.png',    color:'#FF0013' },
+        'ATOM': { name:'Cosmos',            logo:'https://assets.coingecko.com/coins/images/1481/large/cosmos_hub.png',   color:'#6F7390' },
+        'THYAO':{ name:'Türk Hava Yolları', logo:'', color:'#C8102E' },
+        'GARAN':{ name:'Garanti BBVA',      logo:'', color:'#00A651' },
+        'ASELS':{ name:'Aselsan',           logo:'', color:'#003087' },
+        'EREGL':{ name:'Ereğli Demir Çelik',logo:'', color:'#1565C0' },
+        'KCHOL':{ name:'Koç Holding',       logo:'', color:'#E53935' },
+        'XAU':  { name:'Altın',             logo:'', color:'#FFD700' },
+        'USD':  { name:'Dolar / TL',        logo:'', color:'#2E7D32' },
+        'EUR':  { name:'Euro / TL',         logo:'', color:'#1565C0' },
     };
-    
+
+    function getAssetInfo(symbol) {
+        var sym = symbol.toUpperCase();
+        if(knownAssets[sym]) return knownAssets[sym];
+        var colors = ['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6','#f97316'];
+        return { name: sym, logo: '', color: colors[sym.charCodeAt(0) % colors.length] };
+    }
+
+    var _logoFailCache = {};
+
+    window._avErr = function(el, symbol, size, color) {
+        _logoFailCache[symbol] = true;
+        var p = el.parentNode;
+        if(p) {
+            p.style.background = color + '22';
+            p.style.fontSize = Math.round(size * 0.42) + 'px';
+            p.style.fontWeight = '900';
+            p.style.color = color;
+            p.innerHTML = symbol.charAt(0);
+        }
+    };
+
+    function buildAvatarHtml(symbol, size) {
+        size = size || 48;
+        var info = getAssetInfo(symbol);
+        var br = Math.round(size * 0.28);
+        var base = 'width:' + size + 'px;height:' + size + 'px;border-radius:' + br + 'px;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;';
+
+        if(info.logo && !_logoFailCache[symbol]) {
+            var safeColor = info.color.replace(/'/g, '');
+            var safeSym = symbol.replace(/'/g, '');
+            return '<div style="' + base + 'background:' + info.color + '15;">' +
+                '<img src="' + info.logo + '" width="' + size + '" height="' + size + '" ' +
+                'style="width:' + size + 'px;height:' + size + 'px;object-fit:contain;" ' +
+                'onerror="_avErr(this,\'' + safeSym + '\',' + size + ',\'' + safeColor + '\')">' +
+                '</div>';
+        }
+        return '<div style="' + base + 'background:' + info.color + '22;font-size:' + Math.round(size*0.42) + 'px;font-weight:900;color:' + info.color + ';">' + symbol.charAt(0) + '</div>';
+    }
+
+    // Messenger tarzı kanal satırı
+    function buildMessengerRow(symbol, lastMsg, lastTime, unread) {
+        var info = getAssetInfo(symbol);
+        var timeStr = '';
+        if(lastTime) {
+            var now = new Date();
+            var diff = now - lastTime;
+            if(diff < 60000) timeStr = 'Şimdi';
+            else if(diff < 3600000) timeStr = Math.floor(diff/60000) + ' dk';
+            else if(diff < 86400000) timeStr = lastTime.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+            else timeStr = lastTime.toLocaleDateString('tr-TR',{day:'numeric',month:'short'});
+        }
+        var previewText = lastMsg ? (lastMsg.length > 38 ? lastMsg.substring(0,38)+'...' : lastMsg) : 'Henüz mesaj yok';
+        var unreadHtml = unread > 0
+            ? '<div style="min-width:18px;height:18px;border-radius:9px;background:#3b82f6;color:white;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 4px;">' + (unread > 99 ? '99+' : unread) + '</div>'
+            : '';
+
+        return '<div onclick="openCommunityChat(\'' + symbol + '\',\'' + info.name.replace(/'/g,"\\'") + '\')" style="display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;-webkit-tap-highlight-color:rgba(255,255,255,0.04);">' +
+            buildAvatarHtml(symbol, 48) +
+            '<div style="flex:1;min-width:0;">' +
+                '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:6px;">' +
+                    '<span style="font-size:14px;font-weight:700;color:rgba(255,255,255,0.92);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + symbol + ' Topluluğu</span>' +
+                    '<span style="font-size:11px;color:rgba(255,255,255,0.3);flex-shrink:0;">' + timeStr + '</span>' +
+                '</div>' +
+                '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:3px;gap:6px;">' +
+                    '<span style="font-size:12px;color:rgba(255,255,255,0.38);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;">' + previewText + '</span>' +
+                    unreadHtml +
+                '</div>' +
+            '</div>' +
+        '</div>';
+    }
+
+    window.initCommunityChannels = function() {
+        var grid = document.getElementById('communityChannelGrid');
+        if(!grid) return;
+        grid.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-sub);"><i class="fas fa-circle-notch fa-spin"></i></div>';
+
+        // Önce anonim giriş garantile, sonra Firestore'a yaz
+        var ensureAuth = function(cb) {
+            if(fbAuth.currentUser) { cb(); return; }
+            fbAuth.signInAnonymously()
+                .then(function() { cb(); })
+                .catch(function(err) {
+                    console.warn('Anonim giriş başarısız:', err);
+                    cb(); // Yine de dene
+                });
+        };
+
+        ensureAuth(function() {
+            // BTC grubunu oluştur/güncelle
+            fbDb.collection('community_groups').doc('BTC').set({
+                name: 'Bitcoin', lastAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true }).catch(function(e){ console.warn('BTC group set err:', e.message); });
+
+            fbDb.collection('community_groups').get()
+                .then(function(snap) {
+                    var groups = [];
+                    // Global cache güncelle — sonraki aramalarda kullanılacak
+                    commJoinedGroups = {};
+                    snap.forEach(function(doc) {
+                        commJoinedGroups[doc.id] = true;
+                        groups.push(Object.assign({ symbol: doc.id }, doc.data()));
+                    });
+                    groups.sort(function(a, b) {
+                        var ta = a.lastAt ? (a.lastAt.toMillis ? a.lastAt.toMillis() : 0) : 0;
+                        var tb = b.lastAt ? (b.lastAt.toMillis ? b.lastAt.toMillis() : 0) : 0;
+                        return tb - ta;
+                    });
+                    // BTC her zaman en üstte
+                    groups = groups.filter(function(g){ return g.symbol !== 'BTC'; });
+                    groups.unshift({ symbol: 'BTC', lastMsg: 'Bitcoin hakkında konuş 🚀', lastAt: null, unread: 0 });
+                    renderMessengerList(groups);
+                })
+                .catch(function(err) {
+                    console.error('community_groups get err:', err.code, err.message);
+                    // Firestore erişim yoksa en azından BTC göster
+                    renderMessengerList([{ symbol:'BTC', lastMsg:'Bitcoin hakkında konuş 🚀', lastAt: null, unread: 0 }]);
+                    if(grid) {
+                        var errDiv = document.createElement('div');
+                        errDiv.style.cssText = 'font-size:10px;color:#f87171;text-align:center;margin-top:8px;padding:0 10px;';
+                        errDiv.textContent = '⚠️ Firestore: ' + (err.code || err.message) + ' — Firebase Console\'dan kuralları kontrol et';
+                        grid.appendChild(errDiv);
+                    }
+                });
+        });
+    };
+
+    function renderMessengerList(groups) {
+        var grid = document.getElementById('communityChannelGrid');
+        if(!grid) return;
+        if(!groups || groups.length === 0) {
+            grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-sub);font-size:13px;">Henüz topluluk yok.<br>Arama yaparak ilk grubu oluştur!</div>';
+            return;
+        }
+        grid.innerHTML = groups.map(function(g) {
+            var lastTime = g.lastAt ? (g.lastAt.toDate ? g.lastAt.toDate() : new Date(g.lastAt)) : null;
+            return buildMessengerRow(g.symbol, g.lastMsg || '', lastTime, g.unread || 0);
+        }).join('');
+    }
+
+    var commSearchTimer = null;
+
+    window.filterCommunityChannels = function(val) {
+        val = val.trim();
+        var grid = document.getElementById('communityChannelGrid');
+        if(!grid) return;
+
+        if(!val) { initCommunityChannels(); return; }
+
+        clearTimeout(commSearchTimer);
+
+        var upper = val.toUpperCase();
+        var lower = val.toLowerCase();
+
+        // Önce anlık local sonuç göster
+        var localMatched = Object.keys(knownAssets).filter(function(sym) {
+            return sym.includes(upper) || knownAssets[sym].name.toLowerCase().includes(lower);
+        });
+
+        if(localMatched.length > 0) {
+            grid.innerHTML = localMatched.slice(0,6).map(function(sym) {
+                return buildMessengerRow(sym, '', null, 0);
+            }).join('');
+        } else {
+            grid.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-sub);font-size:12px;"><i class="fas fa-circle-notch fa-spin"></i> Aranıyor...</div>';
+        }
+
+        // 400ms debounce ile CoinGecko API
+        commSearchTimer = setTimeout(function() {
+            fetch('https://api.coingecko.com/api/v3/search?query=' + encodeURIComponent(val))
+                .then(function(r){ return r.json(); })
+                .then(function(data) {
+                    var coins = (data.coins || []).slice(0, 8);
+                    if(coins.length === 0 && localMatched.length === 0) {
+                        grid.innerHTML = '<div style="text-align:center;padding:30px 20px;">' +
+                            '<i class="fas fa-search" style="font-size:24px;color:rgba(255,255,255,0.15);margin-bottom:10px;display:block;"></i>' +
+                            '<div style="font-size:13px;color:rgba(255,255,255,0.35);">"' + escapeHtml(val) + '" için topluluk bulunamadı</div>' +
+                            '<div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:6px;">Sadece piyasada işlem gören varlıklar için topluluk açılabilir</div>' +
+                        '</div>';
+                        return;
+                    }
+                    if(coins.length === 0) return;
+
+                    // commJoinedGroups cache varsa kullan, yoksa Firestore'dan çek
+                    var renderCards = function(existingGroups) {
+                        grid.innerHTML = coins.map(function(coin) {
+                            var sym = coin.symbol.toUpperCase();
+                            var hdLogo = coin.large || coin.thumb || '';
+                            if(!knownAssets[sym]) {
+                                knownAssets[sym] = { name: coin.name, logo: hdLogo, color: '#6366f1', cgId: coin.id };
+                            } else {
+                                if(hdLogo) knownAssets[sym].logo = hdLogo;
+                            }
+                            var alreadyJoined = existingGroups[sym] || false;
+                            return buildJoinCard(sym, coin.name, hdLogo, alreadyJoined);
+                        }).join('');
+                    };
+
+                    // Cache doluysa direkt kullan, boşsa Firestore'dan çek
+                    if(Object.keys(commJoinedGroups).length > 0) {
+                        renderCards(commJoinedGroups);
+                    } else {
+                        fbDb.collection('community_groups').get().then(function(snap) {
+                            snap.forEach(function(doc){ commJoinedGroups[doc.id] = true; });
+                            renderCards(commJoinedGroups);
+                        }).catch(function() {
+                            renderCards({});
+                        });
+                    }
+                })
+                .catch(function() {
+                    if(localMatched.length === 0) {
+                        grid.innerHTML = '<div style="text-align:center;padding:30px 20px;color:rgba(255,255,255,0.3);font-size:13px;">Arama sırasında hata oluştu</div>';
+                    }
+                });
+        }, 400);
+    };
+
+    // Arama sonucu — Gruba Katıl / Gir kartı
+    function buildJoinCard(symbol, name, logo, alreadyJoined) {
+        var info = getAssetInfo(symbol);
+        var safeSymbol = symbol.replace(/'/g,"\\'");
+        var safeName = (name||symbol).replace(/'/g,"\\'");
+        var logoHtml = logo
+            ? '<img src="' + logo + '" width="48" height="48" style="width:48px;height:48px;object-fit:contain;border-radius:14px;image-rendering:-webkit-optimize-contrast;" onerror="this.style.display=\'none\'">'
+            : '<div style="width:48px;height:48px;border-radius:14px;background:' + info.color + '22;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:' + info.color + ';">' + symbol.charAt(0) + '</div>';
+
+        var btnHtml = alreadyJoined
+            ? '<button onclick="openCommunityChat(\'' + safeSymbol + '\',\'' + safeName + '\')" ' +
+              'style="background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.3);border-radius:20px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;font-family:inherit;">' +
+              'Gir <i class="fas fa-arrow-right" style="font-size:10px;margin-left:4px;"></i></button>'
+            : '<button onclick="joinCommunityGroup(\'' + safeSymbol + '\',\'' + safeName + '\')" ' +
+              'style="background:linear-gradient(135deg,#3b82f6,#6366f1);color:white;border:none;border-radius:20px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;font-family:inherit;">' +
+              '<i class="fas fa-plus" style="margin-right:5px;font-size:10px;"></i>Katıl</button>';
+
+        return '<div style="display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid rgba(255,255,255,0.05);">' +
+            '<div style="width:48px;height:48px;flex-shrink:0;">' + logoHtml + '</div>' +
+            '<div style="flex:1;min-width:0;">' +
+                '<div style="font-size:14px;font-weight:700;color:rgba(255,255,255,0.92);">' + symbol + ' Topluluğu</div>' +
+                '<div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:1px;">' + escapeHtml(name||symbol) + '</div>' +
+            '</div>' +
+            btnHtml +
+        '</div>';
+    }
+
+    window.joinCommunityGroup = function(symbol, name) {
+        var user = fbAuth.currentUser;
+        if(!user || user.isAnonymous) {
+            if(typeof showToast === 'function') showToast('warning', 'Giriş Gerekli', 'Gruba katılmak için Google ile giriş yapmalısın.');
+            return;
+        }
+        var btn = event && event.target ? event.target.closest('button') : null;
+        if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>'; }
+
+        var doJoin = function() {
+            fbDb.collection('community_groups').doc(symbol).set({
+                name: name,
+                lastMsg: '',
+                lastAt: firebase.firestore.FieldValue.serverTimestamp(),
+                msgCount: 0
+            }, { merge: true }).then(function() {
+                commJoinedGroups[symbol] = true;
+                var searchEl = document.getElementById('communitySearch');
+                if(searchEl) searchEl.value = '';
+                initCommunityChannels();
+                openCommunityChat(symbol, name);
+            }).catch(function(err) {
+                console.error('join err:', err);
+                if(btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus" style="margin-right:5px;font-size:10px;"></i>Katıl'; }
+            });
+        };
+
+        doJoin();
+    };
+
+    window.openCommunityChat = function(symbol, name) {
+        activeCommunitySymbol = symbol;
+        activeCommunityName = name;
+
+        var modal = document.getElementById('communityChatModal');
+        modal.style.display = 'flex';
+        modal.style.flexDirection = 'column';
+
+        document.getElementById('commChatName').textContent = symbol + ' Topluluğu';
+        document.getElementById('commChatSymbol').textContent = symbol;
+        document.getElementById('commChatPrice').textContent = '';
+        document.getElementById('commChatChange').textContent = '';
+
+        var iconWrap = document.getElementById('commChatIconWrap');
+        iconWrap.innerHTML = buildAvatarHtml(symbol, 40);
+        iconWrap.style.cssText = 'flex-shrink:0;overflow:hidden;';
+
+        fbDb.collection('community_messages').where('symbol','==',symbol).get().then(function(snap){
+            var memberEl = document.getElementById('commChatMemberCount');
+            if(memberEl) {
+                // Benzersiz kullanıcı sayısı
+                var uids = {};
+                snap.forEach(function(d){ uids[d.data().authorId] = 1; });
+                var cnt = Object.keys(uids).length || 1;
+                memberEl.textContent = cnt + ' üye · ' + snap.size + ' mesaj';
+            }
+        }).catch(function(){});
+
+        // Giriş yapılmışsa grubu oluştur/güncelle
+        var user = fbAuth.currentUser;
+        if(user && !user.isAnonymous) {
+            fbDb.collection('community_groups').doc(symbol).set({
+                name: getAssetInfo(symbol).name,
+                lastMsg: '', lastAt: firebase.firestore.FieldValue.serverTimestamp(), msgCount: 0
+            }, { merge: true }).catch(function(e){ console.warn('group set:', e.message); });
+        }
+        loadCommunityMessages(symbol);
+
+        if(typeof getPrice === 'function') {
+            getPrice(symbol).then(function(data){
+                if(data && data.price > 0) {
+                    var s = data.origin === 'USD' ? '$' : '₺';
+                    document.getElementById('commChatPrice').textContent = s + data.price.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+                    var chEl = document.getElementById('commChatChange');
+                    chEl.textContent = (data.change >= 0 ? '+' : '') + data.change.toFixed(2) + '%';
+                    chEl.style.color = data.change >= 0 ? '#34d399' : '#f87171';
+                }
+            }).catch(function(){});
+        }
+    };
+
+    function loadCommunityMessages(symbol) {
+        var feed = document.getElementById('commChatMessages');
+        if(!feed) return;
+        feed.style.display = 'flex';
+        feed.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-sub);"><i class="fas fa-circle-notch fa-spin" style="font-size:20px;opacity:0.4;"></i></div>';
+
+        if(commChatUnsubscribe) { commChatUnsubscribe(); commChatUnsubscribe = null; }
+
+        // where + orderBy composite index gerektirir — sadece where kullan, client sort yap
+        commChatUnsubscribe = fbDb.collection('community_messages')
+            .where('symbol', '==', symbol)
+            .onSnapshot(function(snap) {
+                // Client-side sırala
+                var docs = [];
+                snap.forEach(function(doc) { docs.push({ id: doc.id, data: doc.data() }); });
+                docs.sort(function(a, b) {
+                    var ta = a.data.createdAt ? (a.data.createdAt.toMillis ? a.data.createdAt.toMillis() : 0) : 0;
+                    var tb = b.data.createdAt ? (b.data.createdAt.toMillis ? b.data.createdAt.toMillis() : 0) : 0;
+                    return ta - tb;
+                });
+                // Son 80
+                if(docs.length > 80) docs = docs.slice(docs.length - 80);
+                if(docs.length === 0) {
+                    feed.innerHTML = buildChatWelcome(symbol);
+                    return;
+                }
+                feed.innerHTML = '';
+                var prevDate = null;
+                docs.forEach(function(item) {
+                    var d = item.data;
+                    var ts = d.createdAt ? (d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt)) : new Date();
+                    var dateStr = ts.toLocaleDateString('tr-TR', {day:'numeric',month:'long',year:'numeric'});
+                    if(dateStr !== prevDate) {
+                        feed.innerHTML += '<div style="text-align:center;margin:10px 0;"><span style="font-size:10px;color:rgba(255,255,255,0.25);background:rgba(255,255,255,0.05);padding:2px 10px;border-radius:8px;">' + dateStr + '</span></div>';
+                        prevDate = dateStr;
+                    }
+                    feed.innerHTML += buildChatMessage(item.id, d, ts);
+                });
+                setTimeout(function(){ feed.scrollTop = feed.scrollHeight; }, 60);
+            }, function(err) {
+                console.error('Community messages error:', err);
+                feed.innerHTML = buildChatWelcome(symbol);
+            });
+    }
+
+    function buildChatWelcome(symbol) {
+        var info = getAssetInfo(symbol);
+        return '<div style="text-align:center;padding:50px 20px;">' +
+            '<div style="display:flex;justify-content:center;margin-bottom:14px;">' + buildAvatarHtml(symbol, 60) + '</div>' +
+            '<div style="font-size:15px;font-weight:700;color:rgba(255,255,255,0.7);margin-bottom:6px;">' + symbol + ' Topluluğuna Hoş Geldin!</div>' +
+            '<div style="font-size:12px;line-height:1.6;color:rgba(255,255,255,0.3);">' + info.name + ' hakkında konuş,<br>analiz paylaş, görüş belirt. 🚀</div>' +
+        '</div>';
+    }
+
+    function buildChatMessage(id, d, ts) {
+        var currentUser = fbAuth.currentUser;
+        var isMe = currentUser && d.authorId === currentUser.uid;
+        var timeStr = ts.toLocaleTimeString('tr-TR', {hour:'2-digit',minute:'2-digit'});
+        var avatarColors = ['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6'];
+        var avatarColor = avatarColors[(d.authorName||'A').charCodeAt(0) % avatarColors.length];
+        var initials = (d.authorName || 'A').charAt(0).toUpperCase();
+        var avatarHtml = d.photoURL
+            ? '<img src="' + d.photoURL + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'
+            : initials;
+        var imageHtml = d.imageUrl
+            ? '<img src="' + d.imageUrl + '" style="max-width:100%;border-radius:10px;display:block;margin-top:5px;">'
+            : '';
+        var deleteHtml = isMe
+            ? '<span onclick="deleteCommunityMessage(\'' + id + '\')" style="font-size:10px;color:rgba(255,255,255,0.3);cursor:pointer;margin-left:5px;"><i class="fas fa-trash"></i></span>'
+            : '';
+
+        if(isMe) {
+            // Sağ taraf — mavi balon, avatar yok
+            return '<div style="display:flex;justify-content:flex-end;margin-bottom:6px;padding-left:60px;">' +
+                '<div style="max-width:82%;">' +
+                    (imageHtml ? '<div style="text-align:right;margin-bottom:2px;">' + imageHtml + '</div>' : '') +
+                    (d.text ? '<div style="background:linear-gradient(135deg,#2b6cb0,#3b82f6);color:white;padding:9px 13px;border-radius:18px 18px 4px 18px;font-size:14px;line-height:1.5;word-break:break-word;display:inline-block;float:right;clear:both;">' + escapeHtml(d.text) + '</div>' : '') +
+                    '<div style="clear:both;font-size:10px;color:rgba(255,255,255,0.3);text-align:right;margin-top:3px;">' + timeStr + deleteHtml + '</div>' +
+                '</div>' +
+            '</div>';
+        } else {
+            // Sol taraf — gri balon + avatar + isim
+            return '<div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:6px;padding-right:60px;">' +
+                '<div style="width:30px;height:30px;border-radius:50%;background:' + avatarColor + ';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;flex-shrink:0;overflow:hidden;">' + avatarHtml + '</div>' +
+                '<div style="max-width:82%;">' +
+                    '<div style="font-size:11px;font-weight:700;color:' + avatarColor + ';margin-bottom:3px;padding-left:2px;">' + escapeHtml(d.authorName || 'Anonim') + '</div>' +
+                    (imageHtml ? '<div style="margin-bottom:2px;">' + imageHtml + '</div>' : '') +
+                    (d.text ? '<div style="background:rgba(255,255,255,0.09);color:rgba(255,255,255,0.9);padding:9px 13px;border-radius:18px 18px 18px 4px;font-size:14px;line-height:1.5;word-break:break-word;display:inline-block;">' + escapeHtml(d.text) + '</div>' : '') +
+                    '<div style="font-size:10px;color:rgba(255,255,255,0.28);margin-top:3px;padding-left:2px;">' + timeStr + '</div>' +
+                '</div>' +
+            '</div>';
+        }
+    }
+
+    function escapeHtml(str) {
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    window.sendCommunityMessage = function() {
+        var input = document.getElementById('commChatInput');
+        var text = (input ? input.value.trim() : '');
+        if(!text && !commImageFile) return;
+
+        var user = fbAuth.currentUser;
+
+        // Giriş yapılmamış veya anonim → giriş yap uyarısı
+        if(!user || user.isAnonymous) {
+            if(typeof showToast === 'function') {
+                showToast('warning', 'Giriş Gerekli', 'Mesaj göndermek için Google ile giriş yapmalısın.');
+            }
+            // Input'u temizleme, kullanıcı giriş yapıp tekrar deneyebilir
+            return;
+        }
+
+        var authorName = user.displayName || (user.email ? user.email.split('@')[0] : 'Kullanıcı');
+        var photoURL = user.photoURL || null;
+
+        var payload = {
+            symbol: activeCommunitySymbol,
+            authorId: user.uid,
+            authorName: authorName,
+            text: text,
+            isAnonymous: false,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        if(photoURL) payload.photoURL = photoURL;
+
+        var doSend = function(finalPayload) {
+            fbDb.collection('community_messages').add(finalPayload).then(function(){
+                if(input) { input.value = ''; input.style.height = ''; }
+                removeCommImage();
+                fbDb.collection('community_groups').doc(activeCommunitySymbol).set({
+                    name: getAssetInfo(activeCommunitySymbol).name,
+                    lastMsg: finalPayload.text || '📷 Fotoğraf',
+                    lastAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    msgCount: firebase.firestore.FieldValue.increment(1)
+                }, { merge: true }).catch(function(){});
+            }).catch(function(err){
+                console.error('send err:', err.code, err.message);
+                if(typeof showToast==='function') showToast('danger','Gönderilemedi', err.code === 'permission-denied' ? 'Firebase kurallarını kontrol et' : err.message);
+            });
+        };
+
+        if(commImageFile) {
+            var reader = new FileReader();
+            reader.onload = function(e) { payload.imageUrl = e.target.result; doSend(payload); };
+            reader.readAsDataURL(commImageFile);
+        } else {
+            doSend(payload);
+        }
+    };
+
+    window.deleteCommunityMessage = function(id) {
+        if(!confirm('Mesaj silinsin mi?')) return;
+        fbDb.collection('community_messages').doc(id).delete().catch(function(){});
+    };
+
+    window.toggleCommGroupMenu = function() {
+        var menu = document.getElementById('commGroupMenu');
+        var chevron = document.getElementById('commHeaderChevron');
+        if(!menu) return;
+        var isOpen = menu.style.display !== 'none';
+        if(isOpen) {
+            menu.style.display = 'none';
+            if(chevron) chevron.style.transform = 'rotate(0deg)';
+        } else {
+            menu.style.display = 'block';
+            if(chevron) chevron.style.transform = 'rotate(180deg)';
+            // İstatistikleri yükle
+            loadCommMenuStats();
+        }
+    };
+
+    function loadCommMenuStats() {
+        if(!activeCommunitySymbol) return;
+        fbDb.collection('community_messages').where('symbol','==',activeCommunitySymbol).get().then(function(snap) {
+            var uids = {}, mediaCount = 0;
+            snap.forEach(function(doc) {
+                var d = doc.data();
+                uids[d.authorId] = 1;
+                if(d.imageUrl) mediaCount++;
+            });
+            var mc = document.getElementById('commMenuMemberCount');
+            var msgc = document.getElementById('commMenuMsgCount');
+            var medc = document.getElementById('commMenuMediaCount');
+            if(mc) mc.textContent = Object.keys(uids).length || 1;
+            if(msgc) msgc.textContent = snap.size;
+            if(medc) medc.textContent = mediaCount;
+        }).catch(function(){});
+
+        // Sessiz mi kontrol et
+        var isMuted = localStorage.getItem('comm_muted_' + activeCommunitySymbol) === '1';
+        var muteIcon = document.getElementById('commMuteIcon');
+        var muteText = document.getElementById('commMuteText');
+        if(muteIcon) muteIcon.className = isMuted ? 'fas fa-bell-slash' : 'fas fa-bell';
+        if(muteText) muteText.textContent = isMuted ? 'Bildirimleri Aç' : 'Bildirimleri Sessize Al';
+    }
+
+    window.commMenuAction = function(action) {
+        // Menüyü kapat
+        var menu = document.getElementById('commGroupMenu');
+        var chevron = document.getElementById('commHeaderChevron');
+        if(menu) menu.style.display = 'none';
+        if(chevron) chevron.style.transform = 'rotate(0deg)';
+
+        if(action === 'leave') {
+            if(!confirm(activeCommunitySymbol + ' topluluğundan ayrılmak istiyor musun?')) return;
+            var sym = activeCommunitySymbol;
+            closeCommunityChat();
+
+            // Firestore'dan grubu sil
+            fbDb.collection('community_groups').doc(sym).delete().then(function() {
+                // Cache'den kaldır
+                delete commJoinedGroups[sym];
+                localStorage.removeItem('comm_left_' + sym);
+                if(typeof showToast === 'function') showToast('success', 'Ayrıldın', sym + ' topluluğundan ayrıldın.');
+                initCommunityChannels();
+            }).catch(function(err) {
+                console.error('leave err:', err);
+                if(typeof showToast === 'function') showToast('danger', 'Hata', 'Gruptan ayrılırken sorun oluştu.');
+            });
+
+        } else if(action === 'mute') {
+            var muteKey = 'comm_muted_' + activeCommunitySymbol;
+            var isMuted = localStorage.getItem(muteKey) === '1';
+            if(isMuted) {
+                localStorage.removeItem(muteKey);
+                if(typeof showToast === 'function') showToast('success', 'Bildirimler Açık', 'Artık bildirimler gelecek.');
+            } else {
+                localStorage.setItem(muteKey, '1');
+                if(typeof showToast === 'function') showToast('success', 'Sessize Alındı', 'Bildirimler kapatıldı.');
+            }
+
+        } else if(action === 'media') {
+            // Medya mesajlarını filtrele ve göster
+            var feed = document.getElementById('commChatMessages');
+            if(!feed) return;
+            feed.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-sub);"><i class="fas fa-circle-notch fa-spin"></i></div>';
+            fbDb.collection('community_messages').where('symbol','==',activeCommunitySymbol).get().then(function(snap) {
+                var images = [];
+                snap.forEach(function(doc) { if(doc.data().imageUrl) images.push(doc.data()); });
+                if(images.length === 0) {
+                    feed.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.3);"><i class="fas fa-photo-video" style="font-size:30px;margin-bottom:10px;display:block;opacity:0.3;"></i>Henüz medya paylaşılmadı</div>';
+                    return;
+                }
+                feed.innerHTML = '<div style="padding:10px 4px;">' +
+                    '<div style="font-size:12px;color:rgba(255,255,255,0.3);margin-bottom:10px;">📷 ' + images.length + ' medya</div>' +
+                    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">' +
+                    images.map(function(d) {
+                        return '<div style="aspect-ratio:1;overflow:hidden;border-radius:6px;"><img src="' + d.imageUrl + '" style="width:100%;height:100%;object-fit:cover;"></div>';
+                    }).join('') +
+                    '</div>' +
+                    '<div onclick="loadCommunityMessages(\'' + activeCommunitySymbol + '\')" style="text-align:center;margin-top:14px;padding:10px;background:rgba(99,102,241,0.15);border-radius:10px;cursor:pointer;font-size:13px;color:#818cf8;">← Sohbete Dön</div>' +
+                '</div>';
+            }).catch(function(){});
+
+        } else if(action === 'search') {
+            var q = prompt('Mesajlarda ara:');
+            if(!q || !q.trim()) return;
+            var feed = document.getElementById('commChatMessages');
+            feed.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-sub);"><i class="fas fa-circle-notch fa-spin"></i></div>';
+            fbDb.collection('community_messages').where('symbol','==',activeCommunitySymbol).get().then(function(snap) {
+                var results = [];
+                snap.forEach(function(doc) {
+                    var d = doc.data();
+                    if(d.text && d.text.toLowerCase().includes(q.toLowerCase())) results.push({ id: doc.id, data: d });
+                });
+                if(results.length === 0) {
+                    feed.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.3);">Sonuç bulunamadı</div>';
+                } else {
+                    results.sort(function(a,b){ var ta=a.data.createdAt?a.data.createdAt.toMillis():0,tb=b.data.createdAt?b.data.createdAt.toMillis():0;return ta-tb;});
+                    feed.innerHTML = '<div style="padding:8px 4px;font-size:12px;color:rgba(255,255,255,0.3);margin-bottom:6px;">"' + escapeHtml(q) + '" için ' + results.length + ' sonuç</div>';
+                    results.forEach(function(item) {
+                        var ts = item.data.createdAt ? (item.data.createdAt.toDate ? item.data.createdAt.toDate() : new Date()) : new Date();
+                        feed.innerHTML += buildChatMessage(item.id, item.data, ts);
+                    });
+                }
+                var backBtn = document.createElement('div');
+                backBtn.onclick = function(){ loadCommunityMessages(activeCommunitySymbol); };
+                backBtn.style.cssText = 'text-align:center;margin-top:14px;padding:10px;background:rgba(99,102,241,0.15);border-radius:10px;cursor:pointer;font-size:13px;color:#818cf8;';
+                backBtn.textContent = '← Sohbete Dön';
+                feed.appendChild(backBtn);
+            }).catch(function(){});
+        }
+    };
+
+    window.closeCommunityChat = function() {
+        document.getElementById('communityChatModal').style.display = 'none';
+        if(commChatUnsubscribe) { commChatUnsubscribe(); commChatUnsubscribe = null; }
+        commImageFile = null;
+        // Listeyi yenile (son mesaj güncellendi)
+        initCommunityChannels();
+    };
+
+    window.autoGrowCommInput = function(el) {
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 80) + 'px';
+    };
+
+    window.triggerCommImageUpload = function() {
+        document.getElementById('commImageInput').click();
+    };
+
+    window.handleCommImageSelect = function(input) {
+        if(!input.files || !input.files[0]) return;
+        commImageFile = input.files[0];
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var preview = document.getElementById('commImagePreview');
+            var bar = document.getElementById('commImagePreviewBar');
+            if(preview) preview.src = e.target.result;
+            if(bar) bar.style.display = 'block';
+        };
+        reader.readAsDataURL(commImageFile);
+    };
+
+    window.removeCommImage = function() {
+        commImageFile = null;
+        var bar = document.getElementById('commImagePreviewBar');
+        if(bar) bar.style.display = 'none';
+        var inp = document.getElementById('commImageInput');
+        if(inp) inp.value = '';
+    };
+
+
 
 </script>
 
 
 </body>
 </html>
-
-
-
