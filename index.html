@@ -13349,7 +13349,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.0"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -27846,54 +27846,46 @@ setTimeout(function() {
         if(!grid) return;
         grid.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-sub);"><i class="fas fa-circle-notch fa-spin"></i></div>';
 
-        // Önce anonim giriş garantile, sonra Firestore'a yaz
-        var ensureAuth = function(cb) {
-            if(fbAuth.currentUser) { cb(); return; }
-            fbAuth.signInAnonymously()
-                .then(function() { cb(); })
-                .catch(function(err) {
-                    console.warn('Anonim giriş başarısız:', err);
-                    cb(); // Yine de dene
+        var user = fbAuth.currentUser;
+        if(!user || user.isAnonymous) {
+            // Giriş yapmamış → sadece BTC göster
+            commJoinedGroups = { 'BTC': true };
+            renderMessengerList([{ symbol:'BTC', lastMsg:'Bitcoin hakkında konuş 🚀', lastAt: null, unread: 0 }]);
+            return;
+        }
+
+        // Kullanıcının kendi üyelik listesini çek
+        fbDb.collection('user_memberships').doc(user.uid).collection('groups').get()
+            .then(function(snap) {
+                commJoinedGroups = {};
+                var groups = [];
+                snap.forEach(function(doc) {
+                    commJoinedGroups[doc.id] = true;
+                    groups.push(Object.assign({ symbol: doc.id }, doc.data()));
                 });
-        };
 
-        ensureAuth(function() {
-            // BTC grubunu oluştur/güncelle
-            fbDb.collection('community_groups').doc('BTC').set({
-                name: 'Bitcoin', lastAt: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true }).catch(function(e){ console.warn('BTC group set err:', e.message); });
-
-            fbDb.collection('community_groups').get()
-                .then(function(snap) {
-                    var groups = [];
-                    // Global cache güncelle — sonraki aramalarda kullanılacak
-                    commJoinedGroups = {};
-                    snap.forEach(function(doc) {
-                        commJoinedGroups[doc.id] = true;
-                        groups.push(Object.assign({ symbol: doc.id }, doc.data()));
-                    });
-                    groups.sort(function(a, b) {
-                        var ta = a.lastAt ? (a.lastAt.toMillis ? a.lastAt.toMillis() : 0) : 0;
-                        var tb = b.lastAt ? (b.lastAt.toMillis ? b.lastAt.toMillis() : 0) : 0;
-                        return tb - ta;
-                    });
-                    // BTC her zaman en üstte
-                    groups = groups.filter(function(g){ return g.symbol !== 'BTC'; });
+                // BTC her zaman listede olsun
+                if(!commJoinedGroups['BTC']) {
                     groups.unshift({ symbol: 'BTC', lastMsg: 'Bitcoin hakkında konuş 🚀', lastAt: null, unread: 0 });
-                    renderMessengerList(groups);
-                })
-                .catch(function(err) {
-                    console.error('community_groups get err:', err.code, err.message);
-                    // Firestore erişim yoksa en azından BTC göster
-                    renderMessengerList([{ symbol:'BTC', lastMsg:'Bitcoin hakkında konuş 🚀', lastAt: null, unread: 0 }]);
-                    if(grid) {
-                        var errDiv = document.createElement('div');
-                        errDiv.style.cssText = 'font-size:10px;color:#f87171;text-align:center;margin-top:8px;padding:0 10px;';
-                        errDiv.textContent = '⚠️ Firestore: ' + (err.code || err.message) + ' — Firebase Console\'dan kuralları kontrol et';
-                        grid.appendChild(errDiv);
-                    }
+                    commJoinedGroups['BTC'] = true;
+                }
+
+                // Son mesaja göre sırala, BTC en üstte
+                groups.sort(function(a, b) {
+                    if(a.symbol === 'BTC') return -1;
+                    if(b.symbol === 'BTC') return 1;
+                    var ta = a.lastAt ? (a.lastAt.toMillis ? a.lastAt.toMillis() : 0) : 0;
+                    var tb = b.lastAt ? (b.lastAt.toMillis ? b.lastAt.toMillis() : 0) : 0;
+                    return tb - ta;
                 });
-        });
+
+                renderMessengerList(groups);
+            })
+            .catch(function(err) {
+                console.error('user_memberships err:', err);
+                commJoinedGroups = { 'BTC': true };
+                renderMessengerList([{ symbol:'BTC', lastMsg:'Bitcoin hakkında konuş 🚀', lastAt: null, unread: 0 }]);
+            });
     };
 
     function renderMessengerList(groups) {
@@ -28023,25 +28015,24 @@ setTimeout(function() {
         var btn = event && event.target ? event.target.closest('button') : null;
         if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>'; }
 
-        var doJoin = function() {
-            fbDb.collection('community_groups').doc(symbol).set({
-                name: name,
-                lastMsg: '',
-                lastAt: firebase.firestore.FieldValue.serverTimestamp(),
-                msgCount: 0
-            }, { merge: true }).then(function() {
-                commJoinedGroups[symbol] = true;
-                var searchEl = document.getElementById('communitySearch');
-                if(searchEl) searchEl.value = '';
-                initCommunityChannels();
-                openCommunityChat(symbol, name);
-            }).catch(function(err) {
-                console.error('join err:', err);
-                if(btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus" style="margin-right:5px;font-size:10px;"></i>Katıl'; }
-            });
-        };
+        var groupData = { name: name, lastMsg: '', lastAt: firebase.firestore.FieldValue.serverTimestamp(), msgCount: 0 };
+        var memberData = { name: name, joinedAt: firebase.firestore.FieldValue.serverTimestamp(), lastMsg: '', lastAt: firebase.firestore.FieldValue.serverTimestamp() };
 
-        doJoin();
+        // 1) Ortak grup belgesi (mesajlar için referans)
+        var p1 = fbDb.collection('community_groups').doc(symbol).set(groupData, { merge: true });
+        // 2) Kullanıcının kendi üyelik kaydı
+        var p2 = fbDb.collection('user_memberships').doc(user.uid).collection('groups').doc(symbol).set(memberData, { merge: true });
+
+        Promise.all([p1, p2]).then(function() {
+            commJoinedGroups[symbol] = true;
+            var searchEl = document.getElementById('communitySearch');
+            if(searchEl) searchEl.value = '';
+            initCommunityChannels();
+            openCommunityChat(symbol, name);
+        }).catch(function(err) {
+            console.error('join err:', err);
+            if(btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus" style="margin-right:5px;font-size:10px;"></i>Katıl'; }
+        });
     };
 
     window.openCommunityChat = function(symbol, name) {
@@ -28226,11 +28217,17 @@ setTimeout(function() {
             fbDb.collection('community_messages').add(finalPayload).then(function(){
                 if(input) { input.value = ''; input.style.height = ''; }
                 removeCommImage();
+                var lastMsgText = finalPayload.text || '📷 Fotoğraf';
+                var ts = firebase.firestore.FieldValue.serverTimestamp();
+                // Ortak grup belgesi güncelle
                 fbDb.collection('community_groups').doc(activeCommunitySymbol).set({
                     name: getAssetInfo(activeCommunitySymbol).name,
-                    lastMsg: finalPayload.text || '📷 Fotoğraf',
-                    lastAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastMsg: lastMsgText, lastAt: ts,
                     msgCount: firebase.firestore.FieldValue.increment(1)
+                }, { merge: true }).catch(function(){});
+                // Kullanıcının kendi üyelik kaydını güncelle
+                fbDb.collection('user_memberships').doc(user.uid).collection('groups').doc(activeCommunitySymbol).set({
+                    lastMsg: lastMsgText, lastAt: ts
                 }, { merge: true }).catch(function(){});
             }).catch(function(err){
                 console.error('send err:', err.code, err.message);
@@ -28303,19 +28300,25 @@ setTimeout(function() {
         if(action === 'leave') {
             if(!confirm(activeCommunitySymbol + ' topluluğundan ayrılmak istiyor musun?')) return;
             var sym = activeCommunitySymbol;
+            var user = fbAuth.currentUser;
             closeCommunityChat();
 
-            // Firestore'dan grubu sil
-            fbDb.collection('community_groups').doc(sym).delete().then(function() {
-                // Cache'den kaldır
+            if(!user) {
                 delete commJoinedGroups[sym];
-                localStorage.removeItem('comm_left_' + sym);
-                if(typeof showToast === 'function') showToast('success', 'Ayrıldın', sym + ' topluluğundan ayrıldın.');
                 initCommunityChannels();
-            }).catch(function(err) {
-                console.error('leave err:', err);
-                if(typeof showToast === 'function') showToast('danger', 'Hata', 'Gruptan ayrılırken sorun oluştu.');
-            });
+                return;
+            }
+
+            // Sadece kullanıcının kendi üyelik kaydını sil — ortak grup belgesi kalır
+            fbDb.collection('user_memberships').doc(user.uid).collection('groups').doc(sym).delete()
+                .then(function() {
+                    delete commJoinedGroups[sym];
+                    if(typeof showToast === 'function') showToast('success', 'Ayrıldın', sym + ' topluluğundan ayrıldın.');
+                    initCommunityChannels();
+                }).catch(function(err) {
+                    console.error('leave err:', err);
+                    if(typeof showToast === 'function') showToast('danger', 'Hata', 'Gruptan ayrılırken sorun oluştu.');
+                });
 
         } else if(action === 'mute') {
             var muteKey = 'comm_muted_' + activeCommunitySymbol;
