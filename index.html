@@ -13570,7 +13570,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.4"; 
+    const CURRENT_VERSION = "1.5"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -28677,7 +28677,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Input placeholder dile göre
         var chatInp = document.getElementById('commChatInput');
         if (chatInp) chatInp.placeholder = _isEN ? 'Write a message...' : 'Mesaj yaz...';
-        if(user && !user.isAnonymous) {
+
+        var currentU = (typeof fbAuth !== 'undefined') && fbAuth.currentUser;
+        if(currentU && !currentU.isAnonymous) {
             fbDb.collection('community_groups').doc(symbol).set({
                 name: getAssetInfo(symbol).name,
                 lastMsg: '', lastAt: firebase.firestore.FieldValue.serverTimestamp(), msgCount: 0
@@ -28701,13 +28703,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function loadCommunityMessages(symbol) {
         var feed = document.getElementById('commChatMessages');
         if(!feed) return;
-        feed.style.display = 'flex';
         feed.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-sub);"><i class="fas fa-circle-notch fa-spin" style="font-size:20px;opacity:0.4;"></i></div>';
 
-        var _renderedMsgIds = {}; // Zaten ekranda olan mesaj ID'leri
+        var _renderedMsgIds = {};
 
         if(commChatUnsubscribe) { commChatUnsubscribe(); commChatUnsubscribe = null; }
-        _renderedMsgIds = {};
 
         commChatUnsubscribe = fbDb.collection('community_messages')
             .where('symbol', '==', symbol)
@@ -28792,6 +28792,18 @@ document.addEventListener('DOMContentLoaded', function() {
         '</div>';
     }
 
+    function _makeImgBlock(url, alignRight, replyBtn, deleteBtn, timeStr, isMe) {
+        var overlayBtns = '<div style="position:absolute;bottom:0;left:0;right:0;padding:8px 10px;background:linear-gradient(to top,rgba(0,0,0,0.65) 0%,transparent 100%);display:flex;align-items:center;justify-content:flex-end;gap:8px;">' +
+            replyBtn + deleteBtn +
+            '<span style="font-size:10px;color:rgba(255,255,255,0.75);">' + timeStr + '</span>' +
+            (isMe ? '<i class="fas fa-check-double" style="font-size:9px;color:rgba(255,255,255,0.55);"></i>' : '') +
+        '</div>';
+        return '<div style="position:relative;border-radius:16px;overflow:hidden;max-width:260px;' + (alignRight ? 'margin-left:auto;' : '') + 'box-shadow:0 4px 20px rgba(0,0,0,0.4);cursor:pointer;" onclick="openFullscreenImg(\'' + url + '\')">' +
+            '<img src="' + url + '" style="width:100%;display:block;pointer-events:none;">' +
+            overlayBtns +
+        '</div>';
+    }
+
     function buildChatMessage(id, d, ts) {
         var currentUser = fbAuth.currentUser;
         var isMe = currentUser && d.authorId === currentUser.uid;
@@ -28815,7 +28827,6 @@ document.addEventListener('DOMContentLoaded', function() {
             '</div>';
         }
 
-        // Saat + butonlar satırı (baloncuk içi sağ alt)
         var canReply = currentUser && !currentUser.isAnonymous;
         var replyBtn = canReply
             ? '<span onclick="startCommReply(\'' + id + '\',\'' + escapeHtml(d.authorName||'Kullanıcı') + '\')" style="cursor:pointer;opacity:0.7;"><i class="fas fa-reply"></i></span>'
@@ -28824,28 +28835,14 @@ document.addEventListener('DOMContentLoaded', function() {
             ? '<span onclick="deleteCommunityMessage(\'' + id + '\')" style="cursor:pointer;opacity:0.7;color:#f87171;"><i class="fas fa-trash"></i></span>'
             : '';
 
-        // Meta satır (baloncuk içinde)
         var metaRowInner = '<div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:4px;">' +
             replyBtn + deleteBtn +
             '<span style="font-size:10px;color:rgba(255,255,255,0.45);">' + timeStr + '</span>' +
             (isMe ? '<i class="fas fa-check-double" style="font-size:9px;color:rgba(255,255,255,0.4);"></i>' : '') +
         '</div>';
 
-        // Görsel bloğu — butonlar görselin içine overlay olarak
-        function makeImgBlock(url, alignRight) {
-            var overlayBtns = '<div style="position:absolute;bottom:0;left:0;right:0;padding:8px 10px;background:linear-gradient(to top,rgba(0,0,0,0.65) 0%,transparent 100%);display:flex;align-items:center;justify-content:flex-end;gap:8px;">' +
-                replyBtn + deleteBtn +
-                '<span style="font-size:10px;color:rgba(255,255,255,0.75);">' + timeStr + '</span>' +
-                (isMe ? '<i class="fas fa-check-double" style="font-size:9px;color:rgba(255,255,255,0.55);"></i>' : '') +
-            '</div>';
-            return '<div style="position:relative;border-radius:16px;overflow:hidden;max-width:260px;' + (alignRight?'margin-left:auto;':'') + 'box-shadow:0 4px 20px rgba(0,0,0,0.4);cursor:pointer;" onclick="openFullscreenImg(\'' + url + '\')">' +
-                '<img src="' + url + '" style="width:100%;display:block;pointer-events:none;">' +
-                overlayBtns +
-            '</div>';
-        }
-
         if(isMe) {
-            var imgBlock = d.imageUrl ? makeImgBlock(d.imageUrl, true) : '';
+            var imgBlock = d.imageUrl ? _makeImgBlock(d.imageUrl, true, replyBtn, deleteBtn, timeStr, isMe) : '';
             return '<div id="msg-' + id + '" style="display:flex;justify-content:flex-end;margin-bottom:8px;padding-left:24px;">' +
                 '<div style="max-width:88%;">' +
                     imgBlock +
@@ -28858,7 +28855,7 @@ document.addEventListener('DOMContentLoaded', function() {
             '</div>';
 
         } else {
-            var imgBlockOther = d.imageUrl ? makeImgBlock(d.imageUrl, false) : '';
+            var imgBlockOther = d.imageUrl ? _makeImgBlock(d.imageUrl, false, replyBtn, deleteBtn, timeStr, isMe) : '';
             return '<div id="msg-' + id + '" style="display:flex;align-items:flex-end;gap:8px;margin-bottom:8px;padding-right:24px;">' +
                 '<div style="width:30px;height:30px;border-radius:50%;background:' + avatarColor + ';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;flex-shrink:0;overflow:hidden;margin-bottom:2px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">' + avatarHtml + '</div>' +
                 '<div style="max-width:88%;">' +

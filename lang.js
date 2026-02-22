@@ -159,6 +159,15 @@ const LangSystem = {
             node.id === 'google_translate_element' ||
             node.classList.contains('chat-translate-btn') ||
             node.classList.contains('chat-translated-text'))) return true;
+        // Chat mesajlarını koru — çeviri butonu ayrıca hallediyor
+        if (node.id === 'commChatMessages') return true;
+        if (node.id && node.id.startsWith('msg-')) return true;
+        // Herhangi bir ebeveyn commChatMessages ise koru
+        var parent = node.parentNode;
+        while (parent) {
+            if (parent.id === 'commChatMessages') return true;
+            parent = parent.parentNode;
+        }
         return false;
     },
 
