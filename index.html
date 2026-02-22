@@ -160,9 +160,71 @@ body {
         .comment-time { font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;white-space:nowrap; }
         .comment-image-wrap { margin-top:8px;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);max-height:220px;cursor:pointer; }
         .comment-image-wrap img { width:100%;display:block;object-fit:cover;max-height:220px;transition:transform 0.2s; }
-        .img-fullscreen-overlay { position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.96);display:none;align-items:center;justify-content:center; }
-        .img-fullscreen-overlay.open { display:flex; }
-        .img-fullscreen-overlay img { max-width:96%;max-height:90vh;border-radius:16px;object-fit:contain; }
+        /* ===== LIGHTBOX ===== */
+        .img-fullscreen-overlay {
+            position:fixed;inset:0;z-index:9999999;
+            display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;
+            opacity:0;transition:opacity 0.32s ease;
+            -webkit-tap-highlight-color:transparent;
+        }
+        .img-fullscreen-overlay.lbx-open { display:flex; }
+        .img-fullscreen-overlay.lbx-visible { opacity:1; }
+
+        /* Bulanık arka plan: görselin kendisini büyütülmüş + blur */
+        #lbxBg {
+            position:absolute;inset:0;
+            background-size:cover;background-position:center;
+            filter:blur(32px) brightness(0.28) saturate(1.6);
+            -webkit-filter:blur(32px) brightness(0.28) saturate(1.6);
+            transform:scale(1.12);
+            transition:opacity 0.32s ease;
+            z-index:0;
+        }
+        /* Siyah katman üstüne bindirilir — karma */
+        #lbxBg::after {
+            content:'';position:absolute;inset:0;
+            background:rgba(0,0,0,0.45);
+        }
+
+        /* Ana görsel */
+        #imgFullscreenImg {
+            position:relative;z-index:1;
+            max-width:94%;max-height:82vh;
+            border-radius:18px;
+            object-fit:contain;
+            box-shadow:0 28px 80px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.07);
+            transform:scale(0.68) translateY(24px);opacity:0;
+            transition:transform 0.42s cubic-bezier(0.34,1.22,0.64,1), opacity 0.35s ease;
+            will-change:transform,opacity;
+        }
+        .img-fullscreen-overlay.lbx-visible #imgFullscreenImg {
+            transform:scale(1) translateY(0);opacity:1;
+        }
+        /* Kapanış animasyonu */
+        .img-fullscreen-overlay.lbx-closing #imgFullscreenImg {
+            transform:scale(0.78) translateY(16px)!important;opacity:0!important;
+            transition:transform 0.26s cubic-bezier(0.4,0,1,1), opacity 0.22s ease;
+        }
+        .img-fullscreen-overlay.lbx-closing { opacity:0; transition:opacity 0.28s ease; }
+
+        .img-fullscreen-hint {
+            position:relative;z-index:1;
+            color:rgba(255,255,255,0.38);font-size:12px;letter-spacing:0.06em;
+            font-family:inherit;
+            background:rgba(255,255,255,0.07);
+            padding:6px 16px;border-radius:20px;
+            border:1px solid rgba(255,255,255,0.09);
+            backdrop-filter:blur(8px);
+            transform:translateY(8px);opacity:0;
+            transition:transform 0.38s cubic-bezier(0.34,1.1,0.64,1) 0.12s, opacity 0.3s ease 0.12s;
+        }
+        .img-fullscreen-overlay.lbx-visible .img-fullscreen-hint {
+            transform:translateY(0);opacity:1;
+        }
+        .img-fullscreen-overlay.lbx-closing .img-fullscreen-hint {
+            opacity:0!important;transform:translateY(6px)!important;
+            transition:opacity 0.18s ease, transform 0.18s ease;
+        }
         /* Sohbet balonu tarzı - kutu yok, temiz */
         .comment-text { font-size:14px;color:rgba(255,255,255,0.88);line-height:1.65;word-break:break-word;display:block;margin-top:4px;padding:0; background:none; border:none; }
         /* Uzun metin kısalt */
@@ -13508,7 +13570,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.3"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -17993,7 +18055,7 @@ function renderMdComments(comments) {
         var isLong = (c.text||'').length > MAX_CHARS;
         var badgeCls = c.sentiment==='bull' ? 'badge-bull' : c.sentiment==='bear' ? 'badge-bear' : '';
         var badgeTxt = c.sentiment==='bull' ? '📈 Yükseliş' : c.sentiment==='bear' ? '📉 Düşüş' : '';
-        var imgHtml = c.imageBase64 ? '<div class="md-cmt-img"><img src="'+c.imageBase64+'" loading="lazy"></div>' : '';
+        var imgHtml = c.imageBase64 ? '<div class="md-cmt-img" onclick="openFullscreenImg(this.querySelector(\'img\').src)" style="cursor:pointer;"><img src="'+c.imageBase64+'" loading="lazy"></div>' : '';
         
         // Avatar
         var avInner = c.photoURL ? '<img src="'+c.photoURL+'">' : initial;
@@ -18225,21 +18287,9 @@ window.mdRemoveImage = function() {
 };
 
 window.mdOpenImg = function(src) {
-    var ov = document.getElementById('imgFullscreenOverlay');
-    var img = document.getElementById('imgFullscreenImg');
-    if (!ov) {
-        ov = document.createElement('div');
-        ov.id = 'imgFullscreenOverlay';
-        ov.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.95);display:flex;align-items:center;justify-content:center;';
-        ov.onclick = function(){ ov.remove(); };
-        var im = document.createElement('img');
-        im.id = 'imgFullscreenImg';
-        im.style.cssText = 'max-width:96%;max-height:90vh;border-radius:16px;object-fit:contain;';
-        ov.appendChild(im);
-        document.body.appendChild(ov);
+    if (typeof window.openFullscreenImg === 'function') {
+        window.openFullscreenImg(src);
     }
-    document.getElementById('imgFullscreenImg').src = src;
-    ov.style.display = 'flex';
 };
 
 window.mdDoReact = function(type) { mdVoteSentiment(type); };
@@ -27354,11 +27404,58 @@ async function loadWatchlist() {
                 <button class="comment-send-btn" id="commentSendBtn" onclick="postComment()"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
-        <div class="img-fullscreen-overlay" id="imgFullscreenOverlay" onclick="this.classList.remove('open')">
-            <img id="imgFullscreenImg" src="" alt="">
-        </div>
     </div>
 </div>
+<div class="img-fullscreen-overlay" id="imgFullscreenOverlay">
+    <div id="lbxBg"></div>
+    <img id="imgFullscreenImg" src="" alt="">
+    <div class="img-fullscreen-hint">✕ &nbsp; Kapatmak için dokun</div>
+</div>
+<script>
+window.openFullscreenImg = function(src) {
+    var ov = document.getElementById('imgFullscreenOverlay');
+    var img = document.getElementById('imgFullscreenImg');
+    var bg = document.getElementById('lbxBg');
+    if (!ov || !img) return;
+
+    // Kapanış sınıfını temizle
+    ov.classList.remove('lbx-closing','lbx-visible');
+
+    img.src = src;
+    if (bg) bg.style.backgroundImage = 'url(' + src + ')';
+
+    ov.classList.add('lbx-open');
+    // Bir tick bekle — CSS transition tetiklensin
+    requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+            ov.classList.add('lbx-visible');
+        });
+    });
+};
+
+window.closeFullscreenImg = function() {
+    var ov = document.getElementById('imgFullscreenOverlay');
+    if (!ov) return;
+    ov.classList.add('lbx-closing');
+    ov.classList.remove('lbx-visible');
+    setTimeout(function(){
+        ov.classList.remove('lbx-open','lbx-closing');
+        var img = document.getElementById('imgFullscreenImg');
+        if (img) img.src = '';
+    }, 300);
+};
+
+// Overlay'e tıklanınca kapat
+document.addEventListener('DOMContentLoaded', function() {
+    var ov = document.getElementById('imgFullscreenOverlay');
+    if (!ov) return;
+    ov.addEventListener('click', function(e) {
+        if (e.target === ov || e.target.classList.contains('img-fullscreen-hint') || e.target === document.getElementById('lbxBg')) {
+            window.closeFullscreenImg();
+        }
+    });
+});
+</script>
 
 <div style="display:none" aria-hidden="true">
     <button id="sentVoteBull"></button>
@@ -27922,8 +28019,13 @@ async function loadWatchlist() {
     window.openFullscreenImg = function(src) {
         var ov = document.getElementById('imgFullscreenOverlay');
         var img = document.getElementById('imgFullscreenImg');
-        if(ov) ov.classList.add('open');
-        if(img) img.src = src;
+        var bg = document.getElementById('lbxBg');
+        if (!ov || !img) return;
+        ov.classList.remove('lbx-closing','lbx-visible');
+        img.src = src;
+        if (bg) bg.style.backgroundImage = 'url(' + src + ')';
+        ov.classList.add('lbx-open');
+        requestAnimationFrame(function(){ requestAnimationFrame(function(){ ov.classList.add('lbx-visible'); }); });
     };
 
     // ---- POST COMMENT ----
@@ -28712,11 +28814,11 @@ async function loadWatchlist() {
             '</div>';
 
             var imgBlock = d.imageUrl
-                ? '<div style="margin-bottom:4px;border-radius:16px;overflow:hidden;max-width:260px;margin-left:auto;box-shadow:0 4px 20px rgba(0,0,0,0.4);">' +
-                  '<img src="' + d.imageUrl + '" style="width:100%;display:block;cursor:pointer;" onclick="openFullscreenImg(this.src)"></div>'
+                ? '<div style="margin-bottom:4px;border-radius:16px;overflow:hidden;max-width:260px;margin-left:auto;box-shadow:0 4px 20px rgba(0,0,0,0.4);cursor:pointer;" onclick="openFullscreenImg(\'' + d.imageUrl + '\')">' +
+                  '<img src="' + d.imageUrl + '" style="width:100%;display:block;pointer-events:none;"></div>'
                 : '';
-            return '<div id="msg-' + id + '" style="display:flex;justify-content:flex-end;margin-bottom:8px;padding-left:52px;">' +
-                '<div style="max-width:80%;">' +
+            return '<div id="msg-' + id + '" style="display:flex;justify-content:flex-end;margin-bottom:8px;padding-left:24px;">' +
+                '<div style="max-width:88%;">' +
                     imgBlock +
                     (d.text ? '<div style="background:linear-gradient(140deg,#3b5bdb,#4c6ef5);color:white;padding:10px 14px 7px;border-radius:18px 4px 18px 18px;font-size:14px;line-height:1.55;word-break:break-word;box-shadow:0 2px 12px rgba(59,91,219,0.35);">' +
                         replyPreview +
@@ -28734,12 +28836,12 @@ async function loadWatchlist() {
             '</div>';
 
             var imgBlockOther = d.imageUrl
-                ? '<div style="margin-bottom:4px;border-radius:16px;overflow:hidden;max-width:260px;box-shadow:0 4px 20px rgba(0,0,0,0.4);">' +
-                  '<img src="' + d.imageUrl + '" style="width:100%;display:block;cursor:pointer;" onclick="openFullscreenImg(this.src)"></div>'
+                ? '<div style="margin-bottom:4px;border-radius:16px;overflow:hidden;max-width:260px;box-shadow:0 4px 20px rgba(0,0,0,0.4);cursor:pointer;" onclick="openFullscreenImg(\'' + d.imageUrl + '\')">' +
+                  '<img src="' + d.imageUrl + '" style="width:100%;display:block;pointer-events:none;"></div>'
                 : '';
-            return '<div id="msg-' + id + '" style="display:flex;align-items:flex-end;gap:8px;margin-bottom:8px;padding-right:52px;">' +
+            return '<div id="msg-' + id + '" style="display:flex;align-items:flex-end;gap:8px;margin-bottom:8px;padding-right:24px;">' +
                 '<div style="width:30px;height:30px;border-radius:50%;background:' + avatarColor + ';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;flex-shrink:0;overflow:hidden;margin-bottom:2px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">' + avatarHtml + '</div>' +
-                '<div style="max-width:80%;">' +
+                '<div style="max-width:88%;">' +
                     imgBlockOther +
                     (d.text ? '<div style="background:rgba(255,255,255,0.09);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.07);color:rgba(255,255,255,0.92);padding:10px 14px 7px;border-radius:4px 18px 18px 18px;font-size:14px;line-height:1.55;word-break:break-word;">' +
                         '<div style="font-size:11px;font-weight:800;color:' + avatarColor + ';margin-bottom:5px;letter-spacing:0.01em;">' + escapeHtml(d.authorName || 'Anonim') + '</div>' +
@@ -29043,7 +29145,7 @@ async function loadWatchlist() {
                     '<div style="font-size:12px;color:rgba(255,255,255,0.3);margin-bottom:10px;">📷 ' + images.length + ' medya</div>' +
                     '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">' +
                     images.map(function(d) {
-                        return '<div style="aspect-ratio:1;overflow:hidden;border-radius:6px;"><img src="' + d.imageUrl + '" style="width:100%;height:100%;object-fit:cover;"></div>';
+                        return '<div style="aspect-ratio:1;overflow:hidden;border-radius:6px;cursor:pointer;" onclick="openFullscreenImg(\'' + d.imageUrl + '\')"><img src="' + d.imageUrl + '" style="width:100%;height:100%;object-fit:cover;pointer-events:none;"></div>';
                     }).join('') +
                     '</div>' +
                     /* Sohbete dön butonu gizlendi - header'daki ok butonu kullanılıyor */
