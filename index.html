@@ -13504,6 +13504,64 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
     </div>
 </div>
 
+
+<!-- ===== CUSTOM PROMPT MODAL (window.prompt yerine) ===== -->
+<div id="tvPromptOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(12px);z-index:999999;align-items:center;justify-content:center;">
+  <div style="background:linear-gradient(145deg,#1c2236,#111827);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:28px 24px 20px;width:calc(100% - 48px);max-width:360px;box-shadow:0 24px 80px rgba(0,0,0,0.7);animation:tvPromptIn 0.25s cubic-bezier(0.34,1.4,0.64,1);">
+    <div id="tvPromptTitle" style="font-size:15px;font-weight:700;color:white;margin-bottom:6px;"></div>
+    <div id="tvPromptSub" style="font-size:12px;color:rgba(255,255,255,0.45);margin-bottom:16px;"></div>
+    <input id="tvPromptInput" type="text" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.07);border:1.5px solid rgba(139,92,246,0.4);border-radius:12px;color:white;font-size:15px;font-weight:600;padding:12px 14px;outline:none;font-family:inherit;transition:border-color 0.2s;" 
+      onfocus="this.style.borderColor='rgba(139,92,246,0.9)'" 
+      onblur="this.style.borderColor='rgba(139,92,246,0.4)'"
+      onkeydown="if(event.key==='Enter')tvPromptOK();if(event.key==='Escape')tvPromptCancel();" />
+    <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end;">
+      <button onclick="tvPromptCancel()" style="padding:10px 20px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);font-size:13px;font-weight:600;cursor:pointer;">İptal</button>
+      <button onclick="tvPromptOK()" style="padding:10px 22px;border-radius:12px;border:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(124,58,237,0.4);">Tamam</button>
+    </div>
+  </div>
+</div>
+<style>
+@keyframes tvPromptIn { from{opacity:0;transform:scale(0.88)} to{opacity:1;transform:scale(1)} }
+#tvPromptOverlay.open { display:flex!important; }
+</style>
+<script>
+(function(){
+  var _resolve = null;
+
+  // Ana fonksiyon — window.prompt yerine her yerde bu kullanılır
+  window.tvPrompt = function(title, defaultVal, subtitle) {
+    return new Promise(function(resolve) {
+      _resolve = resolve;
+      var overlay = document.getElementById('tvPromptOverlay');
+      document.getElementById('tvPromptTitle').textContent = title || '';
+      document.getElementById('tvPromptSub').textContent   = subtitle || '';
+      var inp = document.getElementById('tvPromptInput');
+      inp.value = (defaultVal !== undefined && defaultVal !== null) ? defaultVal : '';
+      inp.type  = 'text';
+      overlay.classList.add('open');
+      setTimeout(function(){ inp.focus(); inp.select(); }, 80);
+    });
+  };
+
+  window.tvPromptOK = function() {
+    var val = document.getElementById('tvPromptInput').value;
+    document.getElementById('tvPromptOverlay').classList.remove('open');
+    if (_resolve) { _resolve(val); _resolve = null; }
+  };
+
+  window.tvPromptCancel = function() {
+    document.getElementById('tvPromptOverlay').classList.remove('open');
+    if (_resolve) { _resolve(null); _resolve = null; }
+  };
+
+  // Overlay dışına tıkla → kapat
+  document.getElementById('tvPromptOverlay').addEventListener('click', function(e){
+    if (e.target === this) tvPromptCancel();
+  });
+})();
+</script>
+<!-- ===== /CUSTOM PROMPT MODAL ===== -->
+
 </body>
 
 
@@ -13572,7 +13630,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -20128,9 +20186,9 @@ window.manualUpdateVision = function() {
 };
 
 // 5. HEDEF DÜZENLEME
-window.editTargetGoal = function() {
+window.editTargetGoal = async function() {
     let current = localStorage.getItem('tradevia_main_goal') || 1000000;
-    let val = prompt("Yeni Hedef Tutarınız:", current);
+    let val = await tvPrompt('Hedef Tutarı', current, 'Yeni hedef miktarını girin');
     if(val && !isNaN(parseFloat(val))) {
         localStorage.setItem('tradevia_main_goal', parseFloat(val));
         window.loadVisionData();
@@ -21250,9 +21308,9 @@ function updateGoalVisuals() {
 }
 
 // 2. Hedef Düzenleme
-function editTargetGoal() {
+async function editTargetGoal() {
     let current = localStorage.getItem('tradevia_main_goal') || 1000000;
-    let val = prompt("Yeni Hedef Tutarınız:", current);
+    let val = await tvPrompt('Hedef Tutarı', current, 'Yeni hedef miktarını girin');
     if(val && !isNaN(val)) {
         localStorage.setItem('tradevia_main_goal', val);
         updateGoalVisuals();
@@ -29400,7 +29458,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // commMenuAction'ı wrap ederek view mode'u takip et
     var _origCommMenuAction = window.commMenuAction;
     
-    window.commMenuAction = function(action) {
+    window.commMenuAction = async function(action) {
         if(action === 'media') window._commViewMode = 'media';
         else if(action === 'search') window._commViewMode = 'search';
         else window._commViewMode = 'chat';
@@ -29464,7 +29522,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }).catch(function(){});
 
         } else if(action === 'search') {
-            var q = prompt('Mesajlarda ara:');
+            var q = await tvPrompt('Mesaj Ara', '', 'Aramak istediğiniz kelimeyi yazın');
             if(!q || !q.trim()) return;
             var feed = document.getElementById('commChatMessages');
             feed.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-sub);"><i class="fas fa-circle-notch fa-spin"></i></div>';
