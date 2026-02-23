@@ -443,16 +443,21 @@ body {
         @keyframes pulse-dot { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
         
         /* ===== TOAST BİLDİRİM ===== */
-        .toast-container { position:fixed; top:0; left:0; right:0; z-index:999999; display:flex; flex-direction:column; align-items:center; pointer-events:none; padding-top:calc(env(safe-area-inset-top,0px) + 12px); gap:8px; }
-        .toast-msg { background:linear-gradient(135deg,rgba(16,185,129,0.97),rgba(5,150,105,0.97)); color:#fff; padding:14px 20px; border-radius:16px; font-size:14px; font-weight:700; display:flex; align-items:center; gap:12px; box-shadow:0 10px 40px rgba(16,185,129,0.4),0 4px 12px rgba(0,0,0,0.3); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); transform:translateY(-120px) scale(0.9); opacity:0; transition:all 0.45s cubic-bezier(0.34,1.56,0.64,1); pointer-events:auto; border:1px solid rgba(255,255,255,0.2); max-width:92%; min-width:260px; }
+        /* ── TOAST – Modern Glassmorphism ── */
+        .toast-container { position:fixed; top:0; left:0; right:0; z-index:999999; display:flex; flex-direction:column; align-items:center; pointer-events:none; padding-top:calc(env(safe-area-inset-top,0px) + 14px); gap:10px; }
+        .toast-msg { background:rgba(14,20,36,0.78); backdrop-filter:blur(30px) saturate(180%); -webkit-backdrop-filter:blur(30px) saturate(180%); color:#fff; padding:13px 16px 13px 14px; border-radius:18px; font-size:13px; font-weight:600; display:flex; align-items:center; gap:12px; box-shadow:0 8px 32px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.09); border-left:3px solid #10b981; transform:translateY(-110%) scale(0.94); opacity:0; transition:transform 0.42s cubic-bezier(0.34,1.4,0.64,1),opacity 0.32s ease; pointer-events:auto; max-width:88%; min-width:240px; }
         .toast-msg.toast-show { transform:translateY(0) scale(1); opacity:1; }
-        .toast-msg.toast-hide { transform:translateY(-60px) scale(0.8); opacity:0; transition:all 0.3s ease-in; }
-        .toast-msg.toast-danger { background:linear-gradient(135deg,rgba(239,68,68,0.97),rgba(185,28,28,0.97)); box-shadow:0 10px 40px rgba(239,68,68,0.4),0 4px 12px rgba(0,0,0,0.3); }
-        .toast-msg.toast-info { background:linear-gradient(135deg,rgba(59,130,246,0.97),rgba(37,99,235,0.97)); box-shadow:0 10px 40px rgba(59,130,246,0.4),0 4px 12px rgba(0,0,0,0.3); }
-        .toast-icon { width:30px; height:30px; background:rgba(255,255,255,0.25); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
-        .toast-text { display:flex; flex-direction:column; gap:1px; }
-        .toast-title { font-weight:800; font-size:13px; }
-        .toast-sub { font-weight:500; font-size:11px; opacity:0.9; }
+        .toast-msg.toast-hide { transform:translateY(-70%) scale(0.9); opacity:0; transition:all 0.26s cubic-bezier(0.4,0,1,1); }
+        .toast-msg.toast-danger { border-left-color:#ef4444; }
+        .toast-msg.toast-info { border-left-color:#6366f1; }
+        .toast-msg.toast-warn { border-left-color:#f59e0b; }
+        .toast-icon { width:34px; height:34px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; background:rgba(16,185,129,0.18); color:#34d399; }
+        .toast-msg.toast-danger .toast-icon { background:rgba(239,68,68,0.18); color:#f87171; }
+        .toast-msg.toast-info .toast-icon { background:rgba(99,102,241,0.18); color:#a5b4fc; }
+        .toast-msg.toast-warn .toast-icon { background:rgba(245,158,11,0.18); color:#fcd34d; }
+        .toast-text { display:flex; flex-direction:column; gap:2px; flex:1; min-width:0; }
+        .toast-title { font-weight:700; font-size:13px; color:#fff; line-height:1.2; }
+        .toast-sub { font-weight:400; font-size:11px; color:rgba(255,255,255,0.55); line-height:1.3; }
 
         
 /* --- TEMALAR & DEĞİŞKENLER (MEGA PAKET) --- */
@@ -12366,22 +12371,66 @@ function openLabFullscreen() {
                         <div id="fbMembershipInfo"></div>
                     </div>
 
-                    <!-- Bulut Yedekleme -->
-                    <div style="background:var(--bg-card); border-radius:16px; padding:16px; margin-bottom:16px; border:1px solid rgba(255,255,255,0.05);">
-                        <div style="font-size:11px; font-weight:700; color:var(--text-sub); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;">
-                            <i class="fas fa-cloud"></i> Bulut Yedekleme
+                    <!-- Bulut Yedekleme – Yeni Tasarım -->
+                    <div style="background:var(--bg-card); border-radius:20px; padding:18px; margin-bottom:16px; border:1px solid rgba(255,255,255,0.07); position:relative; overflow:hidden;">
+                        <!-- Arka plan dekor -->
+                        <div style="position:absolute;top:-28px;right:-28px;width:110px;height:110px;background:radial-gradient(circle,rgba(99,102,241,0.12) 0%,transparent 70%);pointer-events:none;"></div>
+
+                        <!-- Başlık -->
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <div style="width:34px;height:34px;border-radius:12px;background:linear-gradient(135deg,rgba(99,102,241,0.25),rgba(139,92,246,0.25));border:1px solid rgba(99,102,241,0.3);display:flex;align-items:center;justify-content:center;">
+                                    <i class="fas fa-cloud" style="font-size:15px;color:#818cf8;"></i>
+                                </div>
+                                <div>
+                                    <div style="font-size:13px;font-weight:700;color:#fff;">Bulut Yedekleme</div>
+                                    <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:1px;">Firebase ile güvenli şifreleme</div>
+                                </div>
+                            </div>
+                            <div id="backupStatusDot" style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 8px rgba(16,185,129,0.6);"></div>
                         </div>
-                        <div id="lastBackupInfo" style="font-size:10px; color:var(--text-sub); margin-bottom:10px; padding:8px 10px; background:rgba(255,255,255,0.03); border-radius:8px;">
-                            <i class="fas fa-info-circle"></i> Henüz yedek alınmamış
+
+                        <!-- Son yedek bilgisi -->
+                        <div id="lastBackupInfo" style="display:flex;align-items:center;gap:9px;padding:10px 13px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:13px;margin-bottom:12px;">
+                            <i class="fas fa-history" style="font-size:13px;color:rgba(255,255,255,0.3);flex-shrink:0;"></i>
+                            <span style="font-size:11px;color:rgba(255,255,255,0.4);">Henüz yedek alınmamış</span>
                         </div>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-                            <button onclick="firebaseBackup()" style="padding:10px; border:none; border-radius:10px; cursor:pointer; background:linear-gradient(135deg, #3b82f6, #2563eb); color:#fff; font-size:11px; font-weight:700; display:flex; flex-direction:column; align-items:center; gap:2px;">
-                                <i class="fas fa-cloud-upload-alt" style="font-size:16px;"></i>
-                                Yedekle
+
+                        <!-- Otomatik Yedekleme Toggle -->
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 13px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:13px;margin-bottom:12px;">
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <div style="width:28px;height:28px;border-radius:9px;background:rgba(245,158,11,0.15);display:flex;align-items:center;justify-content:center;">
+                                    <i class="fas fa-magic" style="font-size:12px;color:#fcd34d;"></i>
+                                </div>
+                                <div>
+                                    <div style="font-size:12px;font-weight:600;color:#fff;">Otomatik Yedekleme</div>
+                                    <div id="autoBackupStatusText" style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:1px;">Her 24 saatte bir yedekle</div>
+                                </div>
+                            </div>
+                            <!-- Toggle Switch -->
+                            <label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;cursor:pointer;">
+                                <input type="checkbox" id="autoBackupToggle" onchange="toggleAutoBackup(this.checked)" style="opacity:0;width:0;height:0;position:absolute;">
+                                <span id="autoBackupSlider" style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.1);border-radius:24px;transition:background 0.3s;border:1px solid rgba(255,255,255,0.1);">
+                                    <span style="position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:transform 0.3s;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:block;" id="autoBackupThumb"></span>
+                                </span>
+                            </label>
+                        </div>
+
+                        <!-- Manuel Butonlar -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                            <button onclick="firebaseBackup()" style="padding:13px 10px;border:none;border-radius:14px;cursor:pointer;background:linear-gradient(135deg,#4f46e5,#6d28d9);color:#fff;font-size:12px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:5px;box-shadow:0 6px 20px rgba(79,70,229,0.35);transition:transform 0.15s;" ontouchstart="this.style.transform='scale(0.96)'" ontouchend="this.style.transform=''">
+                                <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;margin-bottom:2px;">
+                                    <i class="fas fa-cloud-upload-alt" style="font-size:17px;"></i>
+                                </div>
+                                <span style="font-size:12px;font-weight:700;">Yedekle</span>
+                                <span style="font-size:9px;opacity:0.65;font-weight:400;">Buluta kaydet</span>
                             </button>
-                            <button onclick="firebaseRestore()" style="padding:10px; border:none; border-radius:10px; cursor:pointer; background:linear-gradient(135deg, #10b981, #059669); color:#fff; font-size:11px; font-weight:700; display:flex; flex-direction:column; align-items:center; gap:2px;">
-                                <i class="fas fa-cloud-download-alt" style="font-size:16px;"></i>
-                                Geri Yükle
+                            <button onclick="firebaseRestore()" style="padding:13px 10px;border:none;border-radius:14px;cursor:pointer;background:linear-gradient(135deg,#059669,#047857);color:#fff;font-size:12px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:5px;box-shadow:0 6px 20px rgba(5,150,105,0.35);transition:transform 0.15s;" ontouchstart="this.style.transform='scale(0.96)'" ontouchend="this.style.transform=''">
+                                <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;margin-bottom:2px;">
+                                    <i class="fas fa-cloud-download-alt" style="font-size:17px;"></i>
+                                </div>
+                                <span style="font-size:12px;font-weight:700;">Geri Yükle</span>
+                                <span style="font-size:9px;opacity:0.65;font-weight:400;">Buluttan çek</span>
                             </button>
                         </div>
                     </div>
@@ -13770,7 +13819,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.6"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -27059,7 +27108,8 @@ function updateAccountUI(user) {
         
         updateMembershipUI();
         checkLastBackup(user.uid);
-        updateMembershipBtnUI(); // Ayarlardaki PRO butonunu güncelle
+        updateMembershipBtnUI();
+        initAutoBackup(); // Otomatik yedeklemeyi başlat // Ayarlardaki PRO butonunu güncelle
         
         console.log('[TradeVia] ✓ Profil senkronizasyonu tamamlandı');
         
@@ -27575,13 +27625,131 @@ async function checkLastBackup(uid) {
         if (doc.exists && doc.data().backup && doc.data().backup._backupDate) {
             const d = new Date(doc.data().backup._backupDate);
             const dateStr = d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
-            infoEl.innerHTML = `<i class="fas fa-cloud" style="color:var(--success);"></i> Son yedek: <strong>${dateStr}</strong>`;
+            infoEl.innerHTML = `<i class="fas fa-check-circle" style="font-size:13px;color:#34d399;flex-shrink:0;"></i><span style="font-size:11px;color:rgba(255,255,255,0.55);">Son yedek: <strong style="color:rgba(255,255,255,0.8);">${dateStr}</strong></span>`;
         } else {
-            infoEl.innerHTML = '<i class="fas fa-info-circle"></i> Henüz yedek alınmamış';
+            infoEl.innerHTML = '<i class="fas fa-history" style="font-size:13px;color:rgba(255,255,255,0.3);flex-shrink:0;"></i><span style="font-size:11px;color:rgba(255,255,255,0.4);">Henüz yedek alınmamış</span>';
         }
     } catch(e) {
         console.warn('checkLastBackup error:', e);
     }
+}
+
+// ═══════════════════════════════════════════
+//   OTOMATİK YEDEKLEME SİSTEMİ
+// ═══════════════════════════════════════════
+var _autoBackupInterval = null;
+var AUTO_BACKUP_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 saat
+var AUTO_BACKUP_KEY = 'tradevia_auto_backup_enabled';
+var AUTO_BACKUP_LAST_KEY = 'tradevia_auto_backup_last';
+
+window.toggleAutoBackup = function(enabled) {
+    localStorage.setItem(AUTO_BACKUP_KEY, enabled ? '1' : '0');
+    _updateAutoBackupUI(enabled);
+    if (enabled) {
+        if (typeof showToast === 'function') showToast('success', 'Otomatik Yedekleme Açık ✓', 'Her 24 saatte bir sessizce yedeklenir.');
+        _scheduleAutoBackup();
+    } else {
+        if (typeof showToast === 'function') showToast('info', 'Otomatik Yedekleme Kapalı', 'Sadece manuel yedekleme aktif.');
+        _clearAutoBackup();
+    }
+};
+
+function _updateAutoBackupUI(enabled) {
+    var slider = document.getElementById('autoBackupSlider');
+    var thumb  = document.getElementById('autoBackupThumb');
+    var toggle = document.getElementById('autoBackupToggle');
+    var txt    = document.getElementById('autoBackupStatusText');
+    if (toggle) toggle.checked = enabled;
+    if (slider) slider.style.background = enabled ? 'linear-gradient(135deg,#4f46e5,#7c3aed)' : 'rgba(255,255,255,0.1)';
+    if (slider) slider.style.borderColor = enabled ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.1)';
+    if (thumb)  thumb.style.transform = enabled ? 'translateX(20px)' : 'translateX(0)';
+    if (txt) {
+        if (enabled) {
+            var last = localStorage.getItem(AUTO_BACKUP_LAST_KEY);
+            if (last) {
+                var d = new Date(parseInt(last));
+                txt.textContent = 'Son: ' + d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', {hour:'2-digit',minute:'2-digit'});
+            } else {
+                txt.textContent = 'Aktif — ilk yedek yakında';
+            }
+        } else {
+            txt.textContent = 'Her 24 saatte bir yedekle';
+        }
+    }
+}
+
+function _scheduleAutoBackup() {
+    _clearAutoBackup();
+    var last = parseInt(localStorage.getItem(AUTO_BACKUP_LAST_KEY) || '0');
+    var now = Date.now();
+    var elapsed = now - last;
+    var delay = elapsed >= AUTO_BACKUP_INTERVAL_MS ? 5000 : (AUTO_BACKUP_INTERVAL_MS - elapsed);
+    console.log('[AutoBackup] İlk yedek ' + Math.round(delay/1000/60) + ' dakika sonra.');
+    setTimeout(function() {
+        _doAutoBackup();
+        _autoBackupInterval = setInterval(_doAutoBackup, AUTO_BACKUP_INTERVAL_MS);
+    }, delay);
+}
+
+function _clearAutoBackup() {
+    if (_autoBackupInterval) { clearInterval(_autoBackupInterval); _autoBackupInterval = null; }
+}
+
+async function _doAutoBackup() {
+    var user = (typeof fbAuth !== 'undefined') ? fbAuth.currentUser : null;
+    if (!user) return;
+    try {
+        var backupData = {
+            myPF_final: localStorage.getItem('myPF_final'),
+            tm_cash_balance: localStorage.getItem('tm_cash_balance'),
+            tm_full_trade_history: localStorage.getItem('tm_full_trade_history'),
+            tm_user_profile: localStorage.getItem('tm_user_profile'),
+            tm_watchlist: localStorage.getItem('tm_watchlist'),
+            tm_settings: localStorage.getItem('tm_settings'),
+            tm_notifications: localStorage.getItem('tm_notifications'),
+            tm_realized_pnl: localStorage.getItem('tm_realized_pnl'),
+            tm_notify_settings: localStorage.getItem('tm_notify_settings'),
+            tm_networth_history: localStorage.getItem('tm_networth_history'),
+            tm_daily_tracking: localStorage.getItem('tm_daily_tracking'),
+            tm_saved_strategies: localStorage.getItem('tm_saved_strategies'),
+            tm_deleted_history: localStorage.getItem('tm_deleted_history'),
+            tm_all_portfolios: localStorage.getItem('tm_all_portfolios'),
+            tradeVia_alarms: localStorage.getItem('tradeVia_alarms'),
+            tradevia_main_goal: localStorage.getItem('tradevia_main_goal'),
+            tradevia_multi_goals: localStorage.getItem('tradevia_multi_goals'),
+            tradevia_goal_achievements: localStorage.getItem('tradevia_goal_achievements'),
+            userPlan: localStorage.getItem('userPlan'),
+            proStartDate: localStorage.getItem('proStartDate'),
+            proEndDate: localStorage.getItem('proEndDate'),
+            proCancelled: localStorage.getItem('proCancelled'),
+            _backupDate: new Date().toISOString(),
+            _appVersion: '1.2',
+            _autoBackup: true
+        };
+        await fbDb.collection('users').doc(user.uid).set({
+            backup: backupData,
+            email: user.email,
+            name: user.displayName,
+            isPro: localStorage.getItem('userPlan') === 'PRO',
+            proEndDate: localStorage.getItem('proEndDate'),
+            proCancelled: localStorage.getItem('proCancelled') === 'true',
+            lastBackup: firebase.firestore.FieldValue.serverTimestamp(),
+            lastAutoBackup: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        localStorage.setItem(AUTO_BACKUP_LAST_KEY, Date.now().toString());
+        checkLastBackup(user.uid);
+        _updateAutoBackupUI(true);
+        if (typeof addNotification === 'function') addNotification('success', 'Otomatik Yedekleme ☁️', 'Verileriniz sessizce buluta kaydedildi.');
+        console.log('[AutoBackup] ✓ Tamamlandı:', new Date().toLocaleString('tr-TR'));
+    } catch(e) {
+        console.warn('[AutoBackup] Hata:', e);
+    }
+}
+
+function initAutoBackup() {
+    var enabled = localStorage.getItem(AUTO_BACKUP_KEY) === '1';
+    _updateAutoBackupUI(enabled);
+    if (enabled) _scheduleAutoBackup();
 }
 
 /* ========== GELİŞTİRİLMİŞ PİYASA FONKSİYONLARI (MEVCUT SİSTEMLE UYUMLU) ========== */
@@ -29804,21 +29972,15 @@ document.addEventListener('DOMContentLoaded', function() {
             if (inp) { inp.value = ''; setTimeout(function(){ inp.focus(); }, 100); }
             document.getElementById('commSearchCount').textContent = '';
             document.getElementById('commSearchClear').style.display = 'none';
-            // Mesajları önceden çek (orderBy kaldırıldı - composite index gerektiriyordu)
+            // Mesajları önceden çek
             _commAllMessages = [];
             _commDataReady = false;
             fbDb.collection('community_messages').where('symbol','==',activeCommunitySymbol)
-                .get()
+                .orderBy('createdAt','asc').get()
                 .then(function(snap){
                     snap.forEach(function(doc){ _commAllMessages.push({id:doc.id, data:doc.data()}); });
-                    // Client-side sıralama (index gerektirmez)
-                    _commAllMessages.sort(function(a, b) {
-                        var ta = a.data.createdAt ? (a.data.createdAt.toMillis ? a.data.createdAt.toMillis() : a.data.createdAt.seconds*1000) : 0;
-                        var tb = b.data.createdAt ? (b.data.createdAt.toMillis ? b.data.createdAt.toMillis() : b.data.createdAt.seconds*1000) : 0;
-                        return ta - tb;
-                    });
                     _commDataReady = true;
-                }).catch(function(err){ console.error('Arama verisi yüklenemedi:', err); });
+                }).catch(function(){});
         }
     };
 
@@ -29880,20 +30042,13 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('commSearchCount').textContent = '⏳';
             _commDataReady = false;
             fbDb.collection('community_messages').where('symbol','==',activeCommunitySymbol)
-                .get()
+                .orderBy('createdAt','asc').get()
                 .then(function(snap){
                     _commAllMessages = [];
                     snap.forEach(function(doc){ _commAllMessages.push({id:doc.id, data:doc.data()}); });
-                    // Client-side sıralama
-                    _commAllMessages.sort(function(a, b) {
-                        var ta = a.data.createdAt ? (a.data.createdAt.toMillis ? a.data.createdAt.toMillis() : a.data.createdAt.seconds*1000) : 0;
-                        var tb = b.data.createdAt ? (b.data.createdAt.toMillis ? b.data.createdAt.toMillis() : b.data.createdAt.seconds*1000) : 0;
-                        return ta - tb;
-                    });
                     _commDataReady = true;
                     _runCommSearch(q.trim());
-                }).catch(function(err){
-                    console.error('Arama verisi yüklenemedi:', err);
+                }).catch(function(){
                     document.getElementById('commSearchCount').textContent = '—';
                 });
             return;
