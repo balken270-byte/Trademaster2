@@ -13572,7 +13572,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.0"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -21831,149 +21831,366 @@ const statCpiData = {
     2020: 1.4, 2019: 2.3, 2018: 1.9, 2017: 2.1, 2016: 2.1, 2015: 0.1, 2014: 1.6
 };
 
+// ============================================================
+//  ZAMANMAKİNESİ — HİBRİT MOTOR v4
+//  Strateji:
+//   KRİPTO : Binance 10 yıl aylık + CoinGecko son 365 gün + mcap
+//   HİSSE  : Polygon (MASSIVE) 10 yıl günlük (free tier: 2 yıl, paid: tam)
+//             Yedek: Yahoo Finance + Binance (kripto fallback)
+//   Pro Key alındığında otomatik tam 10 yıla geçer — kod değişmez.
+// ============================================================
+
+// ── Yardımcı: Sembol tipini tespit et ────────────────────────────────────────
+function detectSymbolType(symbol) {
+    let s = symbol.toUpperCase().trim();
+    // BIST hissesi
+    if (s.endsWith('.IS') || s.endsWith('.E')) return 'BIST';
+    // Forex çiftleri
+    if (s.length === 6 && /^[A-Z]{6}$/.test(s) && !['BTCUSD','ETHUSD','SOLUSD'].some(x=>s.startsWith(x.slice(0,3)))) return 'FOREX';
+    // Bilinen kripto semboller + USDT sonu
+    const KNOWN_CRYPTO = ['BTC','ETH','SOL','XRP','BNB','ADA','DOGE','SHIB','AVAX','MATIC','DOT','LINK','ATOM','ARB','PEPE','RENDER','SUI','TRX','LTC','UNI','APT','NEAR','ICP','FIL','HBAR','VET','ALGO','THETA','EOS','ZEC','DASH','XMR','MKR','AAVE','CRV','SNX','COMP','YFI','SUSHI','1INCH','ENJ','SAND','MANA','AXS','CHZ','BAT','ZIL','IOTA','NANO'];
+    if (s.endsWith('USDT') || s.endsWith('BTC') || KNOWN_CRYPTO.includes(s)) return 'CRYPTO';
+    // US hisse: 1-5 büyük harf, nokta/rakam içermiyor
+    if (/^[A-Z]{1,5}$/.test(s)) return 'US_STOCK';
+    return 'CRYPTO'; // default
+}
+
 // 1. ANA TETİKLEYİCİ
 async function runStatisticalAnalysis() {
     let rawSymbol = document.getElementById('statSymbol').value.toUpperCase().trim();
-    
-    
-    function openTimeMachine() {
-    // EKLENEN KOD: Limit Kontrolü
-    if (!Membership.checkTimeMachineLimit()) return; 
-
-    // ... (Aşağıda senin eski kodların devam edecek)
-    document.getElementById('tmModal').style.display = 'flex';
-    // ...
-}
-
-    
     if(!rawSymbol) return addNotification('warn', 'Hata', 'Lütfen bir sembol girin.');
 
     const resultDiv = document.getElementById('statResult');
     const tableBody = document.getElementById('statTableBody');
-    const projList = document.getElementById('projectionList');
+    const projList  = document.getElementById('projectionList');
 
-    // Temizle ve Yükleniyor Göster
     resultDiv.style.display = 'block';
-    tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#94a3b8;"><i class="fas fa-circle-notch fa-spin"></i> Veriler analiz ediliyor...</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#94a3b8;"><i class="fas fa-circle-notch fa-spin"></i> 10 yıllık veri birleştiriliyor...</td></tr>';
     projList.innerHTML = '';
 
-    // A PLAN: CoinGecko (Gerçek Market Cap için öncelikli)
+    let type = detectSymbolType(rawSymbol);
+
     try {
-        await tryCoinGecko(rawSymbol);
-        addNotification('success', 'Veri', 'CoinGecko üzerinden analiz yapıldı.');
-    } catch (cgError) {
-        console.warn("CG Hatası:", cgError);
-        
-        // B PLAN: Binance (Yedek - Market Cap eksik gelir)
-        try {
-            await tryBinance(rawSymbol);
-            addNotification('info', 'Yedek', 'CoinGecko yanıt vermedi, Binance verisi kullanılıyor.');
-        } catch (binError) {
-            tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px; color:#ef4444;">
-                <i class="fas fa-exclamation-triangle"></i> Veri bulunamadı.
-            </td></tr>`;
+        if (type === 'US_STOCK') {
+            await tryHybridStock(rawSymbol);
+        } else {
+            await tryHybridEngine(rawSymbol);
         }
+    } catch(err) {
+        console.error("Hibrit motor hatası:", err);
+        tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:#ef4444;">
+            <i class="fas fa-exclamation-triangle"></i> Veri alınamadı: ${err.message}
+        </td></tr>`;
     }
 }
 
-// 2. COINGECKO ENTEGRASYONU
-async function tryCoinGecko(symbol) {
-    let cleanSym = symbol.replace('USDT', '').replace('TRY', '');
-    
-    // ID Bul
-    const searchRes = await fetch(`https://api.coingecko.com/api/v3/search?query=${cleanSym}`);
-    if(!searchRes.ok) throw new Error("Arama başarısız");
-    const searchData = await searchRes.json();
-    
-    if(!searchData.coins || searchData.coins.length === 0) throw new Error("Coin yok");
-    
-    let coinId = searchData.coins[0].id;
-    const exactMatch = searchData.coins.find(c => c.symbol.toUpperCase() === cleanSym);
-    if(exactMatch) coinId = exactMatch.id;
+// 2. KRİPTO HİBRİT MOTOR ───────────────────────────────────────────────────
+async function tryHybridEngine(symbol) {
+    let cleanSym = symbol.replace(/USDT|TRY$/i, '').trim();
+    let cgKey    = (typeof coingeckoApiKey !== 'undefined' && coingeckoApiKey) ? coingeckoApiKey : '';
+    let keyParam = cgKey ? `&x_cg_demo_api_key=${cgKey}` : '';
 
-    // Tarihçe Çek (Dolar bazlı gelir)
-    const historyRes = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=max&interval=daily`);
-    const data = await historyRes.json();
+    // ── ADIM 1: Binance 10 yıl aylık ────────────────────────────────────────
+    let binPrices  = [];
+    let binVolumes = [];
+    try {
+        let pairs = [cleanSym + 'USDT', cleanSym + 'BTC', cleanSym + 'BUSD'];
+        for (let binSymbol of pairs) {
+            let binRes = await fetch(`https://api.binance.com/api/v3/klines?symbol=${binSymbol}&interval=1M&limit=120`);
+            if (binRes.ok) {
+                let binData = await binRes.json();
+                if (Array.isArray(binData) && binData.length > 0) {
+                    binPrices  = binData.map(d => [parseInt(d[0]), parseFloat(d[4])]);
+                    binVolumes = binData.map(d => [parseInt(d[0]), parseFloat(d[7])]);
+                    break;
+                }
+            }
+        }
+    } catch(e) { console.warn("Binance hatası:", e); }
 
-    if(!data.prices || data.prices.length === 0) throw new Error("Fiyat verisi yok");
+    // ── ADIM 2: CoinGecko son 365 gün + market cap ──────────────────────────
+    let cgPrices  = [];
+    let cgMcaps   = [];
+    let cgVolumes = [];
 
-    processAndRenderCompact(data.prices, data.market_caps, data.total_volumes); 
+    try {
+        const searchRes = await fetch(`https://api.coingecko.com/api/v3/search?query=${cleanSym}${keyParam}`);
+        if (searchRes.ok) {
+            const searchData = await searchRes.json();
+            if (searchData.coins && searchData.coins.length > 0) {
+                let coinId = searchData.coins[0].id;
+                const exact = searchData.coins.find(c => c.symbol.toUpperCase() === cleanSym);
+                if (exact) coinId = exact.id;
+
+                const cgRes = await fetch(
+                    `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=365&interval=daily${keyParam}`
+                );
+                if (cgRes.ok) {
+                    const cgData = await cgRes.json();
+                    cgPrices  = cgData.prices       || [];
+                    cgMcaps   = cgData.market_caps   || [];
+                    cgVolumes = cgData.total_volumes || [];
+                }
+            }
+        }
+    } catch(e) { console.warn("CoinGecko hatası:", e); }
+
+    if (binPrices.length === 0 && cgPrices.length === 0) {
+        throw new Error("Binance ve CoinGecko'dan veri alınamadı.");
+    }
+
+    // ── ADIM 3: Yıllık harita ───────────────────────────────────────────────
+    let yearMap = buildYearMap(binPrices, binVolumes);
+
+    // CoinGecko günlük → yıl override
+    let cgYearMap = buildYearMap(cgPrices, []);
+    let cgMcapByYear = {};
+    cgMcaps.forEach(([ts, mc]) => { cgMcapByYear[new Date(ts).getFullYear()] = mc; });
+
+    Object.keys(cgYearMap).forEach(yr => {
+        if (!yearMap[yr]) yearMap[yr] = { close:0, high:0, low:0, vol:0, volCount:0, mcap:0, lastTs:0 };
+        yearMap[yr].close = cgYearMap[yr].close;
+        yearMap[yr].high  = Math.max(yearMap[yr].high || 0, cgYearMap[yr].high);
+        yearMap[yr].low   = yearMap[yr].low > 0 ? Math.min(yearMap[yr].low, cgYearMap[yr].low) : cgYearMap[yr].low;
+    });
+    Object.keys(cgMcapByYear).forEach(yr => { if (yearMap[yr]) yearMap[yr].mcap = cgMcapByYear[yr]; });
+    cgVolumes.forEach(([ts, vol]) => {
+        let yr = new Date(ts).getFullYear();
+        if (yearMap[yr] && yearMap[yr].volCount === 0) { yearMap[yr].vol += vol; yearMap[yr].volCount += 1; }
+    });
+
+    // ── ADIM 4: Günlük değişim dizisi ───────────────────────────────────────
+    let deduped = deduplicatePrices([...binPrices, ...cgPrices]);
+
+    let years   = Object.keys(yearMap).length;
+    let cgYrs   = Object.keys(cgYearMap).length;
+    let hasMcap = Object.values(yearMap).some(y => y.mcap > 0);
+    addNotification('success', 'Analiz Hazır', `${cleanSym} — ${years} yıllık veri yüklendi`);
+
+    processAndRenderCompact(deduped, null, null, yearMap);
 }
 
-// 3. BINANCE ENTEGRASYONU
-async function tryBinance(symbol) {
-    // USDTTRY gibi zaten çift kur sembolleri için USDT ekleme
-    let binSymbol;
-    if(symbol.endsWith('USDT') || symbol.endsWith('TRY') || symbol.endsWith('BTC') || symbol.endsWith('ETH')) {
-        binSymbol = symbol;
+// 3. US HİSSE MOTORU (MASSIVE/Polygon + Yahoo) ───────────────────────────
+async function tryHybridStock(symbol) {
+    let cleanSym = symbol.replace('.IS','').toUpperCase().trim();
+    let pKey     = (typeof polyApiKey !== 'undefined' && polyApiKey) ? polyApiKey : '';
+
+    let polyPrices  = [];
+    let polyVolumes = [];
+    let yahPrices   = [];
+    let yahVolumes  = [];
+
+    // ── POLYGON (MASSIVE) ── Sayfalandırılmış çekim ──────────────────────────
+    // Free tier: son ~2 yıl | Paid/Starter tier: tam geçmiş
+    // limit parametresi free'de görmezden gelinir — bu yüzden Yahoo ile yarıştır,
+    // hangisi daha fazla yıl getirirse o kullanılır.
+    if (pKey) {
+        try {
+            let dEnd   = new Date();
+            let dStart = new Date();
+            dStart.setFullYear(dStart.getFullYear() - 10);
+
+            // Önce aylık dene (daha az istek, daha fazla tarih)
+            let url = `https://api.polygon.io/v2/aggs/ticker/${cleanSym}/range/1/month` +
+                      `/${dStart.toISOString().split('T')[0]}/${dEnd.toISOString().split('T')[0]}` +
+                      `?adjusted=true&sort=asc&limit=5000&apiKey=${pKey}`;
+            let res = await fetch(url);
+            if (res.ok) {
+                let data = await res.json();
+                if (data.results && data.results.length > 0) {
+                    polyPrices  = data.results.map(d => [d.t, d.c]);
+                    polyVolumes = data.results.map(d => [d.t, d.v || 0]);
+                }
+            }
+        } catch(e) { console.warn("Polygon hatası:", e); }
+    }
+
+    // ── YAHOO FINANCE ── Her zaman paralel çalışır (Polygon yetersizse kazanır) ──
+    try {
+        let end1   = Math.floor(Date.now() / 1000);
+        let start1 = end1 - (10 * 365 * 86400);
+        let yUrl   = `https://query1.finance.yahoo.com/v8/finance/chart/${cleanSym}` +
+                     `?interval=1mo&period1=${start1}&period2=${end1}`;
+        const proxies = [
+            'https://api.allorigins.win/raw?url=',
+            'https://corsproxy.io/?',
+            'https://api.codetabs.com/v1/proxy?quest=',
+        ];
+        for (let proxy of proxies) {
+            try {
+                let r = await fetch(proxy + encodeURIComponent(yUrl));
+                if (!r.ok) continue;
+                let d = await r.json();
+                let ts     = d?.chart?.result?.[0]?.timestamp;
+                let closes = d?.chart?.result?.[0]?.indicators?.quote?.[0]?.close;
+                let vols   = d?.chart?.result?.[0]?.indicators?.quote?.[0]?.volume;
+                if (ts && closes && ts.length > 3) {
+                    yahPrices  = ts.map((t, i) => [t * 1000, closes[i] || 0]).filter(x => x[1] > 0);
+                    yahVolumes = ts.map((t, i) => [t * 1000, vols?.[i] || 0]);
+                    break;
+                }
+            } catch(pe) { continue; }
+        }
+    } catch(e) { console.warn("Yahoo hatası:", e); }
+
+    // ── Hangisi daha fazla veri getirdi? ────────────────────────────────────
+    // Yıl sayısına göre kazananı seç; Polygon yeterli geldiyse kullan
+    let polyYears = new Set(polyPrices.map(([t]) => new Date(t).getFullYear())).size;
+    let yahYears  = new Set(yahPrices.map(([t])  => new Date(t).getFullYear())).size;
+
+    let binPrices, binVolumes;
+    if (polyYears >= yahYears && polyPrices.length > 0) {
+        binPrices  = polyPrices;
+        binVolumes = polyVolumes;
+    } else if (yahPrices.length > 0) {
+        // Yahoo + Polygon'dan gelen ek tarihleri birleştir
+        let merged = deduplicatePrices([...yahPrices, ...polyPrices]);
+        binPrices  = merged;
+        binVolumes = yahVolumes; // hacimlerde Yahoo yeterli
     } else {
-        binSymbol = symbol + 'USDT';
+        throw new Error("Hisse verisi alınamadı. Sembolü kontrol edin veya Pro Key ekleyin.");
     }
-    
+
+    let yearMap = buildYearMap(binPrices, binVolumes);
+    let deduped = deduplicatePrices(binPrices);
+
+    // Bildirim: sadece başarı, kaynak detayı yok
+    let totalYears = Object.keys(yearMap).length;
+    addNotification('success', 'Analiz Hazır', `${cleanSym} — ${totalYears} yıllık veri yüklendi`);
+
+    processAndRenderCompact(deduped, null, null, yearMap);
+}
+
+// ── YARDIMCI: Binance/Polygon fiyat dizisinden yıl haritası ─────────────────
+function buildYearMap(prices, volumes) {
+    let map = {};
+    prices.forEach(([ts, price], i) => {
+        if (!price || price <= 0) return;
+        let yr  = new Date(ts).getFullYear();
+        let vol = (volumes && volumes[i]) ? volumes[i][1] || 0 : 0;
+        if (!map[yr]) {
+            map[yr] = { close: price, high: price, low: price, vol: 0, volCount: 0, mcap: 0, lastTs: ts };
+        }
+        if (price > map[yr].high) map[yr].high = price;
+        if (price < map[yr].low)  map[yr].low  = price;
+        map[yr].vol      += vol;
+        map[yr].volCount += 1;
+        if (ts >= map[yr].lastTs) { map[yr].close = price; map[yr].lastTs = ts; }
+    });
+    return map;
+}
+
+// ── YARDIMCI: Fiyat dizisini birleştir ve tekrar günleri temizle ─────────────
+function deduplicatePrices(prices) {
+    let sorted = [...prices].sort((a, b) => a[0] - b[0]);
+    let deduped = [];
+    let lastDay = null;
+    sorted.forEach(([ts, p]) => {
+        if (!p || p <= 0) return;
+        let day = Math.floor(ts / 86400000);
+        if (day !== lastDay) { deduped.push([ts, p]); lastDay = day; }
+        else { deduped[deduped.length - 1][1] = p; }
+    });
+    return deduped;
+}
+
+// 3. ESKI tryCoinGecko — hibrite yönlendirir (geriye uyumluluk)
+async function tryCoinGecko(symbol) {
+    await tryHybridEngine(symbol);
+}
+
+// 4. ESKI tryBinance — fallback (geriye uyumluluk)
+async function tryBinance(symbol) {
+    let cleanSym = symbol.replace(/USDT|TRY$/i,'').trim();
+    let binSymbol = cleanSym + 'USDT';
     const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${binSymbol}&interval=1M&limit=120`);
     if (!response.ok) throw new Error("Binance başarısız");
     const data = await response.json();
-
-    let prices = data.map(d => [d[0], parseFloat(d[4])]); 
-    let volumes = data.map(d => [d[0], parseFloat(d[7])]); 
-    let mcaps = null;
-
-    processAndRenderCompact(prices, mcaps, volumes);
+    let prices  = data.map(d => [parseInt(d[0]), parseFloat(d[4])]);
+    let volumes = data.map(d => [parseInt(d[0]), parseFloat(d[7])]);
+    processAndRenderCompact(prices, null, volumes, null);
 }
 
 /* --- HİBRİT MOTOR: FULL VERİ SETİ (MCAP + DEĞİŞİM EKLENDİ) --- */
-function processAndRenderCompact(priceData, mcapData, volData) {
+// priceData       : günlük/aylık fiyat dizisi [[ts,price],...]
+// prebuiltYearMap : tryHybridEngine'den gelen hazır yıllık istatistikler (opsiyonel)
+function processAndRenderCompact(priceData, mcapData, volData, prebuiltYearMap) {
     const tableBody = document.getElementById('statTableBody');
-    const projList = document.getElementById('projectionList');
+    const projList  = document.getElementById('projectionList');
     
     let isTR = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY');
     let currencyRate = (typeof usdTryRate !== 'undefined') ? usdTryRate : 36.50;
     let sym = isTR ? '₺' : '$';
 
     let yearlyStats = {};
-    let dailyChanges = []; 
+    let dailyChanges = [];
 
     // --- 1. VERİ İŞLEME ---
-    for(let i=0; i<priceData.length; i++) {
-        let timestamp = priceData[i][0];
-        let priceUSD = priceData[i][1]; 
-        let mcapUSD = (mcapData && mcapData[i]) ? mcapData[i][1] : 0;
-        let volUSD = (volData && volData[i]) ? volData[i][1] : 0;
-        
-        if(i > 0) {
-            let prevPrice = priceData[i-1][1];
-            dailyChanges.push(((priceUSD - prevPrice) / prevPrice) * 100);
-        }
-
-        let year = new Date(timestamp).getFullYear();
-        if(!yearlyStats[year]) {
-            yearlyStats[year] = { 
-                close: priceUSD, high: priceUSD, low: priceUSD, 
-                mcap: mcapUSD, vol: volUSD, volCount: 1, lastDate: timestamp 
+    if (prebuiltYearMap && typeof prebuiltYearMap === 'object' && !Array.isArray(prebuiltYearMap)) {
+        // Hibrit motorden hazır yıl haritası geldiyse onu kullan
+        Object.keys(prebuiltYearMap).forEach(yr => {
+            let y = prebuiltYearMap[yr];
+            yearlyStats[yr] = {
+                close:    y.close    || 0,
+                high:     y.high     || 0,
+                low:      y.low      || 0,
+                mcap:     y.mcap     || 0,
+                vol:      y.vol      || 0,
+                volCount: y.volCount || 1,
+                lastDate: y.lastTs   || 0
             };
-        } else {
-            if(priceUSD > yearlyStats[year].high) yearlyStats[year].high = priceUSD;
-            if(priceUSD < yearlyStats[year].low) yearlyStats[year].low = priceUSD;
-            
-            yearlyStats[year].vol += volUSD;
-            yearlyStats[year].volCount++;
+        });
+        // Günlük değişimleri fiyat dizisinden hesapla (volatilite için)
+        for (let i = 1; i < priceData.length; i++) {
+            let prev = priceData[i-1][1];
+            let curr = priceData[i][1];
+            if (prev > 0) dailyChanges.push(((curr - prev) / prev) * 100);
+        }
+    } else {
+        // Eski yol: priceData'dan yıllık istatistik üret (fallback)
+        for(let i = 0; i < priceData.length; i++) {
+            let timestamp = priceData[i][0];
+            let priceUSD  = priceData[i][1];
+            let mcapUSD   = (mcapData && mcapData[i]) ? mcapData[i][1] : 0;
+            let volUSD    = (volData  && volData[i])  ? volData[i][1]  : 0;
 
-            if(timestamp > yearlyStats[year].lastDate) {
-                yearlyStats[year].close = priceUSD;
-                yearlyStats[year].mcap = mcapUSD;
-                yearlyStats[year].lastDate = timestamp;
+            if(i > 0) {
+                let prevPrice = priceData[i-1][1];
+                dailyChanges.push(((priceUSD - prevPrice) / prevPrice) * 100);
+            }
+
+            let year = new Date(timestamp).getFullYear();
+            if(!yearlyStats[year]) {
+                yearlyStats[year] = {
+                    close: priceUSD, high: priceUSD, low: priceUSD,
+                    mcap: mcapUSD, vol: volUSD, volCount: 1, lastDate: timestamp
+                };
+            } else {
+                if(priceUSD > yearlyStats[year].high) yearlyStats[year].high = priceUSD;
+                if(priceUSD < yearlyStats[year].low)  yearlyStats[year].low  = priceUSD;
+                yearlyStats[year].vol      += volUSD;
+                yearlyStats[year].volCount++;
+                if(timestamp > yearlyStats[year].lastDate) {
+                    yearlyStats[year].close    = priceUSD;
+                    yearlyStats[year].mcap     = mcapUSD;
+                    yearlyStats[year].lastDate = timestamp;
+                }
             }
         }
     }
 
     // --- 2. ANOMALİ VE RİSK ---
-    let mean = dailyChanges.reduce((a,b)=>a+b, 0) / dailyChanges.length;
-    let variance = dailyChanges.reduce((a,b)=>a + Math.pow(b-mean, 2), 0) / dailyChanges.length;
-    let stdDev = Math.sqrt(variance); 
+    // Güvenli hesaplama: dailyChanges boş veya tek elemanlıysa sıfır kullan
+    let mean = 0, variance = 0, stdDev = 0;
+    if (dailyChanges.length > 1) {
+        mean = dailyChanges.reduce((a,b)=>a+b, 0) / dailyChanges.length;
+        variance = dailyChanges.reduce((a,b)=>a + Math.pow(b-mean, 2), 0) / dailyChanges.length;
+        stdDev = Math.sqrt(variance);
+    }
 
-    let shockThreshold = stdDev * 2; 
+    let shockThreshold = stdDev > 0 ? stdDev * 2 : 5; 
     let crashEvents = dailyChanges.filter(c => c < -shockThreshold).length;
-    let pumpEvents = dailyChanges.filter(c => c > shockThreshold).length;
+    let pumpEvents  = dailyChanges.filter(c => c > shockThreshold).length;
 
     // UI: Risk İbresi
     let riskAngle = -90;
@@ -22021,8 +22238,13 @@ function processAndRenderCompact(priceData, mcapData, volData) {
         let displayLow = isTR ? curr.low * currencyRate : curr.low;
         
         // Milyar/Milyon Formatlama
-        let mcapStr = (curr.mcap > 1e9) ? (curr.mcap/1e9).toFixed(1)+"Mr" : (curr.mcap/1e6).toFixed(1)+"Mn";
-        let volStr = (avgVol > 1e9) ? (avgVol/1e9).toFixed(1)+"Mr" : (avgVol/1e6).toFixed(1)+"Mn";
+        let mcapStr;
+        if (!curr.mcap || curr.mcap === 0) {
+            mcapStr = '<span style="color:#475569">—</span>';
+        } else {
+            mcapStr = (curr.mcap > 1e9) ? (curr.mcap/1e9).toFixed(1)+"Mr" : (curr.mcap/1e6).toFixed(1)+"Mn";
+        }
+        let volStr = (avgVol > 1e9) ? (avgVol/1e9).toFixed(1)+"Mr" : (avgVol > 1e6) ? (avgVol/1e6).toFixed(1)+"Mn" : avgVol > 0 ? avgVol.toFixed(0) : "—";
 
         htmlTable += `
         <tr style="border-bottom:1px solid rgba(255,255,255,0.05); font-size:11px;">
@@ -22063,25 +22285,31 @@ function processAndRenderCompact(priceData, mcapData, volData) {
     document.getElementById('gaugeVolText').style.color = volColor;
 
     // --- 5. GELECEK TAHMİNİ ---
-    let lastData = yearlyStats[years[0]]; 
+    let lastData  = yearlyStats[years[0]]; 
     let firstData = yearlyStats[years[years.length-1]]; 
-    let totalYears = years.length;
+    // Gerçek yıl aralığını kullan (dizinin uzunluğu değil, ilk-son yıl farkı)
+    let totalYears = Math.max(1, parseInt(years[0]) - parseInt(years[years.length-1]));
     
     let avgPullback = 0.20; 
     if(pullbacks.length > 0) avgPullback = pullbacks.reduce((a, b) => a + b, 0) / pullbacks.length;
-    if(avgPullback > 0.60) avgPullback = 0.60; 
+    if(avgPullback > 0.70) avgPullback = 0.70; // Max %70 drawdown cap
 
+    // CAGR: Compound Annual Growth Rate (doğru formül)
     let cagr = 5; 
-    if(firstData && lastData && firstData.close > 0) {
+    if(firstData && lastData && firstData.close > 0 && lastData.close > 0 && totalYears > 0) {
         cagr = (Math.pow((lastData.close / firstData.close), (1 / totalYears)) - 1) * 100;
     }
 
-    if(lastData.mcap > 500000000000) cagr *= 0.60; 
-    else if(lastData.mcap > 50000000000) cagr *= 0.80; 
+    // Market cap büyüklüğüne göre beklenti düzeltmesi
+    if(lastData.mcap > 500000000000)      cagr *= 0.55; // Mega cap: büyüme yavaşlar
+    else if(lastData.mcap > 50000000000)  cagr *= 0.75; // Large cap
+    else if(lastData.mcap > 0 && lastData.mcap < 1000000000) cagr *= 1.10; // Small cap: daha volatil
     
     cagr = cagr * volumeSentiment;
-    if(cagr > 80) cagr = 60 + (cagr - 60) * 0.1; 
-    if(cagr < 5) cagr = 5; 
+    // Aşırı tahmin önleme: logaritmik baskı
+    if(cagr > 100) cagr = 80 + (cagr - 100) * 0.05;
+    else if(cagr > 60) cagr = 55 + (cagr - 60) * 0.15;
+    if(cagr < 2) cagr = 2;  // Min %2 büyüme varsay
 
     let avgGrowth = cagr;
 
@@ -22098,14 +22326,16 @@ function processAndRenderCompact(priceData, mcapData, volData) {
 
     for(let j=1; j<=5; j++) {
         let fYear = currentYear + j;
-        let decay = 1 - (j * 0.10); 
-        if(decay < 0.4) decay = 0.4; 
+        // Uzak yıllara doğru belirsizlik artar → beklenti azalır
+        let decay = Math.pow(0.88, j - 1); // üstel azalma (daha gerçekçi)
 
         let yearlyGrowth = avgGrowth * decay;
-        basePriceUSD = basePriceUSD * (1 + (yearlyGrowth/100));
+        basePriceUSD = basePriceUSD * (1 + (yearlyGrowth / 100));
         
-        let highPriceUSD = basePriceUSD * (1 + avgPullback/1.5);
-        let lowPriceUSD = basePriceUSD * (1 - avgPullback);
+        // Senaryo aralığı: CAGR volatilitesine göre genişler
+        let spreadFactor = 1 + (j * 0.08); // uzak yıl = daha geniş aralık
+        let highPriceUSD = basePriceUSD * (1 + avgPullback * spreadFactor * 0.6);
+        let lowPriceUSD  = basePriceUSD * (1 - avgPullback * spreadFactor * 0.5);
 
         let displayBase = isTR ? basePriceUSD * currencyRate : basePriceUSD;
         let displayHigh = isTR ? highPriceUSD * currencyRate : highPriceUSD;
