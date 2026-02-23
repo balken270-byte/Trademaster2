@@ -317,6 +317,10 @@ var LangSystem = {
             }
         }
 
+        function getFirestore() {
+            return window.fbDb || (typeof fbDb !== 'undefined' ? fbDb : null);
+        }
+
         function fetchFromGoogle(fbDocId) {
             var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl='
                 + fromLang + '&tl=' + toLang + '&dt=t&q=' + encodeURIComponent(text);
@@ -333,9 +337,14 @@ var LangSystem = {
                     }
 
                     // Firebase'e kaydet (topluluk cache)
-                    if (result && result !== text && typeof fbDb !== 'undefined' && fbDocId) {
-                        var docData = { translation: result, from: fromLang, to: toLang, hits: 1, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
-                        fbDb.collection('translations').doc(fbDocId).set(docData, { merge: true }).catch(function() {});
+                    var db = getFirestore();
+                    if (result && result !== text && db && fbDocId) {
+                        try {
+                            var ts = firebase.firestore.FieldValue.serverTimestamp();
+                            db.collection('translations').doc(fbDocId)
+                              .set({ translation: result, from: fromLang, to: toLang, hits: 1, updatedAt: ts }, { merge: true })
+                              .catch(function() {});
+                        } catch(e) {}
                     }
 
                     deliver(result);
@@ -344,27 +353,27 @@ var LangSystem = {
         }
 
         // 4. Firebase koleksiyonuna bak
-        // Doc ID: "tr-en_merhaba_dunya" gibi — özel karakterleri temizle
-        var safeText = text.substring(0, 80).replace(/[\/\\.#\[\]]/g, '_');
+        var safeText = text.substring(0, 80).replace(/[\/\\.#\[\]\s]/g, '_');
         var fbDocId  = fromLang + '-' + toLang + '_' + safeText;
 
-        if (typeof fbDb !== 'undefined') {
-            fbDb.collection('translations').doc(fbDocId).get()
+        var db = getFirestore();
+        if (db) {
+            db.collection('translations').doc(fbDocId).get()
                 .then(function(doc) {
                     if (doc.exists && doc.data().translation) {
                         var result = doc.data().translation;
-                        // Hit sayacını artır (kullanım istatistiği)
-                        fbDb.collection('translations').doc(fbDocId)
-                            .update({ hits: firebase.firestore.FieldValue.increment(1) })
-                            .catch(function() {});
+                        // Hit sayacını artır
+                        try {
+                            db.collection('translations').doc(fbDocId)
+                              .update({ hits: firebase.firestore.FieldValue.increment(1) })
+                              .catch(function() {});
+                        } catch(e) {}
                         deliver(result);
                     } else {
-                        // Firebase'de yok → Google'a sor
                         fetchFromGoogle(fbDocId);
                     }
                 })
                 .catch(function() {
-                    // Firebase erişim hatası → direkt Google
                     fetchFromGoogle(null);
                 });
         } else {
