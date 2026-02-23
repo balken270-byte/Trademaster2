@@ -13570,7 +13570,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.0"; 
+    const CURRENT_VERSION = "1.7"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -14186,31 +14186,36 @@ async function tryYahoo(symbol) {
     let s = symbol.toUpperCase().trim();
     if(!s.includes('=') && !s.includes('.') && s.length <= 5 && !s.includes('USD') && !s.includes('EUR')) s += '.IS';
     
-    const proxy = "https://api.allorigins.win/raw?url=";
     const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${s}?interval=1d&range=1d`;
+    const targetUrl2 = `https://query2.finance.yahoo.com/v8/finance/chart/${s}?interval=1d&range=1d`;
 
-    try {
-        const response = await fetch(proxy + encodeURIComponent(targetUrl));
-        if (response.ok) {
-            const d = await response.json();
-            if (d.chart && d.chart.result && d.chart.result[0]) {
-                let meta = d.chart.result[0].meta;
-                let price = meta.regularMarketPrice;
-                let prevClose = meta.chartPreviousClose;
-                
-                let change = (prevClose > 0) ? ((price - prevClose) / prevClose) * 100 : 0;
-                let origin = (s.includes('=F') || s.includes('=X') || s.includes('USD')) ? 'USD' : 'TRY';
-                
-                return { 
-                    price: parseFloat(price), 
-                    origin: origin, 
-                    change: change, 
-                    source: 'YAHOO',
-                    image: null
-                };
+    // Birden fazla proxy dene — hangisi çalışırsa
+    const proxies = [
+        'https://api.allorigins.win/raw?url=',
+        'https://corsproxy.io/?',
+        'https://api.codetabs.com/v1/proxy?quest=',
+    ];
+
+    for (let i = 0; i < proxies.length; i++) {
+        const url = i === 1 ? targetUrl2 : targetUrl; // query2 ikinci proxy için
+        try {
+            const response = await Promise.race([
+                fetch(proxies[i] + encodeURIComponent(url)),
+                new Promise((_, rej) => setTimeout(() => rej('timeout'), 5000))
+            ]);
+            if (response.ok) {
+                const d = await response.json();
+                if (d.chart && d.chart.result && d.chart.result[0]) {
+                    let meta = d.chart.result[0].meta;
+                    let price = meta.regularMarketPrice;
+                    let prevClose = meta.chartPreviousClose;
+                    let change = (prevClose > 0) ? ((price - prevClose) / prevClose) * 100 : 0;
+                    let origin = (s.includes('=F') || s.includes('=X') || s.includes('USD')) ? 'USD' : 'TRY';
+                    return { price: parseFloat(price), origin: origin, change: change, source: 'YAHOO', image: null };
+                }
             }
-        }
-    } catch (err) {}
+        } catch (err) {}
+    }
     return null;
 }
 
@@ -19306,126 +19311,175 @@ function checkNotifyUI() {
 }
 /* --- YENİ GELİŞMİŞ VE GENİŞ KAPSAMLI DÖVİZ MOTORU --- */
 async function fetchFastForex() {
+    // ── ADIM 1: Binance'tan majör kurları çek (her zaman çalışır) ──
+    let usdPrice = 0, usdChange = 0, eurRate = 0, eurChange = 0, gbpRate = 0, gbpChange = 0;
+
     try {
-        // 1. CANLI VERİ (Binance - Majör Paralar)
-        // Dolar, Euro ve Sterlin'i buradan anlık çekiyoruz
         const resBinance = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=["USDTTRY","EURUSDT","GBPUSDT"]');
         const dataBinance = await resBinance.json();
-
-        // 2. PARİTE ORANLARI (Diğerleri için - Open Exchange Rates)
-        // JPY, CNY, CAD, RUB gibi paraların Dolara olan oranını alıyoruz
-        const resParity = await fetch('https://open.er-api.com/v6/latest/USD');
-        const dataParity = await resParity.json();
-        const rates = dataParity.rates; 
-
-        // --- VERİLERİ AYIKLA ---
         const usdt = dataBinance.find(x => x.symbol === 'USDTTRY');
-        const eur = dataBinance.find(x => x.symbol === 'EURUSDT');
-        const gbp = dataBinance.find(x => x.symbol === 'GBPUSDT');
+        const eur  = dataBinance.find(x => x.symbol === 'EURUSDT');
+        const gbp  = dataBinance.find(x => x.symbol === 'GBPUSDT');
+        if (usdt) { usdPrice = parseFloat(usdt.lastPrice); usdChange = parseFloat(usdt.priceChangePercent); }
+        if (eur)  { eurRate  = parseFloat(eur.lastPrice);  eurChange  = parseFloat(eur.priceChangePercent); }
+        if (gbp)  { gbpRate  = parseFloat(gbp.lastPrice); }
+    } catch(e) { console.warn('Binance forex hata:', e); }
 
-        if (!usdt || !eur || !gbp || !rates) return [];
+    // Binance bile başarısız olduysa boş dön
+    if (usdPrice === 0) return [];
 
-        // Ana Dolar Kuru (Her şey buna bağlı değişecek)
-        const usdPrice = parseFloat(usdt.lastPrice);
-        const usdChange = parseFloat(usdt.priceChangePercent);
+    // ── ADIM 2: Parite oranlarını çek — 3 farklı API dene ──
+    let rates = null;
 
-        // --- YARDIMCI: DİĞER PARALARI HESAPLA ---
-        // Mantık: (1 Dolar / Parite Oranı) * Canlı Dolar Kuru = Canlı TL Değeri
-        const calcOther = (parityVal, name, flagCode, symbolPrefix) => {
-            const priceInUsd = 1 / parityVal; 
-            const priceInTry = priceInUsd * usdPrice;
-            
-            return {
-                symbol: name,
-                price: priceInTry,
-                change: usdChange, // Dolar artarsa bunlar da artar
-                vol: 0,
-                source: 'HESAPLANAN',
-                image: `https://flagcdn.com/w80/${flagCode}.png`, // Ülke Bayrağı
-                unit: symbolPrefix
-            };
-        };
-
-        // --- YARDIMCI: MAJÖR PARALAR (EUR, GBP) ---
-        const eurPrice = parseFloat(eur.lastPrice) * usdPrice;
-        const eurChange = parseFloat(eur.priceChangePercent) + usdChange;
-        
-        const gbpPrice = parseFloat(gbp.lastPrice) * usdPrice;
-        const gbpChange = parseFloat(gbp.priceChangePercent) + usdChange;
-
-        // --- LİSTEYİ OLUŞTUR ---
-        return [
-            // 1. MAJÖRLER (Binance Destekli)
-            { symbol: 'USD/TRY', price: usdPrice, change: usdChange, vol: parseFloat(usdt.quoteVolume), source: 'CANLI PİYASA', image: 'https://flagcdn.com/w80/us.png', unit: '₺' },
-            { symbol: 'EUR/TRY', price: eurPrice, change: eurChange, vol: 0, source: 'HESAPLANAN', image: 'https://flagcdn.com/w80/eu.png', unit: '₺' },
-            { symbol: 'GBP/TRY', price: gbpPrice, change: gbpChange, vol: 0, source: 'HESAPLANAN', image: 'https://flagcdn.com/w80/gb.png', unit: '₺' },
-
-            // 2. DİĞERLERİ (Otomatik Hesaplananlar)
-            calcOther(rates.JPY, 'JPY/TRY', 'jp', '¥'),  // Japon Yeni
-            calcOther(rates.CNY, 'CNY/TRY', 'cn', '¥'),  // Çin Yuanı
-            calcOther(rates.CAD, 'CAD/TRY', 'ca', '$'),  // Kanada Doları
-            calcOther(rates.AUD, 'AUD/TRY', 'au', '$'),  // Avustralya Doları
-            calcOther(rates.RUB, 'RUB/TRY', 'ru', '₽'),  // Rus Rublesi
-            calcOther(rates.AZN, 'AZN/TRY', 'az', '₼'),  // Azerbaycan Manatı
-            
-            // 3. PARİTE (Euro/Dolar)
-            { symbol: 'EUR/USD', price: parseFloat(eur.lastPrice), change: parseFloat(eur.priceChangePercent), vol: parseFloat(eur.quoteVolume), source: 'PARİTE', image: 'https://flagcdn.com/w80/eu.png', unit: '$' }
-        ];
-
-    } catch (e) {
-        console.error("Forex Hatası:", e);
-        return [];
+    // Kaynak 1: open.er-api.com
+    if (!rates) {
+        try {
+            const r = await Promise.race([
+                fetch('https://open.er-api.com/v6/latest/USD'),
+                new Promise((_, rej) => setTimeout(() => rej('timeout'), 4000))
+            ]);
+            const d = await r.json();
+            if (d && d.rates && d.rates.JPY) rates = d.rates;
+        } catch(e) {}
     }
+
+    // Kaynak 2: frankfurter.app (Avrupa Merkez Bankası, ücretsiz)
+    if (!rates) {
+        try {
+            const r = await Promise.race([
+                fetch('https://api.frankfurter.app/latest?from=USD'),
+                new Promise((_, rej) => setTimeout(() => rej('timeout'), 4000))
+            ]);
+            const d = await r.json();
+            if (d && d.rates && d.rates.JPY) rates = d.rates;
+        } catch(e) {}
+    }
+
+    // Kaynak 3: exchangerate.host (yedek)
+    if (!rates) {
+        try {
+            const r = await Promise.race([
+                fetch('https://api.exchangerate.host/latest?base=USD'),
+                new Promise((_, rej) => setTimeout(() => rej('timeout'), 4000))
+            ]);
+            const d = await r.json();
+            if (d && d.rates && d.rates.JPY) rates = d.rates;
+        } catch(e) {}
+    }
+
+    // ── ADIM 3: Listeyi oluştur ──
+    const calcOther = (parityVal, name, flagCode, symbolPrefix) => {
+        if (!parityVal) return null;
+        const priceInTry = (1 / parityVal) * usdPrice;
+        return {
+            symbol: name, price: priceInTry, change: usdChange,
+            vol: 0, source: 'HESAPLANAN',
+            image: 'https://flagcdn.com/w80/' + flagCode + '.png',
+            unit: symbolPrefix
+        };
+    };
+
+    const result = [
+        { symbol: 'USD/TRY', price: usdPrice, change: usdChange, vol: 0, source: 'CANLI PİYASA', image: 'https://flagcdn.com/w80/us.png', unit: '₺' },
+        { symbol: 'EUR/TRY', price: eurRate * usdPrice, change: eurChange + usdChange, vol: 0, source: 'HESAPLANAN', image: 'https://flagcdn.com/w80/eu.png', unit: '₺' },
+        { symbol: 'GBP/TRY', price: gbpRate * usdPrice, change: usdChange, vol: 0, source: 'HESAPLANAN', image: 'https://flagcdn.com/w80/gb.png', unit: '₺' },
+        { symbol: 'EUR/USD', price: eurRate, change: eurChange, vol: 0, source: 'PARİTE', image: 'https://flagcdn.com/w80/eu.png', unit: '$' },
+    ];
+
+    // Parite verileri varsa diğer kurları da ekle
+    if (rates) {
+        const others = [
+            calcOther(rates.JPY, 'JPY/TRY', 'jp', '¥'),
+            calcOther(rates.CNY, 'CNY/TRY', 'cn', '¥'),
+            calcOther(rates.CAD, 'CAD/TRY', 'ca', '$'),
+            calcOther(rates.AUD, 'AUD/TRY', 'au', '$'),
+            calcOther(rates.RUB, 'RUB/TRY', 'ru', '₽'),
+            calcOther(rates.AZN, 'AZN/TRY', 'az', '₼'),
+        ];
+        others.forEach(function(o) { if (o) result.push(o); });
+    }
+
+    return result;
 }
 
 /* --- GÜNCELLENMİŞ ALTIN MOTORU (7/24 CANLI) --- */
 async function fetchFastGold() {
-    try {
-        // 1. Canlı Veriyi Çek (Binance API - En Hızlı ve Ücretsiz)
-        // PAXGUSDT = Ons Altın ($), USDTTRY = Dolar Kuru
-        const res = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=["PAXGUSDT","USDTTRY"]');
-        const data = await res.json();
+    let onsPrice = 0, dolarKuru = 0, change = 0;
 
-        // Verileri Ayrıştır
+    // Kaynak 1: Binance (PAXG + USDTTRY)
+    try {
+        const res = await Promise.race([
+            fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=["PAXGUSDT","USDTTRY"]'),
+            new Promise((_, rej) => setTimeout(() => rej('timeout'), 5000))
+        ]);
+        const data = await res.json();
         const paxg = data.find(x => x.symbol === 'PAXGUSDT');
         const usdt = data.find(x => x.symbol === 'USDTTRY');
+        if (paxg && usdt) {
+            onsPrice   = parseFloat(paxg.lastPrice);
+            dolarKuru  = parseFloat(usdt.lastPrice);
+            change     = parseFloat(paxg.priceChangePercent);
+        }
+    } catch(e) { console.warn('Binance gold hata:', e); }
 
-        if (!paxg || !usdt) throw new Error("Veri Eksik");
-
-        const onsPrice = parseFloat(paxg.lastPrice);
-        const change = parseFloat(paxg.priceChangePercent); // Ons'un günlük değişimi
-        const dolarKuru = parseFloat(usdt.lastPrice);
-
-        // 2. Hesaplamalar (Türkiye Standartları)
-        // 1 Ons = 31.1035 Gram
-        const gramHas = (onsPrice * dolarKuru) / 31.1035;
-        
-        // Diğer altın türleri Gram Has fiyata göre oranlanır
-        const gram22 = gramHas * 0.916;  // 22 Ayar (Bilezik)
-        const ceyrek = gramHas * 1.606;  // Çeyrek (Eski/Yeni ortalama katsayı)
-        const yarim = ceyrek * 2;
-        const tam = ceyrek * 4;
-        const ata = ceyrek * 4.10;       // Cumhuriyet/Ata
-
-        // 3. Basit İkonlar
-        const iconBar = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='8' y='16' width='48' height='32' fill='%23FFD700' stroke='%23DAA520' stroke-width='2'/%3E%3C/svg%3E";
-        const iconCoin = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%23FFD700' stroke='%23DAA520' stroke-width='2'/%3E%3C/svg%3E";
-
-        // 4. Listeyi Döndür
-        return [
-            { symbol: 'ONS ALTIN', price: onsPrice, change: change, vol: 0, source: 'KURESEL', image: iconBar },
-            { symbol: 'GRAM HAS (24K)', price: gramHas, change: change, vol: 0, source: 'HESAPLANAN', image: iconBar },
-            { symbol: 'ÇEYREK ALTIN', price: ceyrek, change: change, vol: 0, source: 'DARPHANE', image: iconCoin },
-            { symbol: 'YARIM ALTIN', price: yarim, change: change, vol: 0, source: 'DARPHANE', image: iconCoin },
-            { symbol: 'TAM ALTIN', price: tam, change: change, vol: 0, source: 'DARPHANE', image: iconCoin },
-            { symbol: 'CUMHURİYET', price: ata, change: change, vol: 0, source: 'DARPHANE', image: iconCoin },
-            { symbol: '22 AYAR GRAM', price: gram22, change: change, vol: 0, source: 'HESAPLANAN', image: iconCoin }
-        ];
-
-    } catch (e) {
-        console.error("Gold Hata:", e);
-        return [];
+    // Kaynak 2: Binance XAUUSDT (farklı sembol) + dolar kuru
+    if (onsPrice === 0) {
+        try {
+            const res = await Promise.race([
+                fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=["XAUUSDT","USDTTRY"]'),
+                new Promise((_, rej) => setTimeout(() => rej('timeout'), 5000))
+            ]);
+            const data = await res.json();
+            const xau  = data.find(x => x.symbol === 'XAUUSDT');
+            const usdt = data.find(x => x.symbol === 'USDTTRY');
+            if (xau && usdt) {
+                onsPrice  = parseFloat(xau.lastPrice);
+                dolarKuru = parseFloat(usdt.lastPrice);
+                change    = parseFloat(xau.priceChangePercent);
+            }
+        } catch(e) {}
     }
+
+    // Kaynak 3: Metallprice API (ücretsiz, limit yok)
+    if (onsPrice === 0) {
+        try {
+            const res = await Promise.race([
+                fetch('https://api.metals.live/v1/spot/gold'),
+                new Promise((_, rej) => setTimeout(() => rej('timeout'), 4000))
+            ]);
+            const data = await res.json();
+            if (data && data[0] && data[0].gold) {
+                onsPrice = parseFloat(data[0].gold);
+                // Dolar kurunu Binance'tan çek
+                const r2 = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=USDTTRY');
+                const d2 = await r2.json();
+                dolarKuru = parseFloat(d2.price) || 32;
+                change = 0;
+            }
+        } catch(e) {}
+    }
+
+    if (onsPrice === 0 || dolarKuru === 0) return [];
+
+    const gramHas = (onsPrice * dolarKuru) / 31.1035;
+    const gram22  = gramHas * 0.916;
+    const ceyrek  = gramHas * 1.606;
+    const yarim   = ceyrek * 2;
+    const tam     = ceyrek * 4;
+    const ata     = ceyrek * 4.10;
+
+    const iconBar  = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='8' y='16' width='48' height='32' fill='%23FFD700' stroke='%23DAA520' stroke-width='2'/%3E%3C/svg%3E";
+    const iconCoin = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%23FFD700' stroke='%23DAA520' stroke-width='2'/%3E%3C/svg%3E";
+
+    return [
+        { symbol: 'ONS ALTIN',      price: onsPrice, change: change, vol: 0, source: 'KÜRESEL',    image: iconBar  },
+        { symbol: 'GRAM HAS (24K)', price: gramHas,  change: change, vol: 0, source: 'HESAPLANAN', image: iconBar  },
+        { symbol: 'ÇEYREK ALTIN',   price: ceyrek,   change: change, vol: 0, source: 'DARPHANE',   image: iconCoin },
+        { symbol: 'YARIM ALTIN',    price: yarim,    change: change, vol: 0, source: 'DARPHANE',   image: iconCoin },
+        { symbol: 'TAM ALTIN',      price: tam,      change: change, vol: 0, source: 'DARPHANE',   image: iconCoin },
+        { symbol: 'CUMHURİYET',     price: ata,      change: change, vol: 0, source: 'DARPHANE',   image: iconCoin },
+        { symbol: '22 AYAR GRAM',   price: gram22,   change: change, vol: 0, source: 'HESAPLANAN', image: iconCoin },
+    ];
 }
 
 /* --- TRADER KARNESİ HESAPLAMA MOTORU --- */
