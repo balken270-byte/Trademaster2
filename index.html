@@ -13770,7 +13770,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.5"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -13783,7 +13783,8 @@ document.addEventListener("DOMContentLoaded", () => {
         // 2. Service Worker (PWA) Varsa Önbelleğini Temizle
         // (Bu sadece eski kod dosyalarını siler, portföy verisini silmez)
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            navigator.serviceWorker.getRegistrations().catch(function(){}).then(function(registrations) {
+                if(!registrations) return;
                 for(let registration of registrations) {
                     registration.unregister();
                 }
@@ -13842,7 +13843,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 /* --- PWA İPTAL VE TEMİZLİK KODU --- */
-if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator && location.protocol !== 'null:' && location.origin !== 'null') {
     // Mevcut tüm Service Worker'ları bul ve hepsini sil (unregister)
     navigator.serviceWorker.getRegistrations().then(function(registrations) {
         for(let registration of registrations) {
@@ -15232,8 +15233,8 @@ function renderWinRateChart(rate) {
 }
 /* --- BURAYA KADAR --- */
 
-    let growthChartReal = null; function renderRealGrowthChart() { const _rgc = document.getElementById('realGrowthChart'); if (!_rgc || !_rgc.offsetParent) return; const ctx = _rgc.getContext('2d'); if(growthChartReal) growthChartReal.destroy(); let history = JSON.parse(localStorage.getItem('tm_networth_history')) || []; if(history.length === 0) history.push({ date: new Date().toLocaleDateString('tr-TR'), val: 0 }); let labels = history.map(h => h.date.substring(0, 5)); let data = history.map(h => h.val); let gradient = ctx.createLinearGradient(0, 0, 0, 400); gradient.addColorStop(0, 'rgba(59, 130, 246, 0.5)'); gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)'); growthChartReal = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [{ label: 'Net Varlık', data: data, borderColor: '#3b82f6', backgroundColor: gradient, borderWidth: 2, pointBackgroundColor: '#1e1e1e', pointBorderColor: '#3b82f6', pointRadius: 4, fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#64748b', font: {size: 10} } }, y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: {size: 10} } } } } }); }
-    let allocChartNew = null; function renderNewAllocationChart(as) { const _nac = document.getElementById('newAllocationChart'); if (!_nac || !_nac.offsetParent) return; const ctx = _nac.getContext('2d'); if(allocChartNew) allocChartNew.destroy(); let crypto = 0, bist = 0, forex = 0, cash = cashBalance; as.forEach(a => { let val = (a.curr || a.buy) * a.amt; if(appSettings.currency === 'TRY' && a.origin === 'USD') val *= usdTryRate; let tag = getAssetTag(a.name).t; if(tag === 'KRİPTO') crypto += val; else if(tag === 'BORSA') bist += val; else forex += val; }); allocChartNew = new Chart(ctx, { type: 'doughnut', data: { labels: ['Kripto', 'Borsa', 'Döviz', 'Nakit'], datasets: [{ data: [crypto, bist, forex, cash], backgroundColor: ['#f59e0b', '#3b82f6', '#8b5cf6', '#10b981'], borderWidth: 0, hoverOffset: 10 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: 'white', boxWidth: 10, font: {size: 10} } } } } }); }
+    let growthChartReal = null; function renderRealGrowthChart() { const _rgc = document.getElementById('realGrowthChart'); if (!_rgc || !_rgc.offsetParent || !_rgc.getContext) return; const ctx = _rgc.getContext('2d'); if(growthChartReal) growthChartReal.destroy(); let history = JSON.parse(localStorage.getItem('tm_networth_history')) || []; if(history.length === 0) history.push({ date: new Date().toLocaleDateString('tr-TR'), val: 0 }); let labels = history.map(h => h.date.substring(0, 5)); let data = history.map(h => h.val); let gradient = ctx.createLinearGradient(0, 0, 0, 400); gradient.addColorStop(0, 'rgba(59, 130, 246, 0.5)'); gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)'); growthChartReal = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [{ label: 'Net Varlık', data: data, borderColor: '#3b82f6', backgroundColor: gradient, borderWidth: 2, pointBackgroundColor: '#1e1e1e', pointBorderColor: '#3b82f6', pointRadius: 4, fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#64748b', font: {size: 10} } }, y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: {size: 10} } } } } }); }
+    let allocChartNew = null; function renderNewAllocationChart(as) { const _nac = document.getElementById('newAllocationChart'); if (!_nac || !_nac.offsetParent || !_nac.getContext) return; const ctx = _nac.getContext('2d'); if(allocChartNew) allocChartNew.destroy(); let crypto = 0, bist = 0, forex = 0, cash = cashBalance; as.forEach(a => { let val = (a.curr || a.buy) * a.amt; if(appSettings.currency === 'TRY' && a.origin === 'USD') val *= usdTryRate; let tag = getAssetTag(a.name).t; if(tag === 'KRİPTO') crypto += val; else if(tag === 'BORSA') bist += val; else forex += val; }); allocChartNew = new Chart(ctx, { type: 'doughnut', data: { labels: ['Kripto', 'Borsa', 'Döviz', 'Nakit'], datasets: [{ data: [crypto, bist, forex, cash], backgroundColor: ['#f59e0b', '#3b82f6', '#8b5cf6', '#10b981'], borderWidth: 0, hoverOffset: 10 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: 'white', boxWidth: 10, font: {size: 10} } } } } }); }
     function updateGrowthChart(days) { document.querySelectorAll('.chart-filter-btn').forEach(b => b.classList.remove('active')); event.target.classList.add('active'); renderRealGrowthChart(); }
     /* --- DİĞER YARDIMCI FONKSİYONLAR --- */
     /* --- GÜNCELLENMİŞ ÖNİZLEME (KAYNAK GÖSTERGELİ) --- */
@@ -16022,32 +16023,7 @@ function saveAlarm(type) {
     }
 }
 
-// 3. SİLME FONKSİYONU
-async function removeAlarm(id) {
-    let ok = await tvConfirm('Alarmı Sil', 'Bu alarm silinsin mi?');
-    if(!ok) return;
-    let alarms = JSON.parse(localStorage.getItem('tradeVia_alarms')) || [];
-    let deletedAlarm = alarms.find(a => a.id === id);
-    
-    alarms = alarms.filter(a => a.id !== id);
-    localStorage.setItem('tradeVia_alarms', JSON.stringify(alarms));
-    
-    // Eğer bu varlığa ait başka alarm kalmadıysa, karttaki zili söndür
-    if(deletedAlarm) {
-        let remaining = alarms.filter(a => a.symbol === deletedAlarm.symbol);
-        if(remaining.length === 0) {
-            let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
-            let asset = as.find(a => a.name === deletedAlarm.symbol);
-            if(asset) {
-                delete asset.alarm;
-                localStorage.setItem('myPF_final', JSON.stringify(as));
-                if(typeof loadPF === 'function') loadPF(false);
-            }
-        }
-    }
-
-    if(typeof renderActiveAlarmsList === 'function') renderActiveAlarmsList();
-}
+// removeAlarm - animasyonlu versiyon aşağıda tanımlı
 
 /* --- GÜNCELLENMİŞ ALARM KONTROLÜ (ÖNCELİK: COINGECKO -> YEDEK: BINANCE) --- */
 async function checkAllAlarms() {
@@ -16715,8 +16691,10 @@ function addNotification(type, title, msg) {
     }
 
     if(typeof notifySettings !== 'undefined' && notifySettings.vibrate && navigator.vibrate) {
-        if(type === 'danger') navigator.vibrate([100, 50, 100, 50, 100]); 
-        else navigator.vibrate(200); 
+        try {
+            if(type === 'danger') navigator.vibrate([100, 50, 100, 50, 100]); 
+            else navigator.vibrate(200);
+        } catch(e) {}
     }
 
 // 5. BROWSER / TELEFON BİLDİRİMİ (TELEFON İÇİN GÜÇLENDİRİLDİ & İKONLU)
@@ -16751,7 +16729,7 @@ if ("Notification" in window && Notification.permission === "granted") {
     let vibPattern = (typeof notifySettings !== 'undefined' && notifySettings.vibrate) ? [200, 100, 200] : [];
 
     // ÖNCE SERVICE WORKER DENE (Mobil Chrome'da tepeye düşmesi için bu şarttır)
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller && location.origin !== 'null') {
         navigator.serviceWorker.ready.then(function(registration) {
             registration.showNotification(title, {
                 body: msg,
@@ -16798,32 +16776,64 @@ try {
             l.innerHTML = "<div style='text-align:center; padding:30px; color:var(--text-sub); opacity:0.6;'><i class='fas fa-bell-slash' style='font-size:24px; margin-bottom:10px;'></i><br>Bildirim Yok</div>";
             return;
         }
-        notifications.forEach((n, idx) => {
-            let icon = 'info-circle'; let cls = 'n-info';
-            if(n.type === 'success') { icon = 'check-circle'; cls = 'n-success'; }
-            if(n.type === 'danger')  { icon = 'exclamation-circle'; cls = 'n-danger'; }
-            if(n.type === 'warn')    { icon = 'bell'; cls = 'n-warn'; }
+        notifications.forEach(function(n, idx) {
+            var iconCls = 'fa-info-circle';
+            var color   = '#3b82f6';
+            var bg      = 'rgba(59,130,246,0.12)';
+            var glow    = 'rgba(59,130,246,0.18)';
+            if (n.type === 'success') { iconCls = 'fa-check-circle';       color = '#10b981'; bg = 'rgba(16,185,129,0.08)';  glow = 'rgba(16,185,129,0.18)'; }
+            if (n.type === 'danger')  { iconCls = 'fa-exclamation-circle'; color = '#ef4444'; bg = 'rgba(239,68,68,0.08)';   glow = 'rgba(239,68,68,0.18)';  }
+            if (n.type === 'warn')    { iconCls = 'fa-bell';               color = '#f59e0b'; bg = 'rgba(245,158,11,0.08)';  glow = 'rgba(245,158,11,0.18)'; }
 
-            // Topluluk yanıtı bildirimi — tıklanabilir, farklı görünüm
             var isCommNotif = n.notifType === 'comm_reply' || n.notifType === 'reply';
-            var clickAttr = '';
+            var onclickAttr = '';
             var navigateHint = '';
-            if(isCommNotif && n.symbol) {
-                clickAttr = 'onclick="goToCommNotif(\'' + n.symbol + '\',\'' + (n.msgId || '') + '\')" style="cursor:pointer;"';
-                navigateHint = '<div style="font-size:10px;color:#818cf8;margin-top:4px;display:flex;align-items:center;gap:4px;"><i class="fas fa-arrow-right"></i> ' + n.symbol + ' Topluluğuna Git</div>';
-                icon = 'reply';
-                cls = 'n-info';
+            if (isCommNotif && n.symbol) {
+                var sym = n.symbol;
+                var mid = n.msgId || '';
+                onclickAttr = 'onclick="goToCommNotif(\'' + sym + '\',\'' + mid + '\')"';
+                navigateHint = '<div style="font-size:10px;color:#818cf8;margin-top:6px;">&#8594; ' + sym + ' Topluluğuna Git</div>';
+                iconCls = 'fa-reply'; color = '#818cf8'; bg = 'rgba(129,140,248,0.08)'; glow = 'rgba(129,140,248,0.18)';
             }
 
-            l.innerHTML += `<div class="notif-card ${cls} ${n.read ? '' : 'unread'}" ${clickAttr}>
-                <div class="notif-icon-box"><i class="fas fa-${icon}"></i></div>
-                <div class="notif-content">
-                    <div class="notif-title">${n.title}</div>
-                    <div class="notif-msg">${n.msg}</div>
-                    ${navigateHint}
-                </div>
-                <div class="notif-time">${n.time}</div>
-            </div>`;
+            var borderColor = n.read ? 'rgba(255,255,255,0.07)' : color;
+            var delay = (idx * 0.05) + 's';
+
+            var card = document.createElement('div');
+            card.setAttribute('data-notif-card', '1');
+            card.setAttribute('style',
+                'position:relative;overflow:hidden;' +
+                'background:linear-gradient(135deg,rgba(255,255,255,0.04) 0%,rgba(255,255,255,0.02) 100%);' +
+                'border:1px solid rgba(255,255,255,0.07);' +
+                'border-left:3px solid ' + borderColor + ';' +
+                'border-radius:18px;' +
+                'padding:14px 14px 14px 16px;' +
+                'display:flex;align-items:center;gap:13px;' +
+                'margin-bottom:10px;' +
+                'cursor:' + (isCommNotif ? 'pointer' : 'default') + ';' +
+                'animation:slideIn 0.35s cubic-bezier(0.34,1.3,0.64,1) ' + delay + ' both;' +
+                'transition:transform 0.18s,box-shadow 0.18s;'
+            );
+            if (isCommNotif && n.symbol) {
+                var sym2 = n.symbol, mid2 = n.msgId || '';
+                card.onclick = function(){ goToCommNotif(sym2, mid2); };
+            }
+            card.onmouseenter = function(){ this.style.transform = 'translateY(-1px)'; };
+            card.onmouseleave = function(){ this.style.transform = ''; };
+
+            card.innerHTML =
+                '<div style="position:absolute;top:-20px;left:-20px;width:80px;height:80px;background:radial-gradient(circle,' + glow + ',transparent 70%);pointer-events:none;"></div>' +
+                '<div style="flex-shrink:0;width:46px;height:46px;border-radius:15px;background:' + bg + ';border:1px solid ' + color + '30;display:flex;align-items:center;justify-content:center;">' +
+                    '<i class="fas ' + iconCls + '" style="font-size:16px;color:' + color + ';"></i>' +
+                '</div>' +
+                '<div style="flex:1;min-width:0;">' +
+                    '<div style="font-size:13px;font-weight:800;color:#fff;margin-bottom:4px;">' + n.title + '</div>' +
+                    '<div style="font-size:12px;color:rgba(255,255,255,0.5);line-height:1.4;">' + n.msg + '</div>' +
+                    navigateHint +
+                '</div>' +
+                '<div style="font-size:9px;color:rgba(255,255,255,0.3);white-space:nowrap;align-self:flex-start;padding-top:2px;">' + n.time + '</div>';
+
+            l.appendChild(card);
         });
         notifications.forEach(n => n.read = true);
         localStorage.setItem('tm_notifications', JSON.stringify(notifications));
@@ -16880,7 +16890,34 @@ try {
         }, 200);
     };
     window.updateBadge = function updateBadge(){ let unread = notifications.filter(n => !n.read).length; let b = document.getElementById('notifBadge'); if(unread > 0){ b.innerText = unread; b.classList.add('active'); } else { b.classList.remove('active'); } }
-    function clearNotifications(){ tvConfirm('Bildirimleri Temizle','Tüm bildirimler silinsin mi?').then(function(ok){ if(!ok) return; notifications = []; localStorage.setItem('tm_notifications', JSON.stringify(notifications)); renderNotifications(); updateBadge(); }); }
+    function clearNotifications(){
+        var list = document.getElementById('notificationList');
+        if (!list || !list.children.length) return;
+        var cards = Array.from(list.querySelectorAll('[data-notif-card]'));
+        if (cards.length === 0) { notifications = []; localStorage.setItem('tm_notifications', JSON.stringify(notifications)); renderNotifications(); updateBadge(); return; }
+        // Kartları sırayla sil animasyonuyla
+        cards.forEach(function(card, i) {
+            setTimeout(function() {
+                card.style.transition = 'transform 0.25s ease, opacity 0.25s ease, max-height 0.35s 0.1s ease, margin 0.35s 0.1s ease, padding 0.35s 0.1s ease';
+                card.style.transform = 'translateX(60px) scale(0.85)';
+                card.style.opacity = '0';
+                setTimeout(function() {
+                    card.style.overflow = 'hidden';
+                    card.style.maxHeight = '0';
+                    card.style.marginBottom = '0';
+                    card.style.paddingTop = '0';
+                    card.style.paddingBottom = '0';
+                }, 260);
+            }, i * 60);
+        });
+        // Hepsini sildikten sonra state'i temizle
+        setTimeout(function() {
+            notifications = [];
+            localStorage.setItem('tm_notifications', JSON.stringify(notifications));
+            renderNotifications();
+            updateBadge();
+        }, cards.length * 60 + 400);
+    }
     
     function applyTheme(t){ document.body.setAttribute('data-theme', t); }
     function changeTheme(val){ appSettings.theme = val; localStorage.setItem('tm_settings', JSON.stringify(appSettings)); applyTheme(val); }
@@ -18230,10 +18267,33 @@ function initMdSocial(sym) {
     });
 
     // Subscribe comments
+    var _mdSocTimeout = setTimeout(function() {
+        if(mdSocialUnsub) { mdSocialUnsub(); mdSocialUnsub = null; }
+        var feedFallback = document.getElementById('mdSocialFeed');
+        fbDb.collection('social_comments')
+            .where('symbol','==',mdSocialSymbol)
+            .limit(50)
+            .get()
+            .then(function(snap2) {
+                var comments2 = [];
+                snap2.forEach(function(d) { comments2.push(Object.assign({id:d.id}, d.data())); });
+                comments2.sort(function(a,b) {
+                    var ta = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : a.createdAt.seconds*1000) : 0;
+                    var tb = b.createdAt ? (b.createdAt.toMillis ? b.createdAt.toMillis() : b.createdAt.seconds*1000) : 0;
+                    return tb - ta;
+                });
+                renderMdComments(comments2);
+            })
+            .catch(function(err2) {
+                if(feedFallback) feedFallback.innerHTML = '<div style="text-align:center;padding:30px;color:#64748b"><i class="fas fa-exclamation-circle" style="font-size:28px;margin-bottom:10px;display:block;opacity:0.4"></i><p style="font-size:13px">Yüklenemedi: ' + (err2.code||err2.message) + '</p></div>';
+            });
+    }, 12000);
+
     mdSocialUnsub = fbDb.collection('social_comments')
         .where('symbol','==',mdSocialSymbol)
         .limit(50)
         .onSnapshot(function(snap) {
+            clearTimeout(_mdSocTimeout);
             var comments = [];
             snap.forEach(function(d) { comments.push(Object.assign({id:d.id}, d.data())); });
             comments.sort(function(a,b) {
@@ -18243,6 +18303,7 @@ function initMdSocial(sym) {
             });
             renderMdComments(comments);
         }, function(err) {
+            clearTimeout(_mdSocTimeout);
             var feed = document.getElementById('mdSocialFeed');
             if (feed) feed.innerHTML = '<div style="text-align:center;padding:30px;color:#64748b"><i class="fas fa-exclamation-circle" style="font-size:28px;margin-bottom:10px;display:block;opacity:0.4"></i><p style="font-size:13px">Hata: ' + (err.code||err.message) + '</p></div>';
         });
@@ -23224,13 +23285,15 @@ function renderActiveAlarmsList() {
             </div>
 
             <!-- Sil butonu -->
-            <button onclick="removeAlarm(${alarm.id})" style="
+            <button onclick="window.__rmAlarmEvent=event;removeAlarm(${alarm.id})" style="
                 flex-shrink:0;width:36px;height:36px;border-radius:12px;
                 background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);
                 color:#f87171;cursor:pointer;display:flex;align-items:center;justify-content:center;
-                transition:all 0.2s;" 
+                transition:all 0.2s;"
                 onmouseenter="this.style.background='rgba(239,68,68,0.22)';this.style.borderColor='rgba(239,68,68,0.5)'"
-                onmouseleave="this.style.background='rgba(239,68,68,0.08)';this.style.borderColor='rgba(239,68,68,0.2)'">
+                onmouseleave="this.style.background='rgba(239,68,68,0.08)';this.style.borderColor='rgba(239,68,68,0.2)'"
+                ontouchstart="this.style.background='rgba(239,68,68,0.3)'"
+                ontouchend="this.style.background='rgba(239,68,68,0.08)'">
                 <i class="fas fa-trash-alt" style="font-size:13px;"></i>
             </button>
         `;
@@ -23238,23 +23301,76 @@ function renderActiveAlarmsList() {
     });
 }
 
-// 3. Alarm Silme — async versiyona yönlendir
+// 3. Alarm Silme — onaysız, parçalama animasyonuyla
 function removeAlarm(id) {
-    tvConfirm('Alarmı Sil', 'Bu alarm silinsin mi?').then(function(ok) {
-        if (!ok) return;
+    // Kartı bul
+    var btn = window.__rmAlarmEvent ? window.__rmAlarmEvent.currentTarget : null;
+    window.__rmAlarmEvent = null;
+    var li = btn ? btn.closest('li') : null;
+
+    function doDelete() {
         var alarms = JSON.parse(localStorage.getItem('tradeVia_alarms')) || [];
         var deleted = alarms.find(function(a){ return a.id === id; });
         alarms = alarms.filter(function(a){ return a.id !== id; });
         localStorage.setItem('tradeVia_alarms', JSON.stringify(alarms));
-        renderActiveAlarmsList();
+        if (typeof renderActiveAlarmsList === 'function') renderActiveAlarmsList();
         if (typeof updatePortfolioUI === 'function') updatePortfolioUI();
-        // Hakkı geri ver (RSI alarmı ise)
         if (deleted && deleted.type === 'RSI') {
             var key = 'perm_limit_indicatorAlarm';
             var count = parseInt(localStorage.getItem(key)) || 0;
             if (count > 0) localStorage.setItem(key, (count - 1).toString());
         }
-    });
+    }
+
+    if (!li) { doDelete(); return; }
+
+    // Parçalama animasyonu
+    li.style.transition = 'none';
+    li.style.overflow = 'hidden';
+    var rect = li.getBoundingClientRect();
+    var pieces = 8;
+    var fragment = document.createDocumentFragment();
+    for (var i = 0; i < pieces; i++) {
+        var piece = document.createElement('div');
+        piece.style.cssText = [
+            'position:fixed',
+            'width:' + (rect.width / 4) + 'px',
+            'height:' + (rect.height / 2) + 'px',
+            'left:' + (rect.left + (i % 4) * (rect.width / 4)) + 'px',
+            'top:' + (rect.top + Math.floor(i / 4) * (rect.height / 2)) + 'px',
+            'background:rgba(239,68,68,0.25)',
+            'border:1px solid rgba(239,68,68,0.4)',
+            'border-radius:8px',
+            'z-index:99999',
+            'pointer-events:none',
+            'transition:all 0.5s cubic-bezier(0.55,0,1,0.45)',
+            'transform-origin:center'
+        ].join(';');
+        document.body.appendChild(piece);
+        var tx = (Math.random() - 0.5) * 200;
+        var ty = (Math.random() + 0.3) * 180;
+        var rot = (Math.random() - 0.5) * 720;
+        setTimeout((function(p, x, y, r){
+            return function(){
+                p.style.transform = 'translate(' + x + 'px,' + y + 'px) rotate(' + r + 'deg) scale(0)';
+                p.style.opacity = '0';
+                setTimeout(function(){ if(p.parentNode) p.parentNode.removeChild(p); }, 520);
+            };
+        })(piece, tx, ty, rot), 20 + i * 30);
+    }
+
+    // Kartı küçült ve kaldır
+    li.style.transition = 'transform 0.15s ease,opacity 0.15s ease,max-height 0.4s 0.1s ease,margin 0.4s 0.1s ease,padding 0.4s 0.1s ease';
+    li.style.transform = 'scale(0.92)';
+    li.style.opacity = '0';
+    setTimeout(function(){
+        li.style.maxHeight = '0';
+        li.style.marginTop = '0';
+        li.style.marginBottom = '0';
+        li.style.paddingTop = '0';
+        li.style.paddingBottom = '0';
+        setTimeout(doDelete, 420);
+    }, 150);
 }
 
 /* --- ÇOKLU PORTFÖY YÖNETİCİSİ (SWAP SİSTEMİ) --- */
@@ -25081,7 +25197,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 <script>
     /* --- 1. SERVICE WORKER KAYDI (PWA ve Bildirim İçin Şart) --- */
-    if ('serviceWorker' in navigator) {
+    if ('serviceWorker' in navigator && location.origin !== 'null') {
         window.addEventListener('load', function() {
             navigator.serviceWorker.register('sw.js')
             .then(function(registration) {
@@ -28213,12 +28329,39 @@ document.addEventListener('DOMContentLoaded', function() {
         if (socialUnsubscribe) socialUnsubscribe();
         const sym = currentSocialSymbol;
         if (!sym || typeof fbDb === 'undefined') return;
-        
+
+        const feed = document.getElementById('socialFeed');
+
+        // Timeout: 12 saniyede veri gelmezse get() ile dene
+        let _socTimeout = setTimeout(function() {
+            if (socialUnsubscribe) { socialUnsubscribe(); socialUnsubscribe = null; }
+            fbDb.collection('social_comments')
+                .where('symbol', '==', sym)
+                .limit(50)
+                .get()
+                .then(function(snap2) {
+                    const comments = [];
+                    snap2.forEach(function(doc) { comments.push(Object.assign({id: doc.id}, doc.data())); });
+                    comments.sort((a, b) => {
+                        const ta = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : a.createdAt.seconds * 1000) : 0;
+                        const tb = b.createdAt ? (b.createdAt.toMillis ? b.createdAt.toMillis() : b.createdAt.seconds * 1000) : 0;
+                        return tb - ta;
+                    });
+                    renderComments(comments);
+                    const liveEl = document.getElementById('socialLiveCount');
+                    if (liveEl) liveEl.textContent = comments.length;
+                })
+                .catch(function(err2) {
+                    if (feed) feed.innerHTML = '<div class="social-empty"><i class="fas fa-wifi-slash"></i><p>Yüklenemedi: ' + (err2.code||err2.message) + '<br><button onclick="subscribeToComments()" style="margin-top:10px;padding:7px 16px;border-radius:10px;background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.4);color:#818cf8;font-size:12px;cursor:pointer;">Tekrar Dene</button></p></div>';
+                });
+        }, 12000);
+
         // orderBy kaldırıldı - index gerektirmiyor, client sıralar
         socialUnsubscribe = fbDb.collection('social_comments')
             .where('symbol', '==', sym)
             .limit(50)
             .onSnapshot(snap => {
+                clearTimeout(_socTimeout);
                 const comments = [];
                 snap.forEach(doc => {
                     const d = doc.data();
@@ -28234,9 +28377,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const liveEl = document.getElementById('socialLiveCount');
                 if (liveEl) liveEl.textContent = comments.length;
             }, err => {
+                clearTimeout(_socTimeout);
                 console.error('Comments subscription error:', err);
-                const feed = document.getElementById('socialFeed');
-                if (feed) feed.innerHTML = '<div class="social-empty"><i class="fas fa-wifi-slash"></i><p>Hata: ' + (err.code||err.message) + '</p></div>';
+                if (feed) feed.innerHTML = '<div class="social-empty"><i class="fas fa-wifi-slash"></i><p>Hata: ' + (err.code||err.message) + '<br><button onclick="subscribeToComments()" style="margin-top:10px;padding:7px 16px;border-radius:10px;background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.4);color:#818cf8;font-size:12px;cursor:pointer;">Tekrar Dene</button></p></div>';
             });
     }
     
@@ -29219,9 +29362,56 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if(commChatUnsubscribe) { commChatUnsubscribe(); commChatUnsubscribe = null; }
 
+        // Timeout: 12 saniye içinde veri gelmezse hata göster
+        var _loadTimeout = setTimeout(function() {
+            if(Object.keys(_renderedMsgIds).length === 0) {
+                if(commChatUnsubscribe) { commChatUnsubscribe(); commChatUnsubscribe = null; }
+                // get() ile bir kez daha dene
+                fbDb.collection('community_messages')
+                    .where('symbol', '==', symbol)
+                    .get()
+                    .then(function(snap2) {
+                        var docs = [];
+                        snap2.forEach(function(doc) { docs.push({ id: doc.id, data: doc.data() }); });
+                        if(docs.length === 0) { feed.innerHTML = buildChatWelcome(symbol); return; }
+                        docs.sort(function(a, b) {
+                            var ta = a.data.createdAt ? (a.data.createdAt.toMillis ? a.data.createdAt.toMillis() : 0) : 0;
+                            var tb = b.data.createdAt ? (b.data.createdAt.toMillis ? b.data.createdAt.toMillis() : 0) : 0;
+                            return ta - tb;
+                        });
+                        if(docs.length > 80) docs = docs.slice(docs.length - 80);
+                        feed.innerHTML = '';
+                        var appLang2 = (typeof LangSystem !== 'undefined') ? LangSystem.currentLang : 'tr';
+                        var prevDate2 = null;
+                        docs.forEach(function(item) {
+                            var d = item.data;
+                            var ts = d.createdAt ? (d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt)) : new Date();
+                            var dateLocale2 = appLang2 === 'en' ? 'en-US' : 'tr-TR';
+                            var dateStr2 = ts.toLocaleDateString(dateLocale2, {day:'numeric',month:'long',year:'numeric'});
+                            if(dateStr2 !== prevDate2) {
+                                var sep2 = document.createElement('div');
+                                sep2.style.cssText = 'text-align:center;margin:10px 0;';
+                                sep2.innerHTML = '<span style="font-size:10px;color:rgba(255,255,255,0.25);background:rgba(255,255,255,0.05);padding:2px 10px;border-radius:8px;">' + dateStr2 + '</span>';
+                                feed.appendChild(sep2);
+                                prevDate2 = dateStr2;
+                            }
+                            var el2 = document.createElement('div');
+                            el2.innerHTML = buildChatMessage(item.id, d, ts);
+                            feed.appendChild(el2.firstChild);
+                            _renderedMsgIds[item.id] = true;
+                        });
+                        setTimeout(function(){ feed.scrollTop = feed.scrollHeight; }, 60);
+                    })
+                    .catch(function(err2) {
+                        feed.innerHTML = '<div style="text-align:center;padding:40px;"><i class="fas fa-exclamation-triangle" style="font-size:28px;color:#f87171;opacity:0.6;"></i><p style="color:rgba(255,255,255,0.4);font-size:13px;margin-top:12px;">Mesajlar yüklenemedi.<br><small>' + (err2.code||err2.message||'Bağlantı hatası') + '</small></p><button onclick="loadCommunityMessages(\'' + symbol + '\')" style="margin-top:12px;padding:8px 18px;border-radius:10px;background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.4);color:#818cf8;font-size:13px;cursor:pointer;">Tekrar Dene</button></div>';
+                    });
+            }
+        }, 12000);
+
         commChatUnsubscribe = fbDb.collection('community_messages')
             .where('symbol', '==', symbol)
             .onSnapshot(function(snap) {
+                clearTimeout(_loadTimeout);
                 // Sadece değişen (eklenen/silinen) mesajları işle
                 var changes = snap.docChanges();
                 var isFirstLoad = Object.keys(_renderedMsgIds).length === 0;
@@ -29288,8 +29478,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 }
             }, function(err) {
+                clearTimeout(_loadTimeout);
                 console.error('Community messages error:', err);
-                feed.innerHTML = buildChatWelcome(symbol);
+                feed.innerHTML = '<div style="text-align:center;padding:40px;"><i class="fas fa-exclamation-triangle" style="font-size:28px;color:#f87171;opacity:0.6;"></i><p style="color:rgba(255,255,255,0.4);font-size:13px;margin-top:12px;">Mesajlar yüklenemedi.<br><small>' + (err.code||err.message||'Bağlantı hatası') + '</small></p><button onclick="loadCommunityMessages(\'' + symbol + '\')" style="margin-top:12px;padding:8px 18px;border-radius:10px;background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.4);color:#818cf8;font-size:13px;cursor:pointer;">Tekrar Dene</button></div>';
             });
     }
 
@@ -29697,6 +29888,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // ── Telegram tarzı inline arama ──────────────────────────────────────────
     var _commAllMessages = []; // önbellek
 
+    var _searchTimer = null;
+    var _commDataReady = false;
+
     window.toggleCommSearch = function() {
         var bar = document.getElementById('commSearchBar');
         if (!bar) return;
@@ -29711,10 +29905,12 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('commSearchClear').style.display = 'none';
             // Mesajları önceden çek
             _commAllMessages = [];
+            _commDataReady = false;
             fbDb.collection('community_messages').where('symbol','==',activeCommunitySymbol)
                 .orderBy('createdAt','asc').get()
                 .then(function(snap){
                     snap.forEach(function(doc){ _commAllMessages.push({id:doc.id, data:doc.data()}); });
+                    _commDataReady = true;
                 }).catch(function(){});
         }
     };
@@ -29724,16 +29920,19 @@ document.addEventListener('DOMContentLoaded', function() {
         if (bar) bar.style.display = 'none';
         var inp = document.getElementById('commSearchInput');
         if (inp) inp.value = '';
-        // Highlight'ları temizle
-        document.querySelectorAll('.comm-msg-highlight').forEach(function(el){
-            el.classList.remove('comm-msg-highlight');
-        });
-        // Arama sonuç modunu kapat — normal sohbete dön
+        document.getElementById('commSearchCount').textContent = '';
+        var clearBtn = document.getElementById('commSearchClear');
+        if (clearBtn) clearBtn.style.display = 'none';
         var feed = document.getElementById('commChatMessages');
-        if (feed && feed.dataset.searchMode === '1') {
-            delete feed.dataset.searchMode;
-            loadCommunityMessages(activeCommunitySymbol);
-        }
+        if (!feed) return;
+        delete feed.dataset.searchMode;
+        // Arama sonuçlarını kaldır
+        feed.querySelectorAll('[data-search-result]').forEach(function(el){ el.remove(); });
+        // Gizlenmiş asıl mesajları geri göster
+        feed.querySelectorAll('[data-search-hidden]').forEach(function(el){
+            el.removeAttribute('data-search-hidden');
+            el.style.display = '';
+        });
     };
 
     window.commSearchClearInput = function() {
@@ -29742,13 +29941,15 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('commSearchClear').style.display = 'none';
         document.getElementById('commSearchCount').textContent = '';
         var feed = document.getElementById('commChatMessages');
-        if (feed && feed.dataset.searchMode === '1') {
-            delete feed.dataset.searchMode;
-            loadCommunityMessages(activeCommunitySymbol);
-        }
+        if (!feed) return;
+        delete feed.dataset.searchMode;
+        feed.querySelectorAll('[data-search-result]').forEach(function(el){ el.remove(); });
+        feed.querySelectorAll('[data-search-hidden]').forEach(function(el){
+            el.removeAttribute('data-search-hidden');
+            el.style.display = '';
+        });
     };
 
-    var _searchTimer = null;
     window.commSearchLive = function(q) {
         var clearBtn = document.getElementById('commSearchClear');
         if (clearBtn) clearBtn.style.display = q ? 'flex' : 'none';
@@ -29758,10 +29959,32 @@ document.addEventListener('DOMContentLoaded', function() {
             var feed = document.getElementById('commChatMessages');
             if (feed && feed.dataset.searchMode === '1') {
                 delete feed.dataset.searchMode;
-                loadCommunityMessages(activeCommunitySymbol);
+                feed.querySelectorAll('[data-search-result]').forEach(function(el){ el.remove(); });
+                feed.querySelectorAll('[data-search-hidden]').forEach(function(el){
+                    el.removeAttribute('data-search-hidden');
+                    el.style.display = '';
+                });
             }
             return;
         }
+
+        // Veri henüz yüklenmediyse önce yükle sonra ara
+        if (!_commDataReady || _commAllMessages.length === 0) {
+            document.getElementById('commSearchCount').textContent = '⏳';
+            _commDataReady = false;
+            fbDb.collection('community_messages').where('symbol','==',activeCommunitySymbol)
+                .orderBy('createdAt','asc').get()
+                .then(function(snap){
+                    _commAllMessages = [];
+                    snap.forEach(function(doc){ _commAllMessages.push({id:doc.id, data:doc.data()}); });
+                    _commDataReady = true;
+                    _runCommSearch(q.trim());
+                }).catch(function(){
+                    document.getElementById('commSearchCount').textContent = '—';
+                });
+            return;
+        }
+
         _searchTimer = setTimeout(function(){ _runCommSearch(q.trim()); }, 300);
     };
 
@@ -29770,6 +29993,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!feed) return;
         feed.dataset.searchMode = '1';
 
+        // Eski arama sonuçlarını temizle
+        feed.querySelectorAll('[data-search-result]').forEach(function(el){ el.remove(); });
+        // Normal mesajları gizle, data-search-hidden ile işaretle
+        Array.from(feed.children).forEach(function(child){
+            child.setAttribute('data-search-hidden', '1');
+            child.style.display = 'none';
+        });
+
         var results = _commAllMessages.filter(function(item){
             return item.data.text && item.data.text.toLowerCase().includes(q.toLowerCase());
         });
@@ -29777,35 +30008,37 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('commSearchCount').textContent = results.length ? results.length + ' sonuç' : '—';
 
         if (results.length === 0) {
-            feed.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:12px;">' +
-                '<i class="fas fa-search" style="font-size:28px;color:rgba(255,255,255,0.12);"></i>' +
-                '<div style="font-size:13px;color:rgba(255,255,255,0.3);">«' + escapeHtml(q) + '» için sonuç bulunamadı</div></div>';
+            var emptyDiv = document.createElement('div');
+            emptyDiv.dataset.searchResult = '1';
+            emptyDiv.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:12px;';
+            emptyDiv.innerHTML = '<i class="fas fa-search" style="font-size:28px;color:rgba(255,255,255,0.12);"></i>' +
+                '<div style="font-size:13px;color:rgba(255,255,255,0.3);">«' + escapeHtml(q) + '» için sonuç bulunamadı</div>';
+            feed.appendChild(emptyDiv);
             return;
         }
 
-        // Eşleşen mesajları göster — arama kelimesini highlight et
-        feed.innerHTML = '';
+        // Eşleşen mesajları wrapper div içinde ekle
         results.forEach(function(item) {
             var ts = item.data.createdAt ? (item.data.createdAt.toDate ? item.data.createdAt.toDate() : new Date()) : new Date();
-            var msgHtml = buildChatMessage(item.id, item.data, ts);
-            feed.innerHTML += msgHtml;
+            var wrapper = document.createElement('div');
+            wrapper.dataset.searchResult = '1';
+            wrapper.innerHTML = buildChatMessage(item.id, item.data, ts);
+            feed.appendChild(wrapper);
         });
 
-        // Eşleşen metni highlight et
+        // Highlight
         setTimeout(function(){
-            feed.querySelectorAll('.comm-bubble-text, .comm-msg-text').forEach(function(el){
+            feed.querySelectorAll('[data-search-result] .comm-bubble-text, [data-search-result] .comm-msg-text').forEach(function(el){
                 if (el.textContent.toLowerCase().includes(q.toLowerCase())) {
                     var escaped = escapeHtml(q);
                     el.innerHTML = el.innerHTML.replace(
                         new RegExp('(' + escaped + ')', 'gi'),
                         '<mark style="background:rgba(251,191,36,0.35);color:#fcd34d;border-radius:3px;padding:0 1px;">$1</mark>'
                     );
-                    el.closest('.comm-msg-highlight, [data-msg-id]') && el.closest('[data-msg-id]') && el.closest('[data-msg-id]').classList.add('comm-msg-highlight');
                 }
             });
-            // İlk sonuca scroll
-            var first = feed.firstElementChild;
-            if (first) first.scrollIntoView({behavior:'smooth', block:'start'});
+            var firstResult = feed.querySelector('[data-search-result]');
+            if (firstResult) firstResult.scrollIntoView({behavior:'smooth', block:'start'});
         }, 50);
     }
 
