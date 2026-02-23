@@ -233,20 +233,47 @@ var LangSystem = {
         var self = this;
         var appLang = this.currentLang;
 
+        // Mesaj baloncuklarını bul (line-height:1.55 olan div = baloncuk)
         var bubbles = el.querySelectorAll('[style*="line-height:1.55"]');
         bubbles.forEach(function(bubble) {
-            // Metin div'ini bul — ikon ve saat içerenleri atla
+
+            // Baloncuk içindeki TÜM direkt çocuk div'leri tara
+            // Metin div'i: ikon içermeyen, saat içermeyen, gerçek yazı olan div
             var textDiv = null;
-            var divs = bubble.querySelectorAll('div');
-            for (var i = 0; i < divs.length; i++) {
-                var d = divs[i];
+            var children = bubble.children;
+
+            for (var i = 0; i < children.length; i++) {
+                var d = children[i];
+
+                // Meta satır kontrolü (saat + ikonlar)
                 if (d.querySelector('i.fas')) continue;
-                if (d.querySelector('span[style*="font-size:10px"]')) continue;
-                if (d.querySelector('span[style*="font-size:11px"]')) continue;
-                if (d.children.length > 2) continue; // Karmaşık container atla
+                // Yanıt önizleme kutusu (border-left stili var)
+                if (d.style && d.style.borderLeft) continue;
+                if (d.getAttribute('style') && d.getAttribute('style').indexOf('border-left') > -1) continue;
+                // Yazar ismi satırı (çok küçük font)
+                if (d.getAttribute('style') && d.getAttribute('style').indexOf('font-size:11px') > -1) continue;
+
                 var txt = d.textContent.trim();
-                if (txt.length >= 2 && !textDiv) { textDiv = d; break; }
+                if (txt.length >= 2) {
+                    textDiv = d;
+                    break;
+                }
             }
+
+            // Direkt çocuklarda bulunamadıysa — tüm torunlara bak
+            if (!textDiv) {
+                var allDivs = bubble.querySelectorAll('div');
+                for (var j = 0; j < allDivs.length; j++) {
+                    var d2 = allDivs[j];
+                    if (d2.querySelector('i.fas')) continue;
+                    if (d2.getAttribute('style') && d2.getAttribute('style').indexOf('border-left') > -1) continue;
+                    if (d2.getAttribute('style') && d2.getAttribute('style').indexOf('font-size:11px') > -1) continue;
+                    if (d2.getAttribute('style') && d2.getAttribute('style').indexOf('font-size:10px') > -1) continue;
+                    var txt2 = d2.textContent.trim();
+                    if (txt2.length >= 2 && !textDiv) { textDiv = d2; }
+                }
+            }
+
             if (!textDiv) return;
 
             var originalText = textDiv.textContent.trim();
@@ -262,7 +289,18 @@ var LangSystem = {
 
             self.getTranslation(originalText, msgLang, appLang, function(result) {
                 if (!result || result === originalText) return;
-                textDiv.textContent = result;
+                // Sadece textContent'i değiştir — alt elementlere dokunma
+                // textDiv'in sadece text node'larını güncelle
+                var node = textDiv.firstChild;
+                while (node) {
+                    if (node.nodeType === 3 && node.nodeValue.trim().length > 0) {
+                        node.nodeValue = result;
+                        break;
+                    }
+                    node = node.nextSibling;
+                }
+                // Hiç text node yoksa direkt yaz
+                if (!node) textDiv.textContent = result;
             });
         });
 
