@@ -13572,7 +13572,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.3"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -28899,7 +28899,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if(isMe) {
             var imgBlock = d.imageUrl ? _makeImgBlock(d.imageUrl, true, replyBtn, deleteBtn, timeStr, isMe) : '';
-            return '<div id="msg-' + id + '" style="display:flex;justify-content:flex-end;margin-bottom:8px;padding-left:24px;">' +
+            return '<div id="msg-' + id + '" data-msglang="' + (d.lang || '') + '" style="display:flex;justify-content:flex-end;margin-bottom:8px;padding-left:24px;">' +
                 '<div style="max-width:88%;">' +
                     imgBlock +
                     (d.text ? '<div style="background:linear-gradient(140deg,#3b5bdb,#4c6ef5);color:white;padding:10px 14px 7px;border-radius:18px 4px 18px 18px;font-size:14px;line-height:1.55;word-break:break-word;box-shadow:0 2px 12px rgba(59,91,219,0.35);">' +
@@ -28912,7 +28912,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } else {
             var imgBlockOther = d.imageUrl ? _makeImgBlock(d.imageUrl, false, replyBtn, deleteBtn, timeStr, isMe) : '';
-            return '<div id="msg-' + id + '" style="display:flex;align-items:flex-end;gap:8px;margin-bottom:8px;padding-right:24px;">' +
+            return '<div id="msg-' + id + '" data-msglang="' + (d.lang || '') + '" style="display:flex;align-items:flex-end;gap:8px;margin-bottom:8px;padding-right:24px;">' +
                 '<div style="width:30px;height:30px;border-radius:50%;background:' + avatarColor + ';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;flex-shrink:0;overflow:hidden;margin-bottom:2px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">' + avatarHtml + '</div>' +
                 '<div style="max-width:88%;">' +
                     imgBlockOther +
@@ -29007,6 +29007,7 @@ document.addEventListener('DOMContentLoaded', function() {
             authorName: authorName,
             text: text,
             isAnonymous: false,
+            lang: (typeof detectLangLocal === 'function' && text) ? (detectLangLocal(text) || 'tr') : 'tr',
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
         if(photoURL) payload.photoURL = photoURL;

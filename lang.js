@@ -44,13 +44,82 @@ const dictionary = {
     }
 };
 
-function detectLang(text) {
+/* ── DİL ALGILAMA ─────────────────────────────────────────
+   Önce yerel kontrol, belirsizse Google Translate API ile algıla
+─────────────────────────────────────────────────────────── */
+var _langDetectCache = {};
+
+function detectLangLocal(text) {
+    // 1. Türkçe özel karakter kesin TR
     if (/[ğüşıöçĞÜŞİÖÇ]/.test(text)) return 'tr';
-    var trWords = ['bir','ve','bu','ile','için','olan','değil','ama','çok','var','daha','ben','sen'];
+
     var words = text.toLowerCase().split(/\s+/);
+
+    // 2. Genişletilmiş Türkçe kelime listesi
+    var trWords = [
+        'bir','ve','bu','ile','için','olan','değil','ama','çok','var','daha',
+        'ben','sen','biz','siz','onlar','nasıl','neden','nerede','ne','kim',
+        'da','de','ki','mi','mı','mu','mü','ya','yok','evet','hayır',
+        'gibi','kadar','sonra','önce','üzer','altın','para','fiyat',
+        'deneme','test','merhaba','selam','tamam','iyi','kötü','güzel',
+        'büyük','küçük','yeni','eski','hızlı','yavaş','bugün','yarın',
+        'satın','al','sat','borsa','kripto','dolar','lira','piyasa',
+        'uygulama','sistem','bilgi','analiz','grafik','haber','ayar'
+    ];
+
+    // 3. Genişletilmiş İngilizce kelime listesi
+    var enWords = [
+        'the','a','an','is','are','was','were','be','been','have','has',
+        'do','does','did','will','would','could','should','may','might',
+        'i','you','he','she','we','they','it','my','your','his','her',
+        'and','or','but','so','if','when','where','what','how','why',
+        'in','on','at','to','for','of','with','by','from','about',
+        'hello','hi','test','ok','yes','no','good','bad','new','old'
+    ];
+
     var trCount = words.filter(function(w) { return trWords.indexOf(w) > -1; }).length;
-    if (trCount >= 2 || (trCount >= 1 && words.length <= 5)) return 'tr';
-    return 'en';
+    var enCount = words.filter(function(w) { return enWords.indexOf(w) > -1; }).length;
+
+    if (trCount > enCount) return 'tr';
+    if (enCount > trCount) return 'en';
+
+    // 4. Tek kelime veya belirsiz → null döndür (API ile algıla)
+    return null;
+}
+
+function detectLang(text, callback) {
+    // Cache kontrolü
+    if (_langDetectCache[text]) {
+        if (callback) callback(_langDetectCache[text]);
+        return _langDetectCache[text];
+    }
+
+    var local = detectLangLocal(text);
+
+    if (local) {
+        _langDetectCache[text] = local;
+        if (callback) callback(local);
+        return local;
+    }
+
+    // Belirsiz — Google Translate API ile algıla (sl=auto)
+    if (callback) {
+        var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=' + encodeURIComponent(text);
+        fetch(url)
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                // d[2] = algılanan dil kodu
+                var detected = (d && d[2]) ? d[2] : 'tr';
+                // tr veya en dışındaki dilleri tr say (Türk kullanıcı ağırlıklı)
+                if (detected !== 'en') detected = 'tr';
+                _langDetectCache[text] = detected;
+                callback(detected);
+            })
+            .catch(function() { callback('tr'); });
+        return null; // async, callback ile gelecek
+    }
+
+    return 'tr'; // sync fallback
 }
 
 var LangSystem = {
@@ -233,34 +302,24 @@ var LangSystem = {
         var self = this;
         var appLang = this.currentLang;
 
-        // Mesaj baloncuklarını bul (line-height:1.55 olan div = baloncuk)
+        // Firebase'den gelen dil bilgisi varsa direkt kullan
+        var savedLang = el.getAttribute('data-msglang') || '';
+
         var bubbles = el.querySelectorAll('[style*="line-height:1.55"]');
         bubbles.forEach(function(bubble) {
 
-            // Baloncuk içindeki TÜM direkt çocuk div'leri tara
-            // Metin div'i: ikon içermeyen, saat içermeyen, gerçek yazı olan div
             var textDiv = null;
             var children = bubble.children;
-
             for (var i = 0; i < children.length; i++) {
                 var d = children[i];
-
-                // Meta satır kontrolü (saat + ikonlar)
                 if (d.querySelector('i.fas')) continue;
-                // Yanıt önizleme kutusu (border-left stili var)
                 if (d.style && d.style.borderLeft) continue;
                 if (d.getAttribute('style') && d.getAttribute('style').indexOf('border-left') > -1) continue;
-                // Yazar ismi satırı (çok küçük font)
                 if (d.getAttribute('style') && d.getAttribute('style').indexOf('font-size:11px') > -1) continue;
-
                 var txt = d.textContent.trim();
-                if (txt.length >= 2) {
-                    textDiv = d;
-                    break;
-                }
+                if (txt.length >= 2) { textDiv = d; break; }
             }
 
-            // Direkt çocuklarda bulunamadıysa — tüm torunlara bak
             if (!textDiv) {
                 var allDivs = bubble.querySelectorAll('div');
                 for (var j = 0; j < allDivs.length; j++) {
@@ -279,29 +338,36 @@ var LangSystem = {
             var originalText = textDiv.textContent.trim();
             if (!originalText || originalText.length < 2) return;
 
-            var msgLang = detectLang(originalText);
-            if (msgLang === appLang) return; // Zaten doğru dilde
-
-            // Orijinali sakla
             if (!textDiv.hasAttribute('data-orig')) {
                 textDiv.setAttribute('data-orig', originalText);
             }
 
-            self.getTranslation(originalText, msgLang, appLang, function(result) {
-                if (!result || result === originalText) return;
-                // Sadece textContent'i değiştir — alt elementlere dokunma
-                // textDiv'in sadece text node'larını güncelle
-                var node = textDiv.firstChild;
-                while (node) {
-                    if (node.nodeType === 3 && node.nodeValue.trim().length > 0) {
-                        node.nodeValue = result;
-                        break;
+            function doTranslate(msgLang) {
+                // Mesaj zaten uygulama dilindeyse çevirme
+                if (msgLang === appLang) return;
+                self.getTranslation(originalText, msgLang, appLang, function(result) {
+                    if (!result || result === originalText) return;
+                    var node = textDiv.firstChild;
+                    while (node) {
+                        if (node.nodeType === 3 && node.nodeValue.trim().length > 0) {
+                            node.nodeValue = result;
+                            return;
+                        }
+                        node = node.nextSibling;
                     }
-                    node = node.nextSibling;
-                }
-                // Hiç text node yoksa direkt yaz
-                if (!node) textDiv.textContent = result;
-            });
+                    textDiv.textContent = result;
+                });
+            }
+
+            // Firebase'de dil bilgisi varsa direkt çevir
+            if (savedLang === 'tr' || savedLang === 'en') {
+                doTranslate(savedLang);
+            } else {
+                // Yoksa algıla
+                detectLang(originalText, function(msgLang) {
+                    doTranslate(msgLang);
+                });
+            }
         });
 
         el.setAttribute('data-translated', '1');
