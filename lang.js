@@ -139,9 +139,9 @@ var LangSystem = {
         }
         console.log('🌍 LangSystem V4: ' + this.currentLang.toUpperCase());
         if (this.currentLang === 'en') {
-            this.startTranslation();
+            this.startTranslation(); // UI çevirisi sadece EN modunda
         }
-        this._initChatAutoTranslate();
+        this._initChatAutoTranslate(); // Chat çevirisi her zaman aktif (TR↔EN)
     },
 
     set: function(lang) {
@@ -425,22 +425,37 @@ var LangSystem = {
             return window.fbDb || (typeof fbDb !== 'undefined' ? fbDb : null);
         }
 
-        function fetchFromGoogle(fbDocId) {
-            var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl='
-                + fromLang + '&tl=' + toLang + '&dt=t&q=' + encodeURIComponent(text);
+        function fetchFromGoogle(fbDocId, retryCount) {
+            retryCount = retryCount || 0;
+            // İki farklı Google endpoint dene
+            var endpoints = [
+                'https://translate.googleapis.com/translate_a/single?client=gtx&sl=' + fromLang + '&tl=' + toLang + '&dt=t&q=' + encodeURIComponent(text),
+                'https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=' + fromLang + '&tl=' + toLang + '&q=' + encodeURIComponent(text)
+            ];
+            var url = endpoints[retryCount % 2];
 
             fetch(url)
-                .then(function(res) { return res.json(); })
+                .then(function(res) {
+                    if (res.status === 429 && retryCount < 2) {
+                        // Rate limit — 1 saniye bekle, tekrar dene
+                        setTimeout(function() { fetchFromGoogle(fbDocId, retryCount + 1); }, 1000);
+                        return null;
+                    }
+                    return res.json();
+                })
                 .then(function(data) {
+                    if (!data) return; // retry bekleniyor
                     var result = text;
                     if (data && data[0]) {
-                        result = data[0]
-                            .filter(function(p) { return p && p[0]; })
-                            .map(function(p) { return p[0]; })
-                            .join('');
+                        // Standart format
+                        if (Array.isArray(data[0]) && data[0][0] && Array.isArray(data[0][0])) {
+                            result = data[0].filter(function(p) { return p && p[0]; }).map(function(p) { return p[0]; }).join('');
+                        } else if (typeof data[0] === 'string') {
+                            result = data[0];
+                        }
                     }
 
-                    // Firebase'e kaydet (topluluk cache)
+                    // Firebase'e kaydet
                     var db = getFirestore();
                     if (result && result !== text && db && fbDocId) {
                         try {
@@ -453,7 +468,13 @@ var LangSystem = {
 
                     deliver(result);
                 })
-                .catch(function() { deliver(text); });
+                .catch(function() {
+                    if (retryCount < 1) {
+                        setTimeout(function() { fetchFromGoogle(fbDocId, retryCount + 1); }, 800);
+                    } else {
+                        deliver(text);
+                    }
+                });
         }
 
         // 4. Firebase koleksiyonuna bak
