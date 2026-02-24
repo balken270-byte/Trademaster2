@@ -12097,7 +12097,7 @@ function openLabFullscreen() {
                 <div class="ps-menu-item" onclick="openSubPage('history')">
                     <div class="ps-menu-icon green"><i class="fas fa-wallet"></i></div>
                     <div class="ps-menu-text">
-                        <div class="ps-menu-title">Kasa & Geçmiş</div>
+                        <div class="ps-menu-title">Geçmiş İşlemler</div>
                         <div class="ps-menu-subtitle">İşlem kayıtları ve muhasebe</div>
                     </div>
                     <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
@@ -13414,38 +13414,35 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
 <style>
 #portfolioModal {
     position: fixed; inset: 0; z-index: 99990;
-    background: rgba(0,0,0,0.75);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    display: none; align-items: flex-end; justify-content: center;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: none; align-items: center; justify-content: center;
+    padding: 20px;
 }
 #portfolioModal.open { display: flex; }
 
 .pf-sheet {
-    width: 100%; max-width: 480px;
-    background: linear-gradient(180deg, #161d2e 0%, #0f1623 100%);
-    border-radius: 28px 28px 0 0;
-    border: 1px solid rgba(255,255,255,0.07);
-    border-bottom: none;
-    max-height: 92vh;
+    width: 100%; max-width: 420px;
+    background: linear-gradient(160deg, #1e2640 0%, #141b2d 50%, #0f1520 100%);
+    border-radius: 24px;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
+    max-height: 88vh;
     display: flex; flex-direction: column;
-    animation: pfSlideUp 0.42s cubic-bezier(0.34, 1.15, 0.64, 1);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    animation: pfZoomIn 0.32s cubic-bezier(0.34, 1.2, 0.64, 1);
     overflow: hidden;
+    position: relative;
 }
-@keyframes pfSlideUp {
-    from { transform: translateY(100%); opacity: 0; }
-    to   { transform: translateY(0);    opacity: 1; }
+@keyframes pfZoomIn {
+    from { transform: scale(0.88) translateY(16px); opacity: 0; }
+    to   { transform: scale(1) translateY(0);        opacity: 1; }
 }
-.pf-handle {
-    width: 38px; height: 4px;
-    background: rgba(255,255,255,0.12);
-    border-radius: 2px;
-    margin: 12px auto 0; flex-shrink: 0;
-}
+.pf-handle { display: none; }
 .pf-header {
-    padding: 16px 20px 12px;
+    padding: 20px 20px 14px;
     display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
 }
 .pf-header-title { display: flex; align-items: center; gap: 10px; }
 .pf-header-icon {
@@ -13531,13 +13528,18 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
 }
 .pf-stat-label { font-size: 9px; color: #475569; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
 .pf-stat-value { font-size: 13px; font-weight: 800; color: white; }
-.pf-wallet-del-btn {
-    width: 30px; height: 30px; border-radius: 10px;
-    background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);
-    color: #ef4444; font-size: 12px; display: flex;
-    align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;
+.pf-del-row {
+    margin-top: 10px; padding-top: 8px;
+    border-top: 1px solid rgba(239,68,68,0.1);
 }
-.pf-wallet-del-btn:active { background: rgba(239,68,68,0.25); transform: scale(0.9); }
+.pf-wallet-del-btn {
+    width: 100%; padding: 8px 12px; border-radius: 10px;
+    background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.18);
+    color: #ef4444; font-size: 12px; font-weight: 600; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    cursor: pointer; transition: all 0.2s;
+}
+.pf-wallet-del-btn:active { background: rgba(239,68,68,0.2); transform: scale(0.98); }
 .pf-create-section { padding: 14px 16px 20px; flex-shrink: 0; }
 .pf-create-label {
     font-size: 10px; font-weight: 800; color: #475569;
@@ -13627,6 +13629,52 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
 .pf-vault-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
 .pf-vault-row-label { font-size: 12px; color: #475569; display: flex; align-items: center; gap: 8px; }
 .pf-vault-row-value { font-size: 13px; font-weight: 700; color: white; }
+
+/* Wallet action buttons */
+.pf-wallet-actions {
+    display: flex; align-items: center; margin-top: 10px; padding-top: 8px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+.pf-action-btn { display: none; }
+.pf-action-link {
+    font-size: 12px; font-weight: 600; color: #94a3b8; cursor: pointer;
+    display: flex; align-items: center; gap: 5px; transition: color 0.18s;
+    background: none; border: none; padding: 0; user-select: none;
+}
+.pf-action-link:active { color: #ffffff; }
+.pf-action-link:first-child { flex: 1; }
+.pf-action-divider { width: 1px; height: 14px; background: rgba(255,255,255,0.12); margin: 0 14px; flex-shrink: 0; }
+.pf-action-vault-link { color: #818cf8; }
+.pf-action-vault-link:active { color: #a5b4fc; }
+
+/* Wallet detail overlay */
+.pf-detail-overlay {
+    position: absolute; inset: 0; background: #0f1520; border-radius: 24px;
+    display: flex; flex-direction: column; overflow: hidden;
+    animation: pfDetailIn 0.22s ease-out;
+    z-index: 10;
+}
+@keyframes pfDetailIn {
+    from { transform: translateX(100%); opacity: 0.5; }
+    to   { transform: translateX(0); opacity: 1; }
+}
+@keyframes pfDetailOut {
+    from { transform: translateX(0); opacity: 1; }
+    to   { transform: translateX(100%); opacity: 0; }
+}
+.pf-detail-header {
+    padding: 16px 18px; display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.07); flex-shrink: 0;
+}
+.pf-detail-back {
+    width: 32px; height: 32px; border-radius: 10px; background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08); color: #94a3b8; font-size: 13px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.18s;
+    flex-shrink: 0;
+}
+.pf-detail-back:active { background: rgba(255,255,255,0.14); transform: scale(0.9); }
+.pf-detail-title { font-size: 15px; font-weight: 800; color: white; flex: 1; }
+.pf-detail-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 14px 16px 20px; }
 </style>
 
 <div id="portfolioModal">
@@ -13645,8 +13693,6 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
         <div class="pf-tabs">
             <div class="pf-tab active" onclick="MultiPortfolio.switchTab('wallets', this)">Cüzdanlar</div>
             <div class="pf-tab" onclick="MultiPortfolio.switchTab('create', this)">+ Yeni</div>
-            <div class="pf-tab" onclick="MultiPortfolio.switchTab('history', this)">Geçmiş</div>
-            <div class="pf-tab" onclick="MultiPortfolio.switchTab('vault', this)">Kasa</div>
         </div>
         <!-- Panel: Cüzdanlar -->
         <div class="pf-panel active" id="pfPanel-wallets">
@@ -13685,15 +13731,8 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
                 </button>
             </div>
         </div>
-        <!-- Panel: Geçmiş -->
-        <div class="pf-panel" id="pfPanel-history">
-            <div class="pf-hist-wallet-sel" id="pfHistChips"></div>
-            <div class="pf-hist-list" id="pfHistList"></div>
-        </div>
-        <!-- Panel: Kasa -->
-        <div class="pf-panel" id="pfPanel-vault">
-            <div class="pf-vault" id="pfVaultContent"></div>
-        </div>
+        <!-- Panel: Geçmiş (her cüzdanın kendi detay ekranından erişilir) -->
+        <!-- Panel: Kasa (Ayarlar > Kasa & Geçmiş bölümünden erişilir) -->
     </div>
 </div>
 
@@ -14236,7 +14275,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "2.1"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -23908,7 +23947,14 @@ const MultiPortfolio = {
             let pCash = parseFloat(p.cash) || 0;
             let pAssets = 0;
             try { pAssets = JSON.parse(p.data || '[]').length; } catch(e) {}
-            let hist = p.history || [];
+            // İşlem sayısı: aktif cüzdan -> tm_full_trade_history, diğerleri -> p.tradeHistory
+            let histForCount = [];
+            if (key === db.activeID) {
+                try { histForCount = JSON.parse(localStorage.getItem('tm_full_trade_history') || '[]'); } catch(e){}
+            } else {
+                try { histForCount = JSON.parse(p.tradeHistory || '[]'); } catch(e){}
+            }
+            let hist = histForCount;
             // ROI
             let totalCost = 0, totalValue = 0;
             try { JSON.parse(p.data || '[]').forEach(a => { totalCost += (a.avgPrice||0)*(a.quantity||0); totalValue += (a.currentPrice||a.avgPrice||0)*(a.quantity||0); }); } catch(e) {}
@@ -23917,7 +23963,7 @@ const MultiPortfolio = {
                 ? `<div class="pf-stat-pill"><div class="pf-stat-label">ROI</div><div class="pf-stat-value" style="color:${parseFloat(roi)>=0?'#34d399':'#f87171'}">${parseFloat(roi)>=0?'+':''}${roi}%</div></div>`
                 : '';
             let delHtml = (key !== 'main' && !isActive)
-                ? `<button class="pf-wallet-del-btn" onclick="event.stopPropagation();MultiPortfolio.delete('${key}')"><i class="fas fa-trash"></i></button>` : '';
+                ? `<button class="pf-wallet-del-btn" onclick="event.stopPropagation();MultiPortfolio.delete('${key}')"><i class="fas fa-trash"></i> Cüzdanı Sil</button>` : '';
             let checkHtml = isActive
                 ? `<div class="pf-wallet-check checked"><i class="fas fa-check" style="font-size:10px;color:white;"></i></div>`
                 : `<div class="pf-wallet-check"></div>`;
@@ -23930,8 +23976,8 @@ const MultiPortfolio = {
                         <div class="pf-wallet-name">${p.name}${isActive?'<span class="pf-wallet-badge">AKTİF</span>':''}</div>
                         <div class="pf-wallet-meta">${hist.length} işlem geçmişi</div>
                     </div>
-                    <div style="display:flex;gap:6px;align-items:center;" onclick="event.stopPropagation()">
-                        ${delHtml}${checkHtml}
+                    <div onclick="event.stopPropagation()">
+                        ${checkHtml}
                     </div>
                 </div>
                 <div class="pf-wallet-stats">
@@ -23939,6 +23985,8 @@ const MultiPortfolio = {
                     <div class="pf-stat-pill"><div class="pf-stat-label">Varlık</div><div class="pf-stat-value">${pAssets} adet</div></div>
                     ${roiHtml}
                 </div>
+                ${delHtml ? `<div class="pf-del-row" onclick="event.stopPropagation()">${delHtml}</div>` : ''}
+
             </div>`;
         });
         document.getElementById('portfolioListContainer').innerHTML = html;
@@ -23964,7 +24012,7 @@ const MultiPortfolio = {
         this.syncCurrentToStorage();
         let db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
         let newID = 'pf_' + Date.now();
-        db.list[newID] = { name: name, data: '[]', cash: String(initialCash), emoji: this._selectedEmoji, color: this._selectedColor, history: [] };
+        db.list[newID] = { name: name, data: '[]', cash: String(initialCash), emoji: this._selectedEmoji, color: this._selectedColor, history: [], tradeHistory: '[]' };
         localStorage.setItem('tm_all_portfolios', JSON.stringify(db));
         document.getElementById('newPortfolioName').value = '';
         if (cashInput) cashInput.value = '';
@@ -24041,6 +24089,97 @@ const MultiPortfolio = {
         }).join('');
     },
 
+    showWalletHistory: function(walletKey) {
+        let db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
+        let p = db.list[walletKey];
+        if (!p) return;
+        let sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'USD') ? '$' : '₺';
+        let hist = p.history ? [...p.history].reverse() : [];
+        let histHtml = hist.length ? hist.map(tx => {
+            let isBuy = tx.type === 'buy';
+            let icon = isBuy ? 'fa-arrow-down' : 'fa-arrow-up';
+            let date = tx.date ? new Date(tx.date).toLocaleDateString('tr-TR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+            let amount = tx.total ? `${isBuy?'-':'+'}${sym}${parseFloat(tx.total).toLocaleString('tr-TR',{maximumFractionDigits:2})}` : '';
+            return `<div class="pf-hist-item">
+                <div class="pf-hist-icon ${isBuy?'buy':'sell'}"><i class="fas ${icon}"></i></div>
+                <div class="pf-hist-body">
+                    <div class="pf-hist-title">${tx.symbol||''} ${isBuy?'Alış':'Satış'}</div>
+                    <div class="pf-hist-sub">${tx.quantity?tx.quantity+' adet • ':''}${date}</div>
+                </div>
+                <div class="pf-hist-amount ${isBuy?'neg':'pos'}">${amount}</div>
+            </div>`;
+        }).join('') : '<div class="pf-hist-empty"><i class="fas fa-history"></i><p>Bu cüzdanda henüz işlem geçmişi yok.</p></div>';
+        this._showDetail(`${p.emoji} ${p.name} — Geçmiş`, `<div class="pf-hist-list" style="padding:0;">${histHtml}</div>`);
+    },
+
+    showWalletVault: function(walletKey) {
+        let db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
+        let p = db.list[walletKey];
+        if (!p) return;
+        let sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'USD') ? '$' : '₺';
+        let isActive = (walletKey === db.activeID);
+        let pCash = parseFloat(p.cash) || 0;
+        let assets = []; try { assets = JSON.parse(p.data||'[]'); } catch(e){}
+        let totalValue = 0, totalCost = 0;
+        assets.forEach(a => { totalValue += (a.currentPrice||a.avgPrice||0)*(a.quantity||0); totalCost += (a.avgPrice||0)*(a.quantity||0); });
+        let portfolioTotal = pCash + totalValue;
+        let profit = totalValue - totalCost;
+        let roi = totalCost > 0 ? (profit/totalCost*100).toFixed(2) : '0.00';
+        // İşlem sayısı: aktif cüzdan için tm_full_trade_history, diğerleri için p.tradeHistory
+        let txHist = [];
+        if (walletKey === db.activeID) {
+            txHist = JSON.parse(localStorage.getItem('tm_full_trade_history') || '[]');
+        } else {
+            txHist = JSON.parse(p.tradeHistory || '[]');
+        }
+        let buyCount = txHist.filter(h=>h.type==='buy'||h.type==='ALIM'||h.type==='ALIŞ').length;
+        let sellCount = txHist.filter(h=>h.type==='sell'||h.type==='SATIM'||h.type==='SATIŞ').length;
+        let pc = parseFloat(roi) >= 0;
+        let vaultHtml = `<div class="pf-vault-card">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+                <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,${p.color}44,${p.color}11);border:1.5px solid ${p.color}44;display:flex;align-items:center;justify-content:center;font-size:18px;">${p.emoji}</div>
+                <div>
+                    <div style="font-size:13px;font-weight:800;color:white;">${p.name}${isActive?' <span style="font-size:9px;background:rgba(59,130,246,0.2);color:#60a5fa;padding:1px 6px;border-radius:6px;font-weight:800;">AKTİF</span>':''}</div>
+                    <div style="font-size:10px;color:#475569;">${assets.length} varlık</div>
+                </div>
+            </div>
+            <div class="pf-vault-name">Toplam Değer</div>
+            <div class="pf-vault-balance">${sym}${portfolioTotal.toLocaleString('tr-TR',{maximumFractionDigits:0})}</div>
+            <div class="pf-vault-sub">Nakit: ${sym}${pCash.toLocaleString('tr-TR',{maximumFractionDigits:0})} + Varlık: ${sym}${totalValue.toLocaleString('tr-TR',{maximumFractionDigits:0})}</div>
+            <div class="pf-vault-divider"></div>
+            <div class="pf-vault-row"><div class="pf-vault-row-label"><i class="fas fa-chart-line" style="color:${profit>=0?'#34d399':'#f87171'}"></i> Kâr / Zarar</div><div class="pf-vault-row-value" style="color:${profit>=0?'#34d399':'#f87171'}">${profit>=0?'+':''}${sym}${profit.toLocaleString('tr-TR',{maximumFractionDigits:0})}</div></div>
+            <div class="pf-vault-row"><div class="pf-vault-row-label"><i class="fas fa-percentage" style="color:#818cf8"></i> ROI</div><div class="pf-vault-row-value" style="color:${pc?'#34d399':'#f87171'}">${pc?'+':''}%${roi}</div></div>
+            <div class="pf-vault-row"><div class="pf-vault-row-label"><i class="fas fa-history" style="color:#60a5fa"></i> İşlemler</div><div class="pf-vault-row-value">${buyCount} alış · ${sellCount} satış</div></div>
+            <div class="pf-vault-row"><div class="pf-vault-row-label"><i class="fas fa-coins" style="color:#f59e0b"></i> Maliyet</div><div class="pf-vault-row-value">${sym}${totalCost.toLocaleString('tr-TR',{maximumFractionDigits:0})}</div></div>
+        </div>`;
+        this._showDetail(`${p.emoji} ${p.name} — Kasa`, vaultHtml);
+    },
+
+    _showDetail: function(title, bodyHtml) {
+        let sheet = document.querySelector('.pf-sheet');
+        if (!sheet) return;
+        // Remove existing detail overlay
+        let existing = sheet.querySelector('.pf-detail-overlay');
+        if (existing) existing.remove();
+        let overlay = document.createElement('div');
+        overlay.className = 'pf-detail-overlay';
+        overlay.innerHTML = `
+            <div class="pf-detail-header">
+                <div class="pf-detail-back" onclick="MultiPortfolio._closeDetail()"><i class="fas fa-arrow-left"></i></div>
+                <div class="pf-detail-title">${title}</div>
+            </div>
+            <div class="pf-detail-body">${bodyHtml}</div>`;
+        sheet.appendChild(overlay);
+    },
+
+    _closeDetail: function() {
+        let overlay = document.querySelector('.pf-detail-overlay');
+        if (overlay) {
+            overlay.style.animation = 'pfDetailOut 0.18s ease-in forwards';
+            setTimeout(() => overlay.remove(), 180);
+        }
+    },
+
     // İşlem geçmişi kaydet (alım/satımda dışarıdan çağrılır)
     addHistory: function(walletID, txObj) {
         let db = JSON.parse(localStorage.getItem('tm_all_portfolios')) || {};
@@ -24056,17 +24195,25 @@ const MultiPortfolio = {
         if (targetID === db.activeID) { this.close(); return; }
         let currentPF   = localStorage.getItem('myPF_final') || '[]';
         let currentCash = localStorage.getItem('tm_cash_balance') || '0';
+        let currentHist = localStorage.getItem('tm_full_trade_history') || '[]';
         db.list[db.activeID].data = currentPF;
         db.list[db.activeID].cash = currentCash;
+        db.list[db.activeID].tradeHistory = currentHist;
         db.activeID = targetID;
         localStorage.setItem('tm_all_portfolios', JSON.stringify(db));
         let tw = db.list[targetID];
         localStorage.setItem('myPF_final', tw.data);
         localStorage.setItem('tm_cash_balance', tw.cash);
+        localStorage.setItem('tm_full_trade_history', tw.tradeHistory || '[]');
         cashBalance = parseFloat(tw.cash) || 0;
+        // Geçmişi de hafızaya al
+        if (typeof tradeHistory !== 'undefined') {
+            try { tradeHistory = JSON.parse(tw.tradeHistory || '[]'); } catch(e) { tradeHistory = []; }
+        }
         this.close();
         this.updateHeader();
         if (typeof loadPF === 'function') loadPF(false);
+        if (typeof renderHistory === 'function') renderHistory();
         if (typeof showToast === 'function') showToast('success', tw.emoji + ' ' + tw.name, 'Cüzdan değiştirildi');
     },
 
@@ -24084,6 +24231,7 @@ const MultiPortfolio = {
         if (db.list[db.activeID]) {
             db.list[db.activeID].data = localStorage.getItem('myPF_final') || '[]';
             db.list[db.activeID].cash = localStorage.getItem('tm_cash_balance') || '0';
+            db.list[db.activeID].tradeHistory = localStorage.getItem('tm_full_trade_history') || '[]';
             localStorage.setItem('tm_all_portfolios', JSON.stringify(db));
         }
     },
