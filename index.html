@@ -730,10 +730,75 @@ body {
         .ts-val { color: white; font-weight: 800; font-size: 14px; }
         .add-btn-pro { width: 100%; background: linear-gradient(90deg, var(--accent) 0%, #2563eb 100%); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); transition: 0.2s; }
         .add-btn-pro:active { transform: scale(0.98); }
-        .balance-hero { text-align: center; padding: 20px; background: linear-gradient(180deg, var(--bg-input) 0%, var(--bg-body) 100%); margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; transition: 0.5s; }
-        .balance-hero.profit { background: linear-gradient(180deg, rgba(16, 185, 129, 0.2) 0%, var(--bg-body) 100%); border-color: rgba(16, 185, 129, 0.4); box-shadow: 0 10px 30px rgba(16, 185, 129, 0.1); }
-        .balance-hero.loss { background: linear-gradient(180deg, rgba(239, 68, 68, 0.2) 0%, var(--bg-body) 100%); border-color: rgba(239, 68, 68, 0.4); box-shadow: 0 10px 30px rgba(239, 68, 68, 0.1); }
-        .val-lg { font-size: 38px; font-weight: 800; margin: 5px 0 15px 0; color: white; letter-spacing: -1px; }
+        /* === TOPLAM VARLIK KABARMA EFEKTİ === */
+        .balance-hero {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(180deg, var(--bg-input) 0%, var(--bg-body) 100%);
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            transition: all 0.5s ease;
+            /* 3D KABARMA — sadece box-shadow ile, transform kullanmıyoruz (layout bozar) */
+            box-shadow:
+                0 2px 0 rgba(255,255,255,0.05) inset,
+                0 -2px 0 rgba(0,0,0,0.35) inset,
+                0 8px 28px rgba(0,0,0,0.35),
+                0 2px 6px rgba(0,0,0,0.2);
+        }
+        .balance-hero.profit {
+            background: linear-gradient(180deg, rgba(16, 185, 129, 0.2) 0%, var(--bg-body) 100%);
+            border-color: rgba(16, 185, 129, 0.4);
+            box-shadow:
+                0 2px 0 rgba(16,185,129,0.15) inset,
+                0 -2px 0 rgba(0,0,0,0.35) inset,
+                0 14px 44px rgba(16, 185, 129, 0.2),
+                0 4px 12px rgba(0,0,0,0.3);
+        }
+        .balance-hero.loss {
+            background: linear-gradient(180deg, rgba(239, 68, 68, 0.2) 0%, var(--bg-body) 100%);
+            border-color: rgba(239, 68, 68, 0.4);
+            box-shadow:
+                0 2px 0 rgba(239,68,68,0.1) inset,
+                0 -2px 0 rgba(0,0,0,0.35) inset,
+                0 10px 30px rgba(239, 68, 68, 0.15),
+                0 4px 10px rgba(0,0,0,0.3);
+        }
+        /* === PRO + KÂR = ALTIN HERO KARTI === */
+        .balance-hero.pro-gold-profit {
+            background: linear-gradient(160deg, rgba(251,191,36,0.22) 0%, rgba(217,119,6,0.12) 55%, var(--bg-body) 100%) !important;
+            border-color: rgba(251,191,36,0.55) !important;
+            box-shadow:
+                0 2px 0 rgba(251,191,36,0.2) inset,
+                0 -2px 0 rgba(0,0,0,0.4) inset,
+                0 16px 50px rgba(251,191,36,0.25),
+                0 4px 14px rgba(0,0,0,0.35) !important;
+        }
+        .balance-hero.pro-gold-profit .val-lg {
+            background: linear-gradient(135deg, #ffe08a 0%, #fbbf24 35%, #fde68a 65%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 12px rgba(251,191,36,0.4));
+        }
+        @keyframes tvGoldRotate { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+        /* === PRO + KÂR = ALTIN ASSET KART === */
+        .asset-card.pro-gold-bg {
+            background: linear-gradient(135deg, rgba(251,191,36,0.15) 0%, rgba(217,119,6,0.07) 60%, var(--bg-card) 100%) !important;
+            border-color: rgba(251,191,36,0.38) !important;
+            box-shadow: 0 4px 20px rgba(251,191,36,0.12) !important;
+        }
+        .asset-card.pro-gold-bg .pnl-up {
+            color: #fbbf24 !important;
+            background: rgba(251,191,36,0.14) !important;
+        }
+        .asset-card.pro-gold-bg .asset-logo-wrap {
+            border-color: rgba(251,191,36,0.3) !important;
+            box-shadow: 0 0 10px rgba(251,191,36,0.15) !important;
+        }
+
+        .val-lg { font-size: 38px; font-weight: 800; margin: 5px 0 15px 0; color: white; letter-spacing: -1px; transition: all 0.4s ease; }
         .hero-stats-row { display: flex; justify-content: center; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
         .hero-pill { background: rgba(255,255,255,0.05); padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid rgba(255,255,255,0.1); display: inline-flex; align-items: center; gap: 6px; color:white; }
         .hero-pill.cash { background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
@@ -13914,61 +13979,61 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
 
 <script>
     
-    /* --- ÜYELİK YÖNETİM SİSTEMİ --- */
+    /* ===================================================================
+       ÜYELİK YÖNETİM SİSTEMİ (ESKİ - ALIAS)
+       Bu nesne artık sadece geriye dönük uyumluluk için vardır.
+       Tüm asıl mantık sayfanın ilerisindeki MembershipSystem'de.
+       Backend'e taşınacak sürümde burası kaldırılacak.
+       =================================================================== */
 const Membership = {
-    // Durum Kontrolü
     isPro: function() {
+        if (typeof MembershipSystem !== 'undefined') {
+            return MembershipSystem.isPro();
+        }
         return localStorage.getItem('userPlan') === 'PRO';
     },
-
-    // Pro Satın Alma (Simülasyon)
     upgradeToPro: function() {
-        tvConfirm("PRO'ya Yükselt", "Aylık 99₺ ile sınırsız özellik. Devam etmek istiyor musunuz?").then(function(ok){ if(!ok) return;
-            localStorage.setItem('userPlan', 'PRO');
-            tvAlert("🎉 Tebrikler!", "Artık PRO üyesiniz. Hoş geldiniz!");
-            location.reload();
-        });
+        if (typeof MembershipSystem !== 'undefined') MembershipSystem.processPayment();
+        else {
+            tvConfirm("PRO'ya Yükselt", "Aylık 99₺ ile sınırsız özellik. Devam etmek istiyor musunuz?").then(function(ok){ if(!ok) return;
+                localStorage.setItem('userPlan', 'PRO');
+                tvAlert("🎉 Tebrikler!", "Artık PRO üyesiniz. Hoş geldiniz!");
+                location.reload();
+            });
+        }
     },
-
-    // Üyeliği İptal Etme (Test için)
     downgrade: function() {
-        localStorage.setItem('userPlan', 'FREE');
-        tvAlert("Üyelik", "Paketiniz Free'ye düşürüldü.");
-        location.reload();
+        if (typeof MembershipSystem !== 'undefined') MembershipSystem.downgrade();
+        else {
+            localStorage.setItem('userPlan', 'FREE');
+            tvAlert("Üyelik", "Paketiniz Free'ye düşürüldü.");
+            location.reload();
+        }
     },
-
-    // ZAMAN MAKİNESİ LİMİT KONTROLÜ
+    // ZAMAN MAKİNESİ LİMİT KONTROLÜ (MembershipSystem.checkUsageLimit'e yönlendiriyor)
     checkTimeMachineLimit: function() {
-        if (this.isPro()) return true; // Pro'ya limit yok
-
-        // Bugünün tarihi (Örn: "21.01.2026")
+        if (typeof MembershipSystem !== 'undefined') {
+            return MembershipSystem.checkUsageLimit('timeMachine', 3, 'Zaman Makinesi');
+        }
+        if (this.isPro()) return true;
         let today = new Date().toLocaleDateString();
         let usageData = JSON.parse(localStorage.getItem('tm_usage')) || { date: today, count: 0 };
-
-        // Tarih değiştiyse sayacı sıfırla
-        if (usageData.date !== today) {
-            usageData = { date: today, count: 0 };
-        }
-
-        // Limit kontrolü (3 Hak)
+        if (usageData.date !== today) usageData = { date: today, count: 0 };
         if (usageData.count >= 3) {
             alert("🔒 GÜNLÜK LİMİT DOLDU!\n\nFree pakette günde sadece 3 kez Zaman Makinesi kullanabilirsin.\nSınırsız analiz için Ayarlar'dan PRO'ya geç.");
-            return false; // Engelle
+            return false;
         }
-
-        // Kullanım hakkını düş ve kaydet
         usageData.count++;
         localStorage.setItem('tm_usage', JSON.stringify(usageData));
-        console.log(`Zaman Makinesi: ${usageData.count}/3 kullanıldı.`);
-        return true; // İzin ver
+        return true;
     }
 };
 
 // Sayfa Yüklenince Profil Çerçevesini Ayarla
 document.addEventListener("DOMContentLoaded", () => {
-    let avatar = document.getElementById('userAvatar'); // Avatar resminin ID'si
+    let avatar = document.getElementById('userAvatar');
     if(avatar) {
-        avatar.className = ""; // Eski sınıfları temizle
+        avatar.className = "";
         avatar.classList.add(Membership.isPro() ? 'profile-frame-pro' : 'profile-frame-free');
     }
 });
@@ -13977,7 +14042,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.3"; 
+    const CURRENT_VERSION = "1.9"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -14863,7 +14928,15 @@ function renderPortfolioHTML(as) {
         if(a.image) logoHtml = `<div class="asset-logo-wrap" style="background:transparent; border:none;"><img src="${a.image}" class="asset-logo-img"></div>`;
         else logoHtml = getAssetLogoHtml(a.name.replace('.IS',''));
         
-        let cardColorClass = 'asset-card' + (a.pnl > 0 ? ' profit-bg' : (a.pnl < 0 ? ' loss-bg' : '')); 
+        let _assetIsPro = (typeof MembershipSystem !== 'undefined' && MembershipSystem.isPro()) ||
+                          (typeof Membership !== 'undefined' && Membership.isPro()) ||
+                          (localStorage.getItem('userPlan') === 'PRO');
+        let cardColorClass = 'asset-card';
+        if(a.pnl > 0) {
+            cardColorClass += _assetIsPro ? ' pro-gold-bg' : ' profit-bg';
+        } else if(a.pnl < 0) {
+            cardColorClass += ' loss-bg';
+        }
         let chartId = `mini_chart_${a.originalIndex}`; 
         let percentBadge = `<span id="live_pct_${a.originalIndex}" style="font-size:10px; opacity:0.8; margin-right:4px;">(%${a.pnlPercent.toFixed(1)})</span>`; 
         
@@ -14943,7 +15016,21 @@ checkAllAlarms();
         document.getElementById('cashBalance').innerText = sym + cashBalance.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0}); 
         document.getElementById('realizedPnLVal').innerText = sym + realizedPnL.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
         const hero = document.querySelector('.balance-hero'); 
-        if(hero) { if(totalUnrealizedPnL >= 0) { hero.classList.remove('loss'); hero.classList.add('profit'); } else { hero.classList.remove('profit'); hero.classList.add('loss'); } }
+        if(hero) {
+            const _isPro = (typeof MembershipSystem !== 'undefined' && MembershipSystem.isPro()) ||
+                           (typeof Membership !== 'undefined' && Membership.isPro()) ||
+                           (localStorage.getItem('userPlan') === 'PRO');
+            hero.classList.remove('loss','profit','pro-gold-profit');
+            if(totalUnrealizedPnL >= 0) {
+                if(_isPro) {
+                    hero.classList.add('pro-gold-profit');
+                } else {
+                    hero.classList.add('profit');
+                }
+            } else {
+                hero.classList.add('loss');
+            }
+        }
         if(isPrivacyMode) document.getElementById('totalWallet').classList.add('privacy-blur'); else document.getElementById('totalWallet').classList.remove('privacy-blur');
     }
     
@@ -25004,7 +25091,25 @@ const CompareApp = {
     document.head.appendChild(style);
 })();
 
-/* 1. ÜYELİK YÖNETİM SİSTEMİ */
+/* ===================================================================
+   MERKEZİ ÜYELİK YÖNETİM SİSTEMİ (MembershipSystem)
+   ─────────────────────────────────────────────────────────────────
+   • Tüm PRO/FREE mantığı burada toplanmıştır.
+   • Membership objesi (üstte) sadece alias görevi görür.
+   • Backend'e geçişte bu objenin içi API çağrılarıyla değiştirilecek.
+   ─────────────────────────────────────────────────────────────────
+   ÖZELLİKLER:
+   [1] isPro()              → PRO durumu kontrolü (sona erme dahil)
+   [2] processPayment()     → Ödeme başlatma (Google Play / Test)
+   [3] activatePro()        → PRO aktifleştirme + localStorage kayıt
+   [4] downgrade()          → PRO iptali
+   [5] checkExpiration()    → Süre dolumu kontrolü
+   [6] checkUsageLimit()    → Günlük/toplam kullanım limiti
+   [7] checkStatus()        → Sayfa yüklenince durum güncelle
+   [8] refreshUI()          → Profil UI güncelle
+   [9] showUpsell()         → Ayarlar + Premium modal aç
+   [10] refreshGoldTheme()  → PRO kullanıcı kârda → Altın sarısı tema
+   =================================================================== */
 const MembershipSystem = {
     isPro: function() { 
         this.checkExpiration();
@@ -25275,10 +25380,54 @@ const MembershipSystem = {
         count++;
         localStorage.setItem(key, count.toString());
         return true;
+    },
+
+    // ─────────────────────────────────────────────────────────────
+    // [10] refreshGoldTheme — PRO + Kâr = Altın Sarısı Tema
+    // ─────────────────────────────────────────────────────────────
+    // Çağrıldığında: hem hero kartını hem asset kartlarını günceller.
+    // loadPF / updateHeaderTotals zaten renderPortfolioHTML içinden
+    // sınıfları otomatik atıyor; bu fonksiyon dışarıdan da çağrılabilir.
+    // Backend'e geçişte bu kısım sunucudan gelen "isPro" flag'ine göre çalışacak.
+    refreshGoldTheme: function() {
+        const isPro = this.isPro();
+
+        // 1) HERO KART
+        const hero = document.querySelector('.balance-hero');
+        if (hero) {
+            hero.classList.remove('pro-gold-profit');
+            if (isPro && hero.classList.contains('profit')) {
+                hero.classList.remove('profit');
+                hero.classList.add('pro-gold-profit');
+            }
+        }
+
+        // 2) ASSET KARTLARI
+        document.querySelectorAll('.asset-card.profit-bg').forEach(card => {
+            if (isPro) {
+                card.classList.remove('profit-bg');
+                card.classList.add('pro-gold-bg');
+            }
+        });
+        // Eğer PRO değilse gold → green'e geri dön
+        if (!isPro) {
+            document.querySelectorAll('.asset-card.pro-gold-bg').forEach(card => {
+                card.classList.remove('pro-gold-bg');
+                card.classList.add('profit-bg');
+            });
+        }
     }
 };
 
 window.onPaymentSuccess = function() { MembershipSystem.activatePro(); };
+
+// Gold temayı checkStatus'a entegre et
+const _origCheckStatus = MembershipSystem.checkStatus.bind(MembershipSystem);
+MembershipSystem.checkStatus = function() {
+    _origCheckStatus();
+    // Kısa bir gecikmeyle gold temayı uygula (renderPortfolioHTML tamamlansın)
+    setTimeout(() => { this.refreshGoldTheme(); }, 120);
+};
 
 /* --- 1. PSİKOLOJİ KİLİDİ --- */
 if (!window.original_switchAnTab) window.original_switchAnTab = window.switchAnTab;
