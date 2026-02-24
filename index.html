@@ -9321,8 +9321,9 @@ window.saveMultiGoal = function() {
 
 window.editMultiGoal = function(id) { openGoalModal(id); };
 
-window.deleteMultiGoal = function(id) {
-    if (!confirm('Bu hedefi silmek istediğinize emin misiniz?')) return;
+window.deleteMultiGoal = async function(id) {
+    const ok = await tvConfirm('Hedefi Sil', 'Bu hedefi silmek istediğinize emin misiniz?');
+    if (!ok) return;
     multiGoals = multiGoals.filter(g => g.id !== id);
     saveMultiGoals(); renderMultiGoalsList(); updateMultiGoalsSummary();
     if (typeof addNotification==='function') addNotification('success','Silindi','Hedef silindi.');
@@ -13617,7 +13618,8 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
 </div>
 
 <style>
-@keyframes tvDlgUp { from{transform:translateY(100%);opacity:0} to{transform:translateY(0);opacity:1} }
+@keyframes tvDlgUp   { from{transform:translateY(100%);opacity:0} to{transform:translateY(0);opacity:1} }
+@keyframes tvDlgDown { from{transform:translateY(0);opacity:1} to{transform:translateY(100%);opacity:0} }
 #tvDialogOverlay.open { display:flex!important; }
 </style>
 
@@ -13689,20 +13691,39 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
     return new Promise(function(res){ _resolve = res; });
   }
 
+  // Kapanış animasyonu ile kapat
+  function closeDialog(val) {
+    var ov  = document.getElementById('tvDialogOverlay');
+    var box = document.getElementById('tvDialogBox');
+    box.style.animation = 'tvDlgDown 0.22s cubic-bezier(0.4,0,1,1) forwards';
+    ov.style.transition = 'opacity 0.22s';
+    ov.style.opacity    = '0';
+    setTimeout(function() {
+      ov.classList.remove('open');
+      ov.style.opacity = '';
+      box.style.animation = '';
+    }, 230);
+    if (_resolve) { _resolve(val); _resolve = null; }
+  }
+
   window._tvDlgOK = function() {
     var val = _mode === 'prompt' ? document.getElementById('tvDlgInput').value : true;
-    document.getElementById('tvDialogOverlay').classList.remove('open');
-    if (_resolve) { _resolve(val); _resolve = null; }
+    closeDialog(val);
   };
   window._tvDlgCancel = function() {
     var val = _mode === 'prompt' ? null : false;
-    document.getElementById('tvDialogOverlay').classList.remove('open');
-    if (_resolve) { _resolve(val); _resolve = null; }
+    closeDialog(val);
   };
 
   // Dışarı tıkla → iptal
   document.getElementById('tvDialogOverlay').addEventListener('click', function(e){
     if (e.target === this) _tvDlgCancel();
+  });
+  // ESC tuşu → iptal
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && document.getElementById('tvDialogOverlay').classList.contains('open')) {
+      _tvDlgCancel();
+    }
   });
 
   // ── PUBLIC API ──────────────────────────────────────────────────────────
@@ -13739,17 +13760,18 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
   var _nativeConfirm = window.confirm;
 
   window.alert = function(msg) {
-    // Senkron bekleme gerekmiyorsa tvAlert kullan
-    tvAlert('', String(msg || ''));
-    // Eski koda false dönmemesi için undefined
+    tvAlert(String(msg || ''));
   };
 
-  // confirm() senkron olduğu için async override mümkün değil doğrudan.
-  // Ama yeni kodu async yapıyoruz, eski confirm() çağrılarını sarıyoruz:
+  // confirm() → tvConfirm ile tam override
+  // await confirm(...) kullanan tüm async fonksiyonlar otomatik tvConfirm'e geçer
   window.confirm = function(msg) {
-    // Senkron fallback: native'i çağır (zaten çalışıyor),
-    // ama biz yukarıda tüm kritik confirm()'leri async'e çevirdik.
-    return _nativeConfirm.call(window, msg);
+    return window.tvConfirm('', String(msg || ''));
+  };
+
+  // prompt() → tvPrompt override
+  window.prompt = function(msg, defaultVal) {
+    return window.tvPrompt(String(msg || ''), defaultVal || '');
   };
 
   // Eski tvPrompt/tvConfirm uyumluluğu — zaten tanımlı
@@ -13825,7 +13847,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -14988,10 +15010,11 @@ function renderHistory() {
 }
 
 /* 2. Güvenli Silme (Safe Delete) */
-function safeDeleteHistory(index) {
+async function safeDeleteHistory(index) {
     if(index === -1) return;
     let item = tradeHistory[index];
-    if(!confirm(`"${item.type}" işlemini silmek istediğinize emin misiniz?`)) return;
+    const ok = await tvConfirm('İşlemi Sil', `"${item.type}" işlemini silmek istediğinize emin misiniz?`);
+    if(!ok) return;
 
     deletedHistory.push(item);
     localStorage.setItem('tm_deleted_history', JSON.stringify(deletedHistory));
@@ -15119,7 +15142,7 @@ function logHistory(type, s, a, p, desc='', curr = null, pnl = 0, details = {}) 
         closeModal('cashModal');
     }
 
-    function addDividend(){ let v=parseFloat(prompt("Temettü:")); if(v){cashBalance+=v; logHistory('TEMETTÜ','NAKİT',1,v, '', appSettings.currency); localStorage.setItem('tm_cash_balance',cashBalance); loadPF(); addNotification('success', 'Temettü Eklendi', `Kasa giriş: ${v}`); }}
+    async function addDividend(){ let raw=await tvPrompt("Temettü Ekle","","Eklenecek temettü tutarını girin"); let v=parseFloat(raw); if(v){cashBalance+=v; logHistory('TEMETTÜ','NAKİT',1,v, '', appSettings.currency); localStorage.setItem('tm_cash_balance',cashBalance); loadPF(); addNotification('success', 'Temettü Eklendi', `Kasa giriş: ${v}`); }}
     function filterHistory(type, btn) { currentHistoryFilter = type; document.querySelectorAll('.h-filter-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderHistory(); }
 
     /* --- PRO ANALİZ MOTORU --- */
@@ -17132,7 +17155,7 @@ onerror="this.outerHTML=\`<div style='width:40px;height:40px;background:${color}
     function getAssetTag(s) { if(['ALTIN','GOLD','GRAM'].includes(s)) return {t:'EMTİA'}; if(s.includes('USDT') || (!s.includes('.') && s.length <= 5)) return {t:'KRİPTO'}; if(['USD','EUR','GBP'].includes(s)) return {t:'DÖVİZ'}; return {t:'BORSA'}; }
     function calcDca(){ let s=document.getElementById('addSymbol').value.toUpperCase(); let a=parseFloat(document.getElementById('addAmount').value); let p=parseFloat(document.getElementById('addBuyPrice').value); if(s&&a&&p){ let as=JSON.parse(localStorage.getItem('myPF_final'))||[]; let ex=as.find(i=>i.name===s); if(ex){ let n=((ex.amt*ex.buy)+(a*p))/(ex.amt+a); document.getElementById('dcaPreview').style.display='block'; document.getElementById('dcaText').innerHTML=`Eski: ${ex.buy.toFixed(2)} -> <span class="dca-val">Yeni: ${n.toFixed(2)}</span>`; } else {document.getElementById('dcaPreview').style.display='none';} } calcLiveTotal(); }
     function closeModal(id){document.getElementById(id).style.display='none';} function openModal(id){document.getElementById(id).style.display='flex';}
-    function editNote(i){ let as=JSON.parse(localStorage.getItem('myPF_final')); let n=prompt("Not:",as[i].note||""); if(n!==null){as[i].note=n; localStorage.setItem('myPF_final',JSON.stringify(as)); loadPF();} }
+    async function editNote(i){ let as=JSON.parse(localStorage.getItem('myPF_final')); let n=await tvPrompt("Not Düzenle",as[i].note||"","Varlık için not girin"); if(n!==null){as[i].note=n; localStorage.setItem('myPF_final',JSON.stringify(as)); loadPF();} }
     function downloadBackup(){ const d=localStorage.getItem('myPF_final'); const b=new Blob([d],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='yedek.json'; a.click(); }
 /* --- DÜZELTİLMİŞ VE KORUMALI EXCEL YÜKLEYİCİ (V22) --- */
 
@@ -18547,8 +18570,9 @@ window.mdLikeComment = function(id) {
     });
 };
 
-window.mdDeleteComment = function(id) {
-    if (!confirm('Yorum silinsin mi?')) return;
+window.mdDeleteComment = async function(id) {
+    const ok = await tvConfirm('Yorum Sil', 'Yorum silinsin mi?');
+    if (!ok) return;
     fbDb.collection('social_comments').doc(id).delete().then(function(){ if(typeof showToast==='function') showToast('success','Silindi',''); });
 };
 
@@ -20979,8 +21003,9 @@ function renderSavedStrategies() {
     container.innerHTML = html;
 }
 
-function deleteStrategy(id) {
-    if(!confirm("Bu planı silmek istiyor musun?")) return;
+async function deleteStrategy(id) {
+    const ok = await tvConfirm('Planı Sil', 'Bu planı silmek istiyor musun?');
+    if(!ok) return;
     let saved = JSON.parse(localStorage.getItem('tm_saved_strategies')) || [];
     let newSaved = saved.filter(x => x.id !== id);
     localStorage.setItem('tm_saved_strategies', JSON.stringify(newSaved));
@@ -21512,8 +21537,9 @@ function renderSavedStrategies() {
     container.innerHTML = html;
 }
 
-function deleteStrategy(id) {
-    if(!confirm("Bu planı silmek istiyor musun?")) return;
+async function deleteStrategy(id) {
+    const ok = await tvConfirm('Planı Sil', 'Bu planı silmek istiyor musun?');
+    if(!ok) return;
     let saved = JSON.parse(localStorage.getItem('tm_saved_strategies')) || [];
     let newSaved = saved.filter(x => x.id !== id);
     localStorage.setItem('tm_saved_strategies', JSON.stringify(newSaved));
@@ -23558,8 +23584,9 @@ const MultiPortfolio = {
     },
 
     // Silme
-    delete: function(targetID) {
-        if (!confirm("Bu cüzdan ve içindeki tüm veriler silinecek. Emin misiniz?")) return;
+    delete: async function(targetID) {
+        const ok = await tvConfirm('Cüzdan Sil', 'Bu cüzdan ve içindeki tüm veriler silinecek. Emin misiniz?');
+        if (!ok) return;
         let db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
         delete db.list[targetID];
         localStorage.setItem('tm_all_portfolios', JSON.stringify(db));
@@ -25474,28 +25501,23 @@ const AppLock = {
     },
     
     // === ŞİFREMİ UNUTTUM ===
-    forgotPin: function() {
-        const confirmed = confirm(
-            '⚠️ DİKKAT!\n\n' +
-            'PIN\'inizi sıfırlamak için tüm uygulama verilerinizi silmeniz gerekecektir.\n\n' +
-            'Portföy, işlem geçmişi ve tüm ayarlarınız kalıcı olarak silinecektir.\n\n' +
-            'Devam etmek istiyor musunuz?'
+    forgotPin: async function() {
+        const confirmed = await tvConfirm(
+            '⚠️ Dikkat!',
+            "PIN'inizi sıfırlamak için tüm uygulama verilerinizi silmeniz gerekecektir. Portföy, işlem geçmişi ve tüm ayarlarınız kalıcı olarak silinecektir. Devam etmek istiyor musunuz?"
         );
-        
-        if (confirmed) {
-            const doubleConfirm = confirm(
-                '🚨 SON UYARI!\n\n' +
-                'Bu işlem geri alınamaz. Tüm verileriniz silinecek.\n\n' +
-                'Emin misiniz?'
-            );
-            
-            if (doubleConfirm) {
-                // Tüm verileri sil
-                localStorage.clear();
-                sessionStorage.clear();
-                alert('✅ Veriler silindi. Uygulama yeniden başlatılıyor...');
-                location.reload();
-            }
+        if (!confirmed) return;
+
+        const doubleConfirm = await tvConfirm(
+            '🚨 Son Uyarı!',
+            'Bu işlem geri alınamaz. Tüm verileriniz silinecek. Emin misiniz?'
+        );
+        if (doubleConfirm) {
+            // Tüm verileri sil
+            localStorage.clear();
+            sessionStorage.clear();
+            await tvAlert('Tamamlandı', 'Veriler silindi. Uygulama yeniden başlatılıyor...');
+            location.reload();
         }
     },
     
@@ -27392,10 +27414,7 @@ async function firebaseLogout() {
         : 'Hesaptan çıkış yapmak istediğine emin misin? Bulut yedeklerin silinmez.';
 
     // tvConfirm varsa onu kullan, yoksa native confirm
-    const confirmed = (typeof tvConfirm === 'function')
-        ? await tvConfirm(confirmTitle, confirmMsg)
-        : confirm(confirmMsg);
-
+    const confirmed = await tvConfirm(confirmTitle, confirmMsg);
     if (!confirmed) return;
     
     try {
@@ -27637,7 +27656,8 @@ async function firebaseRestore() {
         return;
     }
     
-    if (!confirm('Buluttaki yedek geri yüklenecek.\nMevcut verilerinizin üzerine yazılacak.\n\nDevam etmek istiyor musunuz?')) return;
+    const restoreOk = await tvConfirm('Yedeği Geri Yükle', 'Buluttaki yedek geri yüklenecek. Mevcut verilerinizin üzerine yazılacak. Devam etmek istiyor musunuz?');
+    if (!restoreOk) return;
     
     try {
         if (typeof showToast === 'function') showToast('info', 'Yükleniyor...', 'Veriler buluttan çekiliyor.');
@@ -28944,8 +28964,9 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     // ---- DELETE COMMENT ----
-    window.deleteComment = function(commentId) {
-        if (!confirm('Yorum silinsin mi?')) return;
+    window.deleteComment = async function(commentId) {
+        const ok = await tvConfirm('Yorum Sil', 'Yorum silinsin mi?');
+        if (!ok) return;
         fbDb.collection('social_comments').doc(commentId).delete()
             .then(() => { if (typeof showToast === 'function') showToast('success', 'Silindi', ''); })
             .catch(err => console.error('Delete error:', err));
@@ -29862,8 +29883,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    window.deleteCommunityMessage = function(id) {
-        if(!confirm('Mesaj silinsin mi?')) return;
+    window.deleteCommunityMessage = async function(id) {
+        const ok = await tvConfirm('Mesajı Sil', 'Mesaj silinsin mi?');
+        if(!ok) return;
         fbDb.collection('community_messages').doc(id).delete().catch(function(){});
     };
 
