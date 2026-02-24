@@ -98,19 +98,16 @@ body {
             left: 0 !important;    /* Kesinlikle en solda olsun */
             right: 0 !important;   /* Kesinlikle en sağa kadar gitsin */
             width: 100%;           /* Ekranı tam kapla */
-            height: calc(70px + env(safe-area-inset-bottom, 0px));
+            height: 70px;          
             background: rgba(21, 27, 43, 0.95);
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
             border-top: 1px solid rgba(255, 255, 255, 0.05);
             display: flex;
             justify-content: space-around;
-            align-items: flex-start;
-            padding-top: 0;
-            padding-bottom: env(safe-area-inset-bottom, 0px); /* iPhone home indicator */
+            align-items: center;
             z-index: 99999;        /* Her şeyin en en üstünde */
             margin: 0;             /* Dış boşluk yok */
-            box-sizing: border-box;
+            padding-bottom: env(safe-area-inset-bottom); /* iPhone çizgisi için */
         }
 
         /* ===== SOSYAL ÖZELLİK STİLLERİ - PRO ===== */
@@ -2173,7 +2170,7 @@ body {
     height: calc(100vh - 200px); /* Alt navigasyon payı */
     overflow-y: auto; 
     padding: 5px; 
-    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); 
+    padding-bottom: 80px; 
 }
 
 /* --- TEMA UYUMLU LİSTE KARTLARI --- */
@@ -4788,7 +4785,7 @@ input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
 </div>
 
     
-    <div id="page-market" class="page" style="padding: 0; padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));">    
+    <div id="page-market" class="page" style="padding: 0; padding-bottom: 80px;">
     
     <!-- GELİŞTİRİLMİŞ PİYASA BAŞLIĞI -->
     <div class="market-unified-header deep-inset">
@@ -13413,37 +13410,289 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
 </div>
 
 
-<div id="portfolioModal" class="modal-overlay">
-    <div class="modal" style="max-width:340px;">
-        <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <h3 style="margin:0; font-size:16px;"><i class="fas fa-wallet" style="margin-right:8px; color:var(--accent);"></i>Portföylerim</h3>
-            <button onclick="document.getElementById('portfolioModal').style.display='none'" style="background:none; border:none; color:white; font-size:16px;"><i class="fas fa-times"></i></button>
-        </div>
+<!-- ===== PORTFOLIO MODAL - PREMIUM REDESIGN ===== -->
+<style>
+#portfolioModal {
+    position: fixed; inset: 0; z-index: 99990;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: none; align-items: flex-end; justify-content: center;
+}
+#portfolioModal.open { display: flex; }
 
-        <!-- Açıklama -->
-        <div style="background:rgba(59,130,246,0.06); border:1px solid rgba(59,130,246,0.1); border-radius:10px; padding:10px 12px; margin-bottom:14px; font-size:11px; color:#94a3b8; line-height:1.55;">
-            <i class="fas fa-info-circle" style="color:var(--accent); margin-right:5px;"></i>
-            Birden fazla cüzdan oluşturup farklı stratejileri ayrı ayrı takip edebilirsin. Her cüzdanın kendi varlık ve nakit bakiyesi vardır.
-        </div>
+.pf-sheet {
+    width: 100%; max-width: 480px;
+    background: linear-gradient(180deg, #161d2e 0%, #0f1623 100%);
+    border-radius: 28px 28px 0 0;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-bottom: none;
+    max-height: 92vh;
+    display: flex; flex-direction: column;
+    animation: pfSlideUp 0.42s cubic-bezier(0.34, 1.15, 0.64, 1);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    overflow: hidden;
+}
+@keyframes pfSlideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+.pf-handle {
+    width: 38px; height: 4px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 2px;
+    margin: 12px auto 0; flex-shrink: 0;
+}
+.pf-header {
+    padding: 16px 20px 12px;
+    display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.pf-header-title { display: flex; align-items: center; gap: 10px; }
+.pf-header-icon {
+    width: 36px; height: 36px; border-radius: 12px;
+    background: linear-gradient(135deg, #3b82f6, #6366f1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; color: white; box-shadow: 0 4px 16px rgba(99,102,241,0.4);
+}
+.pf-header-text { font-size: 17px; font-weight: 800; color: white; letter-spacing: -0.3px; }
+.pf-header-sub { font-size: 11px; color: #64748b; margin-top: 1px; }
+.pf-close {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+    color: #64748b; font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s;
+}
+.pf-close:active { transform: scale(0.88); background: rgba(255,255,255,0.12); }
+.pf-tabs {
+    display: flex; border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 0 20px; flex-shrink: 0;
+}
+.pf-tab {
+    flex: 1; padding: 10px 0; font-size: 12px; font-weight: 700;
+    color: #475569; text-align: center; cursor: pointer;
+    border-bottom: 2px solid transparent; transition: all 0.2s;
+    text-transform: uppercase; letter-spacing: 0.5px;
+}
+.pf-tab.active { color: #60a5fa; border-bottom-color: #60a5fa; }
+.pf-panel { display: none; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.pf-panel.active { display: flex; flex-direction: column; }
+.pf-list { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.pf-wallet-card {
+    position: relative;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 18px; padding: 14px 16px; cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.34,1.2,0.64,1); overflow: hidden;
+}
+.pf-wallet-card.active-wallet {
+    background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.35);
+    box-shadow: 0 0 0 1px rgba(59,130,246,0.15), 0 8px 32px rgba(59,130,246,0.12);
+}
+.pf-wallet-card:active { transform: scale(0.98); }
+.pf-wallet-glow {
+    position: absolute; top: -20px; right: -20px;
+    width: 80px; height: 80px; border-radius: 50%; pointer-events: none;
+}
+.pf-wallet-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.pf-wallet-avatar {
+    width: 42px; height: 42px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+}
+.pf-wallet-info { flex: 1; min-width: 0; }
+.pf-wallet-name {
+    font-size: 14px; font-weight: 800; color: white;
+    display: flex; align-items: center; gap: 7px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pf-wallet-badge {
+    font-size: 9px; padding: 2px 8px; border-radius: 20px;
+    background: rgba(59,130,246,0.2); color: #60a5fa;
+    font-weight: 800; letter-spacing: 0.5px; flex-shrink: 0;
+}
+.pf-wallet-meta { font-size: 11px; color: #475569; margin-top: 3px; }
+.pf-wallet-check {
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.12);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; flex-shrink: 0;
+}
+.pf-wallet-check.checked {
+    background: #3b82f6; border-color: #3b82f6;
+    box-shadow: 0 2px 12px rgba(59,130,246,0.45);
+}
+.pf-wallet-stats { display: flex; gap: 8px; }
+.pf-stat-pill {
+    flex: 1; background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px; padding: 8px 10px;
+    display: flex; flex-direction: column; gap: 2px;
+}
+.pf-stat-label { font-size: 9px; color: #475569; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.pf-stat-value { font-size: 13px; font-weight: 800; color: white; }
+.pf-wallet-del-btn {
+    width: 30px; height: 30px; border-radius: 10px;
+    background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);
+    color: #ef4444; font-size: 12px; display: flex;
+    align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;
+}
+.pf-wallet-del-btn:active { background: rgba(239,68,68,0.25); transform: scale(0.9); }
+.pf-create-section { padding: 14px 16px 20px; flex-shrink: 0; }
+.pf-create-label {
+    font-size: 10px; font-weight: 800; color: #475569;
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+}
+.pf-emoji-picker { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.pf-emoji-opt {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; cursor: pointer; transition: all 0.18s;
+}
+.pf-emoji-opt.selected {
+    background: rgba(99,102,241,0.18); border-color: rgba(99,102,241,0.5);
+    transform: scale(1.12); box-shadow: 0 4px 16px rgba(99,102,241,0.3);
+}
+.pf-color-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.pf-color-dot {
+    width: 28px; height: 28px; border-radius: 50%;
+    cursor: pointer; border: 2px solid transparent; transition: all 0.18s; flex-shrink: 0;
+}
+.pf-color-dot.selected { border-color: white; transform: scale(1.22); box-shadow: 0 2px 10px rgba(0,0,0,0.4); }
+.pf-inp {
+    width: 100%; box-sizing: border-box;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 14px; padding: 12px 14px; color: white; font-size: 13px;
+    outline: none; font-family: inherit; transition: border-color 0.2s; margin-bottom: 10px;
+}
+.pf-inp:focus { border-color: rgba(99,102,241,0.5); }
+.pf-inp::placeholder { color: #334155; }
+.pf-create-btn {
+    width: 100%; padding: 14px;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    border: none; border-radius: 16px; color: white; font-size: 14px; font-weight: 800;
+    cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 20px rgba(79,70,229,0.4);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.pf-create-btn:active { transform: scale(0.97); }
+.pf-hist-wallet-sel {
+    display: flex; gap: 6px; overflow-x: auto;
+    padding: 12px 16px 8px; flex-shrink: 0; scrollbar-width: none;
+}
+.pf-hist-wallet-sel::-webkit-scrollbar { display: none; }
+.pf-hist-chip {
+    padding: 6px 14px; border-radius: 20px; white-space: nowrap;
+    font-size: 11px; font-weight: 700; cursor: pointer;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+    color: #64748b; transition: all 0.18s;
+}
+.pf-hist-chip.active { background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.35); color: #60a5fa; }
+.pf-hist-list { flex: 1; overflow-y: auto; padding: 0 16px 16px; }
+.pf-hist-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.pf-hist-item:last-child { border-bottom: none; }
+.pf-hist-icon {
+    width: 36px; height: 36px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;
+}
+.pf-hist-icon.buy  { background: rgba(16,185,129,0.12); color: #34d399; }
+.pf-hist-icon.sell { background: rgba(239,68,68,0.12);  color: #f87171; }
+.pf-hist-body { flex: 1; min-width: 0; }
+.pf-hist-title { font-size: 13px; font-weight: 700; color: white; }
+.pf-hist-sub   { font-size: 11px; color: #475569; margin-top: 2px; }
+.pf-hist-amount { font-size: 13px; font-weight: 800; }
+.pf-hist-amount.pos { color: #34d399; }
+.pf-hist-amount.neg { color: #f87171; }
+.pf-hist-empty { text-align: center; padding: 40px 20px; color: #334155; }
+.pf-hist-empty i { font-size: 36px; margin-bottom: 12px; display: block; }
+.pf-vault { padding: 16px; }
+.pf-vault-card {
+    background: linear-gradient(135deg, rgba(30,40,60,0.9), rgba(15,22,35,0.9));
+    border: 1px solid rgba(255,255,255,0.08); border-radius: 20px;
+    padding: 20px; margin-bottom: 12px; position: relative; overflow: hidden;
+}
+.pf-vault-card::before {
+    content: ''; position: absolute; top: -30px; right: -30px;
+    width: 100px; height: 100px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(99,102,241,0.15), transparent 70%);
+}
+.pf-vault-name { font-size: 11px; color: #475569; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.pf-vault-balance { font-size: 28px; font-weight: 900; color: white; letter-spacing: -1px; }
+.pf-vault-sub { font-size: 12px; color: #475569; margin-top: 4px; }
+.pf-vault-divider { height: 1px; background: rgba(255,255,255,0.05); margin: 14px 0 2px; }
+.pf-vault-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
+.pf-vault-row-label { font-size: 12px; color: #475569; display: flex; align-items: center; gap: 8px; }
+.pf-vault-row-value { font-size: 13px; font-weight: 700; color: white; }
+</style>
 
-        <div id="portfolioListContainer" style="margin-bottom:14px; max-height:200px; overflow-y:auto;">
-            </div>
-
-        <!-- Yeni Cüzdan Oluşturma Alanı -->
-        <div style="border-top:1px solid rgba(255,255,255,0.06); padding-top:14px;">
-            <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">
-                <i class="fas fa-plus-circle" style="margin-right:4px;"></i> Yeni Cüzdan
-            </div>
-            <div style="display:flex; gap:6px; margin-bottom:8px;">
-                <input type="text" id="newPortfolioName" class="modern-input" placeholder="Cüzdan adı (ör: Kripto, Borsa)" style="margin:0; font-size:12px; flex:1;">
-            </div>
-            <div style="display:flex; gap:6px; align-items:center;">
-                <div style="position:relative; flex:1;">
-                    <i class="fas fa-coins" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#64748b; font-size:11px;"></i>
-                    <input type="number" id="newPortfolioCash" class="modern-input" placeholder="Başlangıç nakdi (opsiyonel)" style="margin:0; font-size:12px; padding-left:30px;">
+<div id="portfolioModal">
+    <div class="pf-sheet">
+        <div class="pf-handle"></div>
+        <div class="pf-header">
+            <div class="pf-header-title">
+                <div class="pf-header-icon"><i class="fas fa-layer-group"></i></div>
+                <div>
+                    <div class="pf-header-text">Portföylerim</div>
+                    <div class="pf-header-sub" id="pfHeaderSub">Cüzdanlarınızı yönetin</div>
                 </div>
-                <button onclick="MultiPortfolio.create()" class="btn-main" style="width:auto; padding:8px 16px; font-size:12px; white-space:nowrap;"><i class="fas fa-plus" style="margin-right:4px;"></i> Oluştur</button>
             </div>
+            <div class="pf-close" onclick="MultiPortfolio.close()"><i class="fas fa-times"></i></div>
+        </div>
+        <div class="pf-tabs">
+            <div class="pf-tab active" onclick="MultiPortfolio.switchTab('wallets', this)">Cüzdanlar</div>
+            <div class="pf-tab" onclick="MultiPortfolio.switchTab('create', this)">+ Yeni</div>
+            <div class="pf-tab" onclick="MultiPortfolio.switchTab('history', this)">Geçmiş</div>
+            <div class="pf-tab" onclick="MultiPortfolio.switchTab('vault', this)">Kasa</div>
+        </div>
+        <!-- Panel: Cüzdanlar -->
+        <div class="pf-panel active" id="pfPanel-wallets">
+            <div class="pf-list" id="portfolioListContainer"></div>
+        </div>
+        <!-- Panel: Yeni Cüzdan -->
+        <div class="pf-panel" id="pfPanel-create">
+            <div class="pf-create-section">
+                <div class="pf-create-label"><i class="fas fa-smile"></i> Simge Seç</div>
+                <div class="pf-emoji-picker" id="pfEmojiPicker">
+                    <div class="pf-emoji-opt selected" data-emoji="💼" onclick="MultiPortfolio.selectEmoji(this)">💼</div>
+                    <div class="pf-emoji-opt" data-emoji="📈" onclick="MultiPortfolio.selectEmoji(this)">📈</div>
+                    <div class="pf-emoji-opt" data-emoji="₿" onclick="MultiPortfolio.selectEmoji(this)">₿</div>
+                    <div class="pf-emoji-opt" data-emoji="🏦" onclick="MultiPortfolio.selectEmoji(this)">🏦</div>
+                    <div class="pf-emoji-opt" data-emoji="🚀" onclick="MultiPortfolio.selectEmoji(this)">🚀</div>
+                    <div class="pf-emoji-opt" data-emoji="💎" onclick="MultiPortfolio.selectEmoji(this)">💎</div>
+                    <div class="pf-emoji-opt" data-emoji="🌍" onclick="MultiPortfolio.selectEmoji(this)">🌍</div>
+                    <div class="pf-emoji-opt" data-emoji="⚡" onclick="MultiPortfolio.selectEmoji(this)">⚡</div>
+                </div>
+                <div class="pf-create-label"><i class="fas fa-palette"></i> Renk</div>
+                <div class="pf-color-row" id="pfColorPicker">
+                    <div class="pf-color-dot selected" data-color="#6366f1" style="background:#6366f1" onclick="MultiPortfolio.selectColor(this)"></div>
+                    <div class="pf-color-dot" data-color="#3b82f6" style="background:#3b82f6" onclick="MultiPortfolio.selectColor(this)"></div>
+                    <div class="pf-color-dot" data-color="#10b981" style="background:#10b981" onclick="MultiPortfolio.selectColor(this)"></div>
+                    <div class="pf-color-dot" data-color="#f59e0b" style="background:#f59e0b" onclick="MultiPortfolio.selectColor(this)"></div>
+                    <div class="pf-color-dot" data-color="#ef4444" style="background:#ef4444" onclick="MultiPortfolio.selectColor(this)"></div>
+                    <div class="pf-color-dot" data-color="#8b5cf6" style="background:#8b5cf6" onclick="MultiPortfolio.selectColor(this)"></div>
+                    <div class="pf-color-dot" data-color="#ec4899" style="background:#ec4899" onclick="MultiPortfolio.selectColor(this)"></div>
+                    <div class="pf-color-dot" data-color="#06b6d4" style="background:#06b6d4" onclick="MultiPortfolio.selectColor(this)"></div>
+                </div>
+                <div class="pf-create-label"><i class="fas fa-pen"></i> Detaylar</div>
+                <input type="text" id="newPortfolioName" class="pf-inp" placeholder="Cüzdan adı (ör: Kripto, Borsa)">
+                <input type="number" id="newPortfolioCash" class="pf-inp" placeholder="Başlangıç nakdi (opsiyonel)">
+                <button class="pf-create-btn" onclick="MultiPortfolio.create()">
+                    <i class="fas fa-plus-circle"></i> Cüzdan Oluştur
+                </button>
+            </div>
+        </div>
+        <!-- Panel: Geçmiş -->
+        <div class="pf-panel" id="pfPanel-history">
+            <div class="pf-hist-wallet-sel" id="pfHistChips"></div>
+            <div class="pf-hist-list" id="pfHistList"></div>
+        </div>
+        <!-- Panel: Kasa -->
+        <div class="pf-panel" id="pfPanel-vault">
+            <div class="pf-vault" id="pfVaultContent"></div>
         </div>
     </div>
 </div>
@@ -13987,7 +14236,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.5"; 
+    const CURRENT_VERSION = "2.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -16226,30 +16475,7 @@ function saveAlarm(type) {
         // Zaten var mı kontrolü
         let exists = alarms.find(a => a.symbol === asset.name && a.type === 'RSI' && a.active);
         if (exists) return addNotification('info', 'Zaten Var', 'Bu varlık zaten takip ediliyor.');
-        // FREE LİMİT: max 1 aktif RSI alarmı (aktif alarm sayısına göre kontrol)
-        if (typeof MembershipSystem !== 'undefined' && !MembershipSystem.isPro()) {
-            let activeRSICount = alarms.filter(a => a.type === 'RSI' && a.active).length;
-            if (activeRSICount >= 1) {
-                if (typeof showToast === 'function') showToast('warn', '🔒 Kullanım Hakkın Doldu', "Free'de 1 AI Trend hakkın var. Eskisini sil veya PRO'ya geç.");
-                else tvAlert('🔒 Kullanım Hakkın Doldu', "Free'de 1 AI Trend hakkın var. Yeni kurmak icin eskisini sil.");
-                if (typeof MembershipSystem !== 'undefined') MembershipSystem.showUpsell();
-                return;
-            }
-        }
-
-        // FREE LİMİT: Toplam aktif RSI alarm sayısını kontrol et
-        if (typeof MembershipSystem !== 'undefined' && !MembershipSystem.isPro()) {
-            let activeRSICount = alarms.filter(a => a.type === 'RSI' && a.active).length;
-            if (activeRSICount >= 1) {
-                if (typeof showToast === 'function') {
-                    showToast("warn", "🔒 Kullanım Hakkın Doldu", "Free'de 1 AI Trend alarmı hakkın var. Eskisini sil veya PRO'ya geç.");
-                } else {
-                    tvAlert("🔒 Kullanım Hakkın Doldu", "Free pakette 1 AI Trend alarmı hakkın var. Yeni kurmak için eskisini sil.");
-                }
-                MembershipSystem.showUpsell();
-                return;
-            }
-        }
+        // Limit kontrolü MembershipSystem üzerinden yönetiliyor (window.saveAlarm override'ı)
 
         alarms.push({ 
             id: Date.now() + 4, 
@@ -23620,137 +23846,239 @@ function removeAlarm(id) {
 
 /* --- ÇOKLU PORTFÖY YÖNETİCİSİ (SWAP SİSTEMİ) --- */
 const MultiPortfolio = {
-    // Başlangıç Ayarları
+    _selectedEmoji: '💼',
+    _selectedColor: '#6366f1',
+    _activeHistWallet: null,
+
     init: function() {
-        // Eğer sistemde hiç portföy veritabanı yoksa oluştur
         let db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
         if (!db) {
-            // Mevcut veriyi 'Ana Cüzdan' olarak kaydet
-            let currentData = localStorage.getItem('myPF_final') || '[]';
-            let currentCash = localStorage.getItem('tm_cash_balance') || '0';
-            
             db = {
                 activeID: 'main',
-                list: {
-                    'main': { name: 'Ana Cüzdan', data: currentData, cash: currentCash }
-                }
+                list: { 'main': { name: 'Ana Cüzdan', data: localStorage.getItem('myPF_final') || '[]', cash: localStorage.getItem('tm_cash_balance') || '0', emoji: '💼', color: '#6366f1', history: [] } }
             };
             localStorage.setItem('tm_all_portfolios', JSON.stringify(db));
         }
-        
-        // Aktif cüzdan ismini başlığa yaz
+        // Eski kayıtlara emoji/color/history ekle (migrasyon)
+        let changed = false;
+        const defs = [['💼','#6366f1'],['📈','#3b82f6'],['🏦','#10b981'],['🚀','#f59e0b']];
+        let idx = 0;
+        Object.keys(db.list).forEach(k => {
+            if (!db.list[k].emoji)   { db.list[k].emoji   = defs[idx % defs.length][0]; changed = true; }
+            if (!db.list[k].color)   { db.list[k].color   = defs[idx % defs.length][1]; changed = true; }
+            if (!db.list[k].history) { db.list[k].history = []; changed = true; }
+            idx++;
+        });
+        if (changed) localStorage.setItem('tm_all_portfolios', JSON.stringify(db));
         this.updateHeader();
     },
 
-    // Modalı Aç ve Listeyi Göster
     open: function() {
-        this.syncCurrentToStorage(); // Önce şu anki hali kaydet
-        let db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
-        let container = document.getElementById('portfolioListContainer');
-        let html = '';
+        this.syncCurrentToStorage();
+        document.getElementById('portfolioModal').classList.add('open');
+        // Reset to wallets tab
+        document.querySelectorAll('.pf-tab').forEach((t,i) => t.classList.toggle('active', i===0));
+        document.querySelectorAll('.pf-panel').forEach((p,i) => p.classList.toggle('active', i===0));
+        this.renderWallets();
+    },
 
+    close: function() {
+        document.getElementById('portfolioModal').classList.remove('open');
+    },
+
+    switchTab: function(tab, el) {
+        document.querySelectorAll('.pf-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.pf-panel').forEach(p => p.classList.remove('active'));
+        if (el) el.classList.add('active');
+        const panel = document.getElementById('pfPanel-' + tab);
+        if (panel) panel.classList.add('active');
+        if (tab === 'history') this.renderHistory();
+        if (tab === 'vault')   this.renderVault();
+    },
+
+    renderWallets: function() {
+        let db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
+        let sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'USD') ? '$' : '₺';
+        let count = Object.keys(db.list).length;
+        document.getElementById('pfHeaderSub').textContent = count + ' cüzdan • aktif: ' + db.list[db.activeID].name;
+        let html = '';
         Object.keys(db.list).forEach(key => {
             let p = db.list[key];
             let isActive = (key === db.activeID);
-            let borderStyle = isActive ? 'border-color:var(--accent); background:rgba(59,130,246,0.08);' : 'border-color:rgba(255,255,255,0.06); background:rgba(255,255,255,0.02);';
-            let icon = isActive ? '<i class="fas fa-check-circle" style="color:var(--accent);font-size:16px;"></i>' : '<i class="far fa-circle" style="color:var(--text-sub);font-size:16px;"></i>';
-            let delBtn = (key !== 'main' && key !== db.activeID) ? `<button onclick="MultiPortfolio.delete('${key}')" style="background:none; border:none; color:var(--danger); cursor:pointer; padding:5px;"><i class="fas fa-trash" style="font-size:12px;"></i></button>` : '';
-            let activeBadge = isActive ? '<span style="font-size:8px; background:rgba(59,130,246,0.15); color:var(--accent); padding:2px 6px; border-radius:8px; font-weight:700;">AKTİF</span>' : '';
-
-            // Nakit ve varlık sayısı
             let pCash = parseFloat(p.cash) || 0;
             let pAssets = 0;
             try { pAssets = JSON.parse(p.data || '[]').length; } catch(e) {}
-            let sym = (appSettings && appSettings.currency === 'USD') ? '$' : '₺';
-
+            let hist = p.history || [];
+            // ROI
+            let totalCost = 0, totalValue = 0;
+            try { JSON.parse(p.data || '[]').forEach(a => { totalCost += (a.avgPrice||0)*(a.quantity||0); totalValue += (a.currentPrice||a.avgPrice||0)*(a.quantity||0); }); } catch(e) {}
+            let roi = totalCost > 0 ? ((totalValue - totalCost) / totalCost * 100).toFixed(1) : null;
+            let roiHtml = roi !== null
+                ? `<div class="pf-stat-pill"><div class="pf-stat-label">ROI</div><div class="pf-stat-value" style="color:${parseFloat(roi)>=0?'#34d399':'#f87171'}">${parseFloat(roi)>=0?'+':''}${roi}%</div></div>`
+                : '';
+            let delHtml = (key !== 'main' && !isActive)
+                ? `<button class="pf-wallet-del-btn" onclick="event.stopPropagation();MultiPortfolio.delete('${key}')"><i class="fas fa-trash"></i></button>` : '';
+            let checkHtml = isActive
+                ? `<div class="pf-wallet-check checked"><i class="fas fa-check" style="font-size:10px;color:white;"></i></div>`
+                : `<div class="pf-wallet-check"></div>`;
             html += `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border:1px solid; border-radius:12px; margin-bottom:8px; cursor:pointer; transition:all 0.2s; ${borderStyle}" onclick="MultiPortfolio.switch('${key}')">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    ${icon}
-                    <div>
-                        <div style="font-weight:700; font-size:13px; display:flex; align-items:center; gap:6px;">
-                            ${p.name} ${activeBadge}
-                        </div>
-                        <div style="font-size:10px; color:var(--text-sub); margin-top:3px;">
-                            <span style="margin-right:8px;"><i class="fas fa-coins" style="margin-right:3px;font-size:8px;"></i>${sym}${pCash.toLocaleString('tr-TR',{maximumFractionDigits:0})}</span>
-                            <span><i class="fas fa-layer-group" style="margin-right:3px;font-size:8px;"></i>${pAssets} varlık</span>
-                        </div>
+            <div class="pf-wallet-card ${isActive?'active-wallet':''}" onclick="MultiPortfolio.switch('${key}')">
+                <div class="pf-wallet-glow" style="background:radial-gradient(circle,${p.color}22 0%,transparent 70%)"></div>
+                <div class="pf-wallet-top">
+                    <div class="pf-wallet-avatar" style="background:linear-gradient(135deg,${p.color}33,${p.color}11);border:1.5px solid ${p.color}44;">${p.emoji}</div>
+                    <div class="pf-wallet-info">
+                        <div class="pf-wallet-name">${p.name}${isActive?'<span class="pf-wallet-badge">AKTİF</span>':''}</div>
+                        <div class="pf-wallet-meta">${hist.length} işlem geçmişi</div>
+                    </div>
+                    <div style="display:flex;gap:6px;align-items:center;" onclick="event.stopPropagation()">
+                        ${delHtml}${checkHtml}
                     </div>
                 </div>
-                <div onclick="event.stopPropagation()" style="display:flex;align-items:center;">
-                    ${delBtn}
+                <div class="pf-wallet-stats">
+                    <div class="pf-stat-pill"><div class="pf-stat-label">Nakit</div><div class="pf-stat-value">${sym}${pCash.toLocaleString('tr-TR',{maximumFractionDigits:0})}</div></div>
+                    <div class="pf-stat-pill"><div class="pf-stat-label">Varlık</div><div class="pf-stat-value">${pAssets} adet</div></div>
+                    ${roiHtml}
                 </div>
             </div>`;
         });
-
-        container.innerHTML = html;
-        document.getElementById('portfolioModal').style.display = 'flex';
+        document.getElementById('portfolioListContainer').innerHTML = html;
     },
 
-    // Yeni Portföy Oluştur
+    selectEmoji: function(el) {
+        document.querySelectorAll('.pf-emoji-opt').forEach(e => e.classList.remove('selected'));
+        el.classList.add('selected');
+        this._selectedEmoji = el.dataset.emoji;
+    },
+
+    selectColor: function(el) {
+        document.querySelectorAll('.pf-color-dot').forEach(e => e.classList.remove('selected'));
+        el.classList.add('selected');
+        this._selectedColor = el.dataset.color;
+    },
+
     create: function() {
         let name = document.getElementById('newPortfolioName').value.trim();
-        if (!name) return alert("Lütfen bir isim girin.");
-
+        if (!name) { if(typeof showToast==='function') showToast('warning','Uyarı','Lütfen bir isim girin.'); return; }
         let cashInput = document.getElementById('newPortfolioCash');
         let initialCash = cashInput ? (parseFloat(cashInput.value) || 0) : 0;
-
-        this.syncCurrentToStorage(); // Mevcut işleri kaydet
+        this.syncCurrentToStorage();
         let db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
-        
-        // Benzersiz ID oluştur
         let newID = 'pf_' + Date.now();
-        
-        db.list[newID] = {
-            name: name,
-            data: '[]', // Boş portföy
-            cash: String(initialCash)
-        };
-
+        db.list[newID] = { name: name, data: '[]', cash: String(initialCash), emoji: this._selectedEmoji, color: this._selectedColor, history: [] };
         localStorage.setItem('tm_all_portfolios', JSON.stringify(db));
         document.getElementById('newPortfolioName').value = '';
         if (cashInput) cashInput.value = '';
-        this.open(); // Listeyi yenile
+        if(typeof showToast==='function') showToast('success','✅ Başarılı','Cüzdan oluşturuldu!');
+        this.switchTab('wallets', document.querySelectorAll('.pf-tab')[0]);
+        this.renderWallets();
     },
 
-    // Portföy Değiştir (SOFT SWAP - Sayfa yenilemeden)
+    renderHistory: function(walletKey) {
+        let db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
+        let keys = Object.keys(db.list);
+        if (!walletKey) walletKey = this._activeHistWallet || db.activeID;
+        this._activeHistWallet = walletKey;
+        document.getElementById('pfHistChips').innerHTML = keys.map(k =>
+            `<div class="pf-hist-chip ${k===walletKey?'active':''}" onclick="MultiPortfolio.renderHistory('${k}')">${db.list[k].emoji} ${db.list[k].name}</div>`
+        ).join('');
+        let wallet = db.list[walletKey];
+        let hist = wallet && wallet.history ? [...wallet.history].reverse() : [];
+        let sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'USD') ? '$' : '₺';
+        if (!hist.length) {
+            document.getElementById('pfHistList').innerHTML = '<div class="pf-hist-empty"><i class="fas fa-history"></i><p>Bu cüzdanda henüz işlem geçmişi yok.</p></div>';
+            return;
+        }
+        document.getElementById('pfHistList').innerHTML = hist.map(tx => {
+            let isBuy = tx.type === 'buy';
+            let icon = isBuy ? 'fa-arrow-down' : 'fa-arrow-up';
+            let date = tx.date ? new Date(tx.date).toLocaleDateString('tr-TR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+            let amount = tx.total ? `${isBuy?'-':'+'}${sym}${parseFloat(tx.total).toLocaleString('tr-TR',{maximumFractionDigits:2})}` : '';
+            return `<div class="pf-hist-item">
+                <div class="pf-hist-icon ${isBuy?'buy':'sell'}"><i class="fas ${icon}"></i></div>
+                <div class="pf-hist-body">
+                    <div class="pf-hist-title">${tx.symbol||''} ${isBuy?'Alış':'Satış'}</div>
+                    <div class="pf-hist-sub">${tx.quantity?tx.quantity+' adet • ':''}${date}</div>
+                </div>
+                <div class="pf-hist-amount ${isBuy?'neg':'pos'}">${amount}</div>
+            </div>`;
+        }).join('');
+    },
+
+    renderVault: function() {
+        let db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
+        let sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'USD') ? '$' : '₺';
+        document.getElementById('pfVaultContent').innerHTML = Object.keys(db.list).map(key => {
+            let p = db.list[key];
+            let isActive = (key === db.activeID);
+            let pCash = parseFloat(p.cash) || 0;
+            let assets = []; try { assets = JSON.parse(p.data||'[]'); } catch(e){}
+            let totalValue = 0, totalCost = 0;
+            assets.forEach(a => { totalValue += (a.currentPrice||a.avgPrice||0)*(a.quantity||0); totalCost += (a.avgPrice||0)*(a.quantity||0); });
+            let portfolioTotal = pCash + totalValue;
+            let profit = totalValue - totalCost;
+            let roi = totalCost > 0 ? (profit/totalCost*100).toFixed(2) : '0.00';
+            let hist = p.history || [];
+            let buyCount = hist.filter(h=>h.type==='buy').length;
+            let sellCount = hist.filter(h=>h.type==='sell').length;
+            let pc = parseFloat(roi) >= 0;
+            return `<div class="pf-vault-card">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+                    <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,${p.color}44,${p.color}11);border:1.5px solid ${p.color}44;display:flex;align-items:center;justify-content:center;font-size:18px;">${p.emoji}</div>
+                    <div>
+                        <div style="font-size:13px;font-weight:800;color:white;">${p.name}${isActive?' <span style="font-size:9px;background:rgba(59,130,246,0.2);color:#60a5fa;padding:1px 6px;border-radius:6px;font-weight:800;">AKTİF</span>':''}</div>
+                        <div style="font-size:10px;color:#475569;">${assets.length} varlık</div>
+                    </div>
+                </div>
+                <div class="pf-vault-name">Toplam Değer</div>
+                <div class="pf-vault-balance">${sym}${portfolioTotal.toLocaleString('tr-TR',{maximumFractionDigits:0})}</div>
+                <div class="pf-vault-sub">Nakit: ${sym}${pCash.toLocaleString('tr-TR',{maximumFractionDigits:0})} + Varlık: ${sym}${totalValue.toLocaleString('tr-TR',{maximumFractionDigits:0})}</div>
+                <div class="pf-vault-divider"></div>
+                <div class="pf-vault-row"><div class="pf-vault-row-label"><i class="fas fa-chart-line" style="color:${profit>=0?'#34d399':'#f87171'}"></i> Kâr / Zarar</div><div class="pf-vault-row-value" style="color:${profit>=0?'#34d399':'#f87171'}">${profit>=0?'+':''}${sym}${profit.toLocaleString('tr-TR',{maximumFractionDigits:0})}</div></div>
+                <div class="pf-vault-row"><div class="pf-vault-row-label"><i class="fas fa-percentage" style="color:#818cf8"></i> ROI</div><div class="pf-vault-row-value" style="color:${pc?'#34d399':'#f87171'}">${pc?'+':''}%${roi}</div></div>
+                <div class="pf-vault-row"><div class="pf-vault-row-label"><i class="fas fa-history" style="color:#60a5fa"></i> İşlemler</div><div class="pf-vault-row-value">${buyCount} alış · ${sellCount} satış</div></div>
+                <div class="pf-vault-row"><div class="pf-vault-row-label"><i class="fas fa-coins" style="color:#f59e0b"></i> Maliyet</div><div class="pf-vault-row-value">${sym}${totalCost.toLocaleString('tr-TR',{maximumFractionDigits:0})}</div></div>
+            </div>`;
+        }).join('');
+    },
+
+    // İşlem geçmişi kaydet (alım/satımda dışarıdan çağrılır)
+    addHistory: function(walletID, txObj) {
+        let db = JSON.parse(localStorage.getItem('tm_all_portfolios')) || {};
+        if (!db.list || !db.list[walletID]) return;
+        if (!db.list[walletID].history) db.list[walletID].history = [];
+        db.list[walletID].history.push({...txObj, date: Date.now()});
+        if (db.list[walletID].history.length > 200) db.list[walletID].history = db.list[walletID].history.slice(-200);
+        localStorage.setItem('tm_all_portfolios', JSON.stringify(db));
+    },
+
     switch: function(targetID) {
         let db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
-        if (targetID === db.activeID) return; // Zaten seçili
-
-        // 1. Mevcut (Aktif) Cüzdanı Hafızaya Yedekle
-        let currentPF = localStorage.getItem('myPF_final') || '[]';
+        if (targetID === db.activeID) { this.close(); return; }
+        let currentPF   = localStorage.getItem('myPF_final') || '[]';
         let currentCash = localStorage.getItem('tm_cash_balance') || '0';
         db.list[db.activeID].data = currentPF;
         db.list[db.activeID].cash = currentCash;
-
-        // 2. Hedef Cüzdanı Aktif Yap
         db.activeID = targetID;
         localStorage.setItem('tm_all_portfolios', JSON.stringify(db));
-
-        // 3. Hedef Veriyi Uygulamanın Ana Belleğine (localStorage) Yaz
-        let targetWallet = db.list[targetID];
-        localStorage.setItem('myPF_final', targetWallet.data);
-        localStorage.setItem('tm_cash_balance', targetWallet.cash);
-
-        // 4. Soft Reload — sayfa yenilemeden cüzdanı yükle
-        cashBalance = parseFloat(targetWallet.cash) || 0;
-        document.getElementById('portfolioModal').style.display = 'none';
+        let tw = db.list[targetID];
+        localStorage.setItem('myPF_final', tw.data);
+        localStorage.setItem('tm_cash_balance', tw.cash);
+        cashBalance = parseFloat(tw.cash) || 0;
+        this.close();
         this.updateHeader();
         if (typeof loadPF === 'function') loadPF(false);
+        if (typeof showToast === 'function') showToast('success', tw.emoji + ' ' + tw.name, 'Cüzdan değiştirildi');
     },
 
-    // Silme
     delete: async function(targetID) {
-        const ok = await tvConfirm('Cüzdan Sil', 'Bu cüzdan ve içindeki tüm veriler silinecek. Emin misiniz?');
+        const ok = await tvConfirm('Cüzdan Sil', 'Bu cüzdan ve tüm geçmişi kalıcı olarak silinecek. Emin misiniz?');
         if (!ok) return;
         let db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
         delete db.list[targetID];
         localStorage.setItem('tm_all_portfolios', JSON.stringify(db));
-        this.open();
+        this.renderWallets();
     },
 
-    // Mevcut durumu ana veritabanına eşitle (Yedekleme)
     syncCurrentToStorage: function() {
         let db = JSON.parse(localStorage.getItem('tm_all_portfolios')) || { activeID: 'main', list: {'main':{}} };
         if (db.list[db.activeID]) {
@@ -23760,12 +24088,12 @@ const MultiPortfolio = {
         }
     },
 
-    // Başlığı Güncelle
     updateHeader: function() {
         let db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
         if (db && db.list[db.activeID]) {
             let el = document.getElementById('activePortfolioName');
-            if(el) el.innerHTML = `${db.list[db.activeID].name.toUpperCase()} <i class="fas fa-chevron-down" style="font-size:10px; margin-left:3px;"></i>`;
+            let w  = db.list[db.activeID];
+            if (el) el.innerHTML = `${w.emoji} ${w.name.toUpperCase()} <i class="fas fa-chevron-down" style="font-size:10px;margin-left:3px;"></i>`;
         }
     }
 };
@@ -23775,8 +24103,10 @@ function openPortfolioModal() {
     MultiPortfolio.open();
 }
 
-// Uygulama başladığında sistemi kontrol et
-document.addEventListener('DOMContentLoaded', () => {
+// Modal dış tıklama ile kapat
+document.addEventListener('DOMContentLoaded', function() {
+    var pModal = document.getElementById('portfolioModal');
+    if (pModal) pModal.addEventListener('click', function(e) { if (e.target === pModal) MultiPortfolio.close(); });
     MultiPortfolio.init();
 });
 
@@ -25032,88 +25362,94 @@ const CompareApp = {
 })();
 
 /* 1. ÜYELİK YÖNETİM SİSTEMİ */
+/* ================================================================
+   ████████╗██████╗  █████╗ ██████╗ ███████╗██╗   ██╗██╗ █████╗
+      ██║   ██╔══██╗██╔══██╗██╔══██╗██╔════╝██║   ██║██║██╔══██╗
+      ██║   ██████╔╝███████║██║  ██║█████╗  ██║   ██║██║███████║
+      ██║   ██╔══██╗██╔══██║██║  ██║██╔══╝  ╚██╗ ██╔╝██║██╔══██║
+      ██║   ██║  ██║██║  ██║██████╔╝███████╗ ╚████╔╝ ██║██║  ██║
+      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚══════╝  ╚═══╝  ╚═╝╚═╝  ╚═╝
+   MEMBERSHIP SYSTEM v2.0  —  Merkezi Plan Yönetimi
+   ================================================================
+   ÖZELLİK PLANI (ileride backend'e taşınacak):
+   ┌──────────────────────────────────┬────────┬──────────────────┐
+   │ Özellik                          │  FREE  │      PRO         │
+   ├──────────────────────────────────┼────────┼──────────────────┤
+   │ Çoklu Cüzdan                     │  2 ad  │  Sınırsız        │
+   │ Psikoloji Analizi                │  ✗     │  ✓               │
+   │ Zaman Makinesi                   │  3/gün │  Sınırsız        │
+   │ Trader Karnesi                   │  ✗     │  ✓               │
+   │ Maliyet Sihirbazı (auto-fill)    │  ✗     │  ✓               │
+   │ İndikatör Alarmı (RSI)           │  1 ad  │  Sınırsız        │
+   │ AI Kurtarıcı                     │  1/gün │  Sınırsız        │
+   └──────────────────────────────────┴────────┴──────────────────┘
+   ================================================================ */
+
 const MembershipSystem = {
-    isPro: function() { 
+
+    /* ── PLAN SORGULAMA ──────────────────────────────────── */
+    isPro: function() {
         this.checkExpiration();
-        return localStorage.getItem('userPlan') === 'PRO'; 
+        return localStorage.getItem('userPlan') === 'PRO';
     },
-    
-    // --- ANA YÖNLENDİRİCİ (AYARLARA GİT + DİREKT MODAL AÇ) ---
+
+    /* ── UPSELL YÖNLENDİRME ─────────────────────────────── */
     showUpsell: function() {
-        var settingsBtn = document.querySelector(".nav-item:last-child"); 
+        var settingsBtn = document.querySelector('.nav-item:last-child');
         if (typeof switchPage === 'function') switchPage('settings', settingsBtn || null);
         setTimeout(function() {
             if (typeof openPremiumModal === 'function') openPremiumModal();
         }, 150);
     },
 
-    // --- AYARLARA GİT VE PENCEREYİ AÇ ---
     redirectToSettings: function() {
-        const settingsBtn = document.querySelector(".nav-item:last-child"); 
+        const settingsBtn = document.querySelector('.nav-item:last-child');
         if (typeof switchPage === 'function') switchPage('settings', settingsBtn || null);
-
         setTimeout(() => {
             if (typeof openPremiumModal === 'function') {
                 openPremiumModal();
             } else {
                 const modal = document.getElementById('premiumModalOverlay');
-                if(modal) {
-                    modal.style.display = 'flex';
-                    setTimeout(() => modal.classList.add('active'), 10);
-                }
+                if (modal) { modal.style.display = 'flex'; setTimeout(() => modal.classList.add('active'), 10); }
             }
         }, 300);
     },
 
-    // --- ÖDEME İŞLEMİ (MERKEZİ) ---
+    /* ── ÖDEME & AKTİVASYON ─────────────────────────────── */
     processPayment: function() {
-        // ÇİFT GÜVENLİK KONTROLÜ: Ödeme yapabilmek için Google girişi ZORUNLU
-        const user = fbAuth.currentUser;
+        const user = (typeof fbAuth !== 'undefined') ? fbAuth.currentUser : null;
         if (!user) {
-            console.error('[TradeVia] Ödeme engellendi: Kullanıcı giriş yapmamış!');
-            if (typeof showToast === 'function') {
-                showToast('danger', '❌ Ödeme Başarısız', 'Önce Google hesabınızla giriş yapmalısınız!');
-            }
-            alert('⚠️ ÖDEME HATASI\n\nPRO üyelik satın alabilmek için Google hesabınızla giriş yapmanız zorunludur.\n\nGüvenlik nedeniyle anonim kullanıcılar ödeme yapamaz.');
+            if (typeof showToast === 'function') showToast('danger', '❌ Giriş Gerekli', 'Önce Google hesabınızla giriş yapın!');
+            else alert('⚠️ PRO üyelik için Google hesabınızla giriş yapmanız zorunludur.');
             return;
         }
-        
-        // Kullanıcı bilgilerini logla (ödeme takibi için)
-        console.log('[TradeVia] Ödeme başlatıldı:', {
-            uid: user.uid,
-            email: user.email,
-            name: user.displayName,
-            timestamp: new Date().toISOString()
-        });
-        
+        console.log('[TradeVia] Ödeme başlatıldı:', { uid: user.uid, email: user.email, timestamp: new Date().toISOString() });
         if (typeof closePremiumModal === 'function') closePremiumModal();
         const modal = document.getElementById('premiumModalOverlay');
-        if(modal) { modal.classList.remove('active'); setTimeout(() => modal.style.display = 'none', 300); }
-
+        if (modal) { modal.classList.remove('active'); setTimeout(() => modal.style.display = 'none', 300); }
         if (window.Android && window.Android.buyPro) {
-            // Android ödeme sistemi (Google Play)
-            window.Android.buyPro(); 
+            window.Android.buyPro();
         } else {
-            // TEST MODU
-            tvConfirm("🛠️ Test Modu", "Kullanıcı: " + user.email + "\n\nÖdeme başarılı sayılsın mı?").then(function(ok){ if(!ok) return;
+            tvConfirm('🛠️ Test Modu', 'Kullanıcı: ' + user.email + '\n\nÖdeme başarılı sayılsın mı?').then(function(ok) {
+                if (!ok) return;
                 MembershipSystem.activatePro();
             });
         }
     },
-    
+
     activatePro: function() {
         const now = new Date();
         const endDate = new Date();
-        endDate.setDate(now.getDate() + 30); 
+        endDate.setDate(now.getDate() + 30);
         localStorage.setItem('userPlan', 'PRO');
-        localStorage.setItem('proStartDate', now.toISOString()); 
-        localStorage.setItem('proEndDate', endDate.toISOString()); 
+        localStorage.setItem('proStartDate', now.toISOString());
+        localStorage.setItem('proEndDate', endDate.toISOString());
         tvAlert('🎉 Ödeme Başarılı!', 'PRO üyeliğiniz 30 gün boyunca aktif!');
         location.reload();
     },
-    
+
     downgrade: async function() {
-        let ok = await tvConfirm("Üyeliği İptal Et", "Mevcut PRO süreniz dolana kadar özelliklerden yararlanmaya devam edebilirsiniz.");
+        let ok = await tvConfirm('Üyeliği İptal Et', 'Mevcut PRO süreniz dolana kadar özelliklerden yararlanmaya devam edebilirsiniz.');
         if (!ok) return;
         const endDate = localStorage.getItem('proEndDate');
         if (!endDate) { this.setFree(); location.reload(); return; }
@@ -25125,9 +25461,7 @@ const MembershipSystem = {
                 isPro: true, proStartDate: startDate, proEndDate: endDate,
                 proCancelled: true, cancelledAt: new Date().toISOString(),
                 email: user.email, name: user.displayName
-            }, { merge: true }).catch(e => {
-                tvAlert('Uyarı', 'Bulut senkronizasyonunda hata oluştu. İnternet bağlantınızı kontrol edin.');
-            });
+            }, { merge: true }).catch(() => tvAlert('Uyarı', 'Bulut senkronizasyonunda hata oluştu.'));
         } else {
             tvAlert('Uyarı', 'Google hesabınızla giriş yapmadığınız için iptal buluta kaydedilmedi.');
         }
@@ -25141,119 +25475,124 @@ const MembershipSystem = {
         localStorage.setItem('userPlan', 'FREE');
         localStorage.removeItem('proStartDate');
         localStorage.removeItem('proEndDate');
-        tvAlert("Üyelik", "Paketiniz Free'ye düşürüldü.");
+        tvAlert('Üyelik', "Paketiniz Free'ye düşürüldü.");
     },
-    
+
     checkExpiration: function() {
         if (localStorage.getItem('userPlan') !== 'PRO') return;
         const endDateStr = localStorage.getItem('proEndDate');
-        if (!endDateStr) return; 
-        const now = new Date();
-        const endDate = new Date(endDateStr);
-        if (now > endDate) {
-            alert("⚠️ PRO SÜRENİZ DOLDU.");
+        if (!endDateStr) return;
+        if (new Date() > new Date(endDateStr)) {
+            alert('⚠️ PRO SÜRENİZ DOLDU.');
             this.setFree();
             location.reload();
         }
     },
-    
-    // Durumu kontrol et ve UI'ı güncelle (her sayfa yüklendiğinde çağrılmalı)
+
     checkStatus: function() {
         this.checkExpiration();
         this.refreshUI();
         if (typeof updateMembershipUI === 'function') updateMembershipUI();
         if (typeof updateMembershipBtnUI === 'function') updateMembershipBtnUI();
     },
-    
-    // --- GÜNLÜK LİMİT KONTROLÜ (3 HAK) ---
+
+    /* ── LİMİT KONTROL YARDIMCIları ─────────────────────── */
+
+    // Günlük limit (her gün sıfırlanır)
     checkUsageLimit: function(featureName, maxLimit, title) {
-        if (this.isPro()) return true; // Pro ise limit yok
-        
+        if (this.isPro()) return true;
         let today = new Date().toLocaleDateString();
         let key = 'limit_' + featureName;
         let usage = JSON.parse(localStorage.getItem(key)) || { date: today, count: 0 };
-        
-        // Gün değiştiyse sıfırla
-        if (usage.date !== today) { usage = { date: today, count: 0 }; localStorage.setItem(key, JSON.stringify(usage)); }
-        
-        // LİMİT DOLDU MU? (3 HAK)
+        if (usage.date !== today) { usage = { date: today, count: 0 }; }
         if (usage.count >= maxLimit) {
-            tvAlert("🔒 Günlük Limit Doldu", `Free pakette "${title}" özelliğini günde ${maxLimit} kez kullanabilirsin. Devam etmek için PRO'ya yükselt.`);
-            this.showUpsell(); // Ayarlara yönlendir
+            tvAlert('🔒 Günlük Limit Doldu', 'Free pakette "' + title + '" özelliğini günde ' + maxLimit + ' kez kullanabilirsin.');
+            this.showUpsell();
             return false;
         }
-        
-        // Kullanımı artır ve devam et
-        usage.count++; 
-        localStorage.setItem(key, JSON.stringify(usage)); 
+        usage.count++;
+        localStorage.setItem(key, JSON.stringify(usage));
         return true;
     },
 
+    // Kalıcı limit (hiç sıfırlanmaz)
+    checkPermanentLimit: function(featureName, maxLimit, title) {
+        if (this.isPro()) return true;
+        let key = 'perm_limit_' + featureName;
+        let count = parseInt(localStorage.getItem(key)) || 0;
+        if (count >= maxLimit) {
+            if (typeof showToast === 'function') showToast('warn', '🔒 Kullanım Hakkın Doldu', 'Free pakette ' + maxLimit + ' hak. PRO\'ya geç →');
+            else tvAlert('🔒 Kullanım Hakkın Doldu', 'Free pakette "' + title + '" için toplam ' + maxLimit + ' hak.');
+            this.showUpsell();
+            return false;
+        }
+        localStorage.setItem(key, String(count + 1));
+        return true;
+    },
+
+    /* ── UI GÜNCELLEME ───────────────────────────────────── */
     refreshUI: function() {
         const isPro = this.isPro();
         const isCancelled = localStorage.getItem('proCancelled') === 'true';
-        
+
+        // Profil fotoğrafı çerçevesi
         let img = document.getElementById('menuProfileImg');
-        if(img) {
+        if (img) {
             img.classList.remove('profile-frame-free', 'profile-frame-pro');
             img.classList.add(isPro ? 'profile-frame-pro' : 'profile-frame-free');
         }
 
-        // Profil hero kartını PRO altın sarısı yap
+        // Profil hero PRO altın
         let profileHero = document.querySelector('#page-settings .ps-profile-hero');
-        if(profileHero) {
-            if(isPro) profileHero.classList.add('pro-gold');
-            else profileHero.classList.remove('pro-gold');
+        if (profileHero) {
+            isPro ? profileHero.classList.add('pro-gold') : profileHero.classList.remove('pro-gold');
         }
 
+        // Üyelik rozeti
         let badge = document.querySelector('.pbc-badge');
-        if(badge) {
-            if(isPro) {
+        if (badge) {
+            if (isPro) {
                 badge.innerHTML = '<i class="fas fa-crown"></i> PRO ÜYE';
-                badge.style.background = 'linear-gradient(45deg, #f59e0b, #d97706)'; badge.style.color = '#000';
+                badge.style.background = 'linear-gradient(45deg, #f59e0b, #d97706)';
+                badge.style.color = '#000';
             } else {
                 badge.innerHTML = '<i class="fas fa-user"></i> FREE ÜYE';
-                badge.style.background = '#334155'; badge.style.color = '#94a3b8';
+                badge.style.background = '#334155';
+                badge.style.color = '#94a3b8';
             }
         }
 
+        // Upgrade / Downgrade butonları
         let btnUp = document.getElementById('btnUpgrade');
         let btnDown = document.getElementById('btnDowngrade');
-        
-        // PRO ise upgrade butonu gizle, downgrade butonu göster
-        // Ama iptal edilmişse downgrade butonunu da gizle
-        if(btnUp) btnUp.style.display = isPro ? 'none' : 'flex';
-        if(btnDown) {
+        if (btnUp) { btnUp.style.display = isPro ? 'none' : 'flex'; btnUp.onclick = () => this.processPayment(); }
+        if (btnDown) {
             if (isPro && !isCancelled) {
                 btnDown.style.display = 'block';
                 btnDown.innerHTML = '<i class="fas fa-times-circle"></i> Üyeliği İptal Et';
+                btnDown.onclick = () => this.downgrade();
             } else if (isPro && isCancelled) {
-                // İptal edilmiş ama süre devam ediyor - yeniden aktifleştirme butonu göster
                 btnDown.style.display = 'block';
                 btnDown.innerHTML = '<i class="fas fa-redo"></i> Yeniden Aktifleştir';
                 btnDown.onclick = () => {
-                    tvConfirm('PRO Yenile', 'PRO üyeliğinizi yeniden aktifleştirmek istiyor musunuz?').then(function(ok){ if(!ok) return;
+                    tvConfirm('PRO Yenile', 'PRO üyeliğinizi yeniden aktifleştirmek istiyor musunuz?').then(function(ok) {
+                        if (!ok) return;
                         localStorage.removeItem('proCancelled');
-                        const user = fbAuth.currentUser;
-                        if (user) {
-                            fbDb.collection('users').doc(user.uid).set({
-                                proCancelled: false
-                            }, { merge: true }).catch(e => console.warn('Reactivate sync error:', e));
-                        }
+                        const user = (typeof fbAuth !== 'undefined') ? fbAuth.currentUser : null;
+                        if (user) fbDb.collection('users').doc(user.uid).set({ proCancelled: false }, { merge: true }).catch(() => {});
                         tvAlert('✅ Yeniden Aktifleştirildi', 'PRO üyeliğiniz otomatik yenilenmeye devam edecektir.');
                         if (typeof updateMembershipUI === 'function') updateMembershipUI();
-                        if (this.refreshUI) this.refreshUI();
+                        MembershipSystem.refreshUI();
                     });
                 };
             } else {
                 btnDown.style.display = 'none';
             }
         }
-        
-        if(btnUp) btnUp.onclick = () => this.processPayment();
 
+        // Plan durum kartı
         let statusContainer = document.getElementById('planStatusText');
-        if(statusContainer) {
+        if (statusContainer) {
             if (!isPro) {
                 statusContainer.innerHTML = `
                     <div class="membership-card card-free">
@@ -25262,190 +25601,159 @@ const MembershipSystem = {
                         <div class="mc-progress-bg"><div class="mc-progress-fill" style="width:0%"></div></div>
                     </div>`;
             } else {
-                const start = new Date(localStorage.getItem('proStartDate'));
                 const end = new Date(localStorage.getItem('proEndDate'));
-                const formatDate = (d) => d.toLocaleDateString('tr-TR');
-                const now = new Date();
-                const diffTime = Math.abs(end - now);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-                let percent = ((30 - diffDays) / 30) * 100;
-                if(percent > 100) percent = 100; if(percent < 0) percent = 0;
-
-                let cancelledBadge = '';
-                if (isCancelled) {
-                    cancelledBadge = '<div style="margin-top:8px; padding:6px 10px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); border-radius:8px; font-size:10px; color:#ef4444;"><i class="fas fa-info-circle"></i> İptal Edildi - Süre bitene kadar aktif</div>';
-                }
-
+                const diffDays = Math.max(0, Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24)));
+                let percent = Math.min(100, Math.max(0, ((30 - diffDays) / 30) * 100));
+                let cancelledBadge = isCancelled ? '<div style="margin-top:8px;padding:6px 10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:8px;font-size:10px;color:#ef4444;"><i class="fas fa-info-circle"></i> İptal Edildi - Süre bitene kadar aktif</div>' : '';
                 statusContainer.innerHTML = `
                     <div class="membership-card card-pro">
                         <div class="mc-header"><div class="mc-title"><i class="fas fa-crown"></i> PRO MEMBER</div><div class="mc-badge badge-pro">PREMIUM</div></div>
-                        <div class="mc-dates">
-                            <div style="margin-top:8px; font-size:13px; font-weight:bold; color:#fbbf24;">Kalan: ${diffDays} Gün</div>
-                        </div>
+                        <div class="mc-dates"><div style="margin-top:8px;font-size:13px;font-weight:bold;color:#fbbf24;">Kalan: ${diffDays} Gün</div></div>
                         <div class="mc-progress-bg"><div class="mc-progress-fill" style="width:${100 - percent}%"></div></div>
                         ${cancelledBadge}
                     </div>`;
             }
         }
-    },
-
-    // --- KALICI LİMİT KONTROLÜ (Toplam hak - sıfırlanmaz) ---
-    checkPermanentLimit: function(featureName, maxLimit, title) {
-        if (this.isPro()) return true;
-        let key = 'perm_limit_' + featureName;
-        let count = parseInt(localStorage.getItem(key)) || 0;
-        if (count >= maxLimit) {
-            if (typeof showToast === 'function') { showToast('warn', '🔒 Kullanım Hakkın Doldu', 'Free pakette ' + maxLimit + ' hak. PRO\'ya geç →'); } else { tvAlert('🔒 Kullanım Hakkın Doldu', 'Free pakette "' + title + '" için toplam ' + maxLimit + ' hak.'); }
-            this.showUpsell();
-            return false;
-        }
-        count++;
-        localStorage.setItem(key, count.toString());
-        return true;
     }
 };
 
 window.onPaymentSuccess = function() { MembershipSystem.activatePro(); };
 
-/* --- 1. PSİKOLOJİ KİLİDİ --- */
+
+/* ================================================================
+   ÖZELLİK KİLİTLERİ  —  Her özellik kendi başlığı altında
+   NOT: Backend'e geçişte bu bloklar silinip API kontrolü gelecek
+   ================================================================ */
+
+/* ── 1. PSİKOLOJİ ANALİZİ  [ FREE: ✗ | PRO: ✓ ] ─────────── */
 if (!window.original_switchAnTab) window.original_switchAnTab = window.switchAnTab;
 window.switchAnTab = function(tabName, btn) {
     if (tabName === 'psycho' && !MembershipSystem.isPro()) {
-        MembershipSystem.showUpsell(); // Yönlendir
-        return; 
+        MembershipSystem.showUpsell();
+        return;
     }
-    if(typeof window.original_switchAnTab === 'function') window.original_switchAnTab(tabName, btn);
+    if (typeof window.original_switchAnTab === 'function') window.original_switchAnTab(tabName, btn);
 };
 
-/* --- 2. ZAMAN MAKİNESİ (3 HAK KURALI) --- */
+/* ── 2. ZAMAN MAKİNESİ  [ FREE: 3/gün | PRO: Sınırsız ] ─── */
 if (!window.original_runStatisticalAnalysis) window.original_runStatisticalAnalysis = window.runStatisticalAnalysis;
 window.runStatisticalAnalysis = async function() {
     let symbolInput = document.getElementById('statSymbol');
-    if (!symbolInput || !symbolInput.value || symbolInput.value.trim() === "") { alert("⚠️ Lütfen sembol girin."); return; }
-    
-    // BURASI 3 HAKKI KONTROL EDER
-    // 3'ten az ise izin verir, 3 dolunca Ayarlara yönlendirir.
-    if (!MembershipSystem.checkUsageLimit('timeMachine', 3, 'Zaman Makinesi')) return; 
-    
-    if(typeof window.original_runStatisticalAnalysis === 'function') await window.original_runStatisticalAnalysis();
+    if (!symbolInput || !symbolInput.value.trim()) { alert('⚠️ Lütfen sembol girin.'); return; }
+    if (!MembershipSystem.checkUsageLimit('timeMachine', 3, 'Zaman Makinesi')) return;
+    if (typeof window.original_runStatisticalAnalysis === 'function') await window.original_runStatisticalAnalysis();
 };
 
-/* --- 3. TRADER KARNESİ (TAM KİLİT) --- */
+/* ── 3. TRADER KARNESİ  [ FREE: ✗ | PRO: ✓ ] ──────────── */
 if (!window.original_calculateTraderScore) window.original_calculateTraderScore = window.calculateTraderScore;
 window.calculateTraderScore = function() {
     if (!MembershipSystem.isPro()) {
-        let scoreEl = document.getElementById('pfScore'); 
+        let scoreEl = document.getElementById('pfScore');
         if (scoreEl && scoreEl.closest('.dash-card')) {
             let card = scoreEl.closest('.dash-card');
             card.style.position = 'relative';
             if (card.querySelector('.pro-lock-overlay')) card.querySelector('.pro-lock-overlay').remove();
             let overlay = document.createElement('div');
             overlay.className = 'pro-lock-overlay';
-            overlay.style.cssText = `position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 16px; text-align: center; border:1px solid rgba(255,255,255,0.1); opacity: 1 !important;`;
-            overlay.innerHTML = `<div style="margin-bottom:15px;"><i class="fas fa-lock" style="font-size:28px; color:#f59e0b;"></i></div><div style="color:white; font-weight:800; font-size:16px; margin-bottom:8px;">KARNE KİLİTLİ</div>
-            <button onclick="MembershipSystem.showUpsell()" style="background: linear-gradient(90deg, #f59e0b, #d97706); color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 700; cursor: pointer;">PRO OL</button>`;
+            overlay.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;background:#0f172a;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:16px;text-align:center;border:1px solid rgba(255,255,255,0.1);';
+            overlay.innerHTML = '<div style="margin-bottom:15px;"><i class="fas fa-lock" style="font-size:28px;color:#f59e0b;"></i></div><div style="color:white;font-weight:800;font-size:16px;margin-bottom:8px;">KARNE KİLİTLİ</div><button onclick="MembershipSystem.showUpsell()" style="background:linear-gradient(90deg,#f59e0b,#d97706);color:white;border:none;padding:10px 25px;border-radius:20px;font-weight:700;cursor:pointer;">PRO OL</button>';
             card.appendChild(overlay);
         }
-        return; 
+        return;
     }
-    if(typeof window.original_calculateTraderScore === 'function') window.original_calculateTraderScore();
-    let locks = document.querySelectorAll('.pro-lock-overlay'); locks.forEach(l => l.remove());
+    if (typeof window.original_calculateTraderScore === 'function') window.original_calculateTraderScore();
+    document.querySelectorAll('.pro-lock-overlay').forEach(l => l.remove());
 };
 
-/* --- 4. MALİYET SİHİRBAZI (VERİ GİZLEME) --- */
+/* ── 4. MALİYET SİHİRBAZI – Veri Görüntüleme  [ FREE: Gizli | PRO: ✓ ] ── */
 if (!window.original_populateAdvAvgAssets) window.original_populateAdvAvgAssets = window.populateAdvAvgAssets;
 window.populateAdvAvgAssets = function() {
     const select = document.getElementById('advAvgSelect');
-    if(!select) return;
+    if (!select) return;
     select.innerHTML = '<option value="-1">Manuel Giriş Yap / Seçiniz</option>';
     let assets = JSON.parse(localStorage.getItem('myPF_final')) || [];
     assets.forEach((a, i) => {
-        let text = ""; let symbol = a.name || "Bilinmeyen"; 
-        
-        // SADECE PRO İSE FİYATI GÖSTER
-        if (MembershipSystem.isPro()) { 
-            let cost = parseFloat(a.buy); if(isNaN(cost)) cost = 0;
-            let sym = a.origin === 'USD' ? '$' : '₺'; 
-            text = `${symbol} (Ort: ${cost.toFixed(2)} ${sym})`; 
-        } else { 
-            // PRO DEĞİLSE FİYATI GİZLE
-            text = `${symbol} (🔒 Kilitli Veri)`; 
-        }
-        select.innerHTML += `<option value="${i}">${text}</option>`;
+        let symbol = a.name || 'Bilinmeyen';
+        let text = MembershipSystem.isPro()
+            ? symbol + ' (Ort: ' + (parseFloat(a.buy) || 0).toFixed(2) + ' ' + (a.origin === 'USD' ? '$' : '₺') + ')'
+            : symbol + ' (🔒 Kilitli Veri)';
+        select.innerHTML += '<option value="' + i + '">' + text + '</option>';
     });
 };
 
-/* --- 5. MALİYET SİHİRBAZI (AUTO-FILL ENGELLEME) --- */
+/* ── 5. MALİYET SİHİRBAZI – Auto-Fill  [ FREE: ✗ | PRO: ✓ ] ── */
 if (!window.original_fillAdvAvgData) window.original_fillAdvAvgData = window.fillAdvAvgData;
 window.fillAdvAvgData = function(avg, amount, price) {
-    // Pro değilse engelle ve yönlendir
-    if (MembershipSystem.isPro()) { 
-        if(typeof window.original_fillAdvAvgData === 'function') window.original_fillAdvAvgData(avg, amount, price); 
-        return; 
-    }
-    
-    // Pro değilse:
-    MembershipSystem.showUpsell(); // Yönlendir
-    
-    // Inputları temizle ki kullanamasın
-    if(document.getElementById('aaCurrentCost')) document.getElementById('aaCurrentCost').value = "";
-    if(document.getElementById('aaCurrentAmount')) document.getElementById('aaCurrentAmount').value = "";
-    if(document.getElementById('aaOldQty')) document.getElementById('aaOldQty').value = "";
-    if(document.getElementById('aaOldPrice')) document.getElementById('aaOldPrice').value = "";
-    let sel = document.getElementById('advAvgSelect'); if(sel) sel.value = "-1";
-};
-
-/* --- 6. ÇOKLU CÜZDAN (TAM KİLİT - FREE HİÇ GİREMEZ) --- */
-if (!window.original_openPortfolioModal) window.original_openPortfolioModal = window.openPortfolioModal;
-window.openPortfolioModal = function() {
     if (!MembershipSystem.isPro()) {
         MembershipSystem.showUpsell();
+        ['aaCurrentCost','aaCurrentAmount','aaOldQty','aaOldPrice'].forEach(id => { let el = document.getElementById(id); if(el) el.value = ''; });
+        let sel = document.getElementById('advAvgSelect'); if (sel) sel.value = '-1';
         return;
     }
-    if(typeof window.original_openPortfolioModal === 'function') window.original_openPortfolioModal();
+    if (typeof window.original_fillAdvAvgData === 'function') window.original_fillAdvAvgData(avg, amount, price);
 };
 
-/* --- 7. İNDİKATÖR ALARM (RSI) - FREE: TOPLAM 1 HAK (KALICI), PRO: SINIRSIZ --- */
+/* ── 6. ÇOKLU CÜZDAN  [ FREE: 2 cüzdan | PRO: Sınırsız ] ── */
+if (!window.original_openPortfolioModal) window.original_openPortfolioModal = window.openPortfolioModal;
+window.openPortfolioModal = function() {
+    // FREE kullanıcı portföy modalını açabilir ama max 2 cüzdan oluşturabilir
+    // Limit kontrolü MultiPortfolio.create() içinde yapılıyor
+    if (typeof window.original_openPortfolioModal === 'function') window.original_openPortfolioModal();
+};
+
+// MultiPortfolio.create()'e FREE limiti entegre et
+(function() {
+    var _originalCreate = MultiPortfolio.create.bind(MultiPortfolio);
+    MultiPortfolio.create = function() {
+        if (!MembershipSystem.isPro()) {
+            var db = JSON.parse(localStorage.getItem('tm_all_portfolios')) || { list: {} };
+            var walletCount = Object.keys(db.list || {}).length;
+            // FREE: maksimum 2 cüzdan (Ana Cüzdan + 1 ekstra)
+            if (walletCount >= 2) {
+                tvAlert('🔒 Cüzdan Limiti', 'Free pakette en fazla 2 cüzdan oluşturabilirsiniz (Ana Cüzdan + 1 ekstra). Sınırsız cüzdan için PRO\'ya geçin.');
+                MembershipSystem.showUpsell();
+                return;
+            }
+        }
+        _originalCreate();
+    };
+})();
+
+/* ── 7. İNDİKATÖR ALARM (RSI)  [ FREE: 1 aktif | PRO: Sınırsız ] ── */
 if (!window.original_saveAlarm) window.original_saveAlarm = window.saveAlarm;
 window.saveAlarm = function(type) {
     if (type === 'RSI' && !MembershipSystem.isPro()) {
-        // Mevcut aktif RSI alarmlarını say (sayaç yerine gerçek veri)
-        var currentAlarms = JSON.parse(localStorage.getItem('tradeVia_alarms')) || [];
-        var activeRSICount = currentAlarms.filter(function(a) { return a.type === 'RSI' && a.active; }).length;
-        if (activeRSICount >= 1) {
-            if (typeof showToast === 'function') {
-                showToast("warn", "🔒 Kullanım Hakkın Doldu", "Free'de 1 AI Trend alarmı hakkın var. PRO'ya geç →");
-            } else {
-                tvAlert("🔒 Kullanım Hakkın Doldu", "Free pakette İndikatör Alarm için toplam 1 hak verildi. Sınırsız kullanım için PRO'ya yükselt.");
-            }
-            if (typeof MembershipSystem !== 'undefined') MembershipSystem.showUpsell();
+        var alarms = JSON.parse(localStorage.getItem('tradeVia_alarms')) || [];
+        var activeRSI = alarms.filter(function(a) { return a.type === 'RSI' && a.active; }).length;
+        if (activeRSI >= 1) {
+            if (typeof showToast === 'function') showToast('warn', '🔒 Limit Doldu', "Free'de 1 RSI alarmı hakkın var. PRO'ya geç →");
+            else tvAlert('🔒 Kullanım Hakkın Doldu', 'Free pakette 1 aktif RSI alarmı hakkı vardır.');
+            MembershipSystem.showUpsell();
             return;
         }
     }
-    if(typeof window.original_saveAlarm === 'function') window.original_saveAlarm(type);
+    if (typeof window.original_saveAlarm === 'function') window.original_saveAlarm(type);
 };
 
-// removeAlarm artık tek fonksiyonda birleştirildi — RSI hakkı orada iade ediliyor
-
-/* --- 8. AI KURTARICI - FREE: GÜNDE 1 HAK, PRO: SINIRSIZ --- */
+/* ── 8. AI KURTARICI  [ FREE: 1/gün | PRO: Sınırsız ] ────── */
 if (!window.original_runDeepDiveAnalysis) window.original_runDeepDiveAnalysis = window.runDeepDiveAnalysis;
 window.runDeepDiveAnalysis = async function() {
     if (!MembershipSystem.isPro()) {
         if (!MembershipSystem.checkUsageLimit('aiRescue', 1, 'AI Kurtarıcı')) return;
     }
-    if(typeof window.original_runDeepDiveAnalysis === 'function') await window.original_runDeepDiveAnalysis();
+    if (typeof window.original_runDeepDiveAnalysis === 'function') await window.original_runDeepDiveAnalysis();
 };
 
-/* BAŞLATICI */
-document.addEventListener("DOMContentLoaded", () => {
+
+/* ================================================================
+   BAŞLATICI — Sayfa yüklenince tüm sistemi devreye al
+   ================================================================ */
+document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         MembershipSystem.refreshUI();
-        if(typeof window.calculateTraderScore === 'function') window.calculateTraderScore(); 
-        if(typeof window.populateAdvAvgAssets === 'function') window.populateAdvAvgAssets();
-        
-        if(typeof window.calcPsychoAnalysis === 'function') {
-            window.calcPsychoAnalysis();
-        }
+        if (typeof window.calculateTraderScore === 'function') window.calculateTraderScore();
+        if (typeof window.populateAdvAvgAssets === 'function') window.populateAdvAvgAssets();
+        if (typeof window.calcPsychoAnalysis === 'function') window.calcPsychoAnalysis();
     }, 500);
 });
 
@@ -27105,11 +27413,12 @@ function startSocialNotifListener(uid) {
 
     _socialNotifUnsub = fbDb.collection('notifications')
         .where('recipientId', '==', uid)
-        .where('read', '==', false)
         .onSnapshot(function(snap) {
             snap.docChanges().forEach(function(change) {
                 if (change.type !== 'added') return;
                 var d = change.doc.data();
+                // Okunmuş bildirimleri kod tarafında filtrele (composite index gerekmeden)
+                if (d.read === true) return;
                 
                 // Listener başlamadan önce yazılmış eski bildirimleri atla
                 var ts = d.createdAt
@@ -27661,26 +27970,26 @@ function handleProUpgrade() {
 }
 
 // PRO durumunu Firestore'a kaydet (activatePro çağrıldığında)
-const _origActivatePro = MembershipSystem.activatePro;
-MembershipSystem.activatePro = function() {
-    _origActivatePro.call(this);
-    
-    // İptal bayrağını temizle (yeni satın alma)
-    localStorage.removeItem('proCancelled');
-    
-    // Firestore'a da kaydet
-    const user = fbAuth.currentUser;
-    if (user) {
-        fbDb.collection('users').doc(user.uid).set({
-            isPro: true,
-            proStartDate: new Date().toISOString(),
-            proEndDate: localStorage.getItem('proEndDate'),
-            proCancelled: false, // Yeni üyelik, iptal yok
-            email: user.email,
-            name: user.displayName
-        }, { merge: true }).catch(e => console.warn('Pro sync error:', e));
-    }
-};
+// activatePro — Firestore senkronizasyonu dahil (MembershipSystem içinde zaten tanımlı)
+// Ek Firestore kaydı:
+(function() {
+    var _base = MembershipSystem.activatePro.bind(MembershipSystem);
+    MembershipSystem.activatePro = function() {
+        _base();
+        localStorage.removeItem('proCancelled');
+        var user = (typeof fbAuth !== 'undefined') ? fbAuth.currentUser : null;
+        if (user) {
+            fbDb.collection('users').doc(user.uid).set({
+                isPro: true,
+                proStartDate: new Date().toISOString(),
+                proEndDate: localStorage.getItem('proEndDate'),
+                proCancelled: false,
+                email: user.email,
+                name: user.displayName
+            }, { merge: true }).catch(function(e) { console.warn('Pro sync error:', e); });
+        }
+    };
+})();
 
 // PRO durumunu Firestore'dan oku ve senkronize et
 async function syncProStatus(uid) {
