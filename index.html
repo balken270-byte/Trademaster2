@@ -98,18 +98,20 @@ body {
             left: 0 !important;
             right: 0 !important;
             width: 100%;
-            /* iOS home indicator boşluğunu içine al */
-            height: calc(70px + env(safe-area-inset-bottom, 0px));
+            /* Sadece padding ile safe area ekle, height sabit */
+            height: auto;
+            min-height: 60px;
             box-sizing: border-box;
-            background: rgba(21, 27, 43, 0.95);
+            background: rgba(21, 27, 43, 0.98);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border-top: 1px solid rgba(255, 255, 255, 0.05);
             display: flex;
             justify-content: space-around;
-            /* İkonlar üstte hizalanır, safe area altında boşluk olur */
-            align-items: flex-start;
-            padding-bottom: env(safe-area-inset-bottom, 0px);
+            align-items: center;
+            padding-top: 8px;
+            /* Safe area sadece padding olarak - çift sayılmaz */
+            padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
             z-index: 99999;
             margin: 0;
         }
@@ -634,7 +636,7 @@ body {
         @keyframes bounce { 0%{transform:scale(0);} 50%{transform:scale(1.2);} 100%{transform:scale(1);} }
 
         .content-area { flex: 1; overflow: hidden; position: relative; -webkit-overflow-scrolling: touch; }
-        .page { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 15px; padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
+        .page { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 15px; padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
         .page.active { display: flex; z-index: 10; }
 
         /* GENEL BİLEŞENLER */
@@ -2298,36 +2300,60 @@ body {
 .md-change-pill { font-size: 14px; font-weight: 700; padding: 4px 12px; border-radius: 12px; display: inline-block; }
 
 /* Sekmeler */
-/* ===== FLAT CAROUSEL TAB BAR ===== */
+/* ===== FROSTED GLASS + KAYAN SLIDER TAB BAR ===== */
 .md-tabs {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
-    /* Grid yerine flex - tüm sekmeler eşit genişlikte, sığmazsa scroll */
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
     scrollbar-width: none;
-    margin-bottom: 0;
+    margin: 6px 10px 10px 10px;
     border-bottom: none;
     gap: 0;
     position: relative;
-    background: rgba(0,0,0,0.12);
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    padding: 0 4px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 16px;
+    padding: 3px;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.06),
+        inset 0 -1px 0 rgba(0,0,0,0.3),
+        0 4px 20px rgba(0,0,0,0.4);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
 }
 .md-tabs::-webkit-scrollbar { display: none; }
 
+/* Kayan slider (iOS tarzı) */
+.md-tabs-slider {
+    position: absolute;
+    top: 3px; bottom: 3px;
+    border-radius: 13px;
+    background: rgba(255,255,255,0.10);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    box-shadow:
+        0 1px 0 rgba(255,255,255,0.18) inset,
+        0 -1px 0 rgba(0,0,0,0.2) inset,
+        0 4px 16px rgba(0,0,0,0.35),
+        0 0 0 1px rgba(255,255,255,0.10);
+    transition: left 0.3s cubic-bezier(0.34,1.15,0.64,1),
+                width 0.3s cubic-bezier(0.34,1.15,0.64,1);
+    pointer-events: none;
+    z-index: 0;
+}
+
 .md-tab {
-    flex: 1 0 0;          /* Eşit genişlik - hepsi aynı boyut */
-    min-width: 52px;
-    padding: 9px 4px 8px;
+    flex: 1 0 0;
+    min-width: 48px;
+    padding: 8px 4px 7px;
     font-size: 9px;
     font-weight: 700;
-    color: rgba(255,255,255,0.32);   /* Pasif: soluk */
+    color: rgba(255,255,255,0.25);
     cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: color 0.2s, opacity 0.2s, background 0.2s;
+    transition: color 0.25s;
     white-space: nowrap;
     text-align: center;
     display: flex;
@@ -2335,26 +2361,36 @@ body {
     align-items: center;
     gap: 3px;
     letter-spacing: 0;
-    opacity: 0.5;          /* Pasif: yarı saydam */
-    border-radius: 0;
+    border-radius: 13px;
+    position: relative;
+    z-index: 1;
+    -webkit-tap-highlight-color: transparent;
 }
-.md-tab .tab-icon { 
-    font-size: 15px; 
-    line-height: 1; 
-    display:block; 
+.md-tab .tab-icon {
+    font-size: 14px;
+    line-height: 1;
+    display: block;
+    opacity: 0.38;
+    transition: opacity 0.25s, color 0.25s, transform 0.25s;
 }
-.md-tab .tab-label { 
-    font-size: 7.5px; 
-    font-weight: 700; 
-    letter-spacing: -0.3px; 
+.md-tab .tab-label {
+    font-size: 7.5px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
 }
-
-/* Aktif sekme: tam parlak, altında çizgi */
-.md-tab.active { 
-    color: var(--accent) !important;
-    border-bottom-color: var(--accent) !important;
+.md-tab.active {
+    color: #e8eaf6 !important;
     opacity: 1 !important;
-    background: rgba(99,102,241,0.07);
+}
+.md-tab.active .tab-icon {
+    opacity: 1;
+    color: #c4b5fd;
+    transform: scale(1.08);
+    filter: drop-shadow(0 0 4px rgba(196,181,253,0.6));
+}
+.md-tab:active {
+    transform: scale(0.94);
 }
 
 /* İçerik Alanları */
@@ -11733,9 +11769,14 @@ function openLabFullscreen() {
                 inset 0 -1px 0 rgba(0,0,0,0.4);
         }
         #page-settings .ps-profile-hero.pro-gold {
-            background: linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(180,83,9,0.05) 100%) !important;
+            background: linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(180,83,9,0.05) 50%, rgba(10,18,35,1) 100%) !important;
             border: 1px solid rgba(245,158,11,0.35) !important;
-            box-shadow: 0 6px 24px rgba(245,158,11,0.12) !important;
+            box-shadow:
+                5px 5px 16px rgba(0,0,0,0.75),
+                -2px -2px 8px rgba(255,255,255,0.04),
+                inset 0 1px 0 rgba(255,214,10,0.18),
+                inset 0 -1px 0 rgba(0,0,0,0.5),
+                0 0 28px rgba(245,158,11,0.12) !important;
         }
         #page-settings .ps-profile-hero.pro-gold::before {
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
@@ -13333,9 +13374,10 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
             <div id="mdChangePill" class="md-change-pill">--</div>
         </div>
 
-        <!-- Tabs: flat carousel -->
-        <div style="padding: 0; background: inherit; flex-shrink:0; position:sticky; top:0; z-index:10;">
+        <!-- Tabs: frosted glass + kayan slider -->
+        <div style="padding: 2px 0 0 0; background: var(--bg-card); flex-shrink:0; position:sticky; top:0; z-index:10;">
             <div class="md-tabs" id="mdTabsBar">
+                <div class="md-tabs-slider" id="mdTabSlider"></div>
                 <div class="md-tab active" onclick="switchMdTab('overview', this)">
                     <i class="fas fa-chart-bar tab-icon"></i>
                     <span class="tab-label">GENEL</span>
@@ -14419,7 +14461,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.8"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -18776,6 +18818,7 @@ function switchMdTab(tab, btn) {
     document.getElementById('md-tab-' + tab).classList.add('active');
     document.querySelectorAll('.md-tab').forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
+    updateMdTabSlider(btn);
 
     if (tab === 'news' && typeof currentMdSymbol !== 'undefined' && currentMdSymbol) {
         loadMdNews(currentMdSymbol);
@@ -18785,6 +18828,16 @@ function switchMdTab(tab, btn) {
         initMdSocial(currentMdSymbol);
         loadMdCommunityQuickCard(currentMdSymbol);
     }
+}
+
+function updateMdTabSlider(activeTab) {
+    var slider = document.getElementById('mdTabSlider');
+    if (!slider || !activeTab) return;
+    var bar = document.getElementById('mdTabsBar');
+    var barRect = bar.getBoundingClientRect();
+    var tabRect = activeTab.getBoundingClientRect();
+    slider.style.left = (tabRect.left - barRect.left + bar.scrollLeft) + 'px';
+    slider.style.width = tabRect.width + 'px';
 }
 
 function loadMdCommunityQuickCard(symbol) {
@@ -19531,6 +19584,7 @@ async function openMarketDetail(rawSymbol) {
     else icon.style.color = "var(--text-sub)"; 
     
     switchMdTab('overview', document.querySelectorAll('.md-tab')[0]);
+    setTimeout(function(){ updateMdTabSlider(document.querySelector('.md-tab.active')); }, 80);
     document.getElementById('mdAssetLogo').innerHTML = getAssetLogoHtml(rawSymbol);
 
     let details = { price: 0, change: 0, high: 0, low: 0, vol: 0, vwap: 0 };
@@ -19643,6 +19697,7 @@ async function openMarketDetail(rawSymbol) {
     
     // Sekmeyi 'Genel Bakış'a al
     switchMdTab('overview', document.querySelectorAll('.md-tab')[0]);
+    setTimeout(function(){ updateMdTabSlider(document.querySelector('.md-tab.active')); }, 80);
 
     // Değişkenler
     let details = { price: 0, change: 0, high: 0, low: 0, vol: 0, vwap: 0 };
