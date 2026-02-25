@@ -3,37 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     
     <title>TradeVia (Live Edition)</title>
     
     <!-- PWA -->
     
 <script>
-// iOS PWA Standalone Mod Tespiti - Düzeltilmiş
+// PWA Standalone Mod Tespiti (iOS + Android)
 (function() {
+    var ua = navigator.userAgent;
     var isStandalone = window.navigator.standalone === true ||
-                       window.matchMedia('(display-mode: standalone)').matches;
-    var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                       window.matchMedia('(display-mode: standalone)').matches ||
+                       window.matchMedia('(display-mode: fullscreen)').matches;
+    var isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+    var isAndroid = /Android/.test(ua);
     
-    if (isStandalone) {
-        document.documentElement.classList.add('pwa-standalone');
-    }
-    if (isIOS) {
-        document.documentElement.classList.add('ios-device');
-    }
-    if (isStandalone && isIOS) {
-        document.documentElement.classList.add('ios-pwa');
-    }
+    if (isStandalone) document.documentElement.classList.add('pwa-standalone');
+    if (isIOS) document.documentElement.classList.add('ios-device');
+    if (isAndroid) document.documentElement.classList.add('android-device');
+    if (isStandalone && isIOS) document.documentElement.classList.add('ios-pwa');
+    if (isStandalone && isAndroid) document.documentElement.classList.add('android-pwa');
 })();
 </script>
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="TradeVia">
+    <meta name="theme-color" content="#0b0f19" media="(prefers-color-scheme: dark)">
     <meta name="theme-color" content="#0b0f19">
+    <!-- Android TWA / PWA -->
+    <meta name="mobile-web-app-capable" content="yes">
     
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="/apple-touch-icon.svg">
@@ -80,97 +79,75 @@
     <style>
         /* --- HD GÖRÜNTÜ VE NET YAZILAR --- */
 body {
-    -webkit-font-smoothing: antialiased; /* iOS/Mac için */
-    -moz-osx-font-smoothing: grayscale;  /* Firefox için */
-    text-rendering: optimizeLegibility;  /* Okunabilirlik optimizasyonu */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }
 
-/* ===== iOS PWA ALT BOŞLUK - KALİCİ ÇÖZÜM ===== */
-/* 
-   SORUN: iOS PWA'da (standalone mode) body/html'in yüksekliği
-   bazen home indicator alanını hesaba katmaz ve altta beyaz boşluk oluşur.
-   
-   ANDROİD SORUNU: Gesture navigation bar alanı siyah şerit olarak görünür.
-   
-   ÇÖZÜM: 
-   1. html/body height: 100% (dvh değil - iOS'ta sorun çıkarır)
-   2. bottom-nav GPU layer'a al (translateZ)
-   3. bottom-nav::after ile gesture bar alanını nav rengiyle doldur
-   4. html arka planı #151b2b (nav rengi) olarak ayarla
-*/
+/* ===== iOS & Android PWA LAYOUT - TEMİZ ÇÖZÜM ===== */
 
-/* Android gesture navigation bar siyah şerit için:
-   html arka planı nav bar rengiyle aynı yapılıyor */
+/* 1) HTML root: nav bar rengiyle eşleş, taşmayı engelle */
 html {
     background-color: #0b0f19;
+    overflow: hidden;
+    /* iOS fill-available, diğerleri 100% */
+    height: -webkit-fill-available;
+    height: 100%;
+    overscroll-behavior: none;
 }
 
-html, body {
-    /* iOS bounce scroll'u sadece içerik alanında çalışsın */
+/* 2) Body: tüm ekranı kapla */
+body {
+    height: 100%;
+    height: -webkit-fill-available;
+    overflow: hidden;
     overscroll-behavior: none;
     -webkit-overflow-scrolling: auto;
 }
 
-/* iOS PWA'da ekran tam kapla, boşluk bırakma */
-html {
-    /* safe-area-inset-bottom'ı html padding olarak EKLEME
-       çünkü bottom-nav zaten bunu kendi içinde hallediyor.
-       Burada sadece overflow engelle */
-    overflow: hidden;
-    height: -webkit-fill-available;
-    height: 100%;
-    /* Android gesture bar arka planı nav rengiyle eşleşiyor */
-    background-color: #0b0f19;
-}
-
-/* İçerik sayfalarının bottom padding'i: nav yüksekliği + safe area */
+/* 3) İçerik sayfaları: kaydırılabilir, nav + safe-area kadar alt boşluk */
 .page {
-    /* Bu değer bottom-nav görsel yüksekliğini (≈60px) + safe-area'yı karşılar */
     padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)) !important;
 }
 
-                    .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            width: 100%;
-            height: auto;
-            box-sizing: border-box;
-            background: rgba(11, 15, 25, 0.98);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding-top: 8px;
-            /* safe-area-inset-bottom: iOS home indicator veya Android gesture bar */
-            padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
-            z-index: 99999;
-            margin: 0;
-            /* GPU layer - iOS ve Android icin */
-            -webkit-transform: translateZ(0);
-            transform: translateZ(0);
-            will-change: transform;
-            /* Android gesture bar siyah serit icin: overflow visible olmali */
-            overflow: visible;
-        }
+/* 4) Bottom nav: fixed, GPU layer, safe-area destekli */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    box-sizing: border-box;
+    background: rgba(11, 15, 25, 0.98);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding-top: 8px;
+    /* iOS home indicator + Android gesture bar */
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
+    z-index: 99999;
+    margin: 0;
+    /* GPU katmanı - iOS bounce ve Android gesture için */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    will-change: transform;
+    overflow: visible;
+}
 
-        /* ===== ANDROiD GESTURE BAR SIYAH SERIT COZUMU =====
-           ::after pseudo-element ile bottom-nav arkaplanini
-           gesture navigation bar alanina kadar uzatiyoruz. */
-        .bottom-nav::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
-            height: env(safe-area-inset-bottom, 0px);
-            background: rgba(11, 15, 25, 0.98);
-            pointer-events: none;
-            display: block;
-        }
+/* 5) Android gesture bar siyah şerit çözümü */
+.bottom-nav::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
+    height: env(safe-area-inset-bottom, 0px);
+    background: rgba(11, 15, 25, 0.98);
+    pointer-events: none;
+}
 
         /* ===== SOSYAL ÖZELLİK STİLLERİ - PRO ===== */
         .social-modal-overlay { position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);z-index:99998;display:none;align-items:flex-end;justify-content:center; }
@@ -14524,7 +14501,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.7"; 
+    const CURRENT_VERSION = "1.5"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -14535,13 +14512,10 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem('TradeVia_Version', CURRENT_VERSION);
 
         // 2. Service Worker (PWA) Varsa Önbelleğini Temizle
-        // (Bu sadece eski kod dosyalarını siler, portföy verisini silmez)
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().catch(function(){}).then(function(registrations) {
-                if(!registrations) return;
-                for(let registration of registrations) {
-                    registration.unregister();
-                }
+        // (Bu sadece eski cache dosyalarını siler, SW kaydını iptal etmez)
+        if ('caches' in window) {
+            caches.keys().then(function(names) {
+                names.forEach(function(name) { caches.delete(name); });
             });
         }
 
@@ -14576,19 +14550,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // 3. Konsol Açıldığında Sayfayı Zorlaştırma (Debugger Tuzağı)
-    // Konsol açılırsa tarayıcı sürekli duraklatılır ve kod akışı kesilir.
-    setInterval(function() {
-        const startTime = performance.now();
-        debugger; // Burası konsol açıksa çalışmayı durdurur
-        const endTime = performance.now();
-        
-        // Eğer debugger'da çok vakit geçtiyse konsol açık demektir, sayfayı temizle veya yönlendir
-        if (endTime - startTime > 100) {
-            document.body.innerHTML = "Lütfen Geliştirici Araçlarını Kapatın!";
-            window.location.reload(); 
-        }
-    }, 1000);
+    // 3. Geliştirici araçları koruması
 
     // 4. Konsol Loglarını Temizleme (Console.log'ları siler)
     console.log = function() {};
@@ -14596,24 +14558,7 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error = function() {};
 
 
-/* --- PWA İPTAL VE TEMİZLİK KODU --- */
-if ('serviceWorker' in navigator && location.protocol !== 'null:' && location.origin !== 'null') {
-    // Mevcut tüm Service Worker'ları bul ve hepsini sil (unregister)
-    navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for(let registration of registrations) {
-            registration.unregister().then(function(boolean) {
-                console.log('Eski Service Worker silindi: ' + boolean);
-            });
-        }
-    });
-
-    // Önbellekleri (Cache) temizle
-    caches.keys().then(function(names) {
-        for (let name of names) {
-            caches.delete(name);
-        }
-    });
-}
+/* PWA: Service Worker aktif - silinmez */
 
 
     
@@ -26091,11 +26036,22 @@ document.addEventListener('DOMContentLoaded', () => {
     /* --- 1. SERVICE WORKER KAYDI (PWA ve Bildirim İçin Şart) --- */
     if ('serviceWorker' in navigator && location.origin !== 'null') {
         window.addEventListener('load', function() {
-            navigator.serviceWorker.register('sw.js')
+            navigator.serviceWorker.register('sw.js', { scope: '/' })
             .then(function(registration) {
-                console.log('✅ Service Worker yüklendi:', registration.scope);
-            }, function(err) {
-                console.log('❌ Service Worker hatası:', err);
+                // Yeni sürüm varsa hemen aktifleştir
+                registration.addEventListener('updatefound', function() {
+                    var newWorker = registration.installing;
+                    if (newWorker) {
+                        newWorker.addEventListener('statechange', function() {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                newWorker.postMessage({ type: 'SKIP_WAITING' });
+                            }
+                        });
+                    }
+                });
+            })
+            .catch(function(err) {
+                // SW kaydı başarısız - uygulama yine de çalışır
             });
         });
     }
@@ -27669,13 +27625,19 @@ async function initFCM(uid) {
         const messaging = firebase.messaging();
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') return;
+        // Mevcut SW kaydını kullan (yeniden kayıt etme)
+        let swReg;
+        try {
+            swReg = await navigator.serviceWorker.ready;
+        } catch(e) {
+            swReg = await navigator.serviceWorker.register('./sw.js');
+        }
         const token = await messaging.getToken({
             vapidKey: 'BItUWr6Qk6tgDrb1V1MGPyIGYP9pksfJbNTGsfjETUgIm7ds48SvBK-OQPnHzdRSxewba1Eb6kavwlT5WJ7shNY',
-            serviceWorkerRegistration: await navigator.serviceWorker.register('./sw.js')
+            serviceWorkerRegistration: swReg
         });
         if (token && uid) {
             await fbDb.collection('users').doc(uid).set({ fcmToken: token }, { merge: true });
-            console.log('FCM token kaydedildi');
         }
     } catch(e) {
         console.warn('FCM init hatası:', e);
