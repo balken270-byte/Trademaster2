@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -12,27 +12,20 @@
     <!-- PWA -->
     
 <script>
-// iOS PWA Standalone Mod Tespiti
+// iOS PWA Standalone Mod Tespiti - Düzeltilmiş
 (function() {
     var isStandalone = window.navigator.standalone === true ||
                        window.matchMedia('(display-mode: standalone)').matches;
+    var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     
     if (isStandalone) {
         document.documentElement.classList.add('pwa-standalone');
-        
-        // CSS değişkenleri ile dinamik safe area
-        var updateSafeAreas = function() {
-            var st = parseInt(getComputedStyle(document.documentElement)
-                .getPropertyValue('--sat') || '0');
-            var sb = parseInt(getComputedStyle(document.documentElement)
-                .getPropertyValue('--sab') || '0');
-            document.documentElement.style.setProperty(
-                '--pwa-top', 'env(safe-area-inset-top, 44px)');
-            document.documentElement.style.setProperty(
-                '--pwa-bottom', 'env(safe-area-inset-bottom, 34px)');
-        };
-        updateSafeAreas();
-        window.addEventListener('resize', updateSafeAreas);
+    }
+    if (isIOS) {
+        document.documentElement.classList.add('ios-device');
+    }
+    if (isStandalone && isIOS) {
+        document.documentElement.classList.add('ios-pwa');
     }
 })();
 </script>
@@ -40,7 +33,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="TradeVia">
-    <meta name="theme-color" content="#0b0f19">
+    <meta name="theme-color" content="#151b2b">
     
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="/apple-touch-icon.svg">
@@ -92,15 +85,57 @@ body {
     text-rendering: optimizeLegibility;  /* Okunabilirlik optimizasyonu */
 }
 
+/* ===== iOS PWA ALT BOŞLUK - KALİCİ ÇÖZÜM ===== */
+/* 
+   SORUN: iOS PWA'da (standalone mode) body/html'in yüksekliği
+   bazen home indicator alanını hesaba katmaz ve altta beyaz boşluk oluşur.
+   
+   ANDROİD SORUNU: Gesture navigation bar alanı siyah şerit olarak görünür.
+   
+   ÇÖZÜM: 
+   1. html/body height: 100% (dvh değil - iOS'ta sorun çıkarır)
+   2. bottom-nav GPU layer'a al (translateZ)
+   3. bottom-nav::after ile gesture bar alanını nav rengiyle doldur
+   4. html arka planı #151b2b (nav rengi) olarak ayarla
+*/
+
+/* Android gesture navigation bar siyah şerit için:
+   html arka planı nav bar rengiyle aynı yapılıyor */
+html {
+    background-color: #151b2b;
+}
+
+html, body {
+    /* iOS bounce scroll'u sadece içerik alanında çalışsın */
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: auto;
+}
+
+/* iOS PWA'da ekran tam kapla, boşluk bırakma */
+html {
+    /* safe-area-inset-bottom'ı html padding olarak EKLEME
+       çünkü bottom-nav zaten bunu kendi içinde hallediyor.
+       Burada sadece overflow engelle */
+    overflow: hidden;
+    height: -webkit-fill-available;
+    height: 100%;
+    /* Android gesture bar arka planı nav rengiyle eşleşiyor */
+    background-color: #151b2b;
+}
+
+/* İçerik sayfalarının bottom padding'i: nav yüksekliği + safe area */
+.page {
+    /* Bu değer bottom-nav görsel yüksekliğini (≈60px) + safe-area'yı karşılar */
+    padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
                     .bottom-nav {
             position: fixed;
-            bottom: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
+            bottom: 0;
+            left: 0;
+            right: 0;
             width: 100%;
-            /* Sadece padding ile safe area ekle, height sabit */
             height: auto;
-            min-height: 60px;
             box-sizing: border-box;
             background: rgba(21, 27, 43, 0.98);
             backdrop-filter: blur(10px);
@@ -110,10 +145,31 @@ body {
             justify-content: space-around;
             align-items: center;
             padding-top: 8px;
-            /* Safe area sadece padding olarak - çift sayılmaz */
+            /* safe-area-inset-bottom: iOS home indicator veya Android gesture bar */
             padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
             z-index: 99999;
             margin: 0;
+            /* GPU layer - iOS ve Android icin */
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            will-change: transform;
+            /* Android gesture bar siyah serit icin: overflow visible olmali */
+            overflow: visible;
+        }
+
+        /* ===== ANDROiD GESTURE BAR SIYAH SERIT COZUMU =====
+           ::after pseudo-element ile bottom-nav arkaplanini
+           gesture navigation bar alanina kadar uzatiyoruz. */
+        .bottom-nav::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
+            height: env(safe-area-inset-bottom, 0px);
+            background: rgba(21, 27, 43, 0.98);
+            pointer-events: none;
+            display: block;
         }
 
         /* ===== SOSYAL ÖZELLİK STİLLERİ - PRO ===== */
@@ -573,7 +629,12 @@ body {
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         
-                body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; display: flex; flex-direction: column; height: 100dvh; min-height: -webkit-fill-available; overflow: hidden; transition: background 0.3s; }
+        html {
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; display: flex; flex-direction: column; height: 100%; overflow: hidden; transition: background 0.3s; }
 
 
         /* ÜST BAR */
@@ -636,7 +697,7 @@ body {
         @keyframes bounce { 0%{transform:scale(0);} 50%{transform:scale(1.2);} 100%{transform:scale(1);} }
 
         .content-area { flex: 1; overflow: hidden; position: relative; -webkit-overflow-scrolling: touch; }
-        .page { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 15px; padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+        .page { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 15px; padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
         .page.active { display: flex; z-index: 10; }
 
         /* GENEL BİLEŞENLER */
@@ -2173,10 +2234,10 @@ body {
 }
 
 .infinite-list-container { 
-    height: calc(100vh - 200px); /* Alt navigasyon payı */
+    height: calc(100dvh - 200px); /* Alt navigasyon payı */
     overflow-y: auto; 
     padding: 5px; 
-    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); 
+    padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)); 
 }
 
 /* --- TEMA UYUMLU LİSTE KARTLARI --- */
@@ -4885,7 +4946,7 @@ input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
 </div>
 
     
-    <div id="page-market" class="page" style="padding: 0; padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));">
+    <div id="page-market" class="page" style="padding: 0; padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px));">
     
     <!-- GELİŞTİRİLMİŞ PİYASA BAŞLIĞI -->
     <div class="market-unified-header deep-inset">
@@ -14461,7 +14522,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.8"; 
+    const CURRENT_VERSION = "1.6"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
