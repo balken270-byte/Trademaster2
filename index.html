@@ -12,27 +12,80 @@
     <!-- PWA -->
     
 <script>
-// iOS PWA Standalone Mod Tespiti
+// iOS PWA Safe Area - Kalici Cozum v2
 (function() {
     var isStandalone = window.navigator.standalone === true ||
                        window.matchMedia('(display-mode: standalone)').matches;
-    
+
     if (isStandalone) {
         document.documentElement.classList.add('pwa-standalone');
-        
-        // CSS değişkenleri ile dinamik safe area
-        var updateSafeAreas = function() {
-            var st = parseInt(getComputedStyle(document.documentElement)
-                .getPropertyValue('--sat') || '0');
-            var sb = parseInt(getComputedStyle(document.documentElement)
-                .getPropertyValue('--sab') || '0');
-            document.documentElement.style.setProperty(
-                '--pwa-top', 'env(safe-area-inset-top, 44px)');
-            document.documentElement.style.setProperty(
-                '--pwa-bottom', 'env(safe-area-inset-bottom, 34px)');
-        };
-        updateSafeAreas();
-        window.addEventListener('resize', updateSafeAreas);
+    }
+
+    function readSafeAreas() {
+        var probe = document.getElementById('__safeAreaProbe');
+        if (!probe) {
+            probe = document.createElement('div');
+            probe.id = '__safeAreaProbe';
+            probe.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;visibility:hidden;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);z-index:-1';
+            document.documentElement.appendChild(probe);
+        }
+        var cs = getComputedStyle(probe);
+        var top    = parseFloat(cs.paddingTop)    || 0;
+        var bottom = parseFloat(cs.paddingBottom) || 0;
+
+        // iPhone 12/13 notch icin minimum garanti
+        if (isStandalone) {
+            top    = Math.max(top, 44);
+            bottom = Math.max(bottom, 34);
+        }
+
+        var root = document.documentElement;
+        root.style.setProperty('--sat', top + 'px');
+        root.style.setProperty('--sab', bottom + 'px');
+        root.style.setProperty('--pwa-top', top + 'px');
+        root.style.setProperty('--pwa-bottom', bottom + 'px');
+
+        applyDockPosition(bottom);
+    }
+
+    function applyDockPosition(sab) {
+        var docks = document.querySelectorAll('.dock-wrapper');
+        var offset = Math.max(sab + 8, 20);
+        for (var i = 0; i < docks.length; i++) {
+            docks[i].style.setProperty('bottom', offset + 'px', 'important');
+        }
+        updateContentPadding(sab);
+    }
+
+    function updateContentPadding(sab) {
+        var navEl = document.querySelector('.nav-container');
+        var navH  = navEl ? (navEl.offsetHeight || 68) : 68;
+        var pad   = navH + sab + 24;
+        var style = document.getElementById('__dynPadStyle');
+        if (!style) {
+            style = document.createElement('style');
+            style.id = '__dynPadStyle';
+            document.head.appendChild(style);
+        }
+        style.textContent =
+            '.page { padding-bottom: ' + pad + 'px !important; }\n' +
+            '#page-market { padding-bottom: ' + pad + 'px !important; }\n' +
+            '.infinite-list-container { padding-bottom: ' + pad + 'px !important; }';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        readSafeAreas();
+        setTimeout(readSafeAreas, 150);
+        setTimeout(readSafeAreas, 600);
+    });
+
+    window.addEventListener('load', function() {
+        setTimeout(readSafeAreas, 300);
+    });
+
+    window.addEventListener('resize', readSafeAreas);
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', readSafeAreas);
     }
 })();
 </script>
@@ -3746,7 +3799,8 @@ button:active,
 /* 1. 3D SAHNE */
 .dock-wrapper {
     position: fixed !important;
-    bottom: max(12px, env(safe-area-inset-bottom)) !important;
+    /* bottom: JS tarafindan dinamik olarak set edilir */
+    bottom: 20px !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
     width: 92% !important;
@@ -3884,17 +3938,16 @@ button:active,
     }
 }
 
-/* --- AERO NAVİGASYON - iOS SAFE AREA DÜZELTMESİ --- */
+/* --- AERO NAVIGASYON - iOS SAFE AREA DUZELTMESI --- */
 .dock-wrapper {
     position: fixed !important;
-    /* iOS home indicator + biraz boşluk */
-    bottom: max(12px, env(safe-area-inset-bottom)) !important;
+    /* bottom: JS tarafindan applyDockPosition() ile set edilir */
+    bottom: 20px !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
     width: 92% !important;
     max-width: 480px !important;
     z-index: 9999 !important;
-    /* iOS'ta taşmasın */
     padding-bottom: 0 !important;
 }
 
@@ -14461,7 +14514,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.8"; 
+    const CURRENT_VERSION = "1.7"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
