@@ -1610,558 +1610,471 @@ body {
             transform: translateX(24px);
         }
 
-        /* === PREMIUM PERFORMANCE DASHBOARD v2 === */
-        
-        /* Performance Section Container */
+        /* ============================================
+           PERFORMANCE DASHBOARD — REDESIGN v3
+           Modern · Minimal · Professional
+        ============================================ */
+
         #an-view-perf {
-            --perf-bg-deep: #030712;
-            --perf-card-bg: rgba(15, 23, 42, 0.5);
-            --perf-glass: rgba(255, 255, 255, 0.02);
-            --perf-border: rgba(255, 255, 255, 0.06);
-            --perf-glow-blue: rgba(59, 130, 246, 0.4);
-            --perf-glow-green: rgba(16, 185, 129, 0.4);
-            --perf-glow-gold: rgba(251, 191, 36, 0.4);
-            --perf-glow-purple: rgba(139, 92, 246, 0.4);
-            --perf-accent-cyan: #22d3ee;
-            --perf-accent-emerald: #34d399;
-            --perf-accent-rose: #fb7185;
+            --p-blue:    #3b82f6;
+            --p-cyan:    #06b6d4;
+            --p-green:   #10b981;
+            --p-gold:    #f59e0b;
+            --p-purple:  #8b5cf6;
+            --p-rose:    #f43f5e;
+            --p-slate:   rgba(148,163,184,0.7);
+            --p-card:    rgba(13,17,28,0.85);
+            --p-border:  rgba(255,255,255,0.07);
+            --p-hover:   rgba(255,255,255,0.04);
         }
         
-        /* Dashboard Grid */
-        .dashboard-container { 
-            display: grid; 
-            grid-template-columns: repeat(2, 1fr); 
-            gap: 12px; 
+        /* ─── DASHBOARD GRID ─── */
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
             padding-bottom: 20px;
+        }
+
+        /* ─── BASE CARD ─── */
+        .dash-card {
+            background: rgba(13,17,28,0.88);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 20px;
+            padding: 18px;
             position: relative;
-        }
-        
-        /* Premium Card Base */
-        .dash-card { 
-            background: linear-gradient(165deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 24px; 
-            padding: 20px; 
-            position: relative; 
-            overflow: hidden; 
-            display: flex; 
+            overflow: hidden;
+            display: flex;
             flex-direction: column;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            transition: border-color .3s ease, transform .25s ease;
         }
-        
-        .dash-card:hover {
-            border-color: rgba(255, 255, 255, 0.12);
-            transform: translateY(-2px);
-        }
-        
+        .dash-card:active { transform: scale(0.985); }
         .dash-card.full-width { grid-column: span 2; }
-        
-        /* Card Glow Effect */
         .dash-card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
+            inset: 0 0 auto 0;
             height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.12) 50%, transparent 100%);
         }
-        
-        .dash-card::after { 
-            content: ''; 
-            position: absolute; 
-            top: -50%; 
-            left: -50%; 
-            width: 200%; 
-            height: 200%; 
-            background: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.03) 0%, transparent 70%);
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.4s ease;
-        }
-        
-        .dash-card:hover::after {
-            opacity: 1;
-        }
-        
-        /* Premium Metric Title */
-        .metric-title { 
-            font-size: 10px; 
-            color: rgba(148, 163, 184, 0.9);
-            font-weight: 600; 
-            text-transform: uppercase; 
-            letter-spacing: 1.5px; 
-            margin-bottom: 12px; 
-            display: flex; 
-            justify-content: space-between; 
+
+        /* ─── METRIC LABEL ─── */
+        .metric-title {
+            font-size: 9.5px;
+            font-weight: 700;
+            letter-spacing: 1.6px;
+            text-transform: uppercase;
+            color: rgba(148,163,184,0.7);
+            display: flex;
             align-items: center;
-            position: relative;
+            justify-content: space-between;
+            margin-bottom: 10px;
         }
-        
-        .metric-title i {
-            font-size: 12px;
-            opacity: 0.7;
-            margin-right: 6px;
-        }
-        
-        /* Premium Large Value */
-        .metric-value { 
-            font-size: 32px; 
-            font-weight: 800; 
-            color: white; 
+        .metric-title i { font-size: 11px; margin-right: 6px; }
+
+        /* ─── BIG VALUE ─── */
+        .metric-value {
+            font-size: 30px;
+            font-weight: 800;
             letter-spacing: -1px;
-            background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
             line-height: 1.1;
+            color: #fff;
         }
-        
-        .metric-sub { 
-            font-size: 11px; 
-            font-weight: 500; 
-            margin-top: 8px; 
-            display: flex; 
-            align-items: center; 
+        .metric-sub {
+            font-size: 11px;
+            font-weight: 500;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
             gap: 8px;
         }
-        
-        /* Premium Trend Pills */
-        .trend-up { 
-            color: #34d399; 
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%);
-            padding: 4px 10px; 
+
+        /* ─── TREND PILLS ─── */
+        .trend-up {
+            color: #34d399;
+            background: rgba(16,185,129,.12);
+            border: 1px solid rgba(16,185,129,.22);
+            padding: 3px 10px;
             border-radius: 20px;
             font-weight: 700;
-            font-size: 12px;
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
+            font-size: 11.5px;
         }
-        
-        .trend-down { 
-            color: #fb7185; 
-            background: linear-gradient(135deg, rgba(244, 63, 94, 0.15) 0%, rgba(244, 63, 94, 0.05) 100%);
-            padding: 4px 10px; 
+        .trend-down {
+            color: #fb7185;
+            background: rgba(244,63,94,.12);
+            border: 1px solid rgba(244,63,94,.22);
+            padding: 3px 10px;
             border-radius: 20px;
             font-weight: 700;
-            font-size: 12px;
-            border: 1px solid rgba(244, 63, 94, 0.2);
-            box-shadow: 0 0 20px rgba(244, 63, 94, 0.1);
+            font-size: 11.5px;
         }
-        
-        /* Win Rate Premium Container */
-        .win-rate-container { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            position: relative; 
-            height: 130px;
+
+        /* ─── WIN RATE DONUT ─── */
+        .win-rate-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            height: 120px;
         }
-        
-        .win-rate-text { 
-            position: absolute; 
-            text-align: center;
-            z-index: 2;
+        .win-rate-text { position: absolute; text-align: center; }
+        .wr-val {
+            font-size: 22px;
+            font-weight: 800;
+            display: block;
+            color: #06b6d4;
         }
-        
-        .wr-val { 
-            font-size: 26px; 
-            font-weight: 800; 
-            display: block; 
-            background: linear-gradient(135deg, #ffffff 0%, #22d3ee 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .wr-lbl { 
-            font-size: 9px; 
-            color: rgba(148, 163, 184, 0.7);
-            font-weight: 600;
+        .wr-lbl {
+            font-size: 8.5px;
+            color: rgba(148,163,184,.6);
+            font-weight: 700;
             letter-spacing: 1px;
             text-transform: uppercase;
         }
-        
-        /* Top Performers Premium List */
-        .top-performer-row { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding: 14px 16px;
-            margin: 6px 0;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            transition: all 0.3s ease;
+
+        /* ─── ÖZET BLOK: NET VARLIK + BAŞARI + NAKİT ─── */
+        .dash-card.perf-summary-card {
+            background: linear-gradient(140deg, rgba(8,16,36,.97) 0%, rgba(4,10,24,.99) 100%);
+            border-color: rgba(59,130,246,.18);
+            padding: 18px 18px 16px;
+            gap: 0;
         }
-        
-        .top-performer-row:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.08);
-            transform: translateX(4px);
-        }
-        
-        .tp-name { 
-            font-weight: 600; 
-            font-size: 13px; 
-            color: rgba(255, 255, 255, 0.9);
-            display: flex; 
-            align-items: center; 
+        /* Üst kısım: büyük değer + donut */
+        .psb-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             gap: 12px;
         }
-        
-        .tp-val { 
-            font-weight: 700; 
-            font-size: 14px;
-            font-family: 'SF Mono', 'Fira Code', monospace;
+        .psb-top-left { flex: 1; }
+        .psb-label {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 1.6px;
+            text-transform: uppercase;
+            color: rgba(96,165,250,.75);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
-        
-        /* Premium Rank Badges */
-        .rank-badge { 
-            width: 28px; 
-            height: 28px; 
-            background: linear-gradient(145deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
-            border-radius: 10px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 11px; 
-            font-weight: 700; 
-            color: rgba(148, 163, 184, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+        .psb-label i { font-size: 10px; }
+        .psb-main-value {
+            font-size: 30px;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            color: #fff;
+            line-height: 1;
         }
-        
-        .rank-1 { 
-            background: linear-gradient(145deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.1) 100%);
-            color: #fbbf24;
-            border: 1px solid rgba(251, 191, 36, 0.3);
-            box-shadow: 0 0 15px rgba(251, 191, 36, 0.15);
+        .psb-pnl {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            margin-top: 7px;
+            flex-wrap: wrap;
         }
-        
-        .rank-badge.rank-2 {
-            background: linear-gradient(145deg, rgba(192, 192, 192, 0.15) 0%, rgba(148, 163, 184, 0.1) 100%);
-            color: #cbd5e1;
-            border: 1px solid rgba(203, 213, 225, 0.2);
+        .psb-pnl-lbl {
+            font-size: 10px;
+            color: rgba(148,163,184,.4);
         }
-        
-        .rank-badge.rank-3 {
-            background: linear-gradient(145deg, rgba(205, 127, 50, 0.15) 0%, rgba(180, 83, 9, 0.1) 100%);
-            color: #d97706;
-            border: 1px solid rgba(217, 119, 6, 0.2);
-        }
-        
-        /* Chart Header Premium */
-        .chart-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 16px;
-        }
-        
-        .chart-filter-btn { 
-            background: rgba(30, 41, 59, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            color: rgba(148, 163, 184, 0.8);
-            font-size: 10px; 
-            font-weight: 600;
-            padding: 6px 14px; 
-            border-radius: 10px; 
-            cursor: pointer; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            letter-spacing: 0.5px;
-        }
-        
-        .chart-filter-btn:hover {
-            background: rgba(59, 130, 246, 0.1);
-            border-color: rgba(59, 130, 246, 0.2);
-        }
-        
-        .chart-filter-btn.active { 
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(59, 130, 246, 0.15) 100%);
-            color: #60a5fa;
-            border-color: rgba(59, 130, 246, 0.4);
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
-        }
-        
-        /* === HERO NET WORTH CARD === */
-        .dash-card.perf-hero-card {
-            background: linear-gradient(165deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 50%, rgba(10, 15, 30, 0.95) 100%);
-            border: 1px solid rgba(59, 130, 246, 0.15);
-            padding: 24px;
+        /* Donut */
+        .psb-donut-wrap {
             position: relative;
+            width: 72px;
+            height: 72px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .psb-donut-wrap canvas {
+            position: absolute;
+            inset: 0;
+        }
+        .psb-donut-inner {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            pointer-events: none;
+        }
+        .psb-wr-val {
+            display: block;
+            font-size: 14px;
+            font-weight: 800;
+            color: #06b6d4;
+            letter-spacing: -.5px;
+        }
+        .psb-wr-lbl {
+            display: block;
+            font-size: 7.5px;
+            font-weight: 700;
+            letter-spacing: .8px;
+            text-transform: uppercase;
+            color: rgba(148,163,184,.5);
+        }
+        /* Ayraç */
+        .psb-divider {
+            height: 1px;
+            background: rgba(255,255,255,.06);
+            margin: 14px 0;
+        }
+        /* Alt kısım: nakit */
+        .psb-bottom {}
+        .psb-cash-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .psb-cash-val {
+            font-size: 16px;
+            font-weight: 800;
+            color: #f59e0b;
+            letter-spacing: -.5px;
+        }
+        .psb-bar-bg {
+            height: 5px;
+            background: rgba(255,255,255,.06);
+            border-radius: 10px;
             overflow: hidden;
         }
-        
-        .dash-card.perf-hero-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.6), rgba(139, 92, 246, 0.4), transparent);
+        .psb-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #d97706, #fbbf24);
+            transition: width .7s cubic-bezier(.4,0,.2,1);
+            box-shadow: 0 0 8px rgba(245,158,11,.3);
         }
-        
+        .psb-bar-sub {
+            font-size: 9.5px;
+            color: rgba(148,163,184,.45);
+            margin-top: 6px;
+        }
+        .psb-cash-raw {
+            color: rgba(251,191,36,.8);
+            font-weight: 700;
+        }
+
+        /* ─── HERO NET WORTH CARD ─── */
+        .dash-card.perf-hero-card {
+            background: linear-gradient(140deg, rgba(8,16,36,.97) 0%, rgba(4,10,24,.99) 100%);
+            border-color: rgba(59,130,246,.2);
+            padding: 24px 20px;
+        }
         .dash-card.perf-hero-card::after {
             content: '';
             position: absolute;
-            top: -100px;
-            right: -100px;
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+            top: -50px; right: -50px;
+            width: 180px; height: 180px;
+            background: radial-gradient(circle, rgba(59,130,246,.1) 0%, transparent 70%);
             pointer-events: none;
         }
-        
-        .perf-hero-card .metric-title {
-            color: rgba(96, 165, 250, 0.9);
-            font-size: 11px;
-            letter-spacing: 2px;
+        .perf-hero-card .metric-title { color: rgba(96,165,250,.85); letter-spacing: 2px; }
+        .perf-hero-card .metric-value { font-size: 34px; }
+
+        /* ─── MINI CARDS ─── */
+        .dash-card.perf-mini-card {
+            min-height: 150px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
-        
-        .perf-hero-card .metric-value {
-            font-size: 38px;
-            background: linear-gradient(135deg, #ffffff 0%, #60a5fa 50%, #a78bfa 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin: 8px 0;
-        }
-        
-        /* === TRADER REPORT CARD PREMIUM === */
-        .dash-card.perf-trader-card {
-            background: linear-gradient(165deg, rgba(30, 41, 59, 0.6) 0%, rgba(20, 15, 35, 0.8) 100%);
-            border: 1px solid rgba(251, 191, 36, 0.15);
-            position: relative;
+        .perf-mini-card.win-rate-card  { border-color: rgba(6,182,212,.18); }
+        .perf-mini-card.cash-ratio-card { border-color: rgba(245,158,11,.18); }
+
+        /* ─── PROGRESS BAR ─── */
+        .perf-progress-wrapper { margin-top: 10px; }
+        .perf-progress-bg {
+            height: 5px;
+            background: rgba(255,255,255,.06);
+            border-radius: 10px;
             overflow: hidden;
         }
-        
-        .dash-card.perf-trader-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.5), rgba(245, 158, 11, 0.3), transparent);
+        .perf-progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+            transition: width .6s cubic-bezier(.4,0,.2,1);
+            box-shadow: 0 0 10px rgba(245,158,11,.3);
         }
-        
+        .perf-progress-label {
+            font-size: 10px;
+            color: rgba(148,163,184,.5);
+            margin-top: 7px;
+        }
+
+        /* ─── TRADER REPORT CARD ─── */
+        .dash-card.perf-trader-card {
+            border-color: rgba(139,92,246,.15);
+            background: linear-gradient(140deg, rgba(18,12,38,.92) 0%, rgba(8,10,26,.97) 100%);
+        }
         .perf-trader-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
-        
         .perf-trader-title {
+            font-size: 9.5px;
+            font-weight: 700;
+            letter-spacing: 1.6px;
+            text-transform: uppercase;
+            color: rgba(167,139,250,.85);
             display: flex;
             align-items: center;
-            gap: 10px;
-            color: rgba(251, 191, 36, 0.9);
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
+            gap: 7px;
         }
-        
-        .perf-trader-title i {
-            font-size: 14px;
-            color: #fbbf24;
-        }
-        
+        .perf-trader-title i { font-size: 13px; }
         .perf-score-badge {
-            background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.08) 100%);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 10px;
+            font-size: 10.5px;
             font-weight: 700;
-            color: #fbbf24;
-            border: 1px solid rgba(251, 191, 36, 0.25);
+            padding: 5px 13px;
+            border-radius: 20px;
+            background: rgba(139,92,246,.14);
+            color: #c4b5fd;
+            border: 1px solid rgba(139,92,246,.28);
+            letter-spacing: .4px;
         }
-        
         .perf-stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 8px;
         }
-        
         .perf-stat-box {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            border-radius: 16px;
-            padding: 14px;
+            background: rgba(255,255,255,.025);
+            border: 1px solid rgba(255,255,255,.05);
+            border-radius: 14px;
+            padding: 13px;
             text-align: center;
-            transition: all 0.3s ease;
+            transition: background .25s;
         }
-        
-        .perf-stat-box:hover {
-            background: rgba(255, 255, 255, 0.04);
-            border-color: rgba(255, 255, 255, 0.08);
-        }
-        
+        .perf-stat-box:hover { background: rgba(255,255,255,.05); }
         .perf-stat-label {
-            font-size: 9px;
-            color: rgba(148, 163, 184, 0.8);
-            font-weight: 600;
+            font-size: 8.5px;
+            color: rgba(148,163,184,.7);
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
-        
-        .perf-stat-value {
-            font-size: 20px;
-            font-weight: 800;
-            color: white;
-        }
-        
-        .perf-stat-desc {
-            font-size: 9px;
-            color: rgba(148, 163, 184, 0.5);
-            margin-top: 4px;
-        }
-        
+        .perf-stat-value { font-size: 19px; font-weight: 800; color: #fff; }
+        .perf-stat-desc { font-size: 8.5px; color: rgba(148,163,184,.45); margin-top: 3px; }
         .perf-stat-box.full-span {
             grid-column: span 2;
             display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 14px 16px;
+        }
+        .perf-stat-box.full-span .stat-left,
+        .perf-stat-box.full-span .stat-right { text-align: center; flex: 1; }
+        .perf-stat-box.full-span .divider {
+            width: 1px; height: 32px;
+            background: rgba(255,255,255,.08);
+        }
+
+        /* ─── CHART CARD ─── */
+        .dash-card.perf-chart-card { border-color: rgba(6,182,212,.14); }
+        .perf-chart-card .metric-title { color: rgba(6,182,212,.85); }
+        .chart-header {
+            display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 20px;
+            margin-bottom: 14px;
         }
-        
-        .perf-stat-box.full-span .stat-left,
-        .perf-stat-box.full-span .stat-right {
-            text-align: center;
-        }
-        
-        .perf-stat-box.full-span .divider {
-            width: 1px;
-            height: 35px;
-            background: rgba(255, 255, 255, 0.08);
-        }
-        
-        /* === CHART CARD PREMIUM === */
-        .dash-card.perf-chart-card {
-            background: linear-gradient(165deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.85) 100%);
-            border: 1px solid rgba(34, 211, 238, 0.1);
-        }
-        
-        .dash-card.perf-chart-card::before {
-            background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.3), transparent);
-        }
-        
-        .perf-chart-card .metric-title {
-            color: rgba(34, 211, 238, 0.8);
-        }
-        
-        .perf-chart-info {
+        .chart-filter-btn {
+            background: rgba(255,255,255,.05);
+            border: 1px solid rgba(255,255,255,.07);
+            color: rgba(148,163,184,.75);
             font-size: 10px;
-            color: rgba(148, 163, 184, 0.5);
+            font-weight: 700;
+            padding: 5px 13px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all .2s;
+            letter-spacing: .5px;
+            font-family: inherit;
+        }
+        .chart-filter-btn:hover {
+            background: rgba(59,130,246,.12);
+            border-color: rgba(59,130,246,.25);
+            color: #93c5fd;
+        }
+        .chart-filter-btn.active {
+            background: rgba(59,130,246,.18);
+            color: #60a5fa;
+            border-color: rgba(59,130,246,.35);
+        }
+        .perf-chart-info {
+            font-size: 9.5px;
+            color: rgba(148,163,184,.4);
             text-align: center;
-            margin-top: 12px;
+            margin-top: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 5px;
         }
-        
-        .perf-chart-info i {
-            font-size: 11px;
-            opacity: 0.6;
-        }
-        
-        /* === ALLOCATION CARD === */
-        .dash-card.perf-allocation-card {
-            background: linear-gradient(165deg, rgba(30, 41, 59, 0.5) 0%, rgba(20, 30, 45, 0.85) 100%);
-            border: 1px solid rgba(139, 92, 246, 0.1);
-        }
-        
-        .dash-card.perf-allocation-card::before {
-            background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.3), transparent);
-        }
-        
-        .perf-allocation-card .metric-title {
-            color: rgba(167, 139, 250, 0.8);
-        }
-        
-        /* === TOP PERFORMERS CARD === */
-        .dash-card.perf-top-card {
-            background: linear-gradient(165deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 30, 35, 0.85) 100%);
-            border: 1px solid rgba(16, 185, 129, 0.1);
-        }
-        
-        .dash-card.perf-top-card::before {
-            background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.3), transparent);
-        }
-        
-        .perf-top-card .metric-title {
-            color: rgba(52, 211, 153, 0.8);
-        }
-        
-        /* === SMALL STAT CARDS === */
-        .dash-card.perf-mini-card {
-            padding: 18px;
-            min-height: 140px;
+
+        /* ─── TOP PERFORMERS CARD ─── */
+        .dash-card.perf-top-card { border-color: rgba(16,185,129,.13); }
+        .perf-top-card .metric-title { color: rgba(52,211,153,.85); }
+        .top-performer-row {
             display: flex;
-            flex-direction: column;
             justify-content: space-between;
+            align-items: center;
+            padding: 11px 13px;
+            margin: 5px 0;
+            background: rgba(255,255,255,.02);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,.04);
+            transition: background .2s, transform .2s;
         }
-        
-        .perf-mini-card.win-rate-card {
-            border-color: rgba(34, 211, 238, 0.15);
+        .top-performer-row:hover {
+            background: rgba(255,255,255,.045);
+            transform: translateX(3px);
         }
-        
-        .perf-mini-card.win-rate-card::before {
-            background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.4), transparent);
+        .tp-name {
+            font-weight: 600;
+            font-size: 12.5px;
+            color: rgba(255,255,255,.88);
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        
-        .perf-mini-card.cash-ratio-card {
-            border-color: rgba(251, 191, 36, 0.15);
+        .tp-val { font-weight: 700; font-size: 13px; }
+        .rank-badge {
+            width: 26px; height: 26px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: 700;
+            background: rgba(255,255,255,.05);
+            border: 1px solid rgba(255,255,255,.08);
+            color: rgba(148,163,184,.75);
         }
-        
-        .perf-mini-card.cash-ratio-card::before {
-            background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.4), transparent);
-        }
-        
-        /* Premium Progress Bar */
-        .perf-progress-wrapper {
-            margin-top: 8px;
-        }
-        
-        .perf-progress-bg {
-            height: 6px;
-            background: rgba(255, 255, 255, 0.06);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        
-        .perf-progress-fill {
-            height: 100%;
-            border-radius: 10px;
-            background: linear-gradient(90deg, #fbbf24, #f59e0b);
-            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .perf-progress-label {
-            font-size: 10px;
-            color: rgba(148, 163, 184, 0.6);
-            margin-top: 6px;
-        }
-        
-        /* Goal Progress Premium */
+        .rank-1 { background: rgba(251,191,36,.15); color: #fbbf24; border-color: rgba(251,191,36,.3); }
+        .rank-badge.rank-2 { background: rgba(203,213,225,.1); color: #cbd5e1; border-color: rgba(203,213,225,.2); }
+        .rank-badge.rank-3 { background: rgba(217,119,6,.12); color: #d97706; border-color: rgba(217,119,6,.22); }
+
+        /* ─── ALLOCATION CARD ─── */
+        .dash-card.perf-allocation-card { border-color: rgba(139,92,246,.13); }
+        .perf-allocation-card .metric-title { color: rgba(167,139,250,.85); }
+
+        /* ─── GOAL PROGRESS ─── */
         .goal-wrapper {
-            height: 6px;
-            background: rgba(255, 255, 255, 0.06);
+            height: 5px;
+            background: rgba(255,255,255,.06);
             border-radius: 10px;
             overflow: hidden;
         }
-        
         .goal-fill {
             height: 100%;
-            background: linear-gradient(90deg, #fbbf24, #f59e0b);
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
             border-radius: 10px;
-            transition: width 0.5s ease;
+            transition: width .5s ease;
         }
 
         /* --- PRO MUHASEBE STİLLERİ --- */
@@ -6572,117 +6485,114 @@ input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
     
         <div id="an-view-perf" class="an-view-section active">
         <div class="dashboard-container">
-            
-            
-            
-            <!-- HERO NET WORTH CARD -->
-            <div class="dash-card full-width perf-hero-card">
-                <div class="metric-title">
-                    <span><i class="fas fa-gem"></i> TOPLAM NET VARLIK</span>
-                </div>
-                <div class="metric-value" id="anNetWorth">--</div>
-                <div class="metric-sub" id="anNetWorthSub">
-                    <span id="anPnlPill">--</span> <span style="color:rgba(148, 163, 184, 0.6)">Toplam Kâr/Zarar</span>
-                </div>
-            </div>
 
-            <!-- WIN RATE CARD -->
-            <div class="dash-card perf-mini-card win-rate-card">
-                <div class="metric-title"><i class="fas fa-bullseye"></i> BAŞARI ORANI</div>
-                <div class="win-rate-container">
-                    <canvas id="winRateChart"></canvas>
-                    <div class="win-rate-text">
-                        <span class="wr-val" id="winRateVal">%--</span>
-                        <span class="wr-lbl">Win Rate</span>
-                    </div>
-                </div>
-            </div>
+            <!-- ═══ ÖZET BLOK: NET VARLIK + BAŞARI + NAKİT ═══ -->
+            <div class="dash-card full-width perf-summary-card">
 
-            <!-- CASH RATIO CARD -->
-            <div class="dash-card perf-mini-card cash-ratio-card">
-                <div class="metric-title"><i class="fas fa-vault"></i> NAKİT ORANI</div>
-                <div style="display:flex; flex-direction:column; flex:1; justify-content:center;">
-                    <div class="metric-value" id="anCashRatioVal" style="font-size:22px; background: linear-gradient(135deg, #fbbf24, #f59e0b); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">--</div>
-                    <div class="perf-progress-wrapper">
-                        <div class="perf-progress-bg">
-                            <div id="cashRatioBar" class="perf-progress-fill" style="width:0%"></div>
+                <!-- Üst: Net Varlık -->
+                <div class="psb-top">
+                    <div class="psb-top-left">
+                        <div class="psb-label"><i class="fas fa-wave-square"></i> TOPLAM NET VARLIK</div>
+                        <div class="psb-main-value" id="anNetWorth">--</div>
+                        <div class="psb-pnl" id="anNetWorthSub">
+                            <span id="anPnlPill">--</span>
+                            <span class="psb-pnl-lbl">Toplam Kâr / Zarar</span>
                         </div>
                     </div>
-                    <div class="perf-progress-label">Kasada: <span id="anCashRaw" style="color:rgba(251, 191, 36, 0.8); font-weight:600;">--</span></div>
+                    <div class="psb-donut-wrap">
+                        <canvas id="winRateChart" width="72" height="72"></canvas>
+                        <div class="psb-donut-inner">
+                            <span class="psb-wr-val" id="winRateVal">--%</span>
+                            <span class="psb-wr-lbl">Başarı</span>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Ayraç -->
+                <div class="psb-divider"></div>
+
+                <!-- Alt: Nakit Oranı -->
+                <div class="psb-bottom">
+                    <div class="psb-cash-header">
+                        <span class="psb-label"><i class="fas fa-coins"></i> NAKİT ORANI</span>
+                        <span class="psb-cash-val" id="anCashRatioVal">--%</span>
+                    </div>
+                    <div class="psb-bar-bg">
+                        <div id="cashRatioBar" class="psb-bar-fill" style="width:0%"></div>
+                    </div>
+                    <div class="psb-bar-sub">Kasada: <span id="anCashRaw" class="psb-cash-raw">--</span></div>
+                </div>
+
             </div>
 
-            <!-- TRADER KARNESI PREMIUM -->
+            <!-- ═══ TRADER KARNESİ ═══ -->
             <div class="dash-card full-width perf-trader-card">
                 <div class="perf-trader-header">
                     <div class="perf-trader-title">
-                        <i class="fas fa-award"></i> TRADER KARNESİ
+                        <i class="fas fa-medal"></i> TRADER KARNESİ
                     </div>
-                    <div id="scoreBadge" class="perf-score-badge">VERİ YOK</div>
+                    <div id="scoreBadge" class="perf-score-badge">— VERİ YOK —</div>
                 </div>
-
                 <div class="perf-stats-grid">
                     <div class="perf-stat-box">
                         <div class="perf-stat-label">KÂR FAKTÖRÜ</div>
                         <div id="pfScore" class="perf-stat-value">--</div>
                         <div id="pfDesc" class="perf-stat-desc">Bekleniyor</div>
                     </div>
-
                     <div class="perf-stat-box">
                         <div class="perf-stat-label">İŞLEM BEKLENTİSİ</div>
                         <div id="expScore" class="perf-stat-value">--</div>
                         <div id="expDesc" class="perf-stat-desc">Bekleniyor</div>
                     </div>
-                    
                     <div class="perf-stat-box full-span">
                         <div class="stat-left">
-                            <div class="perf-stat-label" style="color:rgba(52, 211, 153, 0.9);">ORT. KAZANÇ</div>
+                            <div class="perf-stat-label" style="color:rgba(52,211,153,.8);">ORT. KAZANÇ</div>
                             <div id="avgWinVal" class="perf-stat-value" style="color:#34d399;">--</div>
                         </div>
                         <div class="divider"></div>
                         <div class="stat-right">
-                            <div class="perf-stat-label" style="color:rgba(251, 113, 133, 0.9);">ORT. KAYIP</div>
+                            <div class="perf-stat-label" style="color:rgba(251,113,133,.8);">ORT. KAYIP</div>
                             <div id="avgLossVal" class="perf-stat-value" style="color:#fb7185;">--</div>
                         </div>
                     </div>
                 </div>
-                
-                <div style="font-size:9px; color:rgba(148, 163, 184, 0.4); text-align:center; font-style:italic; margin-top:14px;">
-                    <i class="fas fa-info-circle" style="margin-right:4px;"></i> Geçmiş satış işlemleriniz üzerinden hesaplanır.
+                <div style="font-size:9px;color:rgba(148,163,184,.3);text-align:center;margin-top:12px;letter-spacing:.3px;">
+                    <i class="fas fa-circle-info" style="margin-right:4px;opacity:.5;"></i>Kapatılan işlemler üzerinden hesaplanır
                 </div>
             </div>
 
-            <!-- GROWTH CHART PREMIUM -->
+            <!-- ═══ PORTFÖY BÜYÜMESİ ═══ -->
             <div class="dash-card full-width perf-chart-card">
                 <div class="chart-header">
-                    <div class="metric-title" style="margin:0;"><i class="fas fa-chart-area"></i> PORTFÖY BÜYÜMESİ</div>
-                    <div style="display:flex; gap:6px;">
+                    <div class="metric-title" style="margin:0;"><i class="fas fa-chart-line"></i> PORTFÖY BÜYÜMESİ</div>
+                    <div style="display:flex;gap:5px;">
                         <button class="chart-filter-btn active" onclick="updateGrowthChart(7)">7G</button>
                         <button class="chart-filter-btn" onclick="updateGrowthChart(30)">30G</button>
                     </div>
                 </div>
-                <div style="height: 200px; width: 100%;">
+                <div style="height:196px;width:100%;position:relative;">
                     <canvas id="realGrowthChart"></canvas>
                 </div>
                 <div class="perf-chart-info">
-                    <i class="fas fa-sync-alt"></i> Grafik, her gün sisteme giriş yaptığınızda otomatik kaydedilir.
+                    <i class="fas fa-rotate"></i> Günlük giriş yapıldığında otomatik kaydedilir
                 </div>
             </div>
 
-            <!-- TOP PERFORMERS PREMIUM -->
+            <!-- ═══ EN ÇOK KAZANDIRANLAR ═══ -->
             <div class="dash-card full-width perf-top-card">
-                <div class="metric-title"><i class="fas fa-trophy"></i> EN ÇOK KAZANDIRANLAR</div>
+                <div class="metric-title"><i class="fas fa-crown"></i> EN ÇOK KAZANDIRANLAR</div>
                 <div id="topPerformersList"></div>
             </div>
 
-            <!-- ALLOCATION CHART PREMIUM -->
+            <!-- ═══ VARLIK DAĞILIMI ═══ -->
             <div class="dash-card full-width perf-allocation-card">
-                <div class="metric-title"><i class="fas fa-chart-pie"></i> VARLIK DAĞILIMI</div>
-                <div style="height: 200px; display:flex; justify-content:center;">
+                <div class="metric-title"><i class="fas fa-chart-donut"></i> VARLIK DAĞILIMI</div>
+                <div style="height:196px;display:flex;justify-content:center;align-items:center;">
                     <canvas id="newAllocationChart"></canvas>
                 </div>
             </div>
-        </div> 
+
+        </div>
     </div>
 
     <!-- VISION SECTION - Premium Design -->
@@ -14534,7 +14444,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.4"; 
+    const CURRENT_VERSION = "1.3"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
