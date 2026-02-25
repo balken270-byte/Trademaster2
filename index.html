@@ -87,18 +87,18 @@
     <style>
         /* --- iOS PWA BOŞLUK DÜZELTMESİ (KÖK ÇÖZÜM) --- */
 html {
-    height: -webkit-fill-available;
-    height: 100%;
-    overflow: hidden;
+    /* iOS PWA'da viewport-fit=cover kullanıldığında sayfa yukarı kayar,
+       altta boş bar oluşur. Bu hack bunu önler: */
+    min-height: calc(100% + env(safe-area-inset-top));
+    /* 4 yönden safe area padding - tüm cihaz modellerini kapsar */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    box-sizing: border-box;
+    background: var(--bg-body, #0b0f19);
 }
 
-/* iOS PWA standalone modda dock-wrapper arka plan rengi --bg-body ile eşleşmeli */
-@media all and (display-mode: standalone) {
-    html, body {
-        height: 100%;
-        max-height: 100%;
-        overflow: hidden;
-    }
+body {
+    /* body html'nin tüm alanını kullansın */
+    min-height: 100%;
 }
 
         /* --- HD GÖRÜNTÜ VE NET YAZILAR --- */
@@ -565,7 +565,7 @@ body {
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         
-                body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; display: flex; flex-direction: column; height: 100dvh; height: -webkit-fill-available; overflow: hidden; transition: background 0.3s; }
+                body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; display: flex; flex-direction: column; height: 100dvh; height: -webkit-fill-available; overflow: hidden; transition: background 0.3s; background: var(--bg-body, #0b0f19); }
 
 
         /* ÜST BAR */
@@ -14464,7 +14464,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.3"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
