@@ -705,6 +705,11 @@ body {
         .market-row-item:hover { border-color: rgba(255,255,255,0.15); }
         .market-row-item.active { border: 1px solid var(--accent); background: rgba(59, 130, 246, 0.05); }
         .m-row-left { display: flex; align-items: center; gap: 10px; }
+        /* Piyasa ikon 3D kabarık efekti */
+        .m-row-left .asset-logo-wrap,
+        .m-row-left > div {
+            /* boyut getAssetLogoHtml içinde 46px olarak ayarlı */
+        }
         .m-row-info { display: flex; flex-direction: column; }
         .m-row-sym { font-size: 13px; font-weight: 800; color: white; }
         .m-row-name { font-size: 10px; color: var(--text-sub); }
@@ -797,8 +802,30 @@ body {
         .asset-card.loss-bg { background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, var(--bg-card) 100%); border-color: rgba(239, 68, 68, 0.25); }
         .asset-header { display: flex; justify-content: space-between; align-items: center; padding: 16px; cursor: pointer; user-select: none; }
         .asset-left { display: flex; align-items: center; }
-        .asset-logo-wrap { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--bg-input); margin-right: 12px; border: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; overflow: hidden; }
-        .asset-logo-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        .asset-logo-wrap {
+            width: 46px; height: 46px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: #1a2035; margin-right: 12px;
+            flex-shrink: 0; overflow: hidden;
+            position: relative;
+            border: none;
+            filter:
+                drop-shadow(0 5px 10px rgba(0,0,0,0.65))
+                drop-shadow(0 1px 3px rgba(0,0,0,0.4));
+        }
+        .asset-logo-wrap::after {
+            content: '';
+            position: absolute;
+            top: 2px; left: 6px;
+            width: 56%; height: 38%;
+            background: linear-gradient(160deg, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.10) 50%, transparent 100%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10;
+            transform: rotate(-15deg);
+            filter: blur(0.6px);
+        }
+        .asset-logo-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; background: #1a2035; }
         .asset-avatar-text { font-size: 14px; font-weight: 800; color: var(--text-sub); }
         .asset-name { font-size: 15px; font-weight: 800; display: block; color:white; }
         .asset-meta { font-size: 11px; color: var(--text-sub); }
@@ -1015,11 +1042,32 @@ body {
         .wl-pro-card:active { transform: scale(0.99); }
         .wl-pro-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
         .wl-pro-logo {
-            width: 44px; height: 44px; border-radius: 14px;
+            width: 50px; height: 50px; border-radius: 50%;
             background: rgba(255,255,255,0.03);
-            border: 2px solid rgba(255,255,255,0.06);
+            border: none;
             display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0; overflow: hidden;
+            flex-shrink: 0; overflow: visible;
+            position: relative;
+            filter:
+                drop-shadow(0 5px 10px rgba(0,0,0,0.6))
+                drop-shadow(0 1px 3px rgba(0,0,0,0.4));
+        }
+        .wl-pro-logo::after {
+            content: '';
+            position: absolute;
+            top: 2px; left: 8px;
+            width: 52%; height: 34%;
+            background: linear-gradient(160deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.08) 55%, transparent 100%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10;
+            transform: rotate(-15deg);
+            filter: blur(0.5px);
+        }
+        .wl-pro-logo img {
+            width: 100%; height: 100%;
+            object-fit: cover; border-radius: 50%;
+            display: block; background: #1a2035;
         }
         .wl-pro-info { flex: 1; min-width: 0; }
         .wl-pro-sym { font-size: 15px; font-weight: 800; color: #fff; letter-spacing: 0.5px; }
@@ -14591,7 +14639,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -17867,7 +17915,7 @@ function _tvNeonRingIcon(size) {
     var viaSize   = Math.round(s * 0.30);  // ~11-12px @ 40
 
     return (
-        '<svg width="' + s + '" height="' + s + '" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;display:block;">' +
+        '<svg width="' + s + '" height="' + s + '" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;display:block;filter:drop-shadow(0 4px 10px rgba(0,0,0,0.6)) drop-shadow(0 1px 3px rgba(0,0,0,0.4));">' +
         '<defs>' +
             '<radialGradient id="' + id + 'bg" cx="38%" cy="35%">' +
                 '<stop offset="0%" stop-color="#1e2b47"/>' +
@@ -17964,10 +18012,12 @@ function getAssetLogoHtml(symbol) {
 
     if (isCrypto) {
         var cleanSym = s.replace('USDT','').replace('BUSD','').replace('FDUSD','').toLowerCase();
-        return '<div class="asset-logo-wrap" style="background:transparent;border:none;width:40px;margin-right:10px;display:flex;align-items:center;justify-content:center;">' +
+        return '<div class="asset-logo-wrap" style="background:transparent;border:none;width:46px;height:46px;margin-right:10px;display:flex;align-items:center;justify-content:center;overflow:visible;position:relative;filter:drop-shadow(0 5px 10px rgba(0,0,0,0.65)) drop-shadow(0 1px 3px rgba(0,0,0,0.4));">' +
+               '<div style="width:46px;height:46px;border-radius:50%;overflow:hidden;background:#1a2035;position:relative;display:flex;align-items:center;justify-content:center;">' +
                '<img src="https://assets.coincap.io/assets/icons/' + cleanSym + '@2x.png" ' +
-               'style="width:38px;height:38px;border-radius:50%;object-fit:contain;display:block;" ' +
-               'onerror="_iconErr1(this,\'' + cleanSym + '\')">' +
+               'style="width:42px;height:42px;border-radius:50%;object-fit:contain;display:block;" ' +
+               'onerror="_iconErr1(this,\'' + cleanSym + '\')"></div>' +
+               '<div style="position:absolute;top:2px;left:7px;width:52%;height:34%;background:linear-gradient(160deg,rgba(255,255,255,0.28) 0%,rgba(255,255,255,0.05) 55%,transparent 100%);border-radius:50%;transform:rotate(-15deg);pointer-events:none;z-index:5;"></div>' +
                '</div>';
     }
 
@@ -18015,14 +18065,17 @@ function getAssetLogoHtml(symbol) {
             let cleanSym = s.replace('.IS','').replace('USDT','').toUpperCase();
             let logoHtml = '';
             if(r.image) {
-                logoHtml = '<img src="'+r.image+'" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><div style="display:none;width:100%;height:100%;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);align-items:center;justify-content:center;"><span style="font-size:13px;font-weight:800;color:white;">'+cleanSym.substring(0,2)+'</span></div>';
+                logoHtml = '<div style="position:relative;width:100%;height:100%;border-radius:50%;overflow:hidden;background:#1e293b;">' +
+                    '<img src="'+r.image+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;" onerror="this.parentNode.innerHTML=\'<div style=\\\'width:100%;height:100%;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;\\\'><span style=\\\'font-size:13px;font-weight:800;color:white;\\\'>'+cleanSym.substring(0,2)+'</span></div>\'">' +
+                    '<div style="position:absolute;top:2px;left:6px;width:52%;height:34%;background:linear-gradient(160deg,rgba(255,255,255,0.30) 0%,rgba(255,255,255,0.06) 55%,transparent 100%);border-radius:50%;transform:rotate(-15deg);pointer-events:none;z-index:5;"></div>' +
+                    '</div>';
             } else {
                 let cachedCoin = (typeof marketDataCache !== 'undefined') ? marketDataCache.find(c => c.symbol === cleanSym) : null;
                 if(cachedCoin && cachedCoin.image) {
-                    logoHtml = '<img src="'+cachedCoin.image+'" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">';
+                    logoHtml = '<div style="position:relative;width:100%;height:100%;border-radius:50%;overflow:hidden;background:#1e293b;"><img src="'+cachedCoin.image+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;"><div style="position:absolute;top:2px;left:6px;width:52%;height:34%;background:linear-gradient(160deg,rgba(255,255,255,0.28) 0%,rgba(255,255,255,0.05) 55%,transparent 100%);border-radius:50%;transform:rotate(-15deg);pointer-events:none;"></div></div>';
                 } else {
                     let gc = tag.t==='KRİPTO' ? '#f59e0b,#d97706' : (tag.t==='BORSA' ? '#3b82f6,#2563eb' : '#8b5cf6,#7c3aed');
-                    logoHtml = '<div style="width:100%;height:100%;border-radius:12px;background:linear-gradient(135deg,'+gc+');display:flex;align-items:center;justify-content:center;"><span style="font-size:13px;font-weight:800;color:white;">'+cleanSym.substring(0,2)+'</span></div>';
+                    logoHtml = '<div style="position:relative;width:100%;height:100%;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,'+gc+');display:flex;align-items:center;justify-content:center;"><span style="font-size:13px;font-weight:800;color:white;">'+cleanSym.substring(0,2)+'</span><div style="position:absolute;top:2px;left:6px;width:52%;height:34%;background:linear-gradient(160deg,rgba(255,255,255,0.28) 0%,rgba(255,255,255,0.05) 55%,transparent 100%);border-radius:50%;transform:rotate(-15deg);pointer-events:none;"></div></div>';
                 }
             }
             html += '<div class="wl-pro-card" onclick="openMarketDetail(\''+s+'\')"><div class="wl-pro-top"><div class="wl-pro-logo" style="border-color:'+color+'30;">'+logoHtml+'</div><div class="wl-pro-info"><div class="wl-pro-sym">'+cleanSym+'</div><span class="wl-pro-tag '+tagCls+'">'+tag.t+'</span></div><div class="wl-pro-price-area"><div class="wl-pro-price">'+priceDisplay+'</div><div class="wl-pro-change" style="color:'+color+';background:'+color+'15;"><i class="fas '+arrow+'" style="margin-right:3px;"></i>'+(ch>=0?'+':'')+ch.toFixed(2)+'%</div></div></div><div class="wl-pro-bottom"><div class="wl-pro-stats"><div class="wl-pro-stat"><span class="wl-pro-stat-lbl">24S</span><span class="wl-pro-stat-val" style="color:'+(r.daily>=0?'#10b981':'#ef4444')+'">'+(r.daily>=0?'+':'')+r.daily.toFixed(2)+'%</span></div><div class="wl-pro-stat-divider"></div><div class="wl-pro-stat"><span class="wl-pro-stat-lbl">30G</span><span class="wl-pro-stat-val" style="color:'+(r.monthly>=0?'#10b981':'#ef4444')+'">'+(r.monthly>=0?'+':'')+r.monthly.toFixed(1)+'%</span></div><div class="wl-pro-stat-divider"></div><div class="wl-pro-stat"><span class="wl-pro-stat-lbl">1Y</span><span class="wl-pro-stat-val" style="color:'+(r.yearly>=0?'#10b981':'#ef4444')+'">'+(r.yearly>=0?'+':'')+r.yearly.toFixed(1)+'%</span></div></div><button class="wl-pro-del" onclick="event.stopPropagation();removeFromWatchlist(\''+s+'\')"><i class="fas fa-trash-alt"></i></button></div></div>';
@@ -18863,7 +18916,7 @@ function renderSpecificBatch(batch) {
         
         let logo = "";
         if (item.image) {
-            logo = `<div class="asset-logo-wrap" style="background:transparent; border:none; width:32px; height:32px;"><img src="${item.image}" class="asset-logo-img"></div>`;
+            logo = `<div class="asset-logo-wrap" style="background:#1a2035;border:none;width:46px;height:46px;overflow:hidden;filter:drop-shadow(0 5px 10px rgba(0,0,0,0.65));position:relative;"><img src="${item.image}" class="asset-logo-img"><div style="position:absolute;top:2px;left:7px;width:52%;height:34%;background:linear-gradient(160deg,rgba(255,255,255,0.28) 0%,transparent 100%);border-radius:50%;transform:rotate(-15deg);pointer-events:none;"></div></div>`;
         } else {
             logo = getAssetLogoHtml(item.symbol);
         }
@@ -30251,24 +30304,42 @@ document.addEventListener('DOMContentLoaded', function() {
     function buildAvatarHtml(symbol, size) {
         size = size || 48;
         var info = getAssetInfo(symbol);
-        var br = Math.round(size * 0.5); // Her zaman tam daire
-        var base = 'width:' + size + 'px;height:' + size + 'px;border-radius:' + br + 'px;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;';
+        var br = Math.round(size * 0.5);
+        var wrapStyle = [
+            'width:' + size + 'px',
+            'height:' + size + 'px',
+            'border-radius:' + br + 'px',
+            'flex-shrink:0',
+            'overflow:visible',
+            'display:flex',
+            'align-items:center',
+            'justify-content:center',
+            'position:relative',
+            'filter:drop-shadow(0 5px 10px rgba(0,0,0,0.65)) drop-shadow(0 1px 3px rgba(0,0,0,0.4))'
+        ].join(';');
+        var hTop  = Math.round(size * 0.04);
+        var hLeft = Math.round(size * 0.14);
+        var hW    = Math.round(size * 0.52);
+        var hH    = Math.round(size * 0.34);
+        var highlightDiv = '<div style="position:absolute;top:' + hTop + 'px;left:' + hLeft + 'px;width:' + hW + 'px;height:' + hH + 'px;background:linear-gradient(160deg,rgba(255,255,255,0.30) 0%,rgba(255,255,255,0.08) 55%,transparent 100%);border-radius:50%;transform:rotate(-15deg);filter:blur(0.8px);pointer-events:none;z-index:5;"></div>';
 
         if(info.logo && !_logoFailCache[symbol]) {
             var safeColor = info.color.replace(/'/g, '');
             var safeSym = symbol.replace(/'/g, '');
-            // Logo varsa arka plan YOK — transparan PNG'lerde kare görünmez
-            return '<div data-avsym="' + symbol + '" style="' + base + 'background:transparent;">' +
+            return '<div data-avsym="' + symbol + '" style="' + wrapStyle + ';background:transparent;">' +
                 '<img src="' + info.logo + '" width="' + size + '" height="' + size + '" ' +
-                'style="width:' + size + 'px;height:' + size + 'px;object-fit:cover;border-radius:' + br + 'px;" ' +
+                'style="width:' + size + 'px;height:' + size + 'px;object-fit:cover;border-radius:' + br + 'px;box-shadow:0 0 0 1.5px rgba(255,255,255,0.16),0 0 0 1px rgba(0,0,0,0.25);display:block;" ' +
                 'onerror="_avErr(this,\'' + safeSym + '\',' + size + ',\'' + safeColor + '\')">' +
+                highlightDiv +
                 '</div>';
         }
-        // Logo yok → renkli daire + harf
+        // Logo yok → renkli daire + harf + kabarık efekt
         setTimeout(function(){ fetchAndUpdateAvatar(symbol, size); }, 0);
-        return '<div data-avsym="' + symbol + '" style="' + base + 'background:' + info.color + '33;font-size:' + Math.round(size*0.42) + 'px;font-weight:900;color:' + info.color + ';">' + symbol.charAt(0) + '</div>';
+        return '<div data-avsym="' + symbol + '" style="' + wrapStyle + ';background:' + info.color + '33;font-size:' + Math.round(size*0.42) + 'px;font-weight:900;color:' + info.color + ';box-shadow:0 0 0 1.5px rgba(255,255,255,0.10),inset 0 -2px 6px rgba(0,0,0,0.3);">' +
+            symbol.charAt(0) +
+            highlightDiv +
+            '</div>';
     }
-
     // Messenger tarzı kanal satırı
     function buildMessengerRow(symbol, lastMsg, lastTime, unread) {
         var info = getAssetInfo(symbol);
@@ -30287,7 +30358,7 @@ document.addEventListener('DOMContentLoaded', function() {
             : '';
 
         return '<div onclick="openCommunityChat(\'' + symbol + '\',\'' + info.name.replace(/'/g,"\\'") + '\')" style="display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;-webkit-tap-highlight-color:rgba(255,255,255,0.04);">' +
-            buildAvatarHtml(symbol, 48) +
+            buildAvatarHtml(symbol, 56) +
             '<div style="flex:1;min-width:0;">' +
                 '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:6px;">' +
                     '<span style="font-size:14px;font-weight:700;color:rgba(255,255,255,0.92);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + symbol + ' Topluluğu</span>' +
