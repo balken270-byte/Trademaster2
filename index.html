@@ -49,6 +49,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
     <script>
         const firebaseConfig = {
@@ -63,8 +64,10 @@
         firebase.initializeApp(firebaseConfig);
         var fbAuth = firebase.auth();
         var fbDb = firebase.firestore();
+        var fbStorage = firebase.storage();
         window.fbAuth = fbAuth;
         window.fbDb   = fbDb;
+        window.fbStorage = fbStorage;
         // Persistence: redirect sonrası oturum korunur
         fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
         
@@ -4452,6 +4455,7 @@ input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
 @keyframes shimmer { 100% { transform: translateX(100%); } }
 @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeInDown { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
 
 
 
@@ -12752,7 +12756,88 @@ function openLabFullscreen() {
 
                 <!-- HESAP & BULUT (LOGGED IN) -->
                 <div id="accountLoggedIn" style="display:none;">
-                    
+
+                    <!-- ═══ PROFİL KARTI (GİRİŞ YAPILMIŞ) ═══ -->
+                    <div style="background:var(--bg-card);border-radius:20px;padding:18px 20px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.06);position:relative;overflow:hidden;">
+                        <div style="position:absolute;top:-30px;right:-30px;width:160px;height:160px;background:radial-gradient(circle,rgba(99,102,241,0.08) 0%,transparent 70%);pointer-events:none;"></div>
+
+                        <!-- Üst satır: Avatar + İsim/Email + Kamera -->
+                        <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+
+                            <!-- Avatar (online dot ile) -->
+                            <div style="position:relative;flex-shrink:0;">
+                                <div style="width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:2.5px;box-shadow:0 6px 20px rgba(99,102,241,0.38);">
+                                    <div style="width:63px;height:63px;border-radius:50%;background:#151929;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                                        <img id="loggedInProfileImg" src="" style="width:63px;height:63px;border-radius:50%;object-fit:cover;display:none;">
+                                        <div id="loggedInAvatarInitials" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:24px;font-weight:800;color:#fff;letter-spacing:-1px;">?</div>
+                                    </div>
+                                </div>
+                                <!-- Online dot -->
+                                <div style="position:absolute;bottom:3px;right:3px;width:13px;height:13px;border-radius:50%;background:#10b981;border:2px solid var(--bg-card);box-shadow:0 0 6px rgba(16,185,129,0.7);"></div>
+                            </div>
+
+                            <!-- İsim & Email -->
+                            <div style="flex:1;min-width:0;">
+                                <div style="display:flex;align-items:center;gap:7px;">
+                                    <div id="loggedInNameDisplay" style="font-size:17px;font-weight:800;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">—</div>
+                                    <button id="editNamePencil" onclick="toggleEditNameRow()" style="display:none;background:none;border:none;padding:3px;cursor:pointer;flex-shrink:0;">
+                                        <i class="fas fa-pen" style="font-size:12px;color:rgba(255,255,255,0.35);transition:color 0.2s;" onmouseover="this.style.color='#818cf8'" onmouseout="this.style.color='rgba(255,255,255,0.35)'"></i>
+                                    </button>
+                                </div>
+                                <div id="loggedInEmailDisplay" style="font-size:11px;color:rgba(255,255,255,0.4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">—</div>
+                            </div>
+
+                            <!-- Kamera Butonu (sağ üst) -->
+                            <label for="loggedInImgUpload" style="flex-shrink:0;width:40px;height:40px;background:rgba(59,130,246,0.18);border:1px solid rgba(59,130,246,0.32);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+                                <i class="fas fa-camera" style="font-size:14px;color:#60a5fa;"></i>
+                                <input type="file" id="loggedInImgUpload" accept="image/*" style="display:none;" onchange="setLoggedInProfileImg(this)">
+                            </label>
+                        </div>
+
+                        <!-- İsim Düzenle (sadece e-posta kullanıcısı, kalem ile açılır) -->
+                        <div id="loggedInEditNameRow" style="display:none;margin-bottom:14px;animation:fadeInDown 0.2s ease;">
+                            <div style="display:flex;gap:8px;align-items:center;">
+                                <input type="text" id="loggedInNameInput" placeholder="Adınızı girin"
+                                       style="flex:1;padding:10px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(99,102,241,0.4);border-radius:12px;color:#fff;font-size:13px;outline:none;"
+                                       onkeydown="if(event.key==='Enter')saveLoggedInName()">
+                                <button onclick="saveLoggedInName()" style="padding:10px 18px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;box-shadow:0 4px 12px rgba(99,102,241,0.35);">
+                                    Kaydet
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Alt rozetler: PRO + Bağlı -->
+                        <div style="display:flex;gap:8px;">
+                            <div id="loggedInProBadge" style="display:none;flex:1;">
+                                <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;background:linear-gradient(135deg,#fbbf24,#f59e0b);border-radius:12px;box-shadow:0 4px 14px rgba(251,191,36,0.28);">
+                                    <i class="fas fa-crown" style="font-size:12px;color:#000;"></i>
+                                    <span style="font-size:12px;font-weight:800;color:#000;">PRO ÜYE</span>
+                                </div>
+                            </div>
+                            <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.22);border-radius:12px;">
+                                <div style="width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 7px rgba(16,185,129,0.8);"></div>
+                                <span style="font-size:12px;font-weight:700;color:#10b981;">Bağlı</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- İSTATİSTİKLER -->
+                    <div style="background:var(--bg-card);border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.05);">
+                        <div style="font-size:11px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">
+                            <i class="fas fa-chart-line"></i> İstatistikler
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                            <div style="text-align:center;padding:12px;background:var(--bg-input);border-radius:10px;">
+                                <div style="font-size:9px;font-weight:600;color:var(--text-sub);margin-bottom:4px;text-transform:uppercase;">Toplam İşlem</div>
+                                <div id="profileTradeCount" style="font-size:22px;font-weight:800;color:#fff;">0</div>
+                            </div>
+                            <div style="text-align:center;padding:12px;background:var(--bg-input);border-radius:10px;">
+                                <div style="font-size:9px;font-weight:600;color:var(--text-sub);margin-bottom:4px;text-transform:uppercase;">Üyelik</div>
+                                <div id="profileJoinDate" style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.7);">--</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Üyelik Durumu -->
                     <div style="background:var(--bg-card); border-radius:16px; padding:16px; margin-bottom:16px; border:1px solid rgba(255,255,255,0.05);">
                         <div style="font-size:11px; font-weight:700; color:var(--text-sub); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;">
@@ -14643,7 +14728,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.9"; 
+    const CURRENT_VERSION = "1.8"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -28177,6 +28262,27 @@ function updateAccountUI(user) {
     const btnUpgrade = document.getElementById('btnUpgrade');
     
     if (user) {
+        // Kullanıcı verisini Firebase'den tazele (photoURL, displayName güncel gelsin)
+        user.reload().then(() => {
+            const freshUser = fbAuth.currentUser;
+            if (freshUser) _renderAccountUI(freshUser);
+        }).catch(() => {
+            // reload başarısız olsa bile mevcut user ile devam et
+            _renderAccountUI(user);
+        });
+        return; // render _renderAccountUI içinde yapılacak
+    }
+    // Çıkış yapılmış
+    _renderAccountUI(null);
+}
+
+function _renderAccountUI(user) {
+    const loggedOut = document.getElementById('accountLoggedOut');
+    const loggedIn = document.getElementById('accountLoggedIn');
+    const menuStatus = document.getElementById('accountMenuStatus');
+    const btnUpgrade = document.getElementById('btnUpgrade');
+
+    if (user) {
         if (loggedOut) loggedOut.style.display = 'none';
         if (loggedIn) loggedIn.style.display = 'block';
         if (btnUpgrade) btnUpgrade.style.display = 'block';
@@ -28210,25 +28316,125 @@ function updateAccountUI(user) {
         
         // ═══ PROFİL SAYFASI SENKRONIZASYONU ═══
         console.log('[TradeVia] Google bilgileri profil sayfasına aktarılıyor...');
-        console.log('[TradeVia] User photoURL:', user.photoURL);
-        console.log('[TradeVia] User displayName:', user.displayName);
         
-        // Profil resmi - yeni avatar alanı
+        // --- Giriş yapılmış profil kartı ---
+        const isGoogle = user.providerData && user.providerData.some(p => p.providerId === 'google.com');
+        const isPro2 = localStorage.getItem('userPlan') === 'PRO';
+
+        // Avatar
+        const liImg = document.getElementById('loggedInProfileImg');
+        const liInitials = document.getElementById('loggedInAvatarInitials');
+        
+        // Kaydedilmiş yerel fotoğraf varsa onu kullan (email kullanıcısı)
+        const savedAvatar = localStorage.getItem('tm_local_avatar');
+        
+        if (liImg && liInitials) {
+            const photoSrc = user.photoURL || (savedAvatar && !isGoogle ? savedAvatar : null);
+            if (photoSrc) {
+                liImg.src = photoSrc;
+                liImg.style.display = 'block';
+                liInitials.style.display = 'none';
+                liImg.onerror = function() {
+                    liImg.style.display = 'none';
+                    const n = user.displayName || user.email || '?';
+                    liInitials.textContent = n.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+                    liInitials.style.display = 'flex';
+                };
+            } else {
+                liImg.style.display = 'none';
+                const n = user.displayName || user.email || '?';
+                liInitials.textContent = n.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+                liInitials.style.display = 'flex';
+            }
+        }
+
+        // Ayarlar menüsü profileImg da güncelle
+        const menuProfileImg2 = document.getElementById('menuProfileImg');
+        if (menuProfileImg2) {
+            const savedAv = localStorage.getItem('tm_local_avatar');
+            menuProfileImg2.src = user.photoURL || (savedAv ? savedAv : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName||'U')}&background=3b82f6&color=fff&size=150`);
+            menuProfileImg2.style.borderRadius = '50%';
+        }
+
+        // İsim & e-posta göster
+        const liName = document.getElementById('loggedInNameDisplay');
+        const liEmail = document.getElementById('loggedInEmailDisplay');
+        const liEditRow = document.getElementById('loggedInEditNameRow');
+        const liNameInput = document.getElementById('loggedInNameInput');
+        
+        // Kaydedilmiş özel isim var mı?
+        const savedName = localStorage.getItem('tm_user_display_name');
+        const displayName = user.displayName || savedName || '';
+        
+        if (liName) liName.textContent = displayName || (user.email ? user.email.split('@')[0] : '—');
+        if (liEmail) liEmail.textContent = user.email || '—';
+        
+        // E-posta ile giriş yapanlar isim düzenleyebilir — kalem ikonu göster
+        const pencilBtn = document.getElementById('editNamePencil');
+        if (pencilBtn) pencilBtn.style.display = isGoogle ? 'none' : 'inline-flex';
+        if (liEditRow) liEditRow.style.display = 'none'; // başta kapalı, kalem ile açılır
+        if (liNameInput && !isGoogle) liNameInput.value = displayName;
+
+        // PRO rozeti
+        const liProBadge = document.getElementById('loggedInProBadge');
+        if (liProBadge) liProBadge.style.display = isPro2 ? 'block' : 'none';
+
+        // İstatistikler — Firebase'den + localStorage'dan oku
+        const tradeCountEl = document.getElementById('profileTradeCount');
+        const joinDateEl = document.getElementById('profileJoinDate');
+
+        // İşlem sayısı: önce localStorage (anlık), arka planda Firebase'den güncelle
+        if (tradeCountEl) {
+            try {
+                const localCount = (JSON.parse(localStorage.getItem('tm_full_trade_history')||'[]')).length;
+                tradeCountEl.textContent = localCount;
+            } catch(e) { tradeCountEl.textContent = '0'; }
+            // Firebase'den de kontrol et (yedek varsa)
+            if (typeof fbDb !== 'undefined' && user.uid) {
+                fbDb.collection('users').doc(user.uid).get().then(doc => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        if (data.backup && data.backup.tm_full_trade_history) {
+                            try {
+                                const fbCount = JSON.parse(data.backup.tm_full_trade_history).length;
+                                const localCount2 = (JSON.parse(localStorage.getItem('tm_full_trade_history')||'[]')).length;
+                                // En büyük değeri göster
+                                if (tradeCountEl) tradeCountEl.textContent = Math.max(fbCount, localCount2);
+                            } catch(e) {}
+                        }
+                    }
+                }).catch(()=>{});
+            }
+        }
+
+        // Üyelik tarihi: Firebase Auth metadata (en güvenilir)
+        if (joinDateEl) {
+            let joinDate = null;
+            // 1. Firebase Auth creationTime
+            if (user.metadata && user.metadata.creationTime) {
+                joinDate = new Date(user.metadata.creationTime);
+            }
+            // 2. localStorage yedek
+            if (!joinDate || isNaN(joinDate.getTime())) {
+                const saved = localStorage.getItem('tm_join_date_' + user.uid);
+                if (saved) joinDate = new Date(saved);
+            }
+            // 3. Bugünü kaydet ve kullan
+            if (!joinDate || isNaN(joinDate.getTime())) {
+                joinDate = new Date();
+            }
+            // Kullanıcıya özgü key ile kaydet
+            localStorage.setItem('tm_join_date_' + user.uid, joinDate.toISOString());
+            joinDateEl.textContent = joinDate.toLocaleDateString('tr-TR', {day:'2-digit', month:'2-digit', year:'numeric'});
+        }
+
+        // Profil resmi - login formu avatar alanı (eski kod - artık gizli ama yine tutalım)
         const profileImg = document.getElementById('displayProfileImg');
         const loginAvatarInitials = document.getElementById('loginAvatarInitials');
         if (profileImg && user.photoURL) {
             profileImg.src = user.photoURL;
             profileImg.style.display = 'block';
             if (loginAvatarInitials) loginAvatarInitials.style.display = 'none';
-            profileImg.onerror = function() {
-                profileImg.style.display = 'none';
-                if (loginAvatarInitials) {
-                    const name = user.displayName || 'KU';
-                    const initials = name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
-                    loginAvatarInitials.textContent = initials;
-                    loginAvatarInitials.style.display = 'flex';
-                }
-            };
         } else if (loginAvatarInitials) {
             if (profileImg) profileImg.style.display = 'none';
             const name = user.displayName || user.email || 'KU';
@@ -28290,7 +28496,7 @@ function updateAccountUI(user) {
         
         updateMembershipUI();
         checkLastBackup(user.uid);
-        updateMembershipBtnUI(); // Ayarlardaki PRO butonunu güncelle
+        updateMembershipBtnUI();
         if (typeof initAutoBackup === 'function') initAutoBackup();
         
         console.log('[TradeVia] ✓ Profil senkronizasyonu tamamlandı');
@@ -28363,9 +28569,9 @@ function updateAccountUI(user) {
             profileEditCard.style.display = 'block';
         }
         
-        updateMembershipBtnUI(); // Ayarlardaki PRO butonunu güncelle
+        updateMembershipBtnUI();
     }
-}
+} // _renderAccountUI sonu
 
 function updateMembershipUI() {
     const infoEl = document.getElementById('fbMembershipInfo');
@@ -28512,7 +28718,119 @@ function reactivateProMembership() {
     });
 }
 
-// --- Yerel Profil Fotoğrafı Seç & Senkronize Et ---
+// --- İsim düzenleme satırını aç/kapat ---
+function toggleEditNameRow() {
+    const row = document.getElementById('loggedInEditNameRow');
+    const inp = document.getElementById('loggedInNameInput');
+    if (!row) return;
+    if (row.style.display === 'none' || !row.style.display) {
+        row.style.display = 'block';
+        if (inp) { inp.focus(); inp.select(); }
+    } else {
+        row.style.display = 'none';
+    }
+}
+
+// --- Giriş yapılmış kullanıcı isim kaydet ---
+async function saveLoggedInName() {
+    const inp = document.getElementById('loggedInNameInput');
+    if (!inp) return;
+    const name = inp.value.trim();
+    if (!name) { if(typeof showToast==='function') showToast('warning','Hata','İsim boş olamaz.'); return; }
+    try {
+        if (fbAuth.currentUser) {
+            await fbAuth.currentUser.updateProfile({ displayName: name });
+        }
+        localStorage.setItem('tm_user_display_name', name);
+        // UI güncelle
+        const liName = document.getElementById('loggedInNameDisplay');
+        if (liName) liName.textContent = name;
+        const menuProfileName = document.getElementById('menuProfileName');
+        if (menuProfileName) menuProfileName.textContent = name;
+        // Satırı kapat
+        const row = document.getElementById('loggedInEditNameRow');
+        if (row) row.style.display = 'none';
+        if(typeof showToast==='function') showToast('success','Kaydedildi ✓','İsminiz güncellendi.');
+    } catch(err) {
+        if(typeof showToast==='function') showToast('danger','Hata',err.message);
+    }
+}
+
+// --- Giriş yapılmış kullanıcı profil fotoğrafı seç & Storage'a yükle ---
+async function setLoggedInProfileImg(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    
+    // Dosya boyutu kontrolü (max 3MB)
+    if (file.size > 3 * 1024 * 1024) {
+        if(typeof showToast==='function') showToast('warning','Dosya Çok Büyük','Lütfen 3MB altında bir fotoğraf seçin.');
+        return;
+    }
+
+    const user = typeof fbAuth !== 'undefined' && fbAuth.currentUser;
+
+    // Önce yerel önizleme göster
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        const dataUrl = e.target.result;
+        
+        // Anlık UI güncelle
+        const liImg = document.getElementById('loggedInProfileImg');
+        const liInit = document.getElementById('loggedInAvatarInitials');
+        if (liImg) { liImg.src = dataUrl; liImg.style.display = 'block'; }
+        if (liInit) { liInit.style.display = 'none'; }
+        const menuProfileImg = document.getElementById('menuProfileImg');
+        if (menuProfileImg) { menuProfileImg.src = dataUrl; menuProfileImg.style.borderRadius = '50%'; }
+        
+        // localStorage yedek
+        try { localStorage.setItem('tm_local_avatar', dataUrl); } catch(ex) {}
+        
+        if(typeof showToast==='function') showToast('info','Yükleniyor...','Fotoğraf buluta kaydediliyor.');
+
+        // Firebase Storage'a yükle
+        if (user && typeof fbStorage !== 'undefined') {
+            try {
+                const storageRef = fbStorage.ref(`profile_photos/${user.uid}/avatar.jpg`);
+                
+                // Base64'ü blob'a çevir
+                const response = await fetch(dataUrl);
+                const blob = await response.blob();
+                
+                // Yükle
+                const snapshot = await storageRef.put(blob, { contentType: 'image/jpeg' });
+                const downloadURL = await snapshot.ref.getDownloadURL();
+                
+                // Firebase Auth photoURL güncelle
+                await user.updateProfile({ photoURL: downloadURL });
+                
+                // Firestore'a da kaydet
+                if (typeof fbDb !== 'undefined') {
+                    await fbDb.collection('users').doc(user.uid).set({ photoURL: downloadURL }, { merge: true });
+                }
+                
+                // UI'yi download URL ile güncelle (daha güvenilir)
+                if (liImg) liImg.src = downloadURL;
+                if (menuProfileImg) menuProfileImg.src = downloadURL;
+                
+                if(typeof showToast==='function') showToast('success','Güncellendi ✓','Profil fotoğrafı tüm cihazlara yansıyacak.');
+            } catch(err) {
+                console.error('Storage upload error:', err);
+                // Storage yüklenemese bile yerel avatar çalışır
+                if(typeof showToast==='function') showToast('warning','Kısmen Kaydedildi','Fotoğraf bu cihazda görünecek ancak diğer cihazlara yansımayabilir.');
+            }
+        } else {
+            if(typeof showToast==='function') showToast('success','Güncellendi ✓','Profil fotoğrafı değiştirildi.');
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+// --- Misafir / login formu profil fotoğrafı (aynı Storage mantığı) ---
+async function setLocalProfileImg(input) {
+    return setLoggedInProfileImg(input); // Artık aynı fonksiyonu kullan
+}
+
+// --- Yerel Profil Fotoğrafı Seç & Senkronize Et (misafir modu) ---
 function setLocalProfileImg(input) {
     const file = input.files && input.files[0];
     if (!file) return;
@@ -28976,11 +29294,13 @@ async function firebaseBackup() {
         await fbDb.collection('users').doc(user.uid).set({
             backup: backupData,
             email: user.email,
-            name: user.displayName,
+            name: user.displayName || localStorage.getItem('tm_user_display_name') || '',
+            displayName: user.displayName || localStorage.getItem('tm_user_display_name') || '',
             isPro: localStorage.getItem('userPlan') === 'PRO',
             proStartDate: localStorage.getItem('proStartDate'),
             proEndDate: localStorage.getItem('proEndDate'),
-            proCancelled: localStorage.getItem('proCancelled') === 'true', // İptal durumu
+            proCancelled: localStorage.getItem('proCancelled') === 'true',
+            createdAt: user.metadata && user.metadata.creationTime ? user.metadata.creationTime : null,
             lastBackup: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
         
@@ -29674,7 +29994,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Try to get user display name from Firebase Auth or local storage
         const user = typeof fbAuth !== 'undefined' && fbAuth.currentUser;
         if (user) {
-            return user.displayName || user.email?.split('@')[0] || 'Kullanıcı';
+            return localStorage.getItem('tm_user_display_name') || user.displayName || user.email?.split('@')[0] || 'Kullanıcı';
         }
         let name = localStorage.getItem('socialDisplayName');
         if (!name) {
@@ -29682,6 +30002,16 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.setItem('socialDisplayName', name);
         }
         return name;
+    }
+
+    // E-posta kullanıcısı için Storage URL'yi, Google için photoURL'yi döndürür
+    function getEffectivePhotoURL() {
+        const user = typeof fbAuth !== 'undefined' && fbAuth.currentUser;
+        if (!user) return null;
+        // Firebase Auth'daki photoURL (Google veya Storage'a yüklenmiş)
+        if (user.photoURL) return user.photoURL;
+        // Yedek: yerel avatar
+        return localStorage.getItem('tm_local_avatar') || null;
     }
     
     function getUserId() {
@@ -30251,9 +30581,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const uid = getUserId();
         const authorName = getDisplayName();
         
-        // Giriş yapmış kullanıcının profil fotoğrafını al
+        // Giriş yapmış kullanıcının profil fotoğrafını al (Google veya yerel avatar)
         const currentUser = typeof fbAuth !== 'undefined' && fbAuth.currentUser;
-        const photoURL = (currentUser && currentUser.photoURL) ? currentUser.photoURL : null;
+        const photoURL = getEffectivePhotoURL();
         
         var payload = {
             symbol: currentSocialSymbol, text: text, sentiment: currentCommentSentiment,
@@ -31214,8 +31544,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        var authorName = user.displayName || (user.email ? user.email.split('@')[0] : 'Kullanıcı');
-        var photoURL = user.photoURL || null;
+        var authorName = localStorage.getItem('tm_user_display_name') || user.displayName || (user.email ? user.email.split('@')[0] : 'Kullanıcı');
+        var photoURL = getEffectivePhotoURL();
 
         var payload = {
             symbol: activeCommunitySymbol,
