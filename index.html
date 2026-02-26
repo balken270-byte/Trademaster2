@@ -14591,7 +14591,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -15442,8 +15442,12 @@ function renderPortfolioHTML(as) {
         let priceUnit = a.origin === 'USD' ? `<b id="live_price_${a.originalIndex}">$${a.rp.toFixed(2)}</b>` : `<b id="live_price_${a.originalIndex}">₺${a.rp.toFixed(2)}</b>`; 
         
         let logoHtml = "";
-        if(a.image) logoHtml = `<div class="asset-logo-wrap" style="background:transparent; border:none;"><img src="${a.image}" class="asset-logo-img"></div>`;
-        else logoHtml = getAssetLogoHtml(a.name.replace('.IS',''));
+        if(a.image) {
+            let _fbSym = (a.name||'').replace('.IS','');
+            logoHtml = '<div class="asset-logo-wrap" style="background:transparent;border:none;"><img src="' + a.image + '" class="asset-logo-img" onerror="_iconErr1(this,\'' + _fbSym.toLowerCase() + '\')"></div>';
+        } else {
+            logoHtml = getAssetLogoHtml(a.name.replace('.IS',''));
+        }
         
         let cardColorClass = 'asset-card';
         var _assetIsPro = (typeof Membership !== 'undefined' && Membership.isPro()) || (localStorage.getItem('userPlan') === 'PRO');
@@ -17849,50 +17853,126 @@ function changeStartPage(val) {
     function selectMarketItem(tvSymbol, el) { selectedMarketSymbol = tvSymbol; if(el) { document.querySelectorAll('.market-row-item').forEach(x => x.classList.remove('active')); el.classList.add('active'); } renderTradingView(tvSymbol); }
     function searchInChart() { let val = document.getElementById('chartSearchInput').value.trim().toUpperCase(); if(!val) return; let cleanVal = val.replace('/', '').replace(' ', '').replace('-', ''); let finalSymbol = cleanVal; if(cleanVal.includes(':')) { renderTradingView(cleanVal); return; } if(currentMarketTab === 'kripto') { const quotes = ['USDT', 'TRY', 'BUSD', 'USDC', 'EUR', 'BTC', 'ETH']; const hasQuote = quotes.some(q => cleanVal.endsWith(q)); if(!hasQuote) finalSymbol = cleanVal + 'USDT'; finalSymbol = 'BINANCE:' + finalSymbol; } else if(currentMarketTab === 'hisse') finalSymbol = 'BIST:' + cleanVal; else if(currentMarketTab === 'doviz') finalSymbol = 'FX:' + cleanVal; else if(currentMarketTab === 'altin') { if(cleanVal === 'ALTIN' || cleanVal === 'ONS') finalSymbol = 'TVC:GOLD'; else if(cleanVal === 'GRAM' || cleanVal === 'GRAMALTIN') finalSymbol = 'FX:XAUTRY'; else finalSymbol = 'TVC:' + cleanVal; } renderTradingView(finalSymbol); }
     /* --- GÜNCELLENMİŞ HİBRİT LOGO MOTORU (Kripto Resimli, Diğerleri Kutulu) --- */
+// ─── GLOBAL YARDIMCI: sembol → renk ───────────────────────────────────────────
+// ─── NEON RING FALLBACK İKON — TRADE/VIA yazısı ile ─────────────────────────
+// Benzersiz gradient ID için sayaç (SVG'de ID çakışmasını önler)
+var _tvIconCounter = 0;
+
+function _tvNeonRingIcon(size) {
+    // size: px cinsinden (örn: 40, 44, 48)
+    var id = 'tvnr' + (++_tvIconCounter);
+    var s = size || 40;
+    // Font boyutları — TRADE küçük, VIA büyük ve renkli
+    var tradeSize = Math.round(s * 0.22);  // ~8-9px @ 40
+    var viaSize   = Math.round(s * 0.30);  // ~11-12px @ 40
+
+    return (
+        '<svg width="' + s + '" height="' + s + '" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;display:block;">' +
+        '<defs>' +
+            '<radialGradient id="' + id + 'bg" cx="38%" cy="35%">' +
+                '<stop offset="0%" stop-color="#1e2b47"/>' +
+                '<stop offset="100%" stop-color="#07090f"/>' +
+            '</radialGradient>' +
+            '<linearGradient id="' + id + 'arc" x1="0%" y1="0%" x2="100%" y2="100%">' +
+                '<stop offset="0%" stop-color="#818cf8"/>' +
+                '<stop offset="60%" stop-color="#6366f1"/>' +
+                '<stop offset="100%" stop-color="rgba(99,102,241,0)"/>' +
+            '</linearGradient>' +
+            '<linearGradient id="' + id + 'via" x1="0%" y1="0%" x2="100%" y2="100%">' +
+                '<stop offset="0%" stop-color="#60a5fa"/>' +
+                '<stop offset="50%" stop-color="#34d399"/>' +
+                '<stop offset="100%" stop-color="#fcd34d"/>' +
+            '</linearGradient>' +
+            '<filter id="' + id + 'glow" x="-50%" y="-50%" width="200%" height="200%">' +
+                '<feGaussianBlur stdDeviation="2.5" result="b"/>' +
+                '<feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>' +
+            '</filter>' +
+        '</defs>' +
+        /* Outer glow halkası */
+        '<circle cx="50" cy="50" r="47" fill="none" stroke="rgba(99,102,241,0.12)" stroke-width="5"/>' +
+        /* Ana koyu daire */
+        '<circle cx="50" cy="50" r="42" fill="url(#' + id + 'bg)"/>' +
+        /* Sabit ince iç çerçeve */
+        '<circle cx="50" cy="50" r="42" fill="none" stroke="rgba(99,102,241,0.45)" stroke-width="1.2"/>' +
+        /* Dönen parlak yay */
+        '<circle cx="50" cy="50" r="42" fill="none" stroke="url(#' + id + 'arc)" stroke-width="3"' +
+            ' stroke-dasharray="55 210" stroke-linecap="round" transform="rotate(-90 50 50)">' +
+            '<animateTransform attributeName="transform" type="rotate" from="-90 50 50" to="270 50 50" dur="5s" repeatCount="indefinite"/>' +
+        '</circle>' +
+        /* İç parlaklık (frosted highlight) */
+        '<ellipse cx="37" cy="34" rx="14" ry="6" fill="rgba(255,255,255,0.06)" transform="rotate(-25 37 34)"/>' +
+        /* TRADE yazısı — beyaz/gri gradient, küçük */
+        '<text x="50" y="46" text-anchor="middle"' +
+            ' font-family="Inter,-apple-system,BlinkMacSystemFont,sans-serif"' +
+            ' font-weight="900" font-size="' + tradeSize + '"' +
+            ' letter-spacing="' + Math.round(s * 0.01) + '"' +
+            ' fill="url(#' + id + 'via)"' +  /* aslında beyaz istiyoruz, linearGradient ile */
+            '>' +
+            /* SVG'de -webkit-background-clip yok; TRADE için beyaz, VIA için tspan+fill */
+            'TRADE</text>' +
+        /* TRADE ayrı — beyaz renk */
+        '<text x="50" y="46" text-anchor="middle"' +
+            ' font-family="Inter,-apple-system,BlinkMacSystemFont,sans-serif"' +
+            ' font-weight="900" font-size="' + tradeSize + '"' +
+            ' fill="#e2e8f0" opacity="0.95">' +
+            'TRADE' +
+        '</text>' +
+        /* VIA yazısı — büyük, gradient renkli, glow filtreli */
+        '<text x="50" y="62" text-anchor="middle"' +
+            ' font-family="Inter,-apple-system,BlinkMacSystemFont,sans-serif"' +
+            ' font-weight="900" font-size="' + viaSize + '"' +
+            ' letter-spacing="-0.5"' +
+            ' fill="url(#' + id + 'via)"' +
+            ' filter="url(#' + id + 'glow)">' +
+            'VIA' +
+        '</text>' +
+        '</svg>'
+    );
+}
+
+// ─── GLOBAL YARDIMCI: img yüklenemeyince çağrılır ─────────────────────────────
+function _iconErr1(imgEl, cleanSym) {
+    imgEl.onerror = function() { _iconErr2(imgEl, cleanSym); };
+    imgEl.src = 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@master/128/color/' + cleanSym + '.png';
+}
+// Adım 2 başarısız → TradeVia Neon Ring ikona geç
+function _iconErr2(imgEl, sym) {
+    var wrap = imgEl.closest ? imgEl.closest('.asset-logo-wrap') : imgEl.parentNode;
+    if (wrap) {
+        var wSize = wrap.offsetWidth || 40;
+        var iSize = Math.min(Math.max(wSize, 36), 52);
+        wrap.innerHTML = _tvNeonRingIcon(iSize);
+    }
+}
+
+// ─── ANA FONKSİYON ────────────────────────────────────────────────────────────
 function getAssetLogoHtml(symbol) {
-    let s = symbol.toUpperCase().trim().replace('.IS','');
-    
-    // RENK SEÇİMİ (Kutucuklar için lazım)
-    let seed = 0;
-    for (let i = 0; i < s.length; i++) seed += s.charCodeAt(i);
-    const colors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e'];
-    let color = colors[seed % colors.length];
+    var s = (symbol||'').toUpperCase().trim().replace('.IS','');
 
-    // KUTUCUK HTML'i (Hisseler ve Resmi Bulunamayanlar İçin Yedek)
-    const boxHtml = `
-        <div style="
-            width:40px; height:40px; 
-            background:${color}20; 
-            border:1px solid ${color}60; 
-            border-radius:12px; 
-            display:flex; align-items:center; justify-content:center; 
-            color:${color}; font-weight:900; font-size:12px; 
-            letter-spacing:-0.5px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        ">${s.substring(0,3)}</div>`;
+    // Neon Ring fallback ikonu
+    var fallbackDiv = _tvNeonRingIcon(40);
 
-    // --- 1. KRİPTO KONTROLÜ ---
-    // Eğer USDT içeriyorsa veya bilinen coin listesindeyse veya uzun isimliyse (BABYDOGE gibi)
-    const isCrypto = s.includes('USDT') || 
-                     ['BTC','ETH','BNB','SOL','XRP','DOGE','ADA','AVAX','SHIB','PEPE','BABYDOGE','FLOKI','FET','ARB','APT'].includes(s) ||
-                     (s.length > 5 && !s.includes(' ')); // Genelde uzun semboller coindir
-
-    if (isCrypto) {
-        // Sembolü temizle (BTCUSDT -> btc)
-        let cleanSym = s.replace('USDT','').toLowerCase();
-        
-        // Resim çekmeye çalış (Hata verirse kutucuğa döner)
-        return `<div class="asset-logo-wrap" style="background:transparent; border:none; width:40px; margin-right:10px;">
-            <img src="https://assets.coincap.io/assets/icons/${cleanSym}@2x.png" 
-                 style="width:36px; height:36px; border-radius:50%; object-fit:contain;"
-                 
-onerror="this.outerHTML=\`<div style='width:40px;height:40px;background:${color}20;border:1px solid ${color}60;border-radius:12px;display:flex;align-items:center;justify-content:center;color:${color};font-weight:900;font-size:12px;'>${s.substring(0,3)}</div>\`">
-        </div>`;
+    // --- 1. BORSA HİSSESİ ---
+    var isBist = symbol.includes('.IS') || ['THYAO','EREGL','SASA','KCHOL','AKBNK','GARAN','ISCTR','TUPRS','KOZAL','BIMAS','MIGROS'].indexOf(s) >= 0;
+    if (isBist) {
+        return '<div class="asset-logo-wrap" style="background:transparent;border:none;width:40px;margin-right:10px;display:flex;align-items:center;justify-content:center;">' + fallbackDiv + '</div>';
     }
 
-    // --- 2. HİSSE VE DÖVİZLER (Kutucuk Göster) ---
-    return `<div class="asset-logo-wrap" style="background:transparent; border:none; width:40px; margin-right:10px;">
-        ${boxHtml}
-    </div>`;
+    // --- 2. KRİPTO ---
+    var isCrypto = s.includes('USDT') || s.includes('BTC') ||
+                   (!symbol.includes('.') && ['USD','EUR','GBP','TRY'].indexOf(s) < 0 && s.length >= 2);
+
+    if (isCrypto) {
+        var cleanSym = s.replace('USDT','').replace('BUSD','').replace('FDUSD','').toLowerCase();
+        return '<div class="asset-logo-wrap" style="background:transparent;border:none;width:40px;margin-right:10px;display:flex;align-items:center;justify-content:center;">' +
+               '<img src="https://assets.coincap.io/assets/icons/' + cleanSym + '@2x.png" ' +
+               'style="width:38px;height:38px;border-radius:50%;object-fit:contain;display:block;" ' +
+               'onerror="_iconErr1(this,\'' + cleanSym + '\')">' +
+               '</div>';
+    }
+
+    // --- 3. DÖVİZ VE DİĞERLERİ ---
+    return '<div class="asset-logo-wrap" style="background:transparent;border:none;width:40px;margin-right:10px;display:flex;align-items:center;justify-content:center;">' + fallbackDiv + '</div>';
 }
 
     function checkPolyInit() { if(polyApiKey) { document.getElementById('polyIndicator').className='poly-status-dot'; testPolygonConnection(); } else { document.getElementById('polyIndicator').className='poly-status-dot idle'; document.getElementById('polyStatusText').innerText="KOD YOK"; } }
