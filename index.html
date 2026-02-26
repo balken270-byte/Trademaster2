@@ -14648,7 +14648,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.4"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -15500,8 +15500,15 @@ function renderPortfolioHTML(as) {
         
         let logoHtml = "";
         if(a.image) {
-            let _fbSym = (a.name||'').replace('.IS','');
-            logoHtml = '<div class="asset-logo-wrap" style="background:transparent;border:none;"><img src="' + a.image + '" class="asset-logo-img" onerror="_iconErr1(this,\'' + _fbSym.toLowerCase() + '\')"></div>';
+            let _fbSym = (a.name||'').replace('.IS','').toLowerCase();
+            let _wIconsPF2 = ['xrp','xlm','algo','hbar','dot','near','apt','sui','ton','inj','ldo','floki'];
+            let _pfBg2 = _wIconsPF2.indexOf(_fbSym) >= 0 ? '#0f1829' : '#1a2035';
+            let _pfIsWhite2 = _wIconsPF2.indexOf(_fbSym) >= 0;
+            let _pfImgStyle = _pfIsWhite2 ? 'object-fit:contain;padding:4px;' : 'object-fit:cover;';
+            logoHtml = '<div class="asset-logo-wrap" style="background:' + _pfBg2 + ';border:none;overflow:hidden;position:relative;">' +
+                       '<img src="' + a.image + '" class="asset-logo-img" style="' + _pfImgStyle + '" onerror="_iconErr1(this,\'' + _fbSym + '\')">' +
+                       '<div style="position:absolute;top:2px;left:6px;width:52%;height:34%;background:linear-gradient(160deg,rgba(255,255,255,0.28) 0%,rgba(255,255,255,0.05) 55%,transparent 100%);border-radius:50%;transform:rotate(-15deg);pointer-events:none;z-index:10;"></div>' +
+                       '</div>';
         } else {
             logoHtml = getAssetLogoHtml(a.name.replace('.IS',''));
         }
@@ -18052,7 +18059,7 @@ function getAssetLogoHtml(symbol) {
         return '<div class="asset-logo-wrap" style="background:transparent;border:none;width:43px;height:43px;margin-right:10px;display:flex;align-items:center;justify-content:center;overflow:visible;position:relative;filter:drop-shadow(0 5px 10px rgba(0,0,0,0.65)) drop-shadow(0 1px 3px rgba(0,0,0,0.4));">' +
                '<div style="width:43px;height:43px;border-radius:50%;overflow:hidden;background:' + _iBg + ';position:relative;display:flex;align-items:center;justify-content:center;">' +
                '<img src="https://assets.coincap.io/assets/icons/' + cleanSym + '@2x.png" ' +
-               'style="width:40px;height:40px;border-radius:50%;object-fit:contain;display:block;" ' +
+               'style="width:40px;height:40px;border-radius:50%;object-fit:' + (_wIcons.indexOf(cleanSym)>=0?'contain':'cover') + ';display:block;' + (_wIcons.indexOf(cleanSym)>=0?'padding:4px;':'') + '" ' +
                'onerror="_iconErr1(this,\'' + cleanSym + '\')"></div>' +
                '<div style="position:absolute;top:2px;left:7px;width:52%;height:34%;background:linear-gradient(160deg,rgba(255,255,255,0.28) 0%,rgba(255,255,255,0.05) 55%,transparent 100%);border-radius:50%;transform:rotate(-15deg);pointer-events:none;z-index:5;"></div>' +
                '</div>';
@@ -18885,10 +18892,12 @@ async function fetchMarketData() {
 function processAndRenderData(itemsToRender = []) {
     const listEl = document.getElementById('infiniteMarketList');
     
-    // Eğer Sayfa 1 ise veya itemsToRender boş gelirse (sıralama değişimi gibi) listeyi temizle
-    if(currentPage === 1 && itemsToRender.length === 0) {
+    // Sayfa 1 ise her zaman temizle (bakım ekranı dahil)
+    if(currentPage === 1) {
         listEl.innerHTML = '';
-        itemsToRender = marketDataCache; // Cache'deki her şeyi bas
+        if(itemsToRender.length === 0) {
+            itemsToRender = marketDataCache; // Cache'deki her şeyi bas
+        }
     }
     
     // Eğer itemsToRender parametresi dolu geldiyse (Sayfa 2, 3...) sadece onları bas
@@ -18957,7 +18966,8 @@ function renderSpecificBatch(batch) {
             const _wIconsPF = ['xrp','xlm','algo','hbar','dot','near','apt','sui','ton','inj','ldo','floki'];
             const _pfSym = (item.symbol || item.name || '').toLowerCase().replace('usdt','').replace('busd','');
             const _pfBg = _wIconsPF.indexOf(_pfSym) >= 0 ? '#0f1829' : '#1a2035';
-            logo = `<div class="asset-logo-wrap" style="background:${_pfBg};border:none;width:43px;height:43px;overflow:hidden;filter:drop-shadow(0 5px 10px rgba(0,0,0,0.65));position:relative;"><img src="${item.image}" class="asset-logo-img"><div style="position:absolute;top:2px;left:7px;width:52%;height:34%;background:linear-gradient(160deg,rgba(255,255,255,0.28) 0%,transparent 100%);border-radius:50%;transform:rotate(-15deg);pointer-events:none;"></div></div>`;
+            const _pfImgStyle2 = _wIconsPF.indexOf(_pfSym) >= 0 ? 'object-fit:contain;padding:4px;' : 'object-fit:cover;';
+            logo = `<div class="asset-logo-wrap" style="background:${_pfBg};border:none;width:43px;height:43px;overflow:hidden;filter:drop-shadow(0 5px 10px rgba(0,0,0,0.65));position:relative;"><img src="${item.image}" class="asset-logo-img" style="${_pfImgStyle2}"><div style="position:absolute;top:2px;left:7px;width:52%;height:34%;background:linear-gradient(160deg,rgba(255,255,255,0.28) 0%,transparent 100%);border-radius:50%;transform:rotate(-15deg);pointer-events:none;"></div></div>`;
         } else {
             logo = getAssetLogoHtml(item.symbol);
         }
@@ -20281,7 +20291,7 @@ loadMarketCategory = function(cat, btn) {
     marketDataCache = []; // Önceki kategori verisini kesinlikle temizle
     isMarketLoading = false; // Önceki yüklemeyi iptal et
     const listEl = document.getElementById('infiniteMarketList');
-    if(listEl) listEl.innerHTML = '';
+    if(listEl) listEl.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 32px 60px;gap:0;"><div style="position:relative;width:80px;height:80px;margin-bottom:28px;"><svg width="80" height="80" viewBox="0 0 80 80" style="position:absolute;top:0;left:0;animation:tvSpinRing 3s linear infinite;"><circle cx="40" cy="40" r="36" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="3"/><circle cx="40" cy="40" r="36" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2.5" stroke-dasharray="40 185" stroke-linecap="round"/></svg><div style="position:absolute;inset:12px;background:linear-gradient(145deg,#1e3a8a,#0f172a);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(255,255,255,0.06);"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><polyline points="3,17 8,12 13,15 21,7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="21" cy="7" r="2.8" fill="white"/></svg></div></div><div style="font-size:17px;font-weight:900;color:#ffffff;letter-spacing:-0.3px;margin-bottom:10px;text-align:center;">Sizin için bakım yapıyoruz</div><div style="font-size:12px;color:rgba(255,255,255,0.45);font-weight:500;text-align:center;line-height:1.7;margin-bottom:28px;">Piyasa verileri güncelleniyor.<br>Hemen döneceğiz 🚀</div><div style="display:flex;gap:7px;align-items:center;"><div style="width:7px;height:7px;border-radius:50%;background:white;opacity:0.9;animation:tvDot 1.4s ease-in-out infinite;"></div><div style="width:7px;height:7px;border-radius:50%;background:white;opacity:0.7;animation:tvDot 1.4s ease-in-out 0.22s infinite;"></div><div style="width:7px;height:7px;border-radius:50%;background:white;opacity:0.5;animation:tvDot 1.4s ease-in-out 0.44s infinite;"></div></div></div>';
 
     // Trend filtrelerini sıfırla
     document.querySelectorAll('.filter-chip').forEach(function(c) { c.classList.remove('active'); });
@@ -30399,11 +30409,16 @@ document.addEventListener('DOMContentLoaded', function() {
         if(info.logo && !_logoFailCache[symbol]) {
             var safeColor = (info.color || '#3b82f6').replace(/['"]/g, '');
             var safeSym   = symbol.replace(/['"]/g, '');
+            var _avWhiteIcons = ['XRP','XLM','ALGO','HBAR','DOT','NEAR','APT','SUI','TON','INJ','LDO','FLOKI'];
+            var _avIsWhite = _avWhiteIcons.indexOf(symbol.toUpperCase()) >= 0;
+            var _avObjFit = _avIsWhite ? 'contain' : 'cover';
+            var _avPadding = _avIsWhite ? 'padding:' + Math.round(size*0.12) + 'px;' : '';
+            var _avBg = '#0f1829';
             return '<div data-avsym="' + symbol + '" style="' + shadowStyle + '">' +
-                       '<div style="' + ringStyle + 'background:#0f1829;">' +
+                       '<div style="' + ringStyle + 'background:' + _avBg + ';">' +
                            '<img src="' + info.logo + '" ' +
                                'width="' + size + '" height="' + size + '" ' +
-                               'style="width:' + size + 'px;height:' + size + 'px;object-fit:cover;border-radius:' + br + 'px;display:block;" ' +
+                               'style="width:' + size + 'px;height:' + size + 'px;object-fit:' + _avObjFit + ';border-radius:' + br + 'px;display:block;' + _avPadding + '" ' +
                                'onerror="_avErr(this,\'' + safeSym + '\',' + size + ',\'' + safeColor + '\')">' +
                            shine + innerShadow +
                        '</div>' +
