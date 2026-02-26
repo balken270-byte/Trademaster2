@@ -12651,106 +12651,101 @@ function openLabFullscreen() {
             <!-- ===== PROFİL SAYFASI (PREMIUM TASARIM - YENİ) ===== -->
             <div id="set-profile" class="settings-content" style="display:none; padding-top:8px !important;">
                 
-                <!-- ═══ MODERN PROFILE HEADER (KOMPAKT) ═══ -->
-                <div style="background:var(--bg-card); border-radius:16px; padding:20px; margin-bottom:16px; margin-top:0; border:1px solid rgba(255,255,255,0.05);">
-                    
-                    <!-- Avatar + Info (Yan Yana) -->
-                    <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
-                        <!-- Avatar -->
-                        <div style="position:relative; flex-shrink:0;">
-                            <div style="width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg, #3b82f6, #8b5cf6); padding:2px;">
-                                <img id="displayProfileImg" src="https://ui-avatars.com/api/?name=User&background=1f2937&color=fff&size=256" 
-                                     style="width:60px; height:60px; border-radius:50%; object-fit:cover;">
-                            </div>
-                            <div id="profileOnlineDot" style="position:absolute; bottom:0; right:0; width:14px; height:14px; background:#10b981; border:2px solid var(--bg-card); border-radius:50%; display:none;"></div>
-                        </div>
-                        
-                        <!-- Name & Email -->
-                        <div style="flex:1; min-width:0;">
-                            <div id="profileDisplayName" style="font-size:18px; font-weight:700; color:#fff; margin-bottom:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Misafir</div>
-                            <div id="profileDisplayEmail" style="font-size:12px; color:rgba(255,255,255,0.5); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Giriş yapmadınız</div>
-                        </div>
-                        
-                        <!-- Camera Button -->
-                        <label style="width:36px; height:36px; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.3); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;">
-                            <i class="fas fa-camera" style="font-size:13px; color:#3b82f6;"></i>
-                            <input type="file" id="imgUploadInput" style="display:none;" accept="image/*" onchange="uploadProfileImg(this)">
-                        </label>
+                <!-- Gizli ama erişilebilir elementler (JS için) -->
+                <div style="display:none;">
+                    <div id="profileDisplayName">Misafir</div>
+                    <div id="profileDisplayEmail">Giriş yapmadınız</div>
+                    <div id="profileProBadge"></div>
+                    <div id="profileConnectionStatus"><span id="profileConnectionText">Bağlı Değil</span></div>
+                    <div id="profileOnlineDot"></div>
+                    <div id="profileEditCard">
+                        <input type="text" id="profileNameInput" placeholder="Ad Soyad" onchange="saveProfileData()">
+                        <input type="text" id="profileBioInput" placeholder="Bio / Ünvan" onchange="saveProfileData()">
                     </div>
-                    
-                    <!-- Status Badges -->
-                    <div style="display:flex; gap:6px;">
-                        <div id="profileProBadge" style="display:none; flex:1;">
-                            <div style="display:flex; align-items:center; justify-content:center; gap:4px; padding:6px 10px; background:linear-gradient(135deg, #fbbf24, #f59e0b); border-radius:8px;">
-                                <i class="fas fa-crown" style="font-size:10px; color:#000;"></i>
-                                <span style="font-size:10px; font-weight:700; color:#000;">PRO ÜYE</span>
-                            </div>
-                        </div>
-                        <div id="profileConnectionStatus" style="flex:1; display:flex; align-items:center; justify-content:center; gap:4px; padding:6px 10px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); border-radius:8px;">
-                            <div style="width:6px; height:6px; border-radius:50%; background:#ef4444;"></div>
-                            <span id="profileConnectionText" style="font-size:10px; font-weight:600; color:#ef4444;">Bağlı Değil</span>
-                        </div>
-                    </div>
+                    <div id="profileTradeCount">0</div>
+                    <div id="profileJoinDate">--</div>
+                    <label><input type="file" id="imgUploadInput" accept="image/*" onchange="uploadProfileImg(this)"></label>
                 </div>
 
-                <!-- EDITABLE INFO (SADECE GUEST MODE) -->
-                <div id="profileEditCard" style="background:var(--bg-card); border-radius:16px; padding:16px; margin-bottom:16px; border:1px solid rgba(255,255,255,0.05);">
-                    <div style="font-size:11px; font-weight:700; color:var(--text-sub); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px;">
-                        <i class="fas fa-user-edit"></i> Profil Bilgileri
-                    </div>
-                    <input type="text" id="profileNameInput" placeholder="Ad Soyad" onchange="saveProfileData()" 
-                           style="width:100%; padding:10px 12px; background:var(--bg-input); border:1px solid rgba(255,255,255,0.05); border-radius:10px; color:#fff; font-size:13px; margin-bottom:10px;">
-                    <input type="text" id="profileBioInput" placeholder="Bio / Ünvan" onchange="saveProfileData()" 
-                           style="width:100%; padding:10px 12px; background:var(--bg-input); border:1px solid rgba(255,255,255,0.05); border-radius:10px; color:#fff; font-size:13px;">
-                    <div style="font-size:10px; color:var(--text-sub); margin-top:8px; padding:6px 10px; background:rgba(59,130,246,0.1); border-radius:6px; border-left:2px solid var(--accent);">
-                        <i class="fas fa-info-circle"></i> Google ile giriş yaparsanız bilgiler otomatik gelir
-                    </div>
-                </div>
-
-                <!-- İSTATİSTİKLER (KOMPAKT) -->
-                <div style="background:var(--bg-card); border-radius:16px; padding:16px; margin-bottom:16px; border:1px solid rgba(255,255,255,0.05);">
-                    <div style="font-size:11px; font-weight:700; color:var(--text-sub); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px;">
-                        <i class="fas fa-chart-line"></i> İstatistikler
-                    </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-                        <div style="text-align:center; padding:12px; background:var(--bg-input); border-radius:10px;">
-                            <div style="font-size:9px; font-weight:600; color:var(--text-sub); margin-bottom:4px; text-transform:uppercase;">Toplam İşlem</div>
-                            <div id="profileTradeCount" style="font-size:22px; font-weight:800; color:#fff;">0</div>
-                        </div>
-                        <div style="text-align:center; padding:12px; background:var(--bg-input); border-radius:10px;">
-                            <div style="font-size:9px; font-weight:600; color:var(--text-sub); margin-bottom:4px; text-transform:uppercase;">Üyelik</div>
-                            <div id="profileJoinDate" style="font-size:13px; font-weight:700; color:rgba(255,255,255,0.7);">--</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- HESAP & BULUT (GUEST) -->
+                <!-- HESAP & BULUT (GUEST) - MODERNİZE GİRİŞ FORMU -->
                 <div id="accountLoggedOut">
-                    <div style="background:var(--bg-card); border-radius:16px; padding:20px; text-align:center; margin-bottom:16px; border:1px solid rgba(255,255,255,0.05);">
-                        <div style="font-size:40px; margin-bottom:10px;">☁️</div>
-                        <div style="font-size:16px; font-weight:700; color:#fff; margin-bottom:6px;">Bulut Yedekleme</div>
-                        <div style="font-size:12px; color:var(--text-sub); margin-bottom:18px; line-height:1.5;">
-                            Google ile giriş yap, portföyünü güvende tut
+                    <div style="background:var(--bg-card); border-radius:20px; padding:24px; margin-bottom:16px; border:1px solid rgba(255,255,255,0.06); text-align:center; position:relative; overflow:hidden;">
+                        <!-- Arkaplan dekorasyon -->
+                        <div style="position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:200px;height:200px;background:radial-gradient(circle,rgba(99,102,241,0.12) 0%,transparent 70%);pointer-events:none;"></div>
+                        
+                        <!-- Profil Avatarı (misafir için baş harfler, giriş yapınca fotoğraf) -->
+                        <div style="position:relative;display:inline-block;margin-bottom:16px;">
+                            <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:3px;box-shadow:0 8px 24px rgba(99,102,241,0.4);">
+                                <div id="loginAvatarWrap" style="width:74px;height:74px;border-radius:50%;background:#1a1d2e;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                                    <img id="displayProfileImg" src="" style="width:74px;height:74px;border-radius:50%;object-fit:cover;display:none;" onerror="this.style.display='none';document.getElementById('loginAvatarInitials').style.display='flex';">
+                                    <div id="loginAvatarInitials" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:28px;font-weight:800;color:#fff;letter-spacing:-1px;">MI</div>
+                                </div>
+                            </div>
+                            <!-- Kamera Butonu -->
+                            <label for="loginImgUpload" style="position:absolute;bottom:2px;right:2px;width:26px;height:26px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid #0b0f19;box-shadow:0 2px 8px rgba(0,0,0,0.4);">
+                                <i class="fas fa-camera" style="font-size:11px;color:#fff;"></i>
+                                <input type="file" id="loginImgUpload" accept="image/*" style="display:none;" onchange="setLocalProfileImg(this)">
+                            </label>
                         </div>
-                        <button onclick="firebaseGoogleLogin()" style="width:100%; padding:12px; border:none; border-radius:12px; cursor:pointer; background:#fff; color:#333; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px;">
-                            <img src="https://www.google.com/favicon.ico" width="18" height="18">
-                            Google ile Giriş Yap
+
+                        <!-- Başlık -->
+                        <div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:4px;">Tekrar Hoş Geldiniz</div>
+                        <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:24px;">Hesabınıza giriş yapın</div>
+
+                        <!-- E-posta -->
+                        <div style="position:relative;margin-bottom:12px;text-align:left;">
+                            <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.5);margin-bottom:6px;letter-spacing:0.3px;">E-posta Adresi</div>
+                            <div style="position:relative;">
+                                <i class="fas fa-envelope" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:13px;color:rgba(255,255,255,0.3);pointer-events:none;"></i>
+                                <input type="email" id="loginEmailInput" placeholder="user@example.com"
+                                       style="width:100%;padding:12px 12px 12px 40px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#fff;font-size:14px;outline:none;box-sizing:border-box;transition:border-color 0.2s;"
+                                       onfocus="this.style.borderColor='rgba(99,102,241,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
+                            </div>
+                        </div>
+
+                        <!-- Şifre -->
+                        <div style="position:relative;margin-bottom:8px;text-align:left;">
+                            <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.5);margin-bottom:6px;letter-spacing:0.3px;">Şifre</div>
+                            <div style="position:relative;">
+                                <i class="fas fa-lock" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:13px;color:rgba(255,255,255,0.3);pointer-events:none;"></i>
+                                <input type="password" id="loginPasswordInput" placeholder="••••••••"
+                                       style="width:100%;padding:12px 44px 12px 40px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#fff;font-size:14px;outline:none;box-sizing:border-box;transition:border-color 0.2s;"
+                                       onfocus="this.style.borderColor='rgba(99,102,241,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"
+                                       onkeydown="if(event.key==='Enter')doEmailLogin()">
+                                <button onclick="toggleLoginPw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;padding:4px;font-size:13px;" id="loginPwToggleBtn"><i class="fas fa-eye" id="loginPwIcon"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Şifremi unuttum -->
+                        <div style="text-align:right;margin-bottom:20px;">
+                            <span onclick="doForgotPassword()" style="font-size:11px;color:#818cf8;cursor:pointer;font-weight:600;">Şifremi Unuttum?</span>
+                        </div>
+
+                        <!-- Giriş Yap Butonu -->
+                        <button onclick="doEmailLogin()" id="loginSubmitBtn"
+                                style="width:100%;padding:13px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:16px;box-shadow:0 4px 16px rgba(99,102,241,0.35);transition:opacity 0.2s;"
+                                onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                            Giriş Yap
                         </button>
-                    </div>
-                    <div style="background:var(--bg-card); border-radius:16px; padding:14px; border:1px solid rgba(255,255,255,0.05);">
-                        <div style="font-size:10px; color:var(--text-sub); line-height:1.6;">
-                            <div style="display:flex; align-items:center; gap:6px; margin-bottom:3px;">
-                                <i class="fas fa-check-circle" style="color:var(--success); font-size:11px;"></i>
-                                <span>Portföy ve işlemler bulutta</span>
-                            </div>
-                            <div style="display:flex; align-items:center; gap:6px; margin-bottom:3px;">
-                                <i class="fas fa-check-circle" style="color:var(--success); font-size:11px;"></i>
-                                <span>Cihaz değişse bile güvende</span>
-                            </div>
-                            <div style="display:flex; align-items:center; gap:6px;">
-                                <i class="fas fa-check-circle" style="color:var(--success); font-size:11px;"></i>
-                                <span>PRO üyelik her yerde aktif</span>
-                            </div>
+
+                        <!-- Ayırıcı -->
+                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+                            <div style="flex:1;height:1px;background:rgba(255,255,255,0.07);"></div>
+                            <span style="font-size:11px;color:rgba(255,255,255,0.25);font-weight:500;">veya şununla devam et</span>
+                            <div style="flex:1;height:1px;background:rgba(255,255,255,0.07);"></div>
+                        </div>
+
+                        <!-- Sosyal Giriş Butonları -->
+                        <div style="display:flex;gap:10px;margin-bottom:20px;">
+                            <button onclick="firebaseGoogleLogin()" style="flex:1;padding:11px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background 0.2s;"
+                                    onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
+                                <img src="https://www.google.com/favicon.ico" width="16" height="16"> Google
+                            </button>
+                        </div>
+
+                        <!-- Kayıt ol -->
+                        <div style="font-size:12px;color:rgba(255,255,255,0.35);">
+                            Hesabınız yok mu? <span onclick="showRegisterForm()" style="color:#818cf8;font-weight:700;cursor:pointer;">Kayıt Ol</span>
                         </div>
                     </div>
                 </div>
@@ -14648,7 +14643,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.9"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -28218,21 +28213,28 @@ function updateAccountUI(user) {
         console.log('[TradeVia] User photoURL:', user.photoURL);
         console.log('[TradeVia] User displayName:', user.displayName);
         
-        // Profil resmi
+        // Profil resmi - yeni avatar alanı
         const profileImg = document.getElementById('displayProfileImg');
-        if (profileImg) {
-            const photoURL = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}&background=1f2937&color=fff&size=256`;
-            console.log('[TradeVia] Setting profile image to:', photoURL);
-            profileImg.src = photoURL;
-            
-            // Resmin yüklenmesini bekle
-            profileImg.onload = function() {
-                console.log('[TradeVia] ✓ Profil resmi yüklendi');
-            };
+        const loginAvatarInitials = document.getElementById('loginAvatarInitials');
+        if (profileImg && user.photoURL) {
+            profileImg.src = user.photoURL;
+            profileImg.style.display = 'block';
+            if (loginAvatarInitials) loginAvatarInitials.style.display = 'none';
             profileImg.onerror = function() {
-                console.error('[TradeVia] ✗ Profil resmi yüklenemedi, fallback kullanılıyor');
-                profileImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}&background=3b82f6&color=fff&size=256`;
+                profileImg.style.display = 'none';
+                if (loginAvatarInitials) {
+                    const name = user.displayName || 'KU';
+                    const initials = name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+                    loginAvatarInitials.textContent = initials;
+                    loginAvatarInitials.style.display = 'flex';
+                }
             };
+        } else if (loginAvatarInitials) {
+            if (profileImg) profileImg.style.display = 'none';
+            const name = user.displayName || user.email || 'KU';
+            const initials = name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+            loginAvatarInitials.textContent = initials;
+            loginAvatarInitials.style.display = 'flex';
         }
         
         // İsim
@@ -28318,9 +28320,9 @@ function updateAccountUI(user) {
         // ═══ PROFİL SAYFASI SIFIRLA ═══
         // Profil resmi
         const profileImg = document.getElementById('displayProfileImg');
-        if (profileImg) {
-            profileImg.src = 'https://ui-avatars.com/api/?name=User&background=1f2937&color=fff&size=256';
-        }
+        const loginAvatarInitials = document.getElementById('loginAvatarInitials');
+        if (profileImg) { profileImg.style.display='none'; }
+        if (loginAvatarInitials) { loginAvatarInitials.style.display='flex'; loginAvatarInitials.textContent='MI'; }
         
         // İsim ve e-posta
         const profileDisplayName = document.getElementById('profileDisplayName');
@@ -28508,6 +28510,218 @@ function reactivateProMembership() {
             tvAlert('Uyarı', 'Google hesabınızla giriş yapmadığınız için işlem buluta kaydedilmedi.');
         }
     });
+}
+
+// --- Yerel Profil Fotoğrafı Seç & Senkronize Et ---
+function setLocalProfileImg(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const dataUrl = e.target.result;
+        // LocalStorage'a kaydet
+        try { localStorage.setItem('tm_local_avatar', dataUrl); } catch(ex) {}
+        // Login formu avatarını güncelle
+        const profileImg = document.getElementById('displayProfileImg');
+        const initials = document.getElementById('loginAvatarInitials');
+        if (profileImg) { profileImg.src = dataUrl; profileImg.style.display = 'block'; }
+        if (initials) { initials.style.display = 'none'; }
+        // Ayarlar menüsü üst kartındaki profil resmini güncelle
+        const menuProfileImg = document.getElementById('menuProfileImg');
+        if (menuProfileImg) { menuProfileImg.src = dataUrl; menuProfileImg.style.borderRadius='50%'; }
+    };
+    reader.readAsDataURL(file);
+}
+
+// Sayfa yüklenince yerel avatarı uygula (misafir modu)
+(function applyLocalAvatar() {
+    try {
+        const saved = localStorage.getItem('tm_local_avatar');
+        if (!saved) return;
+        // Sadece Google ile giriş yapılmamışsa uygula
+        const checkApply = function() {
+            const u = (typeof fbAuth !== 'undefined') && fbAuth.currentUser;
+            if (u && !u.isAnonymous) return; // Google kullanıcısı kendi fotoğrafını kullanır
+            const profileImg = document.getElementById('displayProfileImg');
+            const initials = document.getElementById('loginAvatarInitials');
+            if (profileImg) { profileImg.src = saved; profileImg.style.display = 'block'; }
+            if (initials) { initials.style.display = 'none'; }
+            const menuProfileImg = document.getElementById('menuProfileImg');
+            if (menuProfileImg) { menuProfileImg.src = saved; menuProfileImg.style.borderRadius='50%'; }
+        };
+        // DOM hazır olunca çalıştır
+        if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', checkApply); }
+        else { setTimeout(checkApply, 500); }
+    } catch(ex) {}
+})();
+
+// --- Email/Şifre Giriş (E-posta Onay Kontrolü ile) ---
+async function doEmailLogin() {
+    const email = (document.getElementById('loginEmailInput') || {}).value?.trim();
+    const pw = (document.getElementById('loginPasswordInput') || {}).value;
+    if (!email || !pw) { if(typeof showToast==='function') showToast('warning','Eksik Bilgi','E-posta ve şifrenizi girin.'); return; }
+    const btn = document.getElementById('loginSubmitBtn');
+    if(btn) { btn.disabled=true; btn.textContent='Giriş yapılıyor...'; }
+    try {
+        const result = await fbAuth.signInWithEmailAndPassword(email, pw);
+        const user = result.user;
+        // E-posta onaylanmamışsa girişi engelle
+        if (!user.emailVerified) {
+            await fbAuth.signOut();
+            // Onay e-postasını tekrar gönder
+            try { await user.sendEmailVerification({ url: window.location.href, handleCodeInApp: false }); } catch(e) {}
+            showVerifyWaiting(email);
+            return;
+        }
+        if(typeof showToast==='function') showToast('success','Giriş Başarılı ✓','Hoş geldiniz!');
+    } catch(err) {
+        let msg = 'Giriş yapılamadı.';
+        if(err.code==='auth/user-not-found'||err.code==='auth/wrong-password'||err.code==='auth/invalid-credential') msg='E-posta veya şifre hatalı.';
+        else if(err.code==='auth/invalid-email') msg='Geçersiz e-posta adresi.';
+        else if(err.code==='auth/too-many-requests') msg='Çok fazla deneme. Lütfen bekleyin.';
+        if(typeof showToast==='function') showToast('danger','Hata',msg);
+    } finally {
+        if(btn) { btn.disabled=false; btn.textContent='Giriş Yap'; }
+    }
+}
+
+// --- Şifre Göster/Gizle ---
+function toggleLoginPw() {
+    const inp = document.getElementById('loginPasswordInput');
+    const icon = document.getElementById('loginPwIcon');
+    if(!inp) return;
+    if(inp.type==='password') { inp.type='text'; if(icon){icon.className='fas fa-eye-slash';} }
+    else { inp.type='password'; if(icon){icon.className='fas fa-eye';} }
+}
+
+// --- Şifremi Unuttum ---
+async function doForgotPassword() {
+    const email = (document.getElementById('loginEmailInput')||{}).value?.trim();
+    if(!email) { if(typeof showToast==='function') showToast('warning','E-posta Girin','Önce e-posta adresinizi girin.'); return; }
+    try {
+        await fbAuth.sendPasswordResetEmail(email);
+        if(typeof showToast==='function') showToast('success','E-posta Gönderildi','Şifre sıfırlama bağlantısı gönderildi.');
+    } catch(err) {
+        if(typeof showToast==='function') showToast('danger','Hata',err.message);
+    }
+}
+
+// --- Kayıt Ol Formu Göster ---
+function showRegisterForm() {
+    const cont = document.getElementById('accountLoggedOut');
+    if(!cont) return;
+    cont.innerHTML = `
+    <div style="background:var(--bg-card); border-radius:20px; padding:24px; margin-bottom:16px; border:1px solid rgba(255,255,255,0.06); text-align:center; position:relative; overflow:hidden;">
+        <div style="position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:200px;height:200px;background:radial-gradient(circle,rgba(99,102,241,0.12) 0%,transparent 70%);pointer-events:none;"></div>
+        <div style="width:64px;height:64px;border-radius:20px;background:linear-gradient(135deg,#6366f1,#8b5cf6);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(99,102,241,0.35);">
+            <i class="fas fa-user-plus" style="font-size:24px;color:#fff;"></i>
+        </div>
+        <div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:4px;">Hesap Oluştur</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:24px;">Yeni bir hesap kaydedin</div>
+        <div style="text-align:left;margin-bottom:12px;">
+            <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.5);margin-bottom:6px;">E-posta Adresi</div>
+            <div style="position:relative;">
+                <i class="fas fa-envelope" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:13px;color:rgba(255,255,255,0.3);pointer-events:none;"></i>
+                <input type="email" id="regEmailInput" placeholder="user@example.com"
+                       style="width:100%;padding:12px 12px 12px 40px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#fff;font-size:14px;outline:none;box-sizing:border-box;transition:border-color 0.2s;"
+                       onfocus="this.style.borderColor='rgba(99,102,241,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
+            </div>
+        </div>
+        <div style="text-align:left;margin-bottom:20px;">
+            <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.5);margin-bottom:6px;">Şifre</div>
+            <div style="position:relative;">
+                <i class="fas fa-lock" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:13px;color:rgba(255,255,255,0.3);pointer-events:none;"></i>
+                <input type="password" id="regPasswordInput" placeholder="••••••••"
+                       style="width:100%;padding:12px 12px 12px 40px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#fff;font-size:14px;outline:none;box-sizing:border-box;transition:border-color 0.2s;"
+                       onfocus="this.style.borderColor='rgba(99,102,241,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
+            </div>
+        </div>
+        <button onclick="doRegister()" style="width:100%;padding:13px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:16px;box-shadow:0 4px 16px rgba(99,102,241,0.35);">
+            Kayıt Ol
+        </button>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+            <div style="flex:1;height:1px;background:rgba(255,255,255,0.07);"></div>
+            <span style="font-size:11px;color:rgba(255,255,255,0.25);">veya</span>
+            <div style="flex:1;height:1px;background:rgba(255,255,255,0.07);"></div>
+        </div>
+        <button onclick="firebaseGoogleLogin()" style="width:100%;padding:11px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:20px;">
+            <img src="https://www.google.com/favicon.ico" width="16" height="16"> Google ile Kayıt Ol
+        </button>
+        <div style="font-size:12px;color:rgba(255,255,255,0.35);">
+            Zaten hesabınız var mı? <span onclick="location.reload()" style="color:#818cf8;font-weight:700;cursor:pointer;">Giriş Yap</span>
+        </div>
+    </div>`;
+}
+
+// --- Kayıt İşlemi (E-posta Onayı ile) ---
+async function doRegister() {
+    const email = (document.getElementById('regEmailInput')||{}).value?.trim();
+    const pw = (document.getElementById('regPasswordInput')||{}).value;
+    if(!email||!pw) { if(typeof showToast==='function') showToast('warning','Eksik Bilgi','E-posta ve şifrenizi girin.'); return; }
+    if(pw.length < 6) { if(typeof showToast==='function') showToast('warning','Zayıf Şifre','Şifre en az 6 karakter olmalı.'); return; }
+    const btn = document.querySelector('[onclick="doRegister()"]');
+    if(btn) { btn.disabled=true; btn.textContent='Kayıt yapılıyor...'; }
+    try {
+        const result = await fbAuth.createUserWithEmailAndPassword(email, pw);
+        // Onay e-postası gönder (Türkçe dil desteği için actionCodeSettings)
+        const actionCodeSettings = {
+            url: window.location.href,
+            handleCodeInApp: false
+        };
+        await result.user.sendEmailVerification(actionCodeSettings);
+        // Hemen çıkış yap — onay bekleniyor
+        await fbAuth.signOut();
+        // Onay bekle ekranı göster
+        showVerifyWaiting(email);
+    } catch(err) {
+        let msg = 'Kayıt yapılamadı.';
+        if(err.code==='auth/email-already-in-use') msg='Bu e-posta zaten kayıtlı.';
+        else if(err.code==='auth/invalid-email') msg='Geçersiz e-posta adresi.';
+        else if(err.code==='auth/weak-password') msg='Şifre çok zayıf.';
+        if(typeof showToast==='function') showToast('danger','Hata',msg);
+        if(btn) { btn.disabled=false; btn.textContent='Kayıt Ol'; }
+    }
+}
+
+// --- Onay Bekleniyor Ekranı ---
+function showVerifyWaiting(email) {
+    const cont = document.getElementById('accountLoggedOut');
+    if(!cont) return;
+    cont.innerHTML = `
+    <div style="background:var(--bg-card); border-radius:20px; padding:32px 24px; border:1px solid rgba(255,255,255,0.06); text-align:center;">
+        <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#10b981,#059669);margin:0 auto 20px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(16,185,129,0.4);">
+            <i class="fas fa-envelope-open-text" style="font-size:28px;color:#fff;"></i>
+        </div>
+        <div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:8px;">E-postanızı Onaylayın</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:6px;line-height:1.6;">
+            <span style="color:#a5f3fc;font-weight:600;">${email}</span> adresine onay bağlantısı gönderdik.
+        </div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.35);margin-bottom:28px;line-height:1.6;">
+            Spam/Önemsiz klasörünü de kontrol edin.<br>Onayladıktan sonra giriş yapabilirsiniz.
+        </div>
+        <button onclick="resendVerificationEmail('${email}')" id="resendBtn"
+                style="width:100%;padding:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:rgba(255,255,255,0.7);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:10px;">
+            <i class="fas fa-redo" style="margin-right:6px;"></i> Tekrar Gönder
+        </button>
+        <button onclick="location.reload()"
+                style="width:100%;padding:12px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;">
+            <i class="fas fa-sign-in-alt" style="margin-right:6px;"></i> Giriş Ekranına Dön
+        </button>
+    </div>`;
+}
+
+// --- Onay E-postası Tekrar Gönder ---
+async function resendVerificationEmail(email) {
+    const btn = document.getElementById('resendBtn');
+    if(btn) { btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin" style="margin-right:6px;"></i> Gönderiliyor...'; }
+    try {
+        // Geçici giriş yaparak tekrar gönder (şifre bilinmiyor, sadece toast göster)
+        if(typeof showToast==='function') showToast('info','Bilgi','Giriş ekranından "Şifremi Unuttum" ile yeni bağlantı alabilirsiniz.');
+    } catch(err) {
+        if(typeof showToast==='function') showToast('danger','Hata',err.message);
+    } finally {
+        if(btn) { btn.disabled=false; btn.innerHTML='<i class="fas fa-redo" style="margin-right:6px;"></i> Tekrar Gönder'; }
+    }
 }
 
 // --- Google Login (POPUP - sayfa yenilenmez!) ---
