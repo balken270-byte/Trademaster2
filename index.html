@@ -23,6 +23,36 @@
     if (isAndroid) document.documentElement.classList.add('android-device');
     if (isStandalone && isIOS) document.documentElement.classList.add('ios-pwa');
     if (isStandalone && isAndroid) document.documentElement.classList.add('android-pwa');
+
+    // ===== iOS PWA ALT BOŞLUK TAMAMEN KAPAT =====
+    // CSS dvh + JS double-fix: iOS'ta viewport.height gerçek ekran yüksekliğini verir
+    function fixViewportHeight() {
+        var vh = window.innerHeight;
+        document.documentElement.style.setProperty('--real-vh', vh + 'px');
+        // Body ve HTML yüksekliğini zorla
+        document.documentElement.style.height = vh + 'px';
+        document.documentElement.style.maxHeight = vh + 'px';
+        if (document.body) {
+            document.body.style.height = vh + 'px';
+            document.body.style.maxHeight = vh + 'px';
+        }
+    }
+
+    // iOS PWA'da çalıştır
+    if (isStandalone && isIOS) {
+        fixViewportHeight();
+        // Döndürme ve yeniden boyutlandırmada tekrar uygula
+        window.addEventListener('resize', fixViewportHeight, { passive: true });
+        window.addEventListener('orientationchange', function() {
+            setTimeout(fixViewportHeight, 200);
+            setTimeout(fixViewportHeight, 500);
+        }, { passive: true });
+        // Klavye kapandıktan sonra boşluğu kapat
+        window.addEventListener('focusout', function() {
+            setTimeout(fixViewportHeight, 100);
+            setTimeout(fixViewportHeight, 300);
+        }, { passive: true });
+    }
 })();
 </script>
 
@@ -88,25 +118,34 @@ body {
     text-rendering: optimizeLegibility;
 }
 
-/* ===== iOS & Android PWA LAYOUT - TEMİZ ÇÖZÜM ===== */
+/* ===== iOS & Android PWA LAYOUT - TAM DÜZELTME ===== */
 
-/* 1) HTML root: nav bar rengiyle eşleş, taşmayı engelle */
+/* 1) HTML root */
 html {
     background-color: #0b0f19;
     overflow: hidden;
-    /* iOS fill-available, diğerleri 100% */
-    height: -webkit-fill-available;
     height: 100%;
+    height: 100dvh;
     overscroll-behavior: none;
 }
 
-/* 2) Body: tüm ekranı kapla */
+/* 2) Body: tüm ekranı kapla - dvh ile iOS boşluk sorunu çözülür */
 body {
     height: 100%;
-    height: -webkit-fill-available;
+    height: 100dvh;
+    max-height: 100dvh;
     overflow: hidden;
     overscroll-behavior: none;
     -webkit-overflow-scrolling: auto;
+    /* CSS değişkeni ile JS'den güncellenir */
+    --real-vh: 100dvh;
+}
+
+/* iOS PWA özel: tam ekran kaplama */
+html.ios-pwa body,
+html.ios-pwa {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
 }
 
 /* 3) İçerik sayfaları: kaydırılabilir, nav + safe-area kadar alt boşluk */
@@ -130,27 +169,28 @@ body {
     justify-content: space-around;
     align-items: center;
     padding-top: 8px;
-    /* iOS home indicator + Android gesture bar */
     padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
     z-index: 99999;
     margin: 0;
-    /* GPU katmanı - iOS bounce ve Android gesture için */
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
     will-change: transform;
     overflow: visible;
+    /* Alt boşluğu tamamen kapat */
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
 }
 
-/* 5) Android gesture bar siyah şerit çözümü */
+/* 5) Bottom nav altındaki boşluğu tamamen kapat - genişletilmiş pseudo */
 .bottom-nav::after {
     content: '';
-    position: absolute;
+    position: fixed;
     left: 0;
     right: 0;
-    bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
-    height: env(safe-area-inset-bottom, 0px);
-    background: rgba(11, 15, 25, 0.98);
+    bottom: calc(-1 * env(safe-area-inset-bottom, 0px) - 2px);
+    height: calc(env(safe-area-inset-bottom, 0px) + 20px);
+    background: rgba(11, 15, 25, 1);
     pointer-events: none;
+    z-index: -1;
 }
 
         /* ===== SOSYAL ÖZELLİK STİLLERİ - PRO ===== */
@@ -15351,7 +15391,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.3"; 
+    const CURRENT_VERSION = "1.4"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
