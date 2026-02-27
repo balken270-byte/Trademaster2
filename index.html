@@ -40,6 +40,7 @@
     
     <!-- Fonts & Libraries -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
@@ -287,7 +288,7 @@ body {
         .reply-author { font-size:11px;font-weight:700;color:#a78bfa;margin-bottom:3px; }
         .reply-text { font-size:12px;color:rgba(255,255,255,0.75);line-height:1.45; }
         .reply-time { font-size:10px;color:rgba(255,255,255,0.3);margin-top:4px; }
-        .reply-input-wrap { display:none;margin-top:8px;gap:8px;align-items:center; }
+        .reply-input-wrap { display:none;margin-top:10px;gap:0;align-items:stretch;flex-direction:column;background:rgba(255,255,255,0.04);border-radius:14px;border:1px solid rgba(255,255,255,0.09);overflow:hidden; }
         .reply-input-wrap.visible { display:flex; }
         /* Gizli yanıtlar */
         .reply-hidden { display:none; }
@@ -296,18 +297,18 @@ body {
         .show-more-replies i { font-size:10px; transition:transform 0.2s; }
         .show-more-replies.open i { transform:rotate(180deg); }
         .reply-input {
-            flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px; color: white; padding: 8px 12px; font-size: 13px;
-            outline: none; font-family: inherit;
+            flex: 1; background: transparent; border: none;
+            border-radius: 0; color: white; padding: 12px 14px; font-size: 14px;
+            outline: none; font-family: inherit; line-height: 1.4;
         }
         .reply-input::placeholder { color: rgba(255,255,255,0.3); }
         .reply-send-btn {
-            width: 32px; height: 32px; border-radius: 10px; border: none;
-            background: var(--accent); color: white; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; font-size: 13px;
+            width: 44px; min-height: 44px; border-radius: 0; border: none; border-left: 1px solid rgba(255,255,255,0.07);
+            background: transparent; color: rgba(99,102,241,0.9); cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 16px;
             transition: 0.2s; flex-shrink: 0;
         }
-        .reply-send-btn:active { transform: scale(0.9); }
+        .reply-send-btn:active { background: rgba(99,102,241,0.15); transform: scale(0.9); }
         
         /* Empty State */
         .social-empty {
@@ -12413,6 +12414,609 @@ function openLabFullscreen() {
         #page-settings .ps-tool-btn:hover { background:rgba(255,255,255,0.06); }
     </style>
 
+    <!-- ===== GEÇMİŞ İŞLEMLER - PREMIUM REDESIGN ===== -->
+    <style>
+        /* ---- ACCOUNTING HERO ---- */
+        #page-settings #set-history .ps-accounting-hero {
+            background: linear-gradient(145deg, #0a1628 0%, #061020 100%);
+            border-radius: 20px;
+            padding: 22px 20px 18px;
+            margin-bottom: 14px;
+            margin-top: 0;
+            border: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
+            position: relative;
+            overflow: hidden;
+        }
+        #page-settings #set-history .ps-accounting-hero::before {
+            content: '';
+            position: absolute;
+            top: -40px; right: -40px;
+            width: 160px; height: 160px;
+            background: radial-gradient(circle, rgba(48,209,88,0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        #page-settings #set-history .ps-accounting-hero::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(48,209,88,0.3), transparent);
+        }
+        #page-settings #set-history .ps-acc-grid {
+            display: grid;
+            grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+            gap: 0;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        #page-settings #set-history .ps-acc-item { text-align: left; overflow: hidden; min-width: 0; }
+        #page-settings #set-history .ps-acc-item.right { text-align: right; overflow: hidden; min-width: 0; }
+        #page-settings #set-history .ps-acc-label {
+            font-size: 9px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.28);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 5px;
+            font-family: 'DM Mono', monospace;
+        }
+        #page-settings #set-history .ps-acc-label.success { color: rgba(48,209,88,0.6); }
+        #page-settings #set-history .ps-acc-value {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            font-size: 18px;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.1;
+            letter-spacing: -0.5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+            display: block;
+        }
+        #page-settings #set-history .ps-acc-value.success { color: #30D158; }
+        #page-settings #set-history .ps-acc-value.small {
+            font-family: 'DM Mono', monospace;
+            font-size: 15px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.55);
+        }
+        #page-settings #set-history .ps-acc-value.small.success {
+            color: #30D158;
+        }
+
+        /* ---- SALARY BUTTON ---- */
+        #page-settings #set-history .ps-btn-salary {
+            width: 100%;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, #30D158 0%, #27b84a 100%);
+            border: none;
+            border-radius: 14px;
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #000;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s;
+            box-shadow: 0 8px 24px rgba(48,209,88,0.25), inset 0 1px 0 rgba(255,255,255,0.25);
+            margin-top: 18px;
+        }
+        #page-settings #set-history .ps-btn-salary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(48,209,88,0.35), inset 0 1px 0 rgba(255,255,255,0.3);
+        }
+        #page-settings #set-history .ps-btn-salary:active { transform: scale(0.98); }
+
+        #page-settings #set-history .ps-history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        #page-settings #set-history .ps-history-header .lbl-sm {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 1.5px;
+            color: rgba(255,255,255,0.35);
+            text-transform: uppercase;
+        }
+        #page-settings #set-history .ps-tool-btn {
+            padding: 9px 16px;
+            background: linear-gradient(135deg, rgba(48,209,88,0.15) 0%, rgba(39,184,74,0.08) 100%);
+            border: 1px solid rgba(48,209,88,0.3);
+            border-radius: 12px;
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #30D158;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            transition: all 0.18s;
+            box-shadow: 0 0 16px rgba(48,209,88,0.08), inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+        #page-settings #set-history .ps-tool-btn i {
+            font-size: 10px;
+            width: 18px;
+            height: 18px;
+            background: rgba(48,209,88,0.2);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #page-settings #set-history .ps-tool-btn:hover {
+            background: linear-gradient(135deg, rgba(48,209,88,0.22) 0%, rgba(39,184,74,0.14) 100%);
+            border-color: rgba(48,209,88,0.5);
+            box-shadow: 0 0 22px rgba(48,209,88,0.18), inset 0 1px 0 rgba(255,255,255,0.08);
+            transform: translateY(-1px);
+        }
+        #page-settings #set-history .ps-tool-btn:active { transform: scale(0.97); }
+
+        /* ---- DUAL ACTION BUTTONS ---- */
+        #page-settings #set-history .cm-dual-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        #page-settings #set-history .cm-action-salary,
+        #page-settings #set-history .cm-action-add {
+            padding: 13px 10px;
+            border: none;
+            border-radius: 14px;
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        #page-settings #set-history .cm-action-salary {
+            background: linear-gradient(135deg, #30D158, #27b84a);
+            color: #000;
+            box-shadow: 0 6px 20px rgba(48,209,88,0.2), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        #page-settings #set-history .cm-action-salary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 28px rgba(48,209,88,0.3);
+        }
+        #page-settings #set-history .cm-action-add {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.7);
+        }
+        #page-settings #set-history .cm-action-add:hover {
+            background: rgba(255,255,255,0.09);
+            color: #fff;
+            border-color: rgba(255,255,255,0.18);
+        }
+        #page-settings #set-history .cm-action-salary:active,
+        #page-settings #set-history .cm-action-add:active { transform: scale(0.97); }
+
+        /* ---- FILTER CHIPS margin adjust ---- */
+        #page-settings #set-history .ps-filter-scroll {
+            margin-top: 14px;
+        }
+        #page-settings #set-history .ps-filter-scroll {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 2px 0 14px;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+        #page-settings #set-history .ps-filter-scroll::-webkit-scrollbar { display: none; }
+        #page-settings #set-history .ps-filter-chip {
+            padding: 7px 16px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 999px;
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            color: rgba(255,255,255,0.35);
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.18s;
+            text-transform: uppercase;
+        }
+        #page-settings #set-history .ps-filter-chip:hover {
+            color: rgba(255,255,255,0.6);
+            border-color: rgba(255,255,255,0.14);
+        }
+        #page-settings #set-history .ps-filter-chip.active {
+            background: rgba(255,214,10,0.1);
+            border-color: rgba(255,214,10,0.35);
+            color: #FFD60A;
+            box-shadow: 0 0 14px rgba(255,214,10,0.12);
+        }
+
+        /* ---- LEDGER CARDS - BORDERLESS LIST ---- */
+        #page-settings #set-history #historyListFull {
+            border-radius: 16px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        #page-settings #set-history .ledger-card {
+            background: transparent !important;
+            border-radius: 0 !important;
+            border: none !important;
+            border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+            padding: 14px 16px;
+            margin-bottom: 0 !important;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.15s;
+            position: relative;
+            overflow: hidden;
+        }
+        #page-settings #set-history .ledger-card:last-child {
+            border-bottom: none !important;
+        }
+        #page-settings #set-history .ledger-card::before {
+            display: none !important;
+        }
+        #page-settings #set-history .ledger-card:active {
+            background: rgba(255,255,255,0.04) !important;
+        }
+
+        /* Icon dot indicator */
+        #page-settings #set-history .lc-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            flex-shrink: 0;
+            margin-right: 12px;
+        }
+        #page-settings #set-history .l-type-in .lc-icon {
+            background: rgba(48,209,88,0.1);
+            color: #30D158;
+        }
+        #page-settings #set-history .l-type-out .lc-icon {
+            background: rgba(255,69,58,0.1);
+            color: #FF453A;
+        }
+
+        /* Title & date */
+        #page-settings #set-history .lc-left {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            min-width: 0;
+        }
+        #page-settings #set-history .lc-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        #page-settings #set-history .lc-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.88);
+            display: block;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #page-settings #set-history .lc-date {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            color: rgba(255,255,255,0.25);
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        /* Amount */
+        #page-settings #set-history .lc-amount {
+            font-family: 'DM Mono', monospace;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: -0.3px;
+            white-space: nowrap;
+        }
+        #page-settings #set-history .lc-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+            margin-left: 10px;
+        }
+
+        /* Trash icon */
+        #page-settings #set-history .lc-right button {
+            opacity: 0.18;
+            transition: opacity 0.15s;
+            padding: 4px;
+        }
+        #page-settings #set-history .lc-right button:hover { opacity: 0.6; }
+
+        /* ---- TRASH BUTTON ---- */
+        #page-settings #set-history .ps-btn-trash {
+            width: 100%;
+            padding: 13px 20px;
+            background: transparent;
+            border: 1px solid rgba(255,69,58,0.15);
+            border-radius: 14px;
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: rgba(255,69,58,0.5);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+            transition: all 0.18s;
+        }
+        #page-settings #set-history .ps-btn-trash:hover {
+            border-color: rgba(255,69,58,0.3);
+            color: #FF453A;
+            background: rgba(255,69,58,0.05);
+        }
+
+        #page-settings #set-history {
+            padding-top: 12px !important;
+        }
+        .cash-modal-redesign {
+            background: linear-gradient(160deg, #0e1825 0%, #080f1a 100%) !important;
+            border: 1px solid rgba(255,255,255,0.07) !important;
+            border-radius: 24px !important;
+            padding: 24px 20px 20px !important;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+        }
+
+        /* Header */
+        .cm-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+        .cm-icon-wrap {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: rgba(48,209,88,0.1);
+            border: 1px solid rgba(48,209,88,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #30D158;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .cm-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.2;
+        }
+        .cm-subtitle {
+            font-size: 11px;
+            color: rgba(255,255,255,0.32);
+            margin-top: 2px;
+            font-family: 'DM Mono', monospace;
+        }
+
+        /* Type Toggle */
+        .cm-type-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .cm-type-btn {
+            padding: 14px 12px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.07);
+            background: rgba(255,255,255,0.03);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .cm-type-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .cm-type-btn.deposit::before {
+            background: radial-gradient(ellipse at 50% 0%, rgba(48,209,88,0.15) 0%, transparent 70%);
+        }
+        .cm-type-btn.withdraw::before {
+            background: radial-gradient(ellipse at 50% 0%, rgba(255,69,58,0.15) 0%, transparent 70%);
+        }
+        .cm-type-btn.active::before { opacity: 1; }
+        .cm-type-btn.deposit.active {
+            border-color: rgba(48,209,88,0.35);
+            background: rgba(48,209,88,0.06);
+        }
+        .cm-type-btn.withdraw.active {
+            border-color: rgba(255,69,58,0.35);
+            background: rgba(255,69,58,0.06);
+        }
+        .cm-type-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .deposit .cm-type-icon { background: rgba(48,209,88,0.1); color: rgba(48,209,88,0.5); }
+        .deposit.active .cm-type-icon { background: rgba(48,209,88,0.18); color: #30D158; }
+        .withdraw .cm-type-icon { background: rgba(255,69,58,0.1); color: rgba(255,69,58,0.5); }
+        .withdraw.active .cm-type-icon { background: rgba(255,69,58,0.18); color: #FF453A; }
+        .cm-type-label {
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.35);
+            transition: color 0.2s;
+            font-family: 'DM Mono', monospace;
+        }
+        .deposit.active .cm-type-label { color: #30D158; }
+        .withdraw.active .cm-type-label { color: #FF453A; }
+        .cm-type-desc {
+            font-size: 10px;
+            color: rgba(255,255,255,0.22);
+            font-family: 'DM Mono', monospace;
+        }
+
+        /* Fields */
+        .cm-field { margin-bottom: 14px; }
+        .cm-label {
+            display: block;
+            font-size: 10px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.35);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-family: 'DM Mono', monospace;
+            margin-bottom: 8px;
+        }
+        .cm-optional {
+            color: rgba(255,255,255,0.18);
+            font-weight: 400;
+            text-transform: none;
+            letter-spacing: 0;
+            font-size: 9px;
+        }
+        .cm-input-wrap {
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 14px;
+            overflow: hidden;
+            transition: border-color 0.18s;
+        }
+        .cm-input-wrap:focus-within {
+            border-color: rgba(48,209,88,0.35);
+            box-shadow: 0 0 0 3px rgba(48,209,88,0.06);
+        }
+        .cm-currency-badge {
+            padding: 0 14px;
+            font-size: 16px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.35);
+            border-right: 1px solid rgba(255,255,255,0.07);
+            height: 100%;
+            display: flex;
+            align-items: center;
+            font-family: 'DM Mono', monospace;
+        }
+        .cm-input {
+            flex: 1;
+            background: transparent !important;
+            border: none !important;
+            outline: none !important;
+            color: #fff !important;
+            font-size: 20px !important;
+            font-weight: 600 !important;
+            padding: 14px 16px !important;
+            font-family: 'DM Mono', monospace !important;
+            width: 100%;
+        }
+        .cm-input::placeholder { color: rgba(255,255,255,0.2) !important; font-size: 18px !important; }
+        .cm-input-full {
+            display: block;
+            width: 100%;
+            background: rgba(255,255,255,0.05) !important;
+            border: 1px solid rgba(255,255,255,0.09) !important;
+            border-radius: 14px !important;
+            outline: none !important;
+            color: rgba(255,255,255,0.8) !important;
+            font-size: 14px !important;
+            font-weight: 400 !important;
+            padding: 13px 16px !important;
+            font-family: inherit !important;
+            transition: border-color 0.18s, box-shadow 0.18s;
+            box-sizing: border-box;
+        }
+        .cm-input-full:focus {
+            border-color: rgba(48,209,88,0.35) !important;
+            box-shadow: 0 0 0 3px rgba(48,209,88,0.06) !important;
+        }
+        .cm-input-full::placeholder { color: rgba(255,255,255,0.2) !important; }
+
+        /* Buttons */
+        .cm-btn-confirm {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #30D158, #27b84a);
+            border: none;
+            border-radius: 14px;
+            font-family: 'DM Mono', monospace;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #000;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            margin-top: 6px;
+            transition: all 0.2s;
+            box-shadow: 0 8px 24px rgba(48,209,88,0.25), inset 0 1px 0 rgba(255,255,255,0.25);
+        }
+        .cm-btn-confirm:hover { transform: translateY(-1px); box-shadow: 0 12px 32px rgba(48,209,88,0.35); }
+        .cm-btn-confirm:active { transform: scale(0.98); }
+        .cm-btn-cancel {
+            width: 100%;
+            padding: 13px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.35);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .cm-btn-cancel:hover { color: rgba(255,255,255,0.6); border-color: rgba(255,255,255,0.15); }
+    </style>
+
     <div class="app-settings-container ps-container">
 
         <!-- ========== ANA SAYFA (settings-home) ========== -->
@@ -13102,17 +13706,16 @@ function openLabFullscreen() {
                             <div class="ps-acc-value small success acc-val-sm" id="accDividend" style="color:#30D158;">--</div>
                         </div>
                     </div>
-                    <button class="ps-btn-salary btn-main" onclick="openSalaryModal()">
-                        <i class="fas fa-hand-holding-usd"></i> KÂR DAĞITIMI YAP (MAAŞ ÖDE)
-                    </button>
-                </div>
-
-                <!-- History Header -->
-                <div class="ps-history-header">
-                    <div class="ps-card-label lbl-sm" style="margin:0">Defter Kayıtları</div>
-                    <button class="ps-tool-btn tool-btn" onclick="openCashModal()">
-                        <i class="fas fa-plus"></i> İşlem Ekle
-                    </button>
+                    <div class="cm-dual-actions">
+                        <button class="cm-action-salary" onclick="openSalaryModal()">
+                            <i class="fas fa-hand-holding-usd"></i>
+                            <span>Kâr Dağıtımı</span>
+                        </button>
+                        <button class="cm-action-add" onclick="openCashModal()">
+                            <i class="fas fa-plus"></i>
+                            <span>İşlem Ekle</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Filter Chips -->
@@ -13844,34 +14447,56 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
 </div>
 
 <div id="cashModal" class="modal-overlay">
-    <div class="modal">
-        <h3 style="text-align:center; margin-bottom:15px;">Nakit İşlemi</h3>
-        
+    <div class="modal cash-modal-redesign">
+        <!-- Header -->
+        <div class="cm-header">
+            <div class="cm-icon-wrap">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <div>
+                <div class="cm-title">Nakit İşlemi</div>
+                <div class="cm-subtitle">Sermaye girişi veya çıkışı ekle</div>
+            </div>
+        </div>
+
         <input type="hidden" id="cashTypeVal" value="in">
 
-        <div style="display:flex; gap:10px; margin-bottom:15px;">
-            <div id="btnCashIn" class="cash-modal-btn deposit active" onclick="setCashType('in', this)">
-                <i class="fas fa-arrow-down"></i>
-                <span>YATIR</span>
+        <!-- Type Toggle -->
+        <div class="cm-type-toggle">
+            <div id="btnCashIn" class="cm-type-btn deposit active" onclick="setCashType('in', this)">
+                <div class="cm-type-icon"><i class="fas fa-arrow-down"></i></div>
+                <span class="cm-type-label">YATIR</span>
+                <span class="cm-type-desc">Sermaye Ekle</span>
             </div>
-            <div id="btnCashOut" class="cash-modal-btn withdraw" onclick="setCashType('out', this)">
-                <i class="fas fa-arrow-up"></i>
-                <span>ÇEK</span>
+            <div id="btnCashOut" class="cm-type-btn withdraw" onclick="setCashType('out', this)">
+                <div class="cm-type-icon"><i class="fas fa-arrow-up"></i></div>
+                <span class="cm-type-label">ÇEK</span>
+                <span class="cm-type-desc">Sermaye Çek</span>
             </div>
         </div>
 
-        <div style="margin-bottom:10px;">
-            <span style="font-size:11px; color:var(--text-sub);">Miktar</span>
-            <input type="number" id="cashAmountInput" class="modern-input" placeholder="0.00">
+        <!-- Amount -->
+        <div class="cm-field">
+            <label class="cm-label">Miktar</label>
+            <div class="cm-input-wrap">
+                <span class="cm-currency-badge" id="cmCurrencyBadge">₺</span>
+                <input type="number" id="cashAmountInput" class="cm-input" placeholder="0,00" inputmode="decimal">
+            </div>
         </div>
 
-        <div style="margin-bottom:15px;">
-            <span style="font-size:11px; color:var(--text-sub);">Açıklama (Opsiyonel)</span>
-            <input type="text" id="cashDescInput" class="modern-input" placeholder="Örn: Banka transferi">
+        <!-- Description -->
+        <div class="cm-field">
+            <label class="cm-label">Açıklama <span class="cm-optional">opsiyonel</span></label>
+            <input type="text" id="cashDescInput" class="cm-input cm-input-full" placeholder="Örn: Banka transferi">
         </div>
 
-        <button class="btn-main" onclick="submitCashTransaction()">İŞLEMİ ONAYLA</button>
-        <button class="btn-main btn-sec" style="margin-top:10px;" onclick="document.getElementById('cashModal').style.display='none'">İptal</button>
+        <!-- Actions -->
+        <button class="cm-btn-confirm" onclick="submitCashTransaction()">
+            <i class="fas fa-check"></i> İŞLEMİ ONAYLA
+        </button>
+        <button class="cm-btn-cancel" onclick="document.getElementById('cashModal').style.display='none'">
+            İptal
+        </button>
     </div>
 </div>
 
@@ -14726,7 +15351,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.0"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -19486,8 +20111,8 @@ function renderMdComments(comments) {
         var likedByMe = (c.likedBy||[]).indexOf(uid) > -1;
         var likeCount = (c.likedBy||[]).length;
         var isLong = (c.text||'').length > MAX_CHARS;
-        var badgeCls = c.sentiment==='bull' ? 'badge-bull' : c.sentiment==='bear' ? 'badge-bear' : '';
-        var badgeTxt = c.sentiment==='bull' ? '📈 Yükseliş' : c.sentiment==='bear' ? '📉 Düşüş' : '';
+        var badgeCls = '';
+        var badgeTxt = '';
         var imgHtml = c.imageBase64 ? '<div class="md-cmt-img" onclick="openFullscreenImg(this.querySelector(\'img\').src)" style="cursor:pointer;"><img src="'+c.imageBase64+'" loading="lazy"></div>' : '';
         
         // Avatar
@@ -30348,9 +30973,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const avatarStyle = c.photoURL ? 'background:#0f1829;' : `background:${avatarColor}`;
             
             let badgeHtml = '';
-            if (c.sentiment === 'bull') badgeHtml = '<span class="comment-badge badge-bull">🚀 YÜKSELIŞ</span>';
-            else if (c.sentiment === 'bear') badgeHtml = '<span class="comment-badge badge-bear">🐻 DÜŞÜŞ</span>';
-            else badgeHtml = '<span class="comment-badge badge-neutral">😐 NÖTR</span>';
             
             // Yanıtlar — ilk görünsün, diğerleri gizli
             let repliesHtml = '';
@@ -30412,8 +31034,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     ${repliesHtml}
                     <div class="reply-input-wrap" id="replyWrap-${c.id}">
-                        <input type="text" class="reply-input" id="replyInput-${c.id}" placeholder="Yanıtını yaz..." onkeydown="if(event.keyCode===13)postReply('${c.id}')">
-                        <button class="reply-send-btn" onclick="postReply('${c.id}')"><i class="fas fa-paper-plane"></i></button>
+                        <div style="display:flex;align-items:center;width:100%;">
+                            <input type="text" class="reply-input" id="replyInput-${c.id}" placeholder="Yanıtını yaz..." onkeydown="if(event.keyCode===13)postReply('${c.id}')">
+                            <button class="reply-send-btn" onclick="postReply('${c.id}')"><i class="fas fa-paper-plane"></i></button>
+                        </div>
                     </div>
                 </div>
             </div>`;
@@ -30694,10 +31318,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // ---- DELETE COMMENT ----
     window.deleteComment = async function(commentId) {
-        const ok = await tvConfirm('Yorum Sil', 'Yorum silinsin mi?');
-        if (!ok) return;
+        const el = document.getElementById('comment-' + commentId);
+        if (el) {
+            el.style.transition = 'opacity 0.3s ease, transform 0.3s ease, max-height 0.4s ease';
+            el.style.opacity = '0';
+            el.style.transform = 'translateX(-20px)';
+            el.style.maxHeight = el.offsetHeight + 'px';
+            el.style.overflow = 'hidden';
+            setTimeout(() => { el.style.maxHeight = '0'; el.style.marginBottom = '0'; el.style.paddingBottom = '0'; }, 280);
+            setTimeout(() => { el.remove(); }, 650);
+        }
         fbDb.collection('social_comments').doc(commentId).delete()
-            .then(() => { if (typeof showToast === 'function') showToast('success', 'Silindi', ''); })
             .catch(err => console.error('Delete error:', err));
     };
     
