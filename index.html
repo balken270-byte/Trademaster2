@@ -288,8 +288,8 @@ body {
         .reply-author { font-size:11px;font-weight:700;color:#a78bfa;margin-bottom:3px; }
         .reply-text { font-size:12px;color:rgba(255,255,255,0.75);line-height:1.45; }
         .reply-time { font-size:10px;color:rgba(255,255,255,0.3);margin-top:4px; }
-        .reply-input-wrap { display:none;margin-top:10px;gap:0;align-items:stretch;flex-direction:column;background:rgba(255,255,255,0.04);border-radius:14px;border:1px solid rgba(255,255,255,0.09);overflow:hidden; }
-        .reply-input-wrap.visible { display:flex; }
+        .reply-input-wrap { display:none !important;margin-top:10px;gap:0;align-items:stretch;flex-direction:row;background:rgba(255,255,255,0.04);border-radius:14px;border:1px solid rgba(255,255,255,0.09);overflow:hidden; }
+        .reply-input-wrap.visible { display:flex !important; }
         /* Gizli yanıtlar */
         .reply-hidden { display:none; }
         .md-reply.reply-hidden { display:none; }
@@ -15351,7 +15351,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.3"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -30581,6 +30581,12 @@ async function loadWatchlist() {
         
         <!-- Input Area -->
         <div class="social-input-area">
+            <!-- Reply Banner -->
+            <div id="replyBanner" style="display:none;align-items:center;gap:8px;padding:7px 12px;margin-bottom:6px;background:rgba(99,102,241,0.12);border-radius:10px;border-left:3px solid #6366f1;">
+                <i class="fas fa-reply" style="font-size:11px;color:#818cf8;"></i>
+                <span id="replyBannerText" style="font-size:12px;color:#a5b4fc;flex:1;"></span>
+                <button onclick="cancelReply()" style="background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;font-size:13px;padding:0;"><i class="fas fa-times"></i></button>
+            </div>
             <div id="commentImgPreviewWrap" style="display:none;margin-bottom:8px;position:relative;">
                 <img id="commentImgPreview" style="max-height:120px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);display:block;"/>
                 <button onclick="removeCommentImage()" style="position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,0.7);border:none;color:white;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fas fa-times"></i></button>
@@ -30804,6 +30810,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('socialModalOverlay').classList.remove('open');
         document.body.style.overflow = '';
         if (socialUnsubscribe) { socialUnsubscribe(); socialUnsubscribe = null; }
+        cancelReply();
     };
     
     // ---- SENTIMENT ----
@@ -31027,18 +31034,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button class="cmt-like-btn ${likedByMe ? 'liked' : ''}" onclick="toggleCommentLike('${c.id}')">
                             <i class="fas fa-heart"></i> ${likeCount > 0 ? likeCount : ''}
                         </button>
-                        <button class="cmt-reply-btn" onclick="toggleReplyInput('${c.id}')">
+                        <button class="cmt-reply-btn" onclick="toggleReplyInput('${c.id}', '${(c.authorName||'Trader').replace(/'/g,"\\'")}')">
                             <i class="fas fa-reply"></i> Yanıtla
                         </button>
                         ${c.authorId === uid ? `<button class="cmt-reply-btn" onclick="deleteComment('${c.id}')" style="color:var(--danger)"><i class="fas fa-trash"></i></button>` : ''}
                     </div>
                     ${repliesHtml}
-                    <div class="reply-input-wrap" id="replyWrap-${c.id}">
-                        <div style="display:flex;align-items:center;width:100%;">
-                            <input type="text" class="reply-input" id="replyInput-${c.id}" placeholder="Yanıtını yaz..." onkeydown="if(event.keyCode===13)postReply('${c.id}')">
-                            <button class="reply-send-btn" onclick="postReply('${c.id}')"><i class="fas fa-paper-plane"></i></button>
-                        </div>
-                    </div>
+                    <div class="reply-input-wrap" id="replyWrap-${c.id}" style="display:none !important;"></div>
                 </div>
             </div>`;
         });
@@ -31257,11 +31259,47 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const uid = getUserId();
         const authorName = getDisplayName();
-        
-        // Giriş yapmış kullanıcının profil fotoğrafını al (Google veya yerel avatar)
-        const currentUser = typeof fbAuth !== 'undefined' && fbAuth.currentUser;
         const photoURL = getEffectivePhotoURL();
-        
+
+        // REPLY MODE
+        if (_replyingToCommentId) {
+            const replyCommentId = _replyingToCommentId;
+            const reply = {
+                authorId: uid, authorName: authorName,
+                text: text,
+                createdAt: firebase.firestore.Timestamp.now()
+            };
+            if (photoURL) reply.photoURL = photoURL;
+            fbDb.collection('social_comments').doc(replyCommentId).update({
+                replies: firebase.firestore.FieldValue.arrayUnion(reply)
+            }).then(function() {
+                textarea.value = '';
+                textarea.style.height = '';
+                cancelReply();
+                if (typeof showToast === 'function') showToast('success', 'Yanıt', 'Gönderildi!');
+                // Bildirim
+                fbDb.collection('social_comments').doc(replyCommentId).get().then(function(doc) {
+                    if (!doc.exists) return;
+                    var d = doc.data();
+                    if (d.authorId && d.authorId !== uid) {
+                        fbDb.collection('notifications').add({
+                            type: 'reply', recipientId: d.authorId,
+                            senderName: authorName, symbol: currentSocialSymbol,
+                            commentText: (d.text||'').substring(0,60),
+                            replyText: reply.text.substring(0,60),
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            read: false
+                        }).catch(function(){});
+                    }
+                }).catch(function(){});
+            }).catch(function(err) {
+                console.error('Reply error:', err);
+                if (typeof showToast === 'function') showToast('danger', 'Hata', err.message);
+            }).finally(function() { btn.disabled = false; });
+            return;
+        }
+
+        // NORMAL COMMENT MODE
         var payload = {
             symbol: currentSocialSymbol, text: text, sentiment: currentCommentSentiment,
             authorId: uid, authorName: authorName,
@@ -31333,11 +31371,36 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     // ---- REPLY ----
-    window.toggleReplyInput = function(commentId) {
-        const wrap = document.getElementById('replyWrap-' + commentId);
-        if (!wrap) return;
-        const visible = wrap.classList.toggle('visible');
-        if (visible) document.getElementById('replyInput-' + commentId)?.focus();
+    var _replyingToCommentId = null;
+    var _replyingToAuthorName = null;
+
+    window.cancelReply = function() {
+        _replyingToCommentId = null;
+        _replyingToAuthorName = null;
+        var banner = document.getElementById('replyBanner');
+        var ta = document.getElementById('commentTextarea');
+        if (banner) banner.style.display = 'none';
+        if (ta) { ta.placeholder = 'Analizini paylaş...'; }
+    };
+
+    window.toggleReplyInput = function(commentId, authorName) {
+        var ta = document.getElementById('commentTextarea');
+        var banner = document.getElementById('replyBanner');
+        var bannerText = document.getElementById('replyBannerText');
+        if (!ta) return;
+        // Aynı yoruma tekrar tıklandıysa iptal et
+        if (_replyingToCommentId === commentId) {
+            cancelReply();
+            return;
+        }
+        _replyingToCommentId = commentId;
+        _replyingToAuthorName = authorName || 'kullanıcı';
+        if (bannerText) bannerText.textContent = '@' + _replyingToAuthorName + ' yanıtlanıyor';
+        if (banner) banner.style.display = 'flex';
+        ta.placeholder = 'Yanıtını yaz...';
+        ta.focus();
+        // Scroll to input
+        ta.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
     
     window.postReply = function(commentId) {
