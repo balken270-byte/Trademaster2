@@ -772,15 +772,18 @@ body {
         .collapsible-header { cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; }
         .rotate-icon { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .rotate-icon.rotated { transform: rotate(180deg); }
-        .collapsible-content { max-height: 1200px; opacity: 1; overflow: hidden; transition: max-height 0.4s ease, opacity 0.4s ease, margin 0.3s ease; }
-        .collapsible-content.collapsed { max-height: 0; opacity: 0; margin-top: 0 !important; padding-top: 0 !important; padding-bottom: 0 !important; border:none !important; }
+        .collapsible-content { display: grid; grid-template-rows: 1fr; opacity: 1; transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease; }
+        .collapsible-content > * { overflow: hidden; }
+        .collapsible-content.collapsed { grid-template-rows: 0fr; opacity: 0; pointer-events: none; }
         .trade-card { background: linear-gradient(145deg, var(--bg-card) 0%, rgba(21, 27, 43, 0.6) 100%); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 20px; margin-bottom: 4px; position: relative; box-shadow: 0 4px 20px rgba(0,0,0,0.2); transition: 0.3s; }
         .trade-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; }
         .trade-card.open .trade-header { margin-bottom: 15px; } 
         .trade-title { font-size: 14px; font-weight: 800; color: white; display: flex; align-items: center; gap: 8px; }
-        .currency-toggle-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: var(--bg-input); color: var(--text-sub); font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; z-index: 2; }
-        .currency-toggle-btn.active-try { color: var(--success); border-color: var(--success); background: rgba(16, 185, 129, 0.1); }
-        .currency-toggle-btn.active-usd { color: var(--accent); border-color: var(--accent); background: rgba(59, 130, 246, 0.1); }
+        .currency-toggle-btn { width: 36px; height: 36px; border-radius: 50%; font-size: 15px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s, background 0.2s; z-index: 2; position: relative; overflow: hidden; letter-spacing: -0.5px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        .currency-toggle-btn::before { content: ''; position: absolute; top: 3px; left: 5px; width: 50%; height: 28%; background: linear-gradient(150deg, rgba(255,255,255,0.3) 0%, transparent 100%); border-radius: 50%; transform: rotate(-15deg); pointer-events: none; z-index: 5; }
+        .currency-toggle-btn.active-try { color: #6ee7b7; background: rgba(16,185,129,0.15); border: 1.5px solid rgba(16,185,129,0.35); box-shadow: 0 2px 12px rgba(16,185,129,0.2), inset 0 1px 0 rgba(255,255,255,0.1); text-shadow: 0 0 8px rgba(52,211,153,0.6); }
+        .currency-toggle-btn.active-usd { color: #93c5fd; background: rgba(59,130,246,0.15); border: 1.5px solid rgba(59,130,246,0.35); box-shadow: 0 2px 12px rgba(59,130,246,0.2), inset 0 1px 0 rgba(255,255,255,0.1); text-shadow: 0 0 8px rgba(96,165,250,0.6); }
+        .currency-toggle-btn:active { transform: scale(0.88); }
         .trade-input-group { position: relative; margin-bottom: 10px; }
         .trade-input { width: 100%; background: var(--bg-body); border: 1px solid rgba(255,255,255,0.08); color: white; padding: 14px 14px 14px 40px; border-radius: 12px; font-size: 15px; font-weight: 600; outline: none; transition: 0.3s; }
         .trade-input:focus { border-color: var(--accent); background: var(--bg-input); }
@@ -12666,8 +12669,8 @@ function openLabFullscreen() {
                         <input type="text" id="profileNameInput" placeholder="Ad Soyad" onchange="saveProfileData()">
                         <input type="text" id="profileBioInput" placeholder="Bio / Ünvan" onchange="saveProfileData()">
                     </div>
-                    <div id="profileTradeCount">0</div>
-                    <div id="profileJoinDate">--</div>
+                    <div id="_ghost_profileTradeCount">0</div>
+                    <div id="_ghost_profileJoinDate">--</div>
                     <label><input type="file" id="imgUploadInput" accept="image/*" onchange="uploadProfileImg(this)"></label>
                 </div>
 
@@ -12757,93 +12760,88 @@ function openLabFullscreen() {
                 <!-- HESAP & BULUT (LOGGED IN) -->
                 <div id="accountLoggedIn" style="display:none;">
 
-                    <!-- ═══ PROFİL KARTI (GİRİŞ YAPILMIŞ) ═══ -->
-                    <div style="background:var(--bg-card);border-radius:20px;padding:18px 20px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.06);position:relative;overflow:hidden;">
-                        <div style="position:absolute;top:-30px;right:-30px;width:160px;height:160px;background:radial-gradient(circle,rgba(99,102,241,0.08) 0%,transparent 70%);pointer-events:none;"></div>
+                    <!-- ═══ UNİFİED PROFİL KARTI ═══ -->
+                    <div style="background:var(--bg-card);border-radius:24px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.07);position:relative;overflow:hidden;">
 
-                        <!-- Üst satır: Avatar + İsim/Email + Kamera -->
-                        <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+                        <!-- Arkaplan dekorasyon -->
+                        <div style="position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(99,102,241,0.1) 0%,transparent 65%);pointer-events:none;"></div>
+                        <div style="position:absolute;bottom:-20px;left:-20px;width:120px;height:120px;background:radial-gradient(circle,rgba(16,185,129,0.06) 0%,transparent 70%);pointer-events:none;"></div>
 
-                            <!-- Avatar (online dot ile) -->
-                            <div style="position:relative;flex-shrink:0;">
-                                <div style="width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:2.5px;box-shadow:0 6px 20px rgba(99,102,241,0.38);">
-                                    <div style="width:63px;height:63px;border-radius:50%;background:#151929;display:flex;align-items:center;justify-content:center;overflow:hidden;">
-                                        <img id="loggedInProfileImg" src="" style="width:63px;height:63px;border-radius:50%;object-fit:cover;display:none;">
-                                        <div id="loggedInAvatarInitials" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:24px;font-weight:800;color:#fff;letter-spacing:-1px;">?</div>
+                        <!-- ── BÖLÜM 1: Avatar + İsim + Kamera ── -->
+                        <div style="padding:20px 20px 16px;">
+                            <div style="display:flex;align-items:center;gap:16px;">
+
+                                <!-- Avatar -->
+                                <div style="position:relative;flex-shrink:0;">
+                                    <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:2.5px;box-shadow:0 6px 24px rgba(99,102,241,0.4);">
+                                        <div style="width:67px;height:67px;border-radius:50%;background:#151929;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                                            <img id="loggedInProfileImg" src="" style="width:67px;height:67px;border-radius:50%;object-fit:cover;display:none;">
+                                            <div id="loggedInAvatarInitials" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:26px;font-weight:800;color:#fff;letter-spacing:-1px;">?</div>
+                                        </div>
                                     </div>
+                                    <div style="position:absolute;bottom:3px;right:3px;width:14px;height:14px;border-radius:50%;background:#10b981;border:2px solid var(--bg-card);box-shadow:0 0 7px rgba(16,185,129,0.8);"></div>
                                 </div>
-                                <!-- Online dot -->
-                                <div style="position:absolute;bottom:3px;right:3px;width:13px;height:13px;border-radius:50%;background:#10b981;border:2px solid var(--bg-card);box-shadow:0 0 6px rgba(16,185,129,0.7);"></div>
-                            </div>
 
-                            <!-- İsim & Email -->
-                            <div style="flex:1;min-width:0;">
-                                <div style="display:flex;align-items:center;gap:7px;">
-                                    <div id="loggedInNameDisplay" style="font-size:17px;font-weight:800;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">—</div>
-                                    <button id="editNamePencil" onclick="toggleEditNameRow()" style="display:none;background:none;border:none;padding:3px;cursor:pointer;flex-shrink:0;">
-                                        <i class="fas fa-pen" style="font-size:12px;color:rgba(255,255,255,0.35);transition:color 0.2s;" onmouseover="this.style.color='#818cf8'" onmouseout="this.style.color='rgba(255,255,255,0.35)'"></i>
-                                    </button>
+                                <!-- İsim & Email -->
+                                <div style="flex:1;min-width:0;">
+                                    <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;">
+                                        <div id="loggedInNameDisplay" style="font-size:18px;font-weight:800;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">—</div>
+                                        <button id="editNamePencil" onclick="toggleEditNameRow()" style="display:none;background:none;border:none;padding:3px;cursor:pointer;flex-shrink:0;">
+                                            <i class="fas fa-pen" style="font-size:11px;color:rgba(255,255,255,0.3);"></i>
+                                        </button>
+                                    </div>
+                                    <div id="loggedInEmailDisplay" style="font-size:11px;color:rgba(255,255,255,0.38);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">—</div>
                                 </div>
-                                <div id="loggedInEmailDisplay" style="font-size:11px;color:rgba(255,255,255,0.4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">—</div>
+
+                                <!-- Kamera -->
+                                <label for="loggedInImgUpload" style="flex-shrink:0;width:38px;height:38px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.28);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+                                    <i class="fas fa-camera" style="font-size:13px;color:#60a5fa;"></i>
+                                    <input type="file" id="loggedInImgUpload" accept="image/*" style="display:none;" onchange="setLoggedInProfileImg(this)">
+                                </label>
                             </div>
 
-                            <!-- Kamera Butonu (sağ üst) -->
-                            <label for="loggedInImgUpload" style="flex-shrink:0;width:40px;height:40px;background:rgba(59,130,246,0.18);border:1px solid rgba(59,130,246,0.32);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;">
-                                <i class="fas fa-camera" style="font-size:14px;color:#60a5fa;"></i>
-                                <input type="file" id="loggedInImgUpload" accept="image/*" style="display:none;" onchange="setLoggedInProfileImg(this)">
-                            </label>
-                        </div>
-
-                        <!-- İsim Düzenle (sadece e-posta kullanıcısı, kalem ile açılır) -->
-                        <div id="loggedInEditNameRow" style="display:none;margin-bottom:14px;animation:fadeInDown 0.2s ease;">
-                            <div style="display:flex;gap:8px;align-items:center;">
-                                <input type="text" id="loggedInNameInput" placeholder="Adınızı girin"
-                                       style="flex:1;padding:10px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(99,102,241,0.4);border-radius:12px;color:#fff;font-size:13px;outline:none;"
-                                       onkeydown="if(event.key==='Enter')saveLoggedInName()">
-                                <button onclick="saveLoggedInName()" style="padding:10px 18px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;box-shadow:0 4px 12px rgba(99,102,241,0.35);">
-                                    Kaydet
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Alt rozetler: PRO + Bağlı -->
-                        <div style="display:flex;gap:8px;">
-                            <div id="loggedInProBadge" style="display:none;flex:1;">
-                                <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;background:linear-gradient(135deg,#fbbf24,#f59e0b);border-radius:12px;box-shadow:0 4px 14px rgba(251,191,36,0.28);">
-                                    <i class="fas fa-crown" style="font-size:12px;color:#000;"></i>
-                                    <span style="font-size:12px;font-weight:800;color:#000;">PRO ÜYE</span>
+                            <!-- İsim düzenleme satırı -->
+                            <div id="loggedInEditNameRow" style="display:none;margin-top:12px;animation:fadeInDown 0.2s ease;">
+                                <div style="display:flex;gap:8px;align-items:center;">
+                                    <input type="text" id="loggedInNameInput" placeholder="Adınızı girin"
+                                           style="flex:1;padding:10px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(99,102,241,0.4);border-radius:12px;color:#fff;font-size:13px;outline:none;"
+                                           onkeydown="if(event.key==='Enter')saveLoggedInName()">
+                                    <button onclick="saveLoggedInName()" style="padding:10px 16px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">Kaydet</button>
                                 </div>
                             </div>
-                            <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.22);border-radius:12px;">
-                                <div style="width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 7px rgba(16,185,129,0.8);"></div>
-                                <span style="font-size:12px;font-weight:700;color:#10b981;">Bağlı</span>
-                            </div>
                         </div>
-                    </div>
 
-                    <!-- İSTATİSTİKLER -->
-                    <div style="background:var(--bg-card);border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.05);">
-                        <div style="font-size:11px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">
-                            <i class="fas fa-chart-line"></i> İstatistikler
-                        </div>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                            <div style="text-align:center;padding:12px;background:var(--bg-input);border-radius:10px;">
-                                <div style="font-size:9px;font-weight:600;color:var(--text-sub);margin-bottom:4px;text-transform:uppercase;">Toplam İşlem</div>
-                                <div id="profileTradeCount" style="font-size:22px;font-weight:800;color:#fff;">0</div>
-                            </div>
-                            <div style="text-align:center;padding:12px;background:var(--bg-input);border-radius:10px;">
-                                <div style="font-size:9px;font-weight:600;color:var(--text-sub);margin-bottom:4px;text-transform:uppercase;">Üyelik</div>
-                                <div id="profileJoinDate" style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.7);">--</div>
-                            </div>
-                        </div>
-                    </div>
+                        <!-- Ayraç -->
+                        <div style="height:1px;background:rgba(255,255,255,0.05);margin:0 20px;"></div>
 
-                    <!-- Üyelik Durumu -->
-                    <div style="background:var(--bg-card); border-radius:16px; padding:16px; margin-bottom:16px; border:1px solid rgba(255,255,255,0.05);">
-                        <div style="font-size:11px; font-weight:700; color:var(--text-sub); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;">
-                            <i class="fas fa-crown"></i> Üyelik Durumu
+                        <!-- ── BÖLÜM 2: İstatistik + Üyelik ikonları ── -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;padding:14px 20px;gap:4px;">
+                            <!-- İşlem -->
+                            <div style="text-align:center;padding:10px 6px;">
+                                <div id="profileTradeCount" style="font-size:22px;font-weight:900;color:#fff;line-height:1;">0</div>
+                                <div style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.4px;margin-top:4px;">İşlem</div>
+                            </div>
+                            <!-- Dikey çizgi -->
+                            <div style="text-align:center;padding:10px 6px;border-left:1px solid rgba(255,255,255,0.06);border-right:1px solid rgba(255,255,255,0.06);">
+                                <div id="profileJoinDate" style="font-size:12px;font-weight:700;color:#fff;line-height:1.2;">--</div>
+                                <div style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.4px;margin-top:4px;">Üye Tarihi</div>
+                            </div>
+                            <!-- Plan -->
+                            <div style="text-align:center;padding:10px 6px;" id="profilePlanStat">
+                                <div style="font-size:13px;font-weight:800;color:#fbbf24;line-height:1;">PRO</div>
+                                <div style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.4px;margin-top:4px;">Plan</div>
+                            </div>
                         </div>
-                        <div id="fbMembershipInfo"></div>
+
+                        <!-- Ayraç -->
+                        <div style="height:1px;background:rgba(255,255,255,0.05);margin:0 20px;"></div>
+
+                        <!-- ── BÖLÜM 3: Üyelik Durumu (inline) ── -->
+                        <div style="padding:16px 20px;" id="fbMembershipInfo"></div>
+
+                        <!-- Gizli ghost elementler -->
+                        <div id="loggedInProBadge" style="display:none;"></div>
+                        <div id="loggedInConnectionBadge" style="display:none;"><div id="connectionDot"></div><span id="connectionLabel"></span></div>
                     </div>
 
                     <!-- Bulut Yedekleme – Unified Kart -->
@@ -14728,7 +14726,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.8"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -17674,8 +17672,8 @@ async function loadNews(query) {
     }
 }
 
-    function toggleTradeMenu() { const content = document.getElementById('tradeContent'); const chevron = document.getElementById('tradeChevron'); const card = document.getElementById('tradeCard'); if (content.classList.contains('collapsed')) { content.classList.remove('collapsed'); chevron.classList.add('rotated'); card.classList.add('open'); } else { content.classList.add('collapsed'); chevron.classList.remove('rotated'); card.classList.remove('open'); } }
-    function toggleAssetDetails(id) { const content = document.getElementById('asset-content-' + id); const chevron = document.getElementById('asset-chevron-' + id); if (content.classList.contains('collapsed')) { content.classList.remove('collapsed'); chevron.classList.add('rotated'); } else { content.classList.add('collapsed'); chevron.classList.remove('rotated'); } }
+    function toggleTradeMenu() { const content = document.getElementById('tradeContent'); const chevron = document.getElementById('tradeChevron'); const card = document.getElementById('tradeCard'); const isCollapsed = content.classList.contains('collapsed'); content.classList.toggle('collapsed', !isCollapsed); chevron.classList.toggle('rotated', isCollapsed); card.classList.toggle('open', isCollapsed); }
+    function toggleAssetDetails(id) { const content = document.getElementById('asset-content-' + id); const chevron = document.getElementById('asset-chevron-' + id); const isCollapsed = content.classList.contains('collapsed'); content.classList.toggle('collapsed', !isCollapsed); chevron.classList.toggle('rotated', isCollapsed); }
 /* --- YENİ GELİŞMİŞ BİLDİRİM SİSTEMİ (DÜZELTİLMİŞ & TELEFON UYUMLU) --- */
 function addNotification(type, title, msg) {
     // 1. GİZLİ MOD KONTROLÜ
@@ -21591,6 +21589,35 @@ function renderListSafe(logs) {
     let html = "";
     let sym = getCurrencySymbol();
 
+    // En iyi / en kötü gün hesapla
+    let bestDiff = -Infinity, worstDiff = Infinity;
+    for (let i = 1; i < logs.length; i++) {
+        let d = logs[i].val - logs[i-1].val;
+        if (d > bestDiff)  bestDiff  = d;
+        if (d < worstDiff) worstDiff = d;
+    }
+
+    // logBestDay / logWorstDay elementlerini güncelle
+    const bestEl  = document.getElementById('logBestDay');
+    const worstEl = document.getElementById('logWorstDay');
+    const countEl = document.getElementById('logEntryCount');
+
+    if (bestEl) {
+        if (bestDiff > -Infinity) {
+            const sign = bestDiff > 0 ? '+' : '';
+            bestEl.textContent = sign + sym + bestDiff.toLocaleString(undefined, {maximumFractionDigits:0});
+            bestEl.style.color  = bestDiff >= 0 ? '#6ee7b7' : '#fca5a5';
+        } else { bestEl.textContent = '-'; }
+    }
+    if (worstEl) {
+        if (worstDiff < Infinity) {
+            const sign = worstDiff > 0 ? '+' : '';
+            worstEl.textContent = sign + sym + worstDiff.toLocaleString(undefined, {maximumFractionDigits:0});
+            worstEl.style.color  = worstDiff >= 0 ? '#6ee7b7' : '#fca5a5';
+        } else { worstEl.textContent = '-'; }
+    }
+    if (countEl) countEl.textContent = logs.length + ' kayıt';
+
     for (let i = logs.length - 1; i >= 0; i--) {
         let curr = logs[i];
         let prev = (i > 0) ? logs[i-1] : null;
@@ -22740,10 +22767,10 @@ function renderDailyList(logs) {
     const logCountEl = document.getElementById('logEntryCount');
     
     if (bestDayEl) {
-        if (bestDay.diff > -Infinity && bestDay.diff > 0) {
-            bestDayEl.textContent = '+' + sym + bestDay.diff.toLocaleString(undefined, {maximumFractionDigits:0});
-        } else if (bestDay.diff > -Infinity) {
-            bestDayEl.textContent = sym + bestDay.diff.toLocaleString(undefined, {maximumFractionDigits:0});
+        if (bestDay.diff > -Infinity) {
+            const sign = bestDay.diff > 0 ? '+' : '';
+            bestDayEl.textContent = sign + sym + bestDay.diff.toLocaleString(undefined, {maximumFractionDigits:0});
+            bestDayEl.style.color = bestDay.diff >= 0 ? '#6ee7b7' : '#fca5a5';
         } else {
             bestDayEl.textContent = '-';
         }
@@ -22751,7 +22778,9 @@ function renderDailyList(logs) {
     
     if (worstDayEl) {
         if (worstDay.diff < Infinity) {
-            worstDayEl.textContent = sym + worstDay.diff.toLocaleString(undefined, {maximumFractionDigits:0});
+            const sign = worstDay.diff > 0 ? '+' : '';
+            worstDayEl.textContent = sign + sym + worstDay.diff.toLocaleString(undefined, {maximumFractionDigits:0});
+            worstDayEl.style.color = worstDay.diff >= 0 ? '#6ee7b7' : '#fca5a5';
         } else {
             worstDayEl.textContent = '-';
         }
@@ -24104,11 +24133,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 2. Analiz Verilerini Tazeleme Motoru
     function refreshAnalysisData() {
-        const visionTab = document.getElementById('an-view-vision');
-        if (visionTab && visionTab.style.display !== 'none') {
-            if(typeof window.loadVisionData === 'function') window.loadVisionData();
-            if(typeof window.renderDailyChart === 'function') window.renderDailyChart();
-            if(typeof window.updateGoalVisuals === 'function') window.updateGoalVisuals();
+        if(typeof window.renderDailyChart === 'function') window.renderDailyChart();
+        if(typeof window.updateGoalVisuals === 'function') window.updateGoalVisuals();
+        if(typeof window.loadVisionData === 'function') {
+            const visionTab = document.getElementById('an-view-vision');
+            if (visionTab && visionTab.style.display !== 'none') window.loadVisionData();
         }
     }
 
@@ -24307,6 +24336,10 @@ window.switchAnTab = function(tab, btn) {
     // Veri yükleyiciler
     if(tab === 'vision' && typeof loadVisionData === 'function') loadVisionData();
     if(tab === 'lab' && typeof populateRiskAssets === 'function') populateRiskAssets();
+    if(tab === 'perf') {
+        if(typeof updateGoalVisuals === 'function') setTimeout(updateGoalVisuals, 30);
+        if(typeof renderDailyChart === 'function') setTimeout(renderDailyChart, 30);
+    }
 };
 
 /* 3. ÇIKIŞ FONKSİYONLARI */
@@ -28461,20 +28494,45 @@ function _renderAccountUI(user) {
             profileOnlineDot.style.display = 'block';
         }
         
-        // Bağlantı durumu - Yeşil
+        // ═══ DİNAMİK BAĞLANTI DURUMU ═══
+        function _updateConnectionBadge(isOnline) {
+            const dot = document.getElementById('connectionDot');
+            const label = document.getElementById('connectionLabel');
+            const badge = document.getElementById('loggedInConnectionBadge');
+            if (!dot || !label || !badge) return;
+            if (isOnline) {
+                dot.style.background = '#10b981';
+                dot.style.boxShadow = '0 0 7px rgba(16,185,129,0.8)';
+                label.textContent = 'Bağlı';
+                label.style.color = '#10b981';
+                badge.style.background = 'rgba(16,185,129,0.08)';
+                badge.style.borderColor = 'rgba(16,185,129,0.18)';
+            } else {
+                dot.style.background = '#ef4444';
+                dot.style.boxShadow = '0 0 7px rgba(239,68,68,0.8)';
+                label.textContent = 'Bağlı Değil';
+                label.style.color = '#ef4444';
+                badge.style.background = 'rgba(239,68,68,0.08)';
+                badge.style.borderColor = 'rgba(239,68,68,0.18)';
+            }
+        }
+        // İlk durum: online/offline event'leri dinle
+        _updateConnectionBadge(navigator.onLine);
+        window.addEventListener('online',  () => _updateConnectionBadge(true));
+        window.addEventListener('offline', () => _updateConnectionBadge(false));
+        // Firebase Firestore bağlantısını da dinle
+        if (typeof fbDb !== 'undefined') {
+            fbDb.collection('.info').doc('connected').onSnapshot(() => {
+                _updateConnectionBadge(navigator.onLine);
+            }, () => {
+                _updateConnectionBadge(false);
+            });
+        }
+        
+        // Eski ghost elementler (gizli, artık kullanılmıyor)
         const profileConnectionStatus = document.getElementById('profileConnectionStatus');
         const profileConnectionText = document.getElementById('profileConnectionText');
-        if (profileConnectionStatus) {
-            profileConnectionStatus.style.background = 'rgba(16,185,129,0.1)';
-            profileConnectionStatus.style.borderColor = 'rgba(16,185,129,0.2)';
-            profileConnectionStatus.style.color = '#10b981';
-            // Dot rengini güncelle
-            const dot = profileConnectionStatus.querySelector('div');
-            if (dot) dot.style.background = '#10b981';
-        }
-        if (profileConnectionText) {
-            profileConnectionText.textContent = 'Bağlı';
-        }
+        if (profileConnectionText) profileConnectionText.textContent = 'Bağlı';
         
         // PRO badge (profil sayfası)
         const profileProBadge = document.getElementById('profileProBadge');
@@ -28581,6 +28639,16 @@ function updateMembershipUI() {
     const endDate = localStorage.getItem('proEndDate');
     const startDate = localStorage.getItem('proStartDate');
     const isCancelled = localStorage.getItem('proCancelled') === 'true';
+
+    // Plan stat güncelle
+    const planStat = document.getElementById('profilePlanStat');
+    if (planStat) {
+        if (isPro) {
+            planStat.innerHTML = `<div style="font-size:13px;font-weight:800;color:#fbbf24;line-height:1;">PRO</div><div style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.4px;margin-top:4px;">Plan</div>`;
+        } else {
+            planStat.innerHTML = `<div style="font-size:13px;font-weight:800;color:rgba(255,255,255,0.4);line-height:1;">FREE</div><div style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.4px;margin-top:4px;">Plan</div>`;
+        }
+    }
     
     if (isPro && endDate) {
         const d = new Date(endDate);
@@ -28592,74 +28660,59 @@ function updateMembershipUI() {
         
         const statusColor = isCancelled ? '#ef4444' : '#10b981';
         const statusLabel = isCancelled ? 'İptal Edildi' : 'Aktif';
-        const statusIcon = isCancelled ? 'fa-times-circle' : 'fa-check-circle';
         const barColor = isCancelled 
             ? 'linear-gradient(90deg, #ef4444, #f87171)' 
             : (remaining <= 5 ? 'linear-gradient(90deg, #f59e0b, #fbbf24)' : 'linear-gradient(90deg, #10b981, #34d399)');
         
         infoEl.innerHTML = `
-            <div style="position:relative; overflow:hidden;">
-                <!-- Status row -->
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <div style="width:34px; height:34px; border-radius:10px; background:linear-gradient(135deg, #fbbf24, #f59e0b); display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(251,191,36,0.3);">
-                            <i class="fas fa-crown" style="font-size:14px; color:#000;"></i>
-                        </div>
-                        <div>
-                            <div style="font-size:13px; font-weight:800; color:#fff; letter-spacing:0.3px;">PRO ÜYELİK</div>
-                            <div style="font-size:10px; color:rgba(255,255,255,0.4); margin-top:1px;">Tüm özellikler açık</div>
-                        </div>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px; background:${isCancelled ? 'rgba(239,68,68,0.12)' : 'rgba(16,185,129,0.12)'}; border:1px solid ${isCancelled ? 'rgba(239,68,68,0.25)' : 'rgba(16,185,129,0.25)'};">
-                        <div style="width:5px; height:5px; border-radius:50%; background:${statusColor}; ${!isCancelled ? 'box-shadow:0 0 6px '+statusColor+';' : ''}"></div>
-                        <span style="font-size:10px; font-weight:700; color:${statusColor};">${statusLabel}</span>
-                    </div>
-                </div>
-                
-                <!-- Days remaining big display -->
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;">
-                    <div style="padding:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); border-radius:12px; text-align:center;">
-                        <div style="font-size:26px; font-weight:900; color:${remaining <= 5 ? '#f59e0b' : '#fff'}; line-height:1;">${remaining}</div>
-                        <div style="font-size:9px; font-weight:600; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.5px; margin-top:3px;">Gün Kaldı</div>
-                    </div>
-                    <div style="padding:12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); border-radius:12px; text-align:center;">
-                        <div style="font-size:13px; font-weight:700; color:#fff; line-height:1.3;">${d.toLocaleDateString('tr-TR', {day:'2-digit', month:'short', year:'numeric'})}</div>
-                        <div style="font-size:9px; font-weight:600; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.5px; margin-top:3px;">Bitiş Tarihi</div>
-                    </div>
-                </div>
-                
-                <!-- Progress bar -->
-                <div style="margin-bottom:${isCancelled ? '10px' : '0'};">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-                        <span style="font-size:9px; color:rgba(255,255,255,0.35); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Kullanım</span>
-                        <span style="font-size:9px; color:rgba(255,255,255,0.35); font-weight:600;">${usedDays}/${totalDays} gün</span>
-                    </div>
-                    <div style="height:6px; background:rgba(255,255,255,0.06); border-radius:99px; overflow:hidden;">
-                        <div style="height:100%; width:${progressPct}%; background:${barColor}; border-radius:99px; transition:width 0.8s ease;"></div>
-                    </div>
-                </div>
-                
-                ${isCancelled ? `
-                <div style="margin-top:10px; padding:9px 12px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.18); border-radius:10px; display:flex; align-items:center; gap:8px;">
-                    <i class="fas fa-info-circle" style="font-size:11px; color:#ef4444; flex-shrink:0;"></i>
-                    <span style="font-size:10px; color:rgba(239,68,68,0.85); line-height:1.4;">Süre bitene kadar PRO özelliklerinden yararlanabilirsiniz.</span>
-                </div>` : ''}
-            </div>`;
-    } else {
-        // FREE üye - sadece durum göster
-        infoEl.innerHTML = `
-            <div style="display:flex; align-items:center; justify-content:space-between;">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <div style="width:34px; height:34px; border-radius:10px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center;">
-                        <i class="fas fa-user" style="font-size:13px; color:rgba(255,255,255,0.4);"></i>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                <div style="display:flex;align-items:center;gap:9px;">
+                    <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#fbbf24,#f59e0b);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(251,191,36,0.3);">
+                        <i class="fas fa-crown" style="font-size:13px;color:#000;"></i>
                     </div>
                     <div>
-                        <div style="font-size:13px; font-weight:700; color:rgba(255,255,255,0.7);">FREE PLAN</div>
-                        <div style="font-size:10px; color:rgba(255,255,255,0.3); margin-top:1px;">Kısıtlı erişim</div>
+                        <div style="font-size:12px;font-weight:800;color:#fff;letter-spacing:0.3px;">PRO ÜYELİK</div>
+                        <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:1px;">Tüm özellikler açık</div>
                     </div>
                 </div>
-                <div style="padding:4px 10px; border-radius:20px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08);">
-                    <span style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.4);">STANDART</span>
+                <div style="display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:${isCancelled ? 'rgba(239,68,68,0.12)' : 'rgba(16,185,129,0.12)'};border:1px solid ${isCancelled ? 'rgba(239,68,68,0.25)' : 'rgba(16,185,129,0.25)'};">
+                    <div style="width:5px;height:5px;border-radius:50%;background:${statusColor};${!isCancelled ? 'box-shadow:0 0 5px '+statusColor+';' : ''}"></div>
+                    <span style="font-size:10px;font-weight:700;color:${statusColor};">${statusLabel}</span>
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+                <div style="padding:11px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:12px;text-align:center;">
+                    <div style="font-size:24px;font-weight:900;color:${remaining <= 5 ? '#f59e0b' : '#fff'};line-height:1;">${remaining}</div>
+                    <div style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.5px;margin-top:3px;">Gün Kaldı</div>
+                </div>
+                <div style="padding:11px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:12px;text-align:center;">
+                    <div style="font-size:12px;font-weight:700;color:#fff;line-height:1.3;">${d.toLocaleDateString('tr-TR', {day:'2-digit', month:'short', year:'numeric'})}</div>
+                    <div style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.5px;margin-top:3px;">Bitiş Tarihi</div>
+                </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                <span style="font-size:9px;color:rgba(255,255,255,0.3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Kullanım</span>
+                <span style="font-size:9px;color:rgba(255,255,255,0.3);font-weight:600;">${usedDays}/${totalDays} gün</span>
+            </div>
+            <div style="height:5px;background:rgba(255,255,255,0.06);border-radius:99px;overflow:hidden;">
+                <div style="height:100%;width:${progressPct}%;background:${barColor};border-radius:99px;transition:width 0.8s ease;"></div>
+            </div>
+            ${isCancelled ? `<div style="margin-top:10px;padding:9px 12px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.18);border-radius:10px;display:flex;align-items:center;gap:8px;"><i class="fas fa-info-circle" style="font-size:11px;color:#ef4444;flex-shrink:0;"></i><span style="font-size:10px;color:rgba(239,68,68,0.85);line-height:1.4;">Süre bitene kadar PRO özelliklerinden yararlanabilirsiniz.</span></div>` : ''}`;
+    } else {
+        if (planStat) planStat.innerHTML = `<div style="font-size:13px;font-weight:800;color:rgba(255,255,255,0.4);line-height:1;">FREE</div><div style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.4px;margin-top:4px;">Plan</div>`;
+        infoEl.innerHTML = `
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;">
+                        <i class="fas fa-user" style="font-size:13px;color:rgba(255,255,255,0.4);"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.6);">FREE PLAN</div>
+                        <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:1px;">Kısıtlı erişim</div>
+                    </div>
+                </div>
+                <div style="padding:4px 10px;border-radius:20px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);">
+                    <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.35);">STANDART</span>
                 </div>
             </div>`;
     }
