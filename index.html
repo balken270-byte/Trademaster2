@@ -120,16 +120,20 @@ body {
 
 /* ===== iOS & Android PWA LAYOUT - TAM DÜZELTME ===== */
 
-/* 1) HTML root */
+/* 1) HTML root - iOS PWA alt boşluk için kanıtlanmış fix */
 html {
     background-color: #0b0f19;
     overflow: hidden;
     height: 100%;
-    height: 100dvh;
+    /* KRITIK FIX: viewport-fit=cover ile içerik yukarı kayınca altta boşluk oluşur.
+       min-height + safe-area-inset-top ile bu boşluk kapatılır */
+    min-height: calc(100% + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+    box-sizing: border-box;
     overscroll-behavior: none;
 }
 
-/* 2) Body: tüm ekranı kapla - dvh ile iOS boşluk sorunu çözülür */
+/* 2) Body */
 body {
     height: 100%;
     height: 100dvh;
@@ -137,13 +141,14 @@ body {
     overflow: hidden;
     overscroll-behavior: none;
     -webkit-overflow-scrolling: auto;
-    /* CSS değişkeni ile JS'den güncellenir */
-    --real-vh: 100dvh;
+    background-color: #0b0f19;
 }
 
-/* iOS PWA özel: tam ekran kaplama */
-html.ios-pwa body,
+/* iOS PWA özel */
 html.ios-pwa {
+    min-height: calc(100% + env(safe-area-inset-top)) !important;
+}
+html.ios-pwa body {
     height: 100dvh !important;
     max-height: 100dvh !important;
 }
@@ -15391,7 +15396,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.4"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
