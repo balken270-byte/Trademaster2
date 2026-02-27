@@ -752,6 +752,11 @@ html.ios-pwa body {
         .sort-chip i { display: none; }
         .sort-chip.active { color: var(--accent); border-bottom: 2px solid var(--accent); padding-bottom: 2px; }
         .sort-chip:active { opacity: 0.7; }
+        .sort-chip-cat { font-size: 11px; flex: none; padding: 3px 10px; border-radius: 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08) !important; margin-left: 4px; }
+        .sort-chip-cat.active.cat-kripto { background: rgba(99,102,241,0.15); border-color: rgba(99,102,241,0.4) !important; color: #818cf8; border-bottom: none !important; padding-bottom: 3px; }
+        .sort-chip-cat.active.cat-borsa { background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.4) !important; color: #60a5fa; border-bottom: none !important; padding-bottom: 3px; }
+        .cat-group-header { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.3); padding: 14px 4px 6px; display: flex; align-items: center; gap: 8px; }
+        .cat-group-header::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.06); }
 
         /* --- PİYASA LİSTESİ --- */
         .market-list-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; max-height: 250px; overflow-y: auto; }
@@ -3144,6 +3149,9 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     border: 1px solid rgba(255,255,255,0.05);
 }
+/* PSİKOLOJİ tab - altın sarısı */
+.s-tab.seg-style.psycho-tab { color: #f59e0b; }
+.s-tab.seg-style.psycho-tab.active { color: #f59e0b !important; border-color: rgba(245,158,11,0.3); box-shadow: 0 2px 10px rgba(245,158,11,0.15); }
 
 
 
@@ -6715,11 +6723,9 @@ input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
 
     <div class="settings-tabs segmented" style="margin-bottom: 20px;">
         <div class="s-tab seg-style active" onclick="switchAnTab('perf', this)">PERFORMANS</div>
-        
-        <div class="s-tab seg-style" onclick="switchAnTab('vision', this)">HEDEFLERİM</div>
-        <div class="s-tab seg-style" onclick="switchAnTab('psycho', this)">PSİKOLOJİ</div>
-
         <div class="s-tab seg-style" onclick="switchAnTab('lab', this)">AR-GE</div>
+        <div class="s-tab seg-style" onclick="switchAnTab('vision', this)">HEDEFLERİM</div>
+        <div class="s-tab seg-style psycho-tab" onclick="switchAnTab('psycho', this)">PSİKOLOJİ</div>
     </div>
 
     
@@ -11658,7 +11664,7 @@ function openLabFullscreen() {
                 <i class="fa-solid fa-fire"></i> FOMO
             </button>
             <button class="p-tab-btn" onclick="switchPsychoTab('tab-coach')">
-                <i class="fa-solid fa-robot"></i> AI Koç
+                <i class="fa-solid fa-dna"></i> AI Koç
             </button>
         </div>
 
@@ -12694,19 +12700,20 @@ function openLabFullscreen() {
             box-shadow: 0 0 14px rgba(255,214,10,0.12);
         }
 
-        /* ---- LEDGER CARDS - BORDERLESS LIST ---- */
+        /* ---- LEDGER CARDS - PREMIUM REDESIGN ---- */
         #page-settings #set-history #historyListFull {
-            border-radius: 16px;
+            border-radius: 18px;
             overflow: hidden;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
         #page-settings #set-history .ledger-card {
             background: transparent !important;
             border-radius: 0 !important;
             border: none !important;
-            border-bottom: 1px solid rgba(255,255,255,0.05) !important;
-            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+            padding: 13px 16px;
             margin-bottom: 0 !important;
             display: flex;
             align-items: center;
@@ -12727,23 +12734,32 @@ function openLabFullscreen() {
 
         /* Icon dot indicator */
         #page-settings #set-history .lc-icon {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 13px;
             flex-shrink: 0;
             margin-right: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
         #page-settings #set-history .l-type-in .lc-icon {
-            background: rgba(48,209,88,0.1);
+            background: linear-gradient(135deg, rgba(48,209,88,0.18), rgba(48,209,88,0.08));
             color: #30D158;
+            border: 1px solid rgba(48,209,88,0.2);
         }
         #page-settings #set-history .l-type-out .lc-icon {
-            background: rgba(255,69,58,0.1);
+            background: linear-gradient(135deg, rgba(255,69,58,0.18), rgba(255,69,58,0.08));
             color: #FF453A;
+            border: 1px solid rgba(255,69,58,0.2);
+        }
+        #page-settings #set-history .l-type-salary .lc-icon,
+        #page-settings #set-history .l-type-kasa .lc-icon {
+            background: linear-gradient(135deg, rgba(59,130,246,0.18), rgba(59,130,246,0.08));
+            color: #60a5fa;
+            border: 1px solid rgba(59,130,246,0.2);
         }
 
         /* Title & date */
@@ -12759,29 +12775,43 @@ function openLabFullscreen() {
             min-width: 0;
         }
         #page-settings #set-history .lc-title {
+            font-family: 'Syne', 'Inter', sans-serif;
             font-size: 14px;
-            font-weight: 600;
-            color: rgba(255,255,255,0.88);
+            font-weight: 700;
+            color: rgba(255,255,255,0.92);
             display: block;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            letter-spacing: -0.2px;
         }
         #page-settings #set-history .lc-date {
             font-family: 'DM Mono', monospace;
             font-size: 10px;
-            color: rgba(255,255,255,0.25);
-            letter-spacing: 0.3px;
+            color: rgba(255,255,255,0.22);
+            letter-spacing: 0.8px;
             text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        #page-settings #set-history .lc-date::before {
+            content: '';
+            display: inline-block;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: currentColor;
+            opacity: 0.5;
         }
 
         /* Amount */
         #page-settings #set-history .lc-amount {
             font-family: 'DM Mono', monospace;
-            font-size: 13px;
-            font-weight: 500;
-            letter-spacing: -0.3px;
+            font-size: 13.5px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
             white-space: nowrap;
         }
         #page-settings #set-history .lc-right {
@@ -12794,11 +12824,81 @@ function openLabFullscreen() {
 
         /* Trash icon */
         #page-settings #set-history .lc-right button {
-            opacity: 0.18;
+            opacity: 0.14;
             transition: opacity 0.15s;
             padding: 4px;
         }
         #page-settings #set-history .lc-right button:hover { opacity: 0.6; }
+
+        /* ===== CUSTOM SELECT DROPDOWN ===== */
+        .custom-select-wrapper {
+            position: relative;
+        }
+        .custom-select-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 14px;
+            background: linear-gradient(145deg, #141e30, #0e1624);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            color: #e2e8f0;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.18s;
+            min-width: 110px;
+            justify-content: space-between;
+            box-shadow: 3px 3px 8px rgba(0,0,0,0.5), -1px -1px 4px rgba(255,255,255,0.03);
+            white-space: nowrap;
+        }
+        .custom-select-btn:active { transform: scale(0.97); }
+        .custom-select-btn.open {
+            border-color: rgba(99,102,241,0.4);
+            box-shadow: 0 0 0 2px rgba(99,102,241,0.15), 3px 3px 8px rgba(0,0,0,0.5);
+        }
+        .cs-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%; flex-shrink: 0; display: inline-block;
+        }
+        .cs-label { flex: 1; text-align: left; }
+        .cs-arrow {
+            font-size: 10px; color: rgba(255,255,255,0.35);
+            transition: transform 0.2s ease; flex-shrink: 0;
+        }
+        .cs-arrow.rotated { transform: rotate(180deg); }
+
+        /* Dropdown artık FIXED - body'e portal olarak ekleniyor */
+        .custom-select-dropdown {
+            display: none;
+            position: fixed;
+            min-width: 160px;
+            background: linear-gradient(160deg, #1c2540 0%, #0f1624 100%);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05);
+            z-index: 999999;
+        }
+        .custom-select-dropdown.open {
+            display: block;
+            animation: dropdownFadeIn 0.2s cubic-bezier(0.34,1.2,0.64,1);
+        }
+        @keyframes dropdownFadeIn {
+            from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .cs-option {
+            display: flex; align-items: center; gap: 10px;
+            padding: 13px 16px; font-size: 13.5px; font-weight: 500;
+            color: rgba(255,255,255,0.75); cursor: pointer;
+            transition: background 0.12s;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .cs-option:last-child { border-bottom: none; }
+        .cs-option:hover { background: rgba(255,255,255,0.07); color: #fff; }
+        .cs-option.selected { background: rgba(99,102,241,0.14); color: #a5b4fc; }
 
         /* ---- TRASH BUTTON ---- */
         #page-settings #set-history .ps-btn-trash {
@@ -13578,25 +13678,70 @@ function openLabFullscreen() {
                     <div class="ps-card-label lbl-sm">Tercihler</div>
                     <div class="ps-setting-row setting-item">
                         <span class="ps-setting-title">Para Birimi</span>
-                        <select id="currSelect" class="ps-select setting-select" style="width:auto;" onchange="changeBaseCurrency(this.value)">
-                            <option value="TRY">TRY (₺)</option>
-                            <option value="USD">USD ($)</option>
-                        </select>
+                    <div class="custom-select-wrapper" id="currSelectWrapper">
+                        <button type="button" class="custom-select-btn" id="currSelectBtn" onclick="toggleCustomSelect('curr')">
+                            <span class="cs-label" id="currSelectLabel">TRY (₺)</span>
+                            <i class="fas fa-chevron-down cs-arrow" id="currSelectArrow"></i>
+                        </button>
+                        <div class="custom-select-dropdown" id="currSelectDropdown">
+                            <div class="cs-option" onclick="selectCurrOption('TRY','TRY (₺)')">TRY (₺)</div>
+                            <div class="cs-option" onclick="selectCurrOption('USD','USD ($)')">USD ($)</div>
+                        </div>
+                    </div>
+                    <select id="currSelect" class="ps-select setting-select" style="display:none;" onchange="changeBaseCurrency(this.value)">
+                        <option value="TRY">TRY (₺)</option>
+                        <option value="USD">USD ($)</option>
+                    </select>
                     </div>
                     <div class="ps-setting-row setting-item">
                         <span class="ps-setting-title">Dil</span>
-                        <select id="langSelect" class="ps-select setting-select" style="width:auto;" onchange="changeLanguage(this.value)">
-                            <option value="tr">Türkçe</option>
-                            <option value="en">English</option>
-                        </select>
+                    <div class="custom-select-wrapper" id="langSelectWrapper">
+                        <button type="button" class="custom-select-btn" id="langSelectBtn" onclick="toggleCustomSelect('lang')">
+                            <span class="cs-label" id="langSelectLabel">Türkçe</span>
+                            <i class="fas fa-chevron-down cs-arrow" id="langSelectArrow"></i>
+                        </button>
+                        <div class="custom-select-dropdown" id="langSelectDropdown">
+                            <div class="cs-option" onclick="selectLangOption('tr','Türkçe')">Türkçe</div>
+                            <div class="cs-option" onclick="selectLangOption('en','English')">English</div>
+                        </div>
+                    </div>
+                    <select id="langSelect" class="ps-select setting-select" style="display:none;" onchange="changeLanguage(this.value)">
+                        <option value="tr">Türkçe</option>
+                        <option value="en">English</option>
+                    </select>
                     </div>
                     <div class="ps-setting-row setting-item">
     <span class="ps-setting-title">Tema</span>
-    <select id="themeSelect" class="ps-select setting-select" style="width:auto;" onchange="changeTheme(this.value)">
-        <option value="ocean">🎨 Orijinal (TradeVia)</option>
-        <option value="cyber"> Siber (Neon Mor)</option>
-        <option value="oled"> Zifiri (OLED Siyah)</option>
-        <option value="luxury"> Lüks (Altın)</option>
+    <div class="custom-select-wrapper" id="themeSelectWrapper">
+        <button type="button" class="custom-select-btn" id="themeSelectBtn" onclick="toggleCustomSelect('theme')">
+            <span class="cs-dot" id="themeSelectDot"></span>
+            <span class="cs-label" id="themeSelectLabel">Mavi</span>
+            <i class="fas fa-chevron-down cs-arrow" id="themeSelectArrow"></i>
+        </button>
+        <div class="custom-select-dropdown" id="themeSelectDropdown">
+            <div class="cs-option" onclick="selectThemeOption('ocean','Mavi','#3b82f6')">
+                <span class="cs-dot" style="background:#3b82f6"></span> Mavi
+            </div>
+            <div class="cs-option" onclick="selectThemeOption('cyber','Mor','#d946ef')">
+                <span class="cs-dot" style="background:#d946ef"></span> Mor
+            </div>
+            <div class="cs-option" onclick="selectThemeOption('oled','Siyah','#ffffff')">
+                <span class="cs-dot" style="background:#1a1a1a;border:1px solid #555"></span> Siyah
+            </div>
+            <div class="cs-option" onclick="selectThemeOption('luxury','Sarı','#f59e0b')">
+                <span class="cs-dot" style="background:#f59e0b"></span> Sarı
+            </div>
+            <div class="cs-option" onclick="selectThemeOption('purple','Mor (Derin)','#8b5cf6')">
+                <span class="cs-dot" style="background:#8b5cf6"></span> Mor (Derin)
+            </div>
+        </div>
+    </div>
+    <select id="themeSelect" class="ps-select setting-select" style="display:none;" onchange="changeTheme(this.value)">
+        <option value="ocean">Mavi</option>
+        <option value="cyber">Mor</option>
+        <option value="oled">Siyah</option>
+        <option value="luxury">Sarı</option>
+        <option value="purple">Mor (Derin)</option>
     </select>
 </div>
 
@@ -13606,7 +13751,19 @@ function openLabFullscreen() {
         <span class="ps-setting-title">Açılış Sayfası</span>
         <span class="ps-setting-desc"> </span>
     </div>
-    <select id="startPageSelect" class="ps-select setting-select" style="width:auto;" onchange="changeStartPage(this.value)">
+    <div class="custom-select-wrapper" id="startPageSelectWrapper">
+        <button type="button" class="custom-select-btn" id="startPageSelectBtn" onclick="toggleCustomSelect('startPage')">
+            <span class="cs-label" id="startPageSelectLabel">Cüzdan</span>
+            <i class="fas fa-chevron-down cs-arrow" id="startPageSelectArrow"></i>
+        </button>
+        <div class="custom-select-dropdown" id="startPageSelectDropdown">
+            <div class="cs-option" onclick="selectStartPageOption('portfolio','Cüzdan')">Cüzdan</div>
+            <div class="cs-option" onclick="selectStartPageOption('market','Piyasa')">Piyasa</div>
+            <div class="cs-option" onclick="selectStartPageOption('analysis','Analiz')">Analiz</div>
+            <div class="cs-option" onclick="selectStartPageOption('news','Haberler')">Haberler</div>
+        </div>
+    </div>
+    <select id="startPageSelect" class="ps-select setting-select" style="display:none;" onchange="changeStartPage(this.value)">
         <option value="portfolio">Cüzdan</option>
         <option value="market">Piyasa</option>
         <option value="analysis">Analiz</option>
@@ -15396,7 +15553,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.0"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -15499,7 +15656,28 @@ function initApp(){
     document.getElementById('themeSelect').value = appSettings.theme || 'ocean';
     
     // Açılış Sayfası Ayarını Yükle
-    document.getElementById('startPageSelect').value = appSettings.startPage || 'market'; 
+    document.getElementById('startPageSelect').value = appSettings.startPage || 'market';
+    
+    // Custom Select UI'larını başlat
+    var themeLabels = {ocean:'Mavi', cyber:'Mor', oled:'Siyah', luxury:'Sarı', purple:'Mor (Derin)'};
+    var themeColors = {ocean:'#3b82f6', cyber:'#d946ef', oled:'#ffffff', luxury:'#f59e0b', purple:'#8b5cf6'};
+    var currT = appSettings.theme || 'ocean';
+    var csLabel = document.getElementById('themeSelectLabel');
+    var csDot = document.getElementById('themeSelectDot');
+    if(csLabel) csLabel.textContent = themeLabels[currT] || 'Mavi';
+    if(csDot) { csDot.style.background = themeColors[currT] || '#3b82f6'; if(currT==='oled') csDot.style.border='1px solid #555'; }
+    
+    var currLabels = {TRY:'TRY (₺)', USD:'USD ($)'};
+    var clEl = document.getElementById('currSelectLabel');
+    if(clEl) clEl.textContent = currLabels[appSettings.currency] || 'TRY (₺)';
+    
+    var langLabels = {tr:'Türkçe', en:'English'};
+    var llEl = document.getElementById('langSelectLabel');
+    if(llEl) llEl.textContent = langLabels[appSettings.lang] || 'Türkçe';
+    
+    var spLabels = {portfolio:'Cüzdan', market:'Piyasa', analysis:'Analiz', news:'Haberler'};
+    var splEl = document.getElementById('startPageSelectLabel');
+    if(splEl) splEl.textContent = spLabels[appSettings.startPage || 'market'] || 'Piyasa';
 
     document.getElementById('polyKey').value = polyApiKey;
     
@@ -15513,8 +15691,23 @@ function initApp(){
     
     if(typeof checkPolyInit === 'function') checkPolyInit();
     
-    // 3. Portföyü Çizdir (Önbellekten)
-    renderPortfolioHTML(JSON.parse(localStorage.getItem('myPF_final')) || []);
+    // 3. Portföyü Çizdir (Önbellekten - migration ile birlikte)
+    (function() {
+        let _as = JSON.parse(localStorage.getItem('myPF_final')) || [];
+        let _usStocks = ['AAPL','TSLA','AMZN','MSFT','GOOGL','META','NVDA','AMD','NFLX','COIN','GME','INTC','PLTR','MSTR','HOOD','BABA','GOOG'];
+        let _changed = false;
+        _as.forEach(function(a) {
+            if(!a.category) {
+                let src = (a.source || '').toUpperCase();
+                if(src.includes('BINANCE')||src.includes('CG')||src.includes('GECKO')||src.includes('COINGECKO')) a.category = 'kripto';
+                else if(src.includes('MASSIVE')||src.includes('YAHOO')||src.includes('BIST')) a.category = 'borsa';
+                else a.category = 'manuel';
+                _changed = true;
+            }
+        });
+        if(_changed) localStorage.setItem('myPF_final', JSON.stringify(_as));
+        renderPortfolioHTML(_as);
+    })();
 
     // 4. İnternetten Veri Çek ve Güncelle
     fetchUsdRate().then(async ()=>{ 
@@ -15705,7 +15898,12 @@ function resetPageToInitialState(pageId) {
             document.querySelectorAll('.settings-dropdown, .settings-panel').forEach(p => {
                 p.style.display = 'none';
             });
-            // Ayarlar sayfasındaki tüm detay sayfalarını kapat
+            // Detay sayfasını gizle, ana menüyü göster
+            let settingsDetail = document.getElementById('settings-detail');
+            if(settingsDetail) settingsDetail.style.display = 'none';
+            let settingsHome = document.getElementById('settings-home');
+            if(settingsHome) { settingsHome.style.display = 'block'; settingsHome.style.animation = 'fadeIn 0.3s forwards'; }
+            // Eski ID'ye de bak (uyumluluk)
             let psPages = document.querySelectorAll('[id^="ps-page-"]');
             psPages.forEach(p => { if(p) p.style.display = 'none'; });
             let psMain = document.getElementById('ps-main-menu');
@@ -15713,7 +15911,7 @@ function resetPageToInitialState(pageId) {
             // Scroll en üste
             let settingsContainer = document.querySelector('#page-settings .ps-container');
             if(settingsContainer) settingsContainer.scrollTop = 0;
-            addNotification('info', 'Sıfırlandı', 'Ayarlar ana menüye döndü.');
+            // Bildirimi kaldır - sadece sessizce dönsün
             break;
     }
     
@@ -16066,6 +16264,19 @@ async function loadPF(refreshData = false) {
         return;
     }
 
+    // Eski varlıklara category alanı ekle (migration)
+    let needsSave = false;
+    as.forEach(a => {
+        if(!a.category) {
+            let src = (a.source || '').toUpperCase();
+            if(src.includes('BINANCE')||src.includes('CG')||src.includes('GECKO')||src.includes('COINGECKO')) a.category = 'kripto';
+            else if(src.includes('MASSIVE')||src.includes('YAHOO')||src.includes('BIST')) a.category = 'borsa';
+            else a.category = 'manuel';
+            needsSave = true;
+        }
+    });
+    if(needsSave) localStorage.setItem('myPF_final', JSON.stringify(as));
+
     if (refreshData) {
         document.getElementById('totalWallet').style.opacity = "0.5";
         
@@ -16220,8 +16431,16 @@ function renderPortfolioHTML(as) {
         } 
         let pnl = dVal - dCost; 
         let pnlPercent = (dCost > 0) ? (pnl / dCost) * 100 : 0; 
-        totalUnrealizedPnL += pnl; 
-        return { ...a, originalIndex: i, dVal, dCost, pnl, pnlPercent, rp }; 
+        totalUnrealizedPnL += pnl;
+        // category yoksa anında belirle
+        let cat = a.category;
+        if(!cat) {
+            let src = (a.source||'').toUpperCase();
+            if(src.includes('BINANCE')||src.includes('CG')||src.includes('GECKO')||src.includes('COINGECKO')) cat='kripto';
+            else if(src.includes('MASSIVE')||src.includes('YAHOO')||src.includes('BIST')) cat='borsa';
+            else cat='manuel';
+        }
+        return { ...a, category: cat, originalIndex: i, dVal, dCost, pnl, pnlPercent, rp }; 
     });
 
     // Sıralama
@@ -16230,18 +16449,40 @@ function renderPortfolioHTML(as) {
     else if(currentSortMode === 'pnl_asc') displayAssets.sort((a,b) => a.pnl - b.pnl); 
     else if(currentSortMode === 'percent_desc') displayAssets.sort((a,b) => b.pnlPercent - a.pnlPercent); 
     else if(currentSortMode === 'alpha_asc') displayAssets.sort((a,b) => a.name.localeCompare(b.name));
+    else if(currentSortMode === 'cat_kripto') {
+        // 3 grup: kripto → borsa → manuel; her grup içinde değere göre
+        const catOrder = { 'kripto': 0, 'borsa': 1, 'manuel': 2 };
+        displayAssets.sort((a,b) => {
+            let catA = catOrder[a.category] !== undefined ? catOrder[a.category] : 1;
+            let catB = catOrder[b.category] !== undefined ? catOrder[b.category] : 1;
+            if(catA !== catB) return catA - catB;
+            return b.dVal - a.dVal;
+        });
+    }
 
     let htmlBuilder = ""; 
     if(displayAssets.length > 0) { 
-        htmlBuilder += `<div class="sort-scroll-wrapper"><div class="sort-chip ${currentSortMode==='value_desc'?'active':''}" onclick="setSortMode('value_desc')">Değer</div><div class="sort-chip ${currentSortMode==='percent_desc'?'active':''}" onclick="setSortMode('percent_desc')">Kâr (%)</div><div class="sort-chip ${currentSortMode==='pnl_desc'?'active':''}" onclick="setSortMode('pnl_desc')">Kazanç</div><div class="sort-chip ${currentSortMode==='pnl_asc'?'active':''}" onclick="setSortMode('pnl_asc')">Kayıp</div><div class="sort-chip ${currentSortMode==='alpha_asc'?'active':''}" onclick="setSortMode('alpha_asc')">A-Z</div></div>`; 
+        htmlBuilder += `<div class="sort-scroll-wrapper"><div class="sort-chip ${(currentSortMode==='cat_kripto'||currentSortMode==='cat_borsa')?'active':''}" onclick="setSortMode('cat_kripto')">Kategori</div><div class="sort-chip ${currentSortMode==='value_desc'?'active':''}" onclick="setSortMode('value_desc')">Değer</div><div class="sort-chip ${currentSortMode==='pnl_desc'?'active':''}" onclick="setSortMode('pnl_desc')">Kazanç</div><div class="sort-chip ${currentSortMode==='pnl_asc'?'active':''}" onclick="setSortMode('pnl_asc')">Kayıp</div><div class="sort-chip ${currentSortMode==='percent_desc'?'active':''}" onclick="setSortMode('percent_desc')">Kâr (%)</div><div class="sort-chip ${currentSortMode==='alpha_asc'?'active':''}" onclick="setSortMode('alpha_asc')">A-Z</div></div>`;
     }
+
+    let lastGroupLabel = null; // Grup başlığı takipçisi
 
     displayAssets.forEach((a) => { 
         totalVal += a.dVal; 
-        let tag = getAssetTag(a.name).t; 
+        let tag = getAssetTag(a.name, a).t; 
         if(tag === 'KRİPTO') chartData.crypto += a.dVal; 
         else if(tag === 'BORSA') chartData.bist += a.dVal; 
         else chartData.other += a.dVal;
+
+        // Kategori modunda grup başlığı ekle
+        if(currentSortMode === 'cat_kripto') {
+            let groupLabel = a.category === 'kripto' ? 'KRİPTO' : a.category === 'borsa' ? 'BORSA' : 'MANUEL';
+            if(groupLabel !== lastGroupLabel) {
+                let groupIcon = groupLabel === 'KRİPTO' ? '🔷' : groupLabel === 'BORSA' ? '📈' : '✏️';
+                htmlBuilder += `<div class="cat-group-header">${groupIcon} ${groupLabel}</div>`;
+                lastGroupLabel = groupLabel;
+            }
+        }
 
         let cls = a.pnl >= 0 ? 'pnl-up' : 'pnl-down'; 
         let priceUnit = a.origin === 'USD' ? `<b id="live_price_${a.originalIndex}">$${a.rp.toFixed(2)}</b>` : `<b id="live_price_${a.originalIndex}">₺${a.rp.toFixed(2)}</b>`; 
@@ -17078,6 +17319,11 @@ async function addToPortfolio(){
         if(checkRes.source) ex.source = checkRes.source;
 
     } else { 
+        // Hangi modda eklendiğini kaydet
+        let modeEl = document.getElementById('activeSearchMode');
+        let tradeMode = modeEl ? modeEl.value : 'CRYPTO';
+        let assetCategory = tradeMode === 'CRYPTO' ? 'kripto' : tradeMode === 'BORSA' ? 'borsa' : 'manuel';
+        
         as.push({
             name: s, 
             amt: a, 
@@ -17085,7 +17331,8 @@ async function addToPortfolio(){
             curr: checkRes.price || b, 
             origin: assetOrigin,
             image: checkRes.image || null, 
-            source: checkRes.source || null 
+            source: checkRes.source || null,
+            category: assetCategory
         }); 
     } 
     
@@ -18874,7 +19121,19 @@ function getAssetLogoHtml(symbol) {
         });
         l.innerHTML = html;
     }
-    function getAssetTag(s) { if(['ALTIN','GOLD','GRAM'].includes(s)) return {t:'EMTİA'}; if(s.includes('USDT') || (!s.includes('.') && s.length <= 5)) return {t:'KRİPTO'}; if(['USD','EUR','GBP'].includes(s)) return {t:'DÖVİZ'}; return {t:'BORSA'}; }
+    function getAssetTag(s, asset) { 
+        // Önce kaydedilmiş kategoriye bak
+        if(asset && asset.category) {
+            if(asset.category === 'kripto') return {t:'KRİPTO'};
+            if(asset.category === 'borsa') return {t:'BORSA'};
+            if(asset.category === 'manuel') return {t:'MANUEL'};
+        }
+        // Yoksa sembolden tahmin et (eski varlıklar için)
+        if(['ALTIN','GOLD','GRAM'].includes(s)) return {t:'EMTİA'}; 
+        if(s.includes('USDT') || (!s.includes('.') && s.length <= 5)) return {t:'KRİPTO'}; 
+        if(['USD','EUR','GBP'].includes(s)) return {t:'DÖVİZ'}; 
+        return {t:'BORSA'}; 
+    }
     function calcDca(){ let s=document.getElementById('addSymbol').value.toUpperCase(); let a=parseFloat(document.getElementById('addAmount').value); let p=parseFloat(document.getElementById('addBuyPrice').value); if(s&&a&&p){ let as=JSON.parse(localStorage.getItem('myPF_final'))||[]; let ex=as.find(i=>i.name===s); if(ex){ let n=((ex.amt*ex.buy)+(a*p))/(ex.amt+a); document.getElementById('dcaPreview').style.display='block'; document.getElementById('dcaText').innerHTML=`Eski: ${ex.buy.toFixed(2)} -> <span class="dca-val">Yeni: ${n.toFixed(2)}</span>`; } else {document.getElementById('dcaPreview').style.display='none';} } calcLiveTotal(); }
     function closeModal(id){document.getElementById(id).style.display='none';} function openModal(id){document.getElementById(id).style.display='flex';}
     async function editNote(i){ let as=JSON.parse(localStorage.getItem('myPF_final')); let n=await tvPrompt("Not Düzenle",as[i].note||"","Varlık için not girin"); if(n!==null){as[i].note=n; localStorage.setItem('myPF_final',JSON.stringify(as)); loadPF();} }
@@ -32952,6 +33211,125 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 
   document.getElementById('spOverlay').addEventListener('click',function(e){if(e.target===this)closeSupportPanel();});
+})();
+</script>
+
+<script>
+// ===== CUSTOM SELECT DROPDOWN - PORTAL SİSTEMİ =====
+(function(){
+    var activeDropdown = null;
+    var activeBtn = null;
+    var activeArrow = null;
+
+    // Tüm dropdown'ları kapat
+    function closeAllDropdowns(){
+        document.querySelectorAll('.custom-select-dropdown.open').forEach(function(d){
+            d.classList.remove('open');
+        });
+        document.querySelectorAll('.custom-select-btn.open').forEach(function(b){
+            b.classList.remove('open');
+        });
+        document.querySelectorAll('.cs-arrow.rotated').forEach(function(a){
+            a.classList.remove('rotated');
+        });
+        activeDropdown = null; activeBtn = null; activeArrow = null;
+    }
+
+    // Dropdown'u butonun altına konumla
+    function positionDropdown(dropdown, btn){
+        var rect = btn.getBoundingClientRect();
+        var ddWidth = Math.max(dropdown.offsetWidth, rect.width);
+        var left = rect.right - ddWidth;
+        if(left < 8) left = 8;
+        var top = rect.bottom + 6;
+        // Ekrandan taşarsa yukarı aç
+        var estimatedH = dropdown.querySelectorAll('.cs-option').length * 50 + 10;
+        if(top + estimatedH > window.innerHeight - 20){
+            top = rect.top - estimatedH - 6;
+        }
+        dropdown.style.top = top + 'px';
+        dropdown.style.left = left + 'px';
+        dropdown.style.minWidth = rect.width + 'px';
+    }
+
+    window.toggleCustomSelect = function(name){
+        var dd = document.getElementById(name + 'SelectDropdown');
+        var btn = document.getElementById(name + 'SelectBtn');
+        var arrow = document.getElementById(name + 'SelectArrow');
+        if(!dd || !btn) return;
+
+        var isOpen = dd.classList.contains('open');
+        closeAllDropdowns();
+
+        if(!isOpen){
+            // Portal: dropdown'ı body'e taşı (henüz orada değilse)
+            if(dd.parentElement !== document.body){
+                document.body.appendChild(dd);
+            }
+            positionDropdown(dd, btn);
+            dd.classList.add('open');
+            btn.classList.add('open');
+            if(arrow) arrow.classList.add('rotated');
+            activeDropdown = dd; activeBtn = btn; activeArrow = arrow;
+        }
+    };
+
+    // Scroll veya resize'da konum güncelle
+    window.addEventListener('scroll', function(){ if(activeDropdown && activeBtn) positionDropdown(activeDropdown, activeBtn); }, true);
+    window.addEventListener('resize', function(){ if(activeDropdown && activeBtn) positionDropdown(activeDropdown, activeBtn); });
+
+    // Dışarı tıklayınca kapat
+    document.addEventListener('click', function(e){
+        if(!e.target.closest('.custom-select-wrapper') && !e.target.closest('.custom-select-dropdown')){
+            closeAllDropdowns();
+        }
+    });
+
+    // Tema seç
+    window.selectThemeOption = function(value, label, color){
+        document.getElementById('themeSelectLabel').textContent = label;
+        var dot = document.getElementById('themeSelectDot');
+        if(dot){ dot.style.background = color; dot.style.border = (value==='oled')?'1px solid #555':''; }
+        var sel = document.getElementById('themeSelect');
+        sel.value = value; sel.dispatchEvent(new Event('change'));
+        document.querySelectorAll('#themeSelectDropdown .cs-option').forEach(function(o){
+            o.classList.toggle('selected', o.textContent.trim() === label);
+        });
+        closeAllDropdowns();
+    };
+
+    // Para birimi seç
+    window.selectCurrOption = function(value, label){
+        document.getElementById('currSelectLabel').textContent = label;
+        var sel = document.getElementById('currSelect');
+        sel.value = value; sel.dispatchEvent(new Event('change'));
+        document.querySelectorAll('#currSelectDropdown .cs-option').forEach(function(o){
+            o.classList.toggle('selected', o.textContent.trim() === label);
+        });
+        closeAllDropdowns();
+    };
+
+    // Dil seç
+    window.selectLangOption = function(value, label){
+        document.getElementById('langSelectLabel').textContent = label;
+        var sel = document.getElementById('langSelect');
+        sel.value = value; sel.dispatchEvent(new Event('change'));
+        document.querySelectorAll('#langSelectDropdown .cs-option').forEach(function(o){
+            o.classList.toggle('selected', o.textContent.trim() === label);
+        });
+        closeAllDropdowns();
+    };
+
+    // Açılış sayfası seç
+    window.selectStartPageOption = function(value, label){
+        document.getElementById('startPageSelectLabel').textContent = label;
+        var sel = document.getElementById('startPageSelect');
+        sel.value = value; sel.dispatchEvent(new Event('change'));
+        document.querySelectorAll('#startPageSelectDropdown .cs-option').forEach(function(o){
+            o.classList.toggle('selected', o.textContent.trim() === label);
+        });
+        closeAllDropdowns();
+    };
 })();
 </script>
 
