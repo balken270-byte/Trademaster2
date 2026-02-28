@@ -532,22 +532,26 @@ html.ios-pwa body {
         .live-dot { width: 6px; height: 6px; border-radius: 50%; background: #34d399; animation: pulse-dot 1.5s infinite; }
         @keyframes pulse-dot { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
         
-        /* ===== TOAST BİLDİRİM ===== */
-        /* TOAST – Modern Glassmorphism */
-        .toast-container { position:fixed; top:0; left:0; right:0; z-index:999999; display:flex; flex-direction:column; align-items:center; pointer-events:none; padding-top:calc(env(safe-area-inset-top,0px) + 14px); gap:10px; }
-        .toast-msg { background:rgba(14,20,36,0.82); backdrop-filter:blur(30px) saturate(180%); -webkit-backdrop-filter:blur(30px) saturate(180%); color:#fff; padding:13px 16px 13px 14px; border-radius:18px; display:flex; align-items:center; gap:12px; box-shadow:0 8px 32px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.09); border-left:3px solid #10b981; transform:translateY(-110%) scale(0.94); opacity:0; transition:transform 0.42s cubic-bezier(0.34,1.4,0.64,1),opacity 0.32s ease; pointer-events:auto; max-width:88%; min-width:240px; }
+        /* ===== TOAST BİLDİRİM — Obsidian Vault ===== */
+        @keyframes toast-shine { to { left: 150%; } }
+        .toast-container { position:fixed; top:0; left:0; right:0; z-index:9999999; display:flex; flex-direction:column; align-items:center; pointer-events:none; padding-top:calc(env(safe-area-inset-top,0px) + 12px); gap:8px; }
+        .toast-msg { background:linear-gradient(160deg,#0e0e16 0%,#0a0a10 100%); backdrop-filter:blur(32px) saturate(180%); -webkit-backdrop-filter:blur(32px) saturate(180%); color:#fff; padding:12px 16px 12px 13px; border-radius:16px; display:flex; align-items:center; gap:11px; box-shadow:0 16px 48px rgba(0,0,0,0.7),inset 0 1px 0 rgba(255,255,255,0.04); border:1px solid rgba(201,168,76,0.12); border-top:1px solid rgba(201,168,76,0.2); transform:translateY(-120%) scale(0.92); opacity:0; transition:transform 0.44s cubic-bezier(0.34,1.4,0.64,1),opacity 0.3s ease; pointer-events:auto; max-width:86%; min-width:240px; position:relative; overflow:hidden; }
+        .toast-msg::before { content:''; position:absolute; top:0; left:15%; right:15%; height:1px; background:linear-gradient(90deg,transparent,rgba(201,168,76,0.5),transparent); }
+        .toast-msg::after { content:''; position:absolute; top:0; left:-60%; width:40%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.04),transparent); animation:toast-shine 3s infinite; }
         .toast-msg.toast-show { transform:translateY(0) scale(1); opacity:1; }
-        .toast-msg.toast-hide { transform:translateY(-70%) scale(0.9); opacity:0; transition:all 0.26s cubic-bezier(0.4,0,1,1); }
-        .toast-msg.toast-danger { border-left-color:#ef4444; }
-        .toast-msg.toast-info { border-left-color:#6366f1; }
-        .toast-msg.toast-warn { border-left-color:#f59e0b; }
-        .toast-icon { width:34px; height:34px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; background:rgba(16,185,129,0.18); color:#34d399; }
-        .toast-msg.toast-danger .toast-icon { background:rgba(239,68,68,0.18); color:#f87171; }
-        .toast-msg.toast-info .toast-icon { background:rgba(99,102,241,0.18); color:#a5b4fc; }
-        .toast-msg.toast-warn .toast-icon { background:rgba(245,158,11,0.18); color:#fcd34d; }
-        .toast-text { display:flex; flex-direction:column; gap:2px; flex:1; min-width:0; }
+        .toast-msg.toast-hide { transform:translateY(-80%) scale(0.88); opacity:0; transition:all 0.24s cubic-bezier(0.4,0,1,1); }
+        .toast-msg.toast-danger { border-left:2px solid rgba(239,68,68,0.7); border-color:rgba(239,68,68,0.15); border-top-color:rgba(239,68,68,0.25); }
+        .toast-msg.toast-danger::before { background:linear-gradient(90deg,transparent,rgba(239,68,68,0.4),transparent); }
+        .toast-msg.toast-warn { border-left:2px solid rgba(245,158,11,0.6); border-color:rgba(245,158,11,0.12); border-top-color:rgba(245,158,11,0.2); }
+        .toast-msg.toast-warn::before { background:linear-gradient(90deg,transparent,rgba(245,158,11,0.35),transparent); }
+        .toast-msg.toast-info { border-left:2px solid rgba(201,168,76,0.5); }
+        .toast-icon { width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; background:rgba(201,168,76,0.1); border:1px solid rgba(201,168,76,0.15); color:#C9A84C; position:relative; z-index:1; }
+        .toast-msg.toast-danger .toast-icon { background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.18); color:#f87171; }
+        .toast-msg.toast-info .toast-icon { background:rgba(201,168,76,0.08); border-color:rgba(201,168,76,0.15); color:#C9A84C; }
+        .toast-msg.toast-warn .toast-icon { background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.18); color:#fcd34d; }
+        .toast-text { display:flex; flex-direction:column; gap:2px; flex:1; min-width:0; position:relative; z-index:1; }
         .toast-title { font-weight:700; font-size:13px; color:#fff; line-height:1.2; }
-        .toast-sub { font-weight:400; font-size:11px; color:rgba(255,255,255,0.55); line-height:1.3; }
+        .toast-sub { font-weight:400; font-size:11px; color:rgba(255,255,255,0.4); line-height:1.3; }
 
         
 /* --- TEMALAR & DEĞİŞKENLER (MEGA PAKET) --- */
@@ -12076,10 +12080,27 @@ function openLabFullscreen() {
         #page-settings .ps-membership-btn:active { box-shadow: inset 2px 2px 8px rgba(0,0,0,0.6); }
         #page-settings .ps-membership-btn-left { display:flex; align-items:center; gap:12px; }
         #page-settings .ps-membership-btn-icon {
-            width:36px; height:36px; border-radius:10px;
-            background:linear-gradient(135deg, #FFD60A 0%, #FF9500 100%);
+            width:44px; height:44px; border-radius:14px; position:relative; flex-shrink:0;
+            background:linear-gradient(135deg, #1a1500 0%, #2d2200 50%, #1a1500 100%);
+            border:1px solid rgba(201,168,76,0.35);
             display:flex; align-items:center; justify-content:center;
-            font-size:16px; color:#000;
+            font-size:18px;
+            box-shadow:0 4px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(201,168,76,0.2), 0 0 18px rgba(201,168,76,0.18);
+        }
+        #page-settings .ps-membership-btn-icon i {
+            background:linear-gradient(135deg, #C9A84C 0%, #F5D080 100%);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            background-clip:text; position:relative; z-index:1;
+        }
+        #page-settings .ps-membership-btn-icon::before {
+            content:''; position:absolute; inset:-7px; border-radius:50%;
+            border:1px solid rgba(201,168,76,0.15);
+            animation:ov-rot 10s linear infinite;
+        }
+        #page-settings .ps-membership-btn-icon::after {
+            content:''; position:absolute; inset:-2px; border-radius:50%;
+            border:1px dashed rgba(201,168,76,0.08);
+            animation:ov-rot 6s linear infinite reverse;
         }
         #page-settings .ps-membership-btn-text { font-size:14px; font-weight:600; color:#fff; }
         #page-settings .ps-membership-btn-sub { font-size:11px; color:rgba(255,255,255,0.5); }
@@ -12099,111 +12120,328 @@ function openLabFullscreen() {
         }
         #page-settings .ps-membership-btn.is-pro .ps-membership-btn-arrow { color:#30D158; }
         
-        /* Premium Modal Overlay */
+        /* ═══════════════════════════════════════════
+           OBSIDIAN VAULT — Premium Modal v3.0
+        ═══════════════════════════════════════════ */
+
+        /* Overlay */
         #page-settings .ps-modal-overlay {
-            position:fixed; inset:0; background:rgba(0,0,0,0.85);
-            backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
-            z-index:9999; display:none; align-items:center; justify-content:center;
-            padding:20px; opacity:0; transition:opacity 0.3s ease;
+            position:fixed; inset:0;
+            background:rgba(0,0,0,0.88);
+            backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+            z-index:999999; display:none; align-items:center; justify-content:center;
+            padding:16px 16px calc(80px + env(safe-area-inset-bottom, 16px)) 16px;
+            opacity:0; transition:opacity 0.35s ease;
+            box-sizing:border-box;
         }
         #page-settings .ps-modal-overlay.active { display:flex; opacity:1; }
-        
-        /* Premium Modal */
+
+        /* Modal shell */
         #page-settings .ps-premium-modal {
-            width:92%; max-width:340px; background:#131316;
-            border:1px solid rgba(255,255,255,0.1); border-radius:24px;
-            overflow:hidden; position:relative;
-            transform:scale(0.9) translateY(20px);
-            transition:transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            max-height:82vh; display:flex; flex-direction:column;
+            width:100%; max-width:360px;
+            background:linear-gradient(160deg,#0d0d14 0%,#090910 100%);
+            border:1px solid rgba(201,168,76,0.15);
+            border-radius:28px; overflow:hidden; position:relative;
+            transform:scale(0.88) translateY(28px);
+            transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+            max-height:calc(100dvh - 100px - env(safe-area-inset-bottom, 0px)); display:flex; flex-direction:column;
+            box-shadow:0 80px 120px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.04);
         }
         #page-settings .ps-modal-overlay.active .ps-premium-modal {
             transform:scale(1) translateY(0);
         }
-        
-        /* Modal Header - Kompakt */
+
+        /* Ambient orbs inside modal */
+        #page-settings .ps-premium-modal::before {
+            content:''; position:absolute; width:300px; height:300px;
+            border-radius:50%; pointer-events:none; z-index:0;
+            background:radial-gradient(circle,rgba(201,168,76,0.09) 0%,transparent 70%);
+            top:-120px; right:-80px;
+            animation:ov-drift 7s ease-in-out infinite alternate;
+        }
+        #page-settings .ps-premium-modal::after {
+            content:''; position:absolute; width:250px; height:250px;
+            border-radius:50%; pointer-events:none; z-index:0;
+            background:radial-gradient(circle,rgba(120,60,200,0.07) 0%,transparent 70%);
+            bottom:-80px; left:-60px;
+            animation:ov-drift 10s ease-in-out infinite alternate-reverse;
+        }
+        @keyframes ov-drift { from{transform:translate(0,0)} to{transform:translate(20px,-20px)} }
+        @keyframes ov-rot   { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        @keyframes ov-shine { to{left:150%} }
+        @keyframes ov-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.55;transform:scale(.75)} }
+
+        /* Top limited badge */
+        #page-settings .ov-badge-wrap {
+            display:none !important;
+        }
+        #page-settings .ov-badge {
+            display:inline-flex; align-items:center; gap:7px;
+            padding:5px 14px; border-radius:20px;
+            background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.22);
+            font-size:9px; font-weight:800; color:rgba(201,168,76,0.85);
+            letter-spacing:2px; text-transform:uppercase;
+        }
+        #page-settings .ov-badge-dot {
+            width:6px; height:6px; border-radius:50%; background:#C9A84C;
+            box-shadow:0 0 8px #C9A84C; animation:ov-pulse 2s infinite;
+            display:inline-block;
+        }
+
+        /* Modal header */
         #page-settings .ps-modal-header {
-            position:relative; padding:20px 18px 12px; text-align:center;
-            background:linear-gradient(180deg, rgba(255,214,10,0.15) 0%, transparent 100%);
-            flex-shrink:0;
+            position:relative; padding:12px 20px 16px; text-align:center;
+            background:linear-gradient(180deg,rgba(201,168,76,0.07) 0%,transparent 100%);
+            flex-shrink:0; z-index:1;
         }
+
+        /* Gold top line */
+        #page-settings .ps-modal-header::before {
+            content:''; position:absolute; top:0; left:12%; right:12%; height:1px;
+            background:linear-gradient(90deg,transparent,rgba(201,168,76,0.6),transparent);
+            box-shadow:0 0 16px rgba(201,168,76,0.3);
+        }
+
+        /* Close button */
         #page-settings .ps-modal-close {
-            position:absolute; top:12px; right:12px;
+            position:absolute; top:14px; right:14px;
             width:28px; height:28px; border-radius:50%;
-            background:rgba(255,255,255,0.1); border:none;
-            color:#fff; font-size:12px; cursor:pointer;
+            background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.08);
+            color:rgba(255,255,255,0.5); font-size:11px; cursor:pointer;
             display:flex; align-items:center; justify-content:center;
-            transition:all 0.2s;
+            transition:all 0.2s; z-index:2;
         }
-        #page-settings .ps-modal-close:hover { background:rgba(255,255,255,0.15); transform:rotate(90deg); }
-        
+        #page-settings .ps-modal-close:hover {
+            background:rgba(255,255,255,0.12); color:#fff; transform:rotate(90deg);
+        }
+
+        /* Animated icon */
         #page-settings .ps-modal-icon {
-            width:52px; height:52px; margin:0 auto 10px;
-            background:linear-gradient(135deg, #FFD60A 0%, #FF9500 50%, #FF6B00 100%);
-            border-radius:14px; display:flex; align-items:center; justify-content:center;
-            font-size:24px; color:#000; box-shadow:0 8px 28px rgba(255,214,10,0.35);
+            width:64px; height:64px; margin:0 auto 14px; position:relative;
         }
-        #page-settings .ps-modal-title { font-size:18px; font-weight:800; color:#fff; margin-bottom:3px; }
-        #page-settings .ps-modal-subtitle { font-size:12px; color:rgba(255,255,255,0.55); }
-        
-        /* Modal Body - Scrollable */
-        #page-settings .ps-modal-body { padding:12px 18px 18px; overflow-y:auto; flex:1; -webkit-overflow-scrolling:touch; }
-        
-        /* Features List - Kompakt */
-        #page-settings .ps-features-list { margin-bottom:14px; }
-        #page-settings .ps-feature-item {
+        #page-settings .ps-modal-icon .ov-ring-outer {
+            position:absolute; inset:-10px; border-radius:50%;
+            border:1px solid rgba(201,168,76,0.15);
+            animation:ov-rot 12s linear infinite;
+        }
+        #page-settings .ps-modal-icon .ov-ring-inner {
+            position:absolute; inset:-4px; border-radius:50%;
+            border:1px dashed rgba(201,168,76,0.08);
+            animation:ov-rot 7s linear infinite reverse;
+        }
+        #page-settings .ps-modal-icon .ov-core {
+            width:64px; height:64px; border-radius:18px; position:relative;
+            background:linear-gradient(135deg,#1a1500 0%,#2d2200 50%,#1a1500 100%);
+            border:1px solid rgba(201,168,76,0.3);
+            display:flex; align-items:center; justify-content:center;
+            box-shadow:0 8px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(201,168,76,0.15);
+        }
+        #page-settings .ps-modal-icon .ov-core i {
+            font-size:26px;
+            background:linear-gradient(135deg,#C9A84C 0%,#F5D080 100%);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            background-clip:text;
+        }
+        /* PRO active icon state */
+        #page-settings .ps-modal-icon.is-pro .ov-core {
+            background:linear-gradient(135deg,#1a1500 0%,#3d3000 50%,#1a1500 100%);
+            border-color:rgba(201,168,76,0.5);
+            box-shadow:0 8px 32px rgba(201,168,76,0.2), inset 0 1px 0 rgba(201,168,76,0.2);
+        }
+
+        #page-settings .ps-modal-title {
+            font-size:20px; font-weight:800; color:#fff; margin-bottom:4px; letter-spacing:-0.3px;
+        }
+        #page-settings .ps-modal-subtitle {
+            font-size:11.5px; color:rgba(255,255,255,0.38); line-height:1.4;
+        }
+
+        /* Diamond divider */
+        #page-settings .ov-divider {
             display:flex; align-items:center; gap:10px;
-            padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.04);
+            margin:0 22px; position:relative; z-index:1;
+        }
+        #page-settings .ov-div-line {
+            flex:1; height:1px; background:rgba(255,255,255,0.04);
+        }
+        #page-settings .ov-div-diamond {
+            width:5px; height:5px; background:rgba(201,168,76,0.35);
+            transform:rotate(45deg); flex-shrink:0;
+        }
+
+        /* Modal body scrollable */
+        #page-settings .ps-modal-body {
+            padding:0; overflow-y:auto; flex:1;
+            -webkit-overflow-scrolling:touch; position:relative; z-index:1;
+        }
+
+        /* Plan selector */
+        #page-settings .ov-plans {
+            display:grid; grid-template-columns:1fr 1fr;
+            gap:8px; padding:14px 20px;
+        }
+        #page-settings .ov-plan {
+            border-radius:16px; padding:12px 10px; cursor:pointer;
+            border:1px solid rgba(255,255,255,0.06);
+            background:rgba(255,255,255,0.02);
+            transition:all 0.25s; position:relative; overflow:hidden;
+        }
+        #page-settings .ov-plan::before {
+            content:''; position:absolute; inset:0;
+            background:linear-gradient(135deg,rgba(201,168,76,0.08) 0%,transparent 100%);
+            opacity:0; transition:opacity 0.25s;
+        }
+        #page-settings .ov-plan.sel {
+            border-color:rgba(201,168,76,0.4);
+            box-shadow:0 0 0 1px rgba(201,168,76,0.1), 0 6px 20px rgba(0,0,0,0.4);
+        }
+        #page-settings .ov-plan.sel::before { opacity:1; }
+        #page-settings .ov-plan-top {
+            display:flex; align-items:center; justify-content:space-between; margin-bottom:7px;
+        }
+        #page-settings .ov-plan-lbl {
+            font-size:8px; font-weight:800; letter-spacing:2px;
+            color:rgba(255,255,255,0.3); text-transform:uppercase;
+        }
+        #page-settings .ov-plan.sel .ov-plan-lbl { color:rgba(201,168,76,0.7); }
+        #page-settings .ov-plan-radio {
+            width:13px; height:13px; border-radius:50%;
+            border:1.5px solid rgba(255,255,255,0.15);
+            display:flex; align-items:center; justify-content:center;
+            transition:all 0.25s; flex-shrink:0;
+        }
+        #page-settings .ov-plan.sel .ov-plan-radio {
+            border-color:#C9A84C; background:#C9A84C;
+        }
+        #page-settings .ov-plan.sel .ov-plan-radio::after {
+            content:''; width:4px; height:4px; border-radius:50%; background:#000;
+        }
+        #page-settings .ov-plan-price {
+            font-size:22px; font-weight:800; color:rgba(255,255,255,0.65);
+            line-height:1; font-variant-numeric:tabular-nums;
+        }
+        #page-settings .ov-plan.sel .ov-plan-price { color:#fff; }
+        #page-settings .ov-plan-price sup { font-size:11px; vertical-align:super; }
+        #page-settings .ov-plan-per {
+            font-size:9px; color:rgba(255,255,255,0.22); margin-top:3px;
+        }
+        #page-settings .ov-plan-save {
+            display:inline-block; margin-top:6px;
+            padding:2px 7px; border-radius:6px;
+            background:rgba(201,168,76,0.12); border:1px solid rgba(201,168,76,0.2);
+            font-size:8px; font-weight:800; color:#C9A84C; letter-spacing:1px;
+        }
+
+        /* Features list */
+        #page-settings .ps-features-list {
+            padding:4px 20px 12px; margin-bottom:0;
+            overflow-y:auto; max-height:260px;
+            -webkit-overflow-scrolling:touch;
+        }
+        #page-settings .ps-feature-item {
+            display:flex; align-items:center; gap:11px;
+            padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.035);
         }
         #page-settings .ps-feature-item:last-child { border-bottom:none; }
         #page-settings .ps-feature-icon {
-            width:32px; height:32px; border-radius:9px;
-            background:rgba(255,214,10,0.1); border:1px solid rgba(255,214,10,0.18);
+            width:30px; height:30px; border-radius:9px; flex-shrink:0;
+            background:linear-gradient(135deg,rgba(201,168,76,0.1),rgba(201,168,76,0.04));
+            border:1px solid rgba(201,168,76,0.1);
             display:flex; align-items:center; justify-content:center;
-            font-size:13px; color:#FFD60A; flex-shrink:0;
+            font-size:12px; color:#C9A84C;
+            transition:all 0.25s;
         }
         #page-settings .ps-feature-text { flex:1; }
-        #page-settings .ps-feature-title { font-size:12.5px; font-weight:600; color:#fff; margin-bottom:0; }
-        #page-settings .ps-feature-desc { font-size:10.5px; color:rgba(255,255,255,0.4); }
-        
-        /* Upgrade Button - Kompakt */
+        #page-settings .ps-feature-title {
+            font-size:12.5px; font-weight:600; color:rgba(255,255,255,0.75); margin-bottom:1px;
+        }
+        #page-settings .ps-feature-desc {
+            font-size:10px; color:rgba(255,255,255,0.28);
+        }
+        #page-settings .ov-feat-tag {
+            font-size:8px; font-weight:800; padding:2px 7px; border-radius:5px;
+            background:rgba(201,168,76,0.1); color:rgba(201,168,76,0.7);
+            border:1px solid rgba(201,168,76,0.12); flex-shrink:0;
+        }
+
+        /* PRO active feature state */
+        #page-settings .ps-feature-item.active .ps-feature-icon {
+            background:rgba(201,168,76,0.14); border-color:rgba(201,168,76,0.28); color:#C9A84C;
+        }
+        #page-settings .ps-feature-item.active .ps-feature-title { color:#fff; }
+        #page-settings .ps-feature-item.active .ps-feature-title::after {
+            content:' ✦'; color:#C9A84C; font-size:10px;
+        }
+
+        /* Upgrade button */
         #page-settings .ps-modal-upgrade-btn {
-            width:100%; padding:14px 20px;
-            background:linear-gradient(135deg, #FFD60A 0%, #FF9500 100%);
-            border:none; border-radius:14px; font-family:inherit;
-            font-size:14px; font-weight:700; color:#000; cursor:pointer;
-            display:flex; align-items:center; justify-content:center; gap:8px;
-            transition:all 0.25s; box-shadow:0 6px 24px rgba(255,214,10,0.3);
-            flex-shrink:0;
+            width:100%; padding:16px 20px;
+            background:linear-gradient(135deg,#C9A84C 0%,#F5D080 50%,#C9A84C 100%);
+            background-size:200%;
+            border:none; border-radius:16px; font-family:inherit;
+            font-size:14px; font-weight:800; color:#000; cursor:pointer;
+            display:flex; align-items:center; justify-content:center; gap:9px;
+            transition:all 0.3s; letter-spacing:0.5px;
+            box-shadow:0 6px 28px rgba(201,168,76,0.35);
+            position:relative; overflow:hidden; flex-shrink:0;
+        }
+        #page-settings .ps-modal-upgrade-btn::after {
+            content:''; position:absolute; top:0; left:-100%; width:55%; height:100%;
+            background:linear-gradient(90deg,transparent,rgba(255,255,255,0.28),transparent);
+            animation:ov-shine 2.5s infinite;
         }
         #page-settings .ps-modal-upgrade-btn:hover {
-            transform:translateY(-2px);
-            box-shadow:0 12px 40px rgba(255,214,10,0.4);
+            background-position:100%;
+            box-shadow:0 12px 44px rgba(201,168,76,0.45); transform:translateY(-1px);
         }
         #page-settings .ps-modal-upgrade-btn:active { transform:scale(0.98); }
-        
-        /* Downgrade Button */
+
+        /* Security row */
+        #page-settings .ov-security {
+            display:flex; align-items:center; justify-content:center; gap:14px;
+            margin-top:12px;
+        }
+        #page-settings .ov-sec-item {
+            font-size:9.5px; color:rgba(255,255,255,0.2);
+            display:flex; align-items:center; gap:5px;
+        }
+        #page-settings .ov-sec-item i { font-size:8px; color:rgba(201,168,76,0.35); }
+
+        /* CTA padding wrapper */
+        #page-settings .ps-modal-body .ov-cta-wrap {
+            padding:0 20px 22px;
+        }
+        /* CTA wrap modal body dışında sabitlenmiş */
+        #page-settings .ps-premium-modal > .ov-cta-wrap {
+            padding: 12px 20px 16px;
+            flex-shrink: 0;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            background: rgba(9,9,16,0.98);
+        }
+        /* CTA wrap modal body dışında sabitlenmiş */
+        #page-settings .ps-premium-modal > .ov-cta-wrap {
+            padding: 12px 20px 16px;
+            background: linear-gradient(to bottom, rgba(9,9,16,0) 0%, rgba(9,9,16,1) 20%);
+            flex-shrink: 0;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+
+        /* Downgrade button */
         #page-settings .ps-modal-downgrade-btn {
-            width:100%; padding:14px; margin-top:12px;
-            background:rgba(255,69,58,0.1); border:1px solid rgba(255,69,58,0.2);
-            border-radius:12px; font-family:inherit; font-size:14px;
+            width:100%; padding:13px; margin-top:10px;
+            background:rgba(255,69,58,0.07); border:1px solid rgba(255,69,58,0.18);
+            border-radius:12px; font-family:inherit; font-size:13px;
             font-weight:600; color:#FF453A; cursor:pointer;
             align-items:center; justify-content:center; gap:8px;
             display:none; transition:all 0.2s;
         }
-        #page-settings .ps-modal-downgrade-btn:hover { background:rgba(255,69,58,0.15); }
-        
-        /* PRO Active State */
-        #page-settings .ps-modal-header.is-pro { background:linear-gradient(180deg, rgba(255,214,10,0.12) 0%, transparent 100%); }
-        #page-settings .ps-modal-header.is-pro .ps-modal-icon {
-            background:linear-gradient(135deg, #FFD60A 0%, #FF9500 100%);
-            box-shadow:0 12px 40px rgba(255,214,10,0.35);
+        #page-settings .ps-modal-downgrade-btn:hover {
+            background:rgba(255,69,58,0.13); border-color:rgba(255,69,58,0.28);
         }
-        #page-settings .ps-feature-item.active .ps-feature-icon {
-            background:rgba(255,214,10,0.12); border-color:rgba(255,214,10,0.3); color:#FFD60A;
-        }
-        #page-settings .ps-feature-item.active .ps-feature-title::after {
-            content:' ✓'; color:#FFD60A;
+
+        /* PRO Active header state */
+        #page-settings .ps-modal-header.is-pro {
+            background:linear-gradient(180deg,rgba(201,168,76,0.1) 0%,transparent 100%);
         }
         
         /* Section Label */
@@ -12883,8 +13121,8 @@ function openLabFullscreen() {
         }
         .custom-select-btn:active { transform: scale(0.97); }
         .custom-select-btn.open {
-            border-color: rgba(99,102,241,0.4);
-            box-shadow: 0 0 0 2px rgba(99,102,241,0.15), 3px 3px 8px rgba(0,0,0,0.5);
+            border-color: rgba(201,168,76,0.4);
+            box-shadow: 0 0 0 2px rgba(201,168,76,0.12), 3px 3px 8px rgba(0,0,0,0.5);
         }
         .cs-dot {
             width: 10px; height: 10px;
@@ -12897,36 +13135,46 @@ function openLabFullscreen() {
         }
         .cs-arrow.rotated { transform: rotate(180deg); }
 
-        /* Dropdown artık FIXED - body'e portal olarak ekleniyor */
+        /* Dropdown artık FIXED - ekranın ortasında çıkıyor */
         .custom-select-dropdown {
             display: none;
             position: fixed;
             min-width: 160px;
-            background: linear-gradient(160deg, #1c2540 0%, #0f1624 100%);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 16px;
+            background: linear-gradient(160deg, #0e0e16 0%, #0a0a10 100%);
+            border: 1px solid rgba(201,168,76,0.15);
+            border-top: 1px solid rgba(201,168,76,0.25);
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 24px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05);
+            box-shadow: 0 40px 80px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.03) inset;
             z-index: 999999;
+            scrollbar-width: none;
+        }
+        .custom-select-dropdown::-webkit-scrollbar { display: none; }
+        /* Altın üst çizgi */
+        .custom-select-dropdown::before {
+            content: '';
+            position: absolute; top: 0; left: 15%; right: 15%; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(201,168,76,0.5), transparent);
         }
         .custom-select-dropdown.open {
             display: block;
-            animation: dropdownFadeIn 0.2s cubic-bezier(0.34,1.2,0.64,1);
+            animation: dropdownFadeIn 0.28s cubic-bezier(0.34,1.2,0.64,1);
         }
         @keyframes dropdownFadeIn {
-            from { opacity: 0; transform: translateY(-8px) scale(0.96); }
-            to   { opacity: 1; transform: translateY(0) scale(1); }
+            from { opacity: 0; transform: scale(0.92); }
+            to   { opacity: 1; transform: scale(1); }
         }
         .cs-option {
             display: flex; align-items: center; gap: 10px;
-            padding: 13px 16px; font-size: 13.5px; font-weight: 500;
-            color: rgba(255,255,255,0.75); cursor: pointer;
-            transition: background 0.12s;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 14px 18px; font-size: 13.5px; font-weight: 500;
+            color: rgba(255,255,255,0.65); cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
         }
         .cs-option:last-child { border-bottom: none; }
-        .cs-option:hover { background: rgba(255,255,255,0.07); color: #fff; }
-        .cs-option.selected { background: rgba(99,102,241,0.14); color: #a5b4fc; }
+        .cs-option:hover { background: rgba(201,168,76,0.07); color: #fff; }
+        .cs-option:active { background: rgba(201,168,76,0.12); }
+        .cs-option.selected { background: rgba(201,168,76,0.08); color: #C9A84C; font-weight: 700; }
 
         /* ---- TRASH BUTTON ---- */
         #page-settings #set-history .ps-btn-trash {
@@ -13329,27 +13577,75 @@ function openLabFullscreen() {
         <!-- ========== PREMIUM MODAL ========== -->
         <div class="ps-modal-overlay" id="premiumModalOverlay" onclick="closePremiumModal(event)" style="z-index: 999999;">
     <div class="ps-premium-modal" onclick="event.stopPropagation()">
-        
+
+        <!-- Sınırlı teklif badge -->
+        <div class="ov-badge-wrap" id="ovBadgeWrap">
+            <div class="ov-badge">
+                <span class="ov-badge-dot"></span>
+                Sınırlı Süre Teklifi
+            </div>
+        </div>
+
+        <!-- Header -->
         <div class="ps-modal-header" id="premiumModalHeader">
             <button class="ps-modal-close" onclick="closePremiumModal()">
                 <i class="fas fa-times"></i>
             </button>
+
+            <!-- Animated icon -->
             <div class="ps-modal-icon" id="premiumModalIcon">
-                <i class="fas fa-crown"></i>
+                <div class="ov-ring-outer"></div>
+                <div class="ov-ring-inner"></div>
+                <div class="ov-core">
+                    <i class="fas fa-crown"></i>
+                </div>
             </div>
+
             <div class="ps-modal-title" id="premiumModalTitle">TRADEVIA PRO</div>
             <div class="ps-modal-subtitle" id="premiumModalSubtitle">Sınırları kaldır, piyasaya hükmet.</div>
         </div>
-        
+
+        <!-- Diamond divider -->
+        <div class="ov-divider">
+            <div class="ov-div-line"></div>
+            <div class="ov-div-diamond"></div>
+            <div class="ov-div-line"></div>
+        </div>
+
+        <!-- Scrollable body -->
         <div class="ps-modal-body">
+
+            <!-- Plan seçici (sadece FREE kullanıcıya) -->
+            <div class="ov-plans" id="ovPlans">
+                <div class="ov-plan sel" id="ovPlanMonthly" onclick="ovSelectPlan('monthly')">
+                    <div class="ov-plan-top">
+                        <div class="ov-plan-lbl">Aylık</div>
+                        <div class="ov-plan-radio"></div>
+                    </div>
+                    <div class="ov-plan-price"><sup>₺</sup>99</div>
+                    <div class="ov-plan-per">aylık faturalandırılır</div>
+                </div>
+                <div class="ov-plan" id="ovPlanYearly" onclick="ovSelectPlan('yearly')">
+                    <div class="ov-plan-top">
+                        <div class="ov-plan-lbl">Yıllık</div>
+                        <div class="ov-plan-radio"></div>
+                    </div>
+                    <div class="ov-plan-price"><sup>₺</sup>66</div>
+                    <div class="ov-plan-per">yıllık faturalandırılır</div>
+                    <div class="ov-plan-save">%33 Tasarruf</div>
+                </div>
+            </div>
+
+            <!-- Özellik listesi -->
             <div class="ps-features-list">
-                
+
                 <div class="ps-feature-item">
                     <div class="ps-feature-icon"><i class="fas fa-brain"></i></div>
                     <div class="ps-feature-text">
                         <div class="ps-feature-title">Zeka Merkezi</div>
                         <div class="ps-feature-desc">Yapay zeka yatırımcı analizi</div>
                     </div>
+                    <div class="ov-feat-tag">PRO</div>
                 </div>
 
                 <div class="ps-feature-item">
@@ -13358,22 +13654,25 @@ function openLabFullscreen() {
                         <div class="ps-feature-title">FOMO Skor</div>
                         <div class="ps-feature-desc">Duygusal işlem ölçümü</div>
                     </div>
+                    <div class="ov-feat-tag">PRO</div>
                 </div>
 
                 <div class="ps-feature-item">
                     <div class="ps-feature-icon"><i class="fas fa-graduation-cap"></i></div>
                     <div class="ps-feature-text">
                         <div class="ps-feature-title">Trader Karnesi</div>
-                        <div class="ps-feature-desc">Başarı puanın</div>
+                        <div class="ps-feature-desc">Kişisel başarı puanı</div>
                     </div>
+                    <div class="ov-feat-tag">PRO</div>
                 </div>
 
                 <div class="ps-feature-item">
                     <div class="ps-feature-icon"><i class="fas fa-history"></i></div>
                     <div class="ps-feature-text">
                         <div class="ps-feature-title">Zaman Makinesi</div>
-                        <div class="ps-feature-desc">Sınırsız analiz (Free: 3 Hak)</div>
+                        <div class="ps-feature-desc">Sınırsız analiz (Free: 3/gün)</div>
                     </div>
+                    <div class="ov-feat-tag">∞</div>
                 </div>
 
                 <div class="ps-feature-item">
@@ -13382,22 +13681,25 @@ function openLabFullscreen() {
                         <div class="ps-feature-title">Maliyet Sihirbazı</div>
                         <div class="ps-feature-desc">Portföyden otomatik veri çekme</div>
                     </div>
+                    <div class="ov-feat-tag">PRO</div>
                 </div>
 
                 <div class="ps-feature-item">
                     <div class="ps-feature-icon"><i class="fas fa-wallet"></i></div>
                     <div class="ps-feature-text">
                         <div class="ps-feature-title">Çoklu Cüzdan</div>
-                        <div class="ps-feature-desc">Sınırsız portföy yönetimi</div>
+                        <div class="ps-feature-desc">Sınırsız portföy (Free: 2 adet)</div>
                     </div>
+                    <div class="ov-feat-tag">∞</div>
                 </div>
 
                 <div class="ps-feature-item">
                     <div class="ps-feature-icon"><i class="fas fa-chart-bar"></i></div>
                     <div class="ps-feature-text">
                         <div class="ps-feature-title">İndikatör Alarm</div>
-                        <div class="ps-feature-desc">Sınırsız RSI analiz (Free: 1 Hak)</div>
+                        <div class="ps-feature-desc">Sınırsız RSI alarmı (Free: 1 hak)</div>
                     </div>
+                    <div class="ov-feat-tag">∞</div>
                 </div>
 
                 <div class="ps-feature-item">
@@ -13406,20 +13708,30 @@ function openLabFullscreen() {
                         <div class="ps-feature-title">AI Kurtarıcı</div>
                         <div class="ps-feature-desc">Sınırsız AI analiz (Free: Günde 1)</div>
                     </div>
+                    <div class="ov-feat-tag">∞</div>
                 </div>
 
             </div>
-            
+
+        </div>
+
+        <!-- CTA - modal body dışında, her zaman görünür -->
+        <div class="ov-cta-wrap" id="ovCtaWrap">
             <button class="ps-modal-upgrade-btn" id="btnUpgrade" onclick="handleProUpgrade()">
-                <i class="fas fa-gem"></i>
-                PRO'YA GEÇ (99₺/ay)
+                ✦ &nbsp;PRO'YA GEÇ — <span id="ovBtnPrice">₺99/AY</span>
             </button>
-            
-            
+
+            <div class="ov-security">
+                <div class="ov-sec-item"><i class="fas fa-lock"></i> SSL Güvenli</div>
+                <div class="ov-sec-item"><i class="fas fa-bolt"></i> Anında Aktif</div>
+                <div class="ov-sec-item"><i class="fas fa-rotate-left"></i> İstediğin zaman iptal</div>
+            </div>
+
             <button class="ps-modal-downgrade-btn" id="btnDowngrade" onclick="MembershipSystem.downgrade(); closePremiumModal();">
                 <i class="fas fa-times-circle"></i> Üyeliği İptal Et
             </button>
         </div>
+
     </div>
 </div>
 
@@ -14057,62 +14369,95 @@ function closePremiumModal(event) {
 }
 
 function updatePremiumModalUI() {
-    // Firebase üyelik kontrolü ekle
+    // Firebase üyelik kontrolü
     const firebasePro = (localStorage.getItem('userPlan') === 'PRO');
     var isPro = (typeof Membership !== 'undefined' && Membership.isPro()) || firebasePro;
     var isCancelled = localStorage.getItem('proCancelled') === 'true';
     var endDate = localStorage.getItem('proEndDate');
     var header = document.getElementById('premiumModalHeader');
-    var icon = document.getElementById('premiumModalIcon');
+    var iconWrap = document.getElementById('premiumModalIcon');
     var title = document.getElementById('premiumModalTitle');
     var subtitle = document.getElementById('premiumModalSubtitle');
     var btnUp = document.getElementById('btnUpgrade');
     var btnDown = document.getElementById('btnDowngrade');
     var features = document.querySelectorAll('.ps-feature-item');
-    
+    var ovPlans = document.getElementById('ovPlans');
+    var ovBadge = document.getElementById('ovBadgeWrap');
+
     if (isPro) {
         var remaining = endDate ? Math.max(0, Math.ceil((new Date(endDate) - new Date()) / 86400000)) : 0;
         var endStr = endDate ? new Date(endDate).toLocaleDateString('tr-TR') : '-';
-        
+
         header.classList.add('is-pro');
-        icon.innerHTML = '<i class="fas fa-gem"></i>';
-        title.textContent = 'PRO Üyeliğiniz';
-        subtitle.textContent = remaining + ' gün kaldı · ' + endStr + ' bitiş';
-        
-        // Upgrade butonunu gizle
-        btnUp.style.display = 'none';
-        
-        // Downgrade / Yenile butonunu güncelle
-        btnDown.style.display = 'flex';
-        if (isCancelled) {
-            btnDown.innerHTML = '<i class="fas fa-redo"></i> Yeniden Aktifleştir (99₺/ay)';
-            btnDown.style.background = 'linear-gradient(135deg, #10b981, #059669)';
-            btnDown.style.color = '#fff';
-            btnDown.style.border = 'none';
-            btnDown.onclick = function() { 
-                closePremiumModal();
-                reactivateProMembership(); 
-            };
-        } else {
-            btnDown.innerHTML = '<i class="fas fa-times-circle"></i> Üyeliği İptal Et';
-            btnDown.style.background = '';
-            btnDown.style.color = '';
-            btnDown.style.border = '';
-            btnDown.onclick = function() { 
-                closePremiumModal();
-                MembershipSystem.downgrade(); 
-            };
+        iconWrap.classList.add('is-pro');
+        // İkon: taç yerine gem
+        var core = iconWrap.querySelector('.ov-core');
+        if (core) core.querySelector('i').className = 'fas fa-gem';
+
+        title.textContent = 'PRO Üyeliğiniz Aktif';
+        subtitle.innerHTML = '<span style="color:#C9A84C;font-weight:700;">' + remaining + ' gün kaldı</span> &nbsp;·&nbsp; ' + endStr + ' bitiş';
+
+        // Planları ve badge'i gizle
+        if (ovPlans) ovPlans.style.display = 'none';
+        if (ovBadge) ovBadge.style.display = 'none';
+
+        // Upgrade gizle
+        if (btnUp) btnUp.style.display = 'none';
+
+        // Downgrade / Yenile
+        if (btnDown) {
+            btnDown.style.display = 'flex';
+            if (isCancelled) {
+                btnDown.innerHTML = '<i class="fas fa-redo"></i> Yeniden Aktifleştir (99₺/ay)';
+                btnDown.style.background = 'linear-gradient(135deg,#10b981,#059669)';
+                btnDown.style.color = '#fff';
+                btnDown.style.border = 'none';
+                btnDown.onclick = function() { closePremiumModal(); reactivateProMembership(); };
+            } else {
+                btnDown.innerHTML = '<i class="fas fa-times-circle"></i> Üyeliği İptal Et';
+                btnDown.style.background = '';
+                btnDown.style.color = '';
+                btnDown.style.border = '';
+                btnDown.onclick = function() { closePremiumModal(); MembershipSystem.downgrade(); };
+            }
         }
+
         features.forEach(function(f) { f.classList.add('active'); });
+
     } else {
         header.classList.remove('is-pro');
-        icon.innerHTML = '<i class="fas fa-crown"></i>';
+        iconWrap.classList.remove('is-pro');
+        var core2 = iconWrap.querySelector('.ov-core');
+        if (core2) core2.querySelector('i').className = 'fas fa-crown';
+
         title.textContent = 'TRADEVIA PRO';
         subtitle.textContent = 'Sınırları kaldır, piyasaya hükmet.';
-        btnUp.style.display = 'flex';
-        btnDown.style.display = 'none';
-        btnDown.onclick = function() { MembershipSystem.downgrade(); closePremiumModal(); };
+
+        if (ovPlans) ovPlans.style.display = 'grid';
+        if (ovBadge) ovBadge.style.display = 'flex';
+
+        if (btnUp) btnUp.style.display = 'flex';
+        if (btnDown) btnDown.style.display = 'none';
+
         features.forEach(function(f) { f.classList.remove('active'); });
+    }
+}
+
+// Obsidian Vault plan seçimi
+function ovSelectPlan(plan) {
+    var monthly = document.getElementById('ovPlanMonthly');
+    var yearly = document.getElementById('ovPlanYearly');
+    var btnPrice = document.getElementById('ovBtnPrice');
+    if (plan === 'monthly') {
+        monthly.classList.add('sel');
+        yearly.classList.remove('sel');
+        if (btnPrice) btnPrice.textContent = '₺99/AY';
+        window._ovSelectedPlan = 'monthly';
+    } else {
+        yearly.classList.add('sel');
+        monthly.classList.remove('sel');
+        if (btnPrice) btnPrice.textContent = '₺66/AY · Yıllık';
+        window._ovSelectedPlan = 'yearly';
     }
 }
 
@@ -15198,326 +15543,65 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
 
 
 <!-- ===== TV DIALOG SİSTEMİ: alert / confirm / prompt ===== -->
-
-<div id="tvDialogOverlay">
-  <div id="tvDialogBox">
-    <div id="tvDlgIconWrap"><i id="tvDlgIcon"></i></div>
-    <div id="tvDlgTitle"></div>
-    <div id="tvDlgSub"></div>
-    <div id="tvDlgInputWrap">
-      <input id="tvDlgInput" type="text"
-        onfocus="this.classList.add('focused')"
-        onblur="this.classList.remove('focused')"
-        onkeydown="if(event.key==='Enter')_tvDlgOK();if(event.key==='Escape')_tvDlgCancel();" />
-    </div>
-    <div id="tvDlgBtns"></div>
-  </div>
-</div>
-
-<style>
-/* ── TV DIALOG ── */
-#tvDialogOverlay {
-  position: fixed;
-  inset: 0;
-  z-index: 999999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  box-sizing: border-box;
-  /* Başlangıç: gizli */
-  visibility: hidden;
-  opacity: 0;
-  pointer-events: none;
-  background: rgba(0,0,0,0);
-  backdrop-filter: blur(0px);
-  -webkit-backdrop-filter: blur(0px);
-  transition:
-    opacity 0.32s cubic-bezier(0.4,0,0.2,1),
-    background 0.32s cubic-bezier(0.4,0,0.2,1),
-    backdrop-filter 0.32s cubic-bezier(0.4,0,0.2,1),
-    visibility 0s linear 0.32s;
-}
-#tvDialogOverlay.open {
-  visibility: visible;
-  opacity: 1;
-  pointer-events: auto;
-  background: rgba(0,0,0,0.55);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  transition:
-    opacity 0.32s cubic-bezier(0.4,0,0.2,1),
-    background 0.32s cubic-bezier(0.4,0,0.2,1),
-    backdrop-filter 0.32s cubic-bezier(0.4,0,0.2,1),
-    visibility 0s linear 0s;
-}
-
-#tvDialogBox {
-  width: 100%;
-  max-width: 340px;
-  background: rgba(22,28,48,0.72);
-  border: 1px solid rgba(255,255,255,0.13);
-  border-radius: 24px;
-  padding: 28px 22px 20px;
-  box-shadow:
-    0 32px 80px rgba(0,0,0,0.55),
-    0 0 0 0.5px rgba(255,255,255,0.06) inset,
-    0 1px 0 rgba(255,255,255,0.12) inset;
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  /* Açılış animasyonu */
-  transform: scale(0.88) translateY(12px);
-  opacity: 0;
-  transition:
-    transform 0.38s cubic-bezier(0.34,1.28,0.64,1),
-    opacity 0.28s cubic-bezier(0.4,0,0.2,1);
-}
-#tvDialogOverlay.open #tvDialogBox {
-  transform: scale(1) translateY(0);
-  opacity: 1;
-}
-#tvDialogOverlay.closing #tvDialogBox {
-  transform: scale(0.92) translateY(8px);
-  opacity: 0;
-  transition:
-    transform 0.22s cubic-bezier(0.4,0,1,1),
-    opacity 0.2s cubic-bezier(0.4,0,1,1);
-}
-
-/* İkon */
-#tvDlgIconWrap {
-  display: none;
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
-  margin: 0 auto 16px;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-#tvDlgIconWrap::after {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: 19px;
-  border: 1px solid rgba(255,255,255,0.12);
-  pointer-events: none;
-}
-#tvDlgIcon { font-size: 22px; }
-
-/* Başlık & Alt başlık */
-#tvDlgTitle {
-  font-size: 17px;
-  font-weight: 800;
-  color: #fff;
-  text-align: center;
-  margin-bottom: 8px;
-  line-height: 1.3;
-  letter-spacing: -0.2px;
-}
-#tvDlgSub {
-  font-size: 13px;
-  color: rgba(255,255,255,0.48);
-  text-align: center;
-  margin-bottom: 22px;
-  line-height: 1.6;
-}
-#tvDlgSub:empty { margin-bottom: 4px; }
-
-/* Input */
-#tvDlgInputWrap { display: none; margin-bottom: 18px; }
-#tvDlgInput {
-  width: 100%;
-  box-sizing: border-box;
-  background: rgba(255,255,255,0.06);
-  border: 1.5px solid rgba(139,92,246,0.3);
-  border-radius: 14px;
-  color: #fff;
-  font-size: 15px;
-  font-weight: 600;
-  padding: 13px 16px;
-  outline: none;
-  font-family: inherit;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-#tvDlgInput.focused {
-  border-color: rgba(139,92,246,0.8);
-  box-shadow: 0 0 0 3px rgba(139,92,246,0.14);
-}
-
-/* Butonlar */
-#tvDlgBtns { display: flex; gap: 10px; }
-#tvDlgBtns button {
-  flex: 1;
-  padding: 13px 0;
-  border-radius: 14px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: inherit;
-  border: none;
-  transition: transform 0.12s, opacity 0.12s, box-shadow 0.12s;
-  -webkit-tap-highlight-color: transparent;
-}
-#tvDlgBtns button:active { transform: scale(0.95); opacity: 0.85; }
-.tvBtn-cancel {
-  background: rgba(255,255,255,0.07) !important;
-  border: 1px solid rgba(255,255,255,0.1) !important;
-  color: rgba(255,255,255,0.65) !important;
-}
-.tvBtn-red  { background: linear-gradient(135deg,#ef4444,#dc2626) !important; color:#fff !important; box-shadow: 0 4px 20px rgba(239,68,68,0.35) !important; }
-.tvBtn-pur  { background: linear-gradient(135deg,#7c3aed,#4f46e5) !important; color:#fff !important; box-shadow: 0 4px 20px rgba(124,58,237,0.35) !important; }
-.tvBtn-grn  { background: linear-gradient(135deg,#10b981,#059669) !important; color:#fff !important; box-shadow: 0 4px 20px rgba(16,185,129,0.35) !important; }
-</style>
+<!-- Tüm dialog kutuları kaldırıldı — toast bildirimleri kullanılıyor -->
 
 <script>
+/* ═══════════════════════════════════════════════════
+   TV DIALOG → TOAST SİSTEMİ
+   Tüm alert/confirm/prompt çağrıları artık:
+   - tvAlert  → showToast bildirimi
+   - tvConfirm → anında true döndürür (onaylı)
+   - tvPrompt  → prompt() native kullanır
+═══════════════════════════════════════════════════ */
 (function(){
-  var _resolve = null;
-  var _mode    = null; // 'alert' | 'confirm' | 'prompt'
 
-  var BTN_CANCEL = 'tvBtn-cancel';
-  var BTN_OK_RED = 'tvBtn-red';
-  var BTN_OK_PUR = 'tvBtn-pur';
-  var BTN_OK_GRN = 'tvBtn-grn';
-
-  function open(mode, title, sub, icon, iconBg, iconColor, okLabel, okStyle, showCancel, defaultVal) {
-    _mode    = mode;
-    _resolve = null;
-    var ov   = document.getElementById('tvDialogOverlay');
-    var box  = document.getElementById('tvDialogBox');
-
-    // İçerik
-    document.getElementById('tvDlgTitle').innerHTML = title || '';
-    document.getElementById('tvDlgSub').innerHTML   = sub   || '';
-
-    // İkon
-    var iconWrap = document.getElementById('tvDlgIconWrap');
-    if (icon) {
-      iconWrap.style.cssText = 'display:flex;width:56px;height:56px;border-radius:18px;margin:0 auto 16px;align-items:center;justify-content:center;background:' + (iconBg||'rgba(139,92,246,0.15)') + ';';
-      document.getElementById('tvDlgIcon').className   = 'fas ' + icon;
-      document.getElementById('tvDlgIcon').style.color = iconColor || '#a78bfa';
-    } else {
-      iconWrap.style.display = 'none';
+  function toast(type, title, body) {
+    // showToast hazır olana kadar bekle
+    function _fire() {
+      if (typeof showToast === 'function') {
+        showToast(type, title, body || '', 3500);
+      }
     }
-
-    // Input
-    var inp = document.getElementById('tvDlgInput');
-    var inpWrap = document.getElementById('tvDlgInputWrap');
-    if (mode === 'prompt') {
-      inpWrap.style.display = 'block';
-      inp.value = (defaultVal !== undefined && defaultVal !== null) ? String(defaultVal) : '';
-      setTimeout(function(){ inp.focus(); inp.select(); }, 120);
-    } else {
-      inpWrap.style.display = 'none';
-    }
-
-    // Butonlar
-    var btns = document.getElementById('tvDlgBtns');
-    btns.innerHTML = '';
-    if (showCancel) {
-      var bCancel = document.createElement('button');
-      bCancel.className   = BTN_CANCEL;
-      bCancel.textContent = 'İptal';
-      bCancel.onclick     = _tvDlgCancel;
-      btns.appendChild(bCancel);
-    }
-    var bOK = document.createElement('button');
-    bOK.className   = okStyle || BTN_OK_PUR;
-    bOK.textContent = okLabel || 'Tamam';
-    bOK.onclick     = _tvDlgOK;
-    btns.appendChild(bOK);
-
-    // Açılış: önce closing temizle, sonra open ekle (bir sonraki frame'de)
-    ov.classList.remove('closing');
-    ov.classList.remove('open');
-    requestAnimationFrame(function() {
-      requestAnimationFrame(function() {
-        ov.classList.add('open');
-      });
-    });
-    return new Promise(function(res){ _resolve = res; });
+    if (typeof showToast === 'function') { _fire(); }
+    else { setTimeout(_fire, 800); }
   }
 
-  // Kapanış: closing class ekle → CSS transition devreye girer
-  function closeDialog(val) {
-    var ov = document.getElementById('tvDialogOverlay');
-    ov.classList.add('closing');
-    ov.classList.remove('open');
-    setTimeout(function() {
-      ov.classList.remove('closing');
-    }, 320);
-    if (_resolve) { _resolve(val); _resolve = null; }
-  }
-
-  window._tvDlgOK = function() {
-    var val = _mode === 'prompt' ? document.getElementById('tvDlgInput').value : true;
-    closeDialog(val);
-  };
-  window._tvDlgCancel = function() {
-    var val = _mode === 'prompt' ? null : false;
-    closeDialog(val);
-  };
-
-  // Dışarı tıkla → iptal
-  document.getElementById('tvDialogOverlay').addEventListener('click', function(e){
-    if (e.target === this) _tvDlgCancel();
-  });
-  // ESC tuşu → iptal
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && document.getElementById('tvDialogOverlay').classList.contains('open')) {
-      _tvDlgCancel();
-    }
-  });
-
-  // ── PUBLIC API ──────────────────────────────────────────────────────────
-
-  // tvAlert(msg) veya tvAlert(title, msg)
+  // tvAlert → sadece toast
   window.tvAlert = function(titleOrMsg, msg) {
     var title = msg ? titleOrMsg : 'Bildirim';
     var body  = msg ? msg : titleOrMsg;
-    // Otomatik ikon seç
-    var icon = 'fa-circle-info', ibg = 'rgba(59,130,246,0.15)', ic = '#60a5fa', os = BTN_OK_PUR;
-    if (/hata|error|fail|başarısız/i.test(body+title))  { icon='fa-circle-xmark'; ibg='rgba(239,68,68,0.15)'; ic='#f87171'; os=BTN_OK_RED; }
-    else if (/uyarı|warn|limit|dolu/i.test(body+title)) { icon='fa-triangle-exclamation'; ibg='rgba(245,158,11,0.15)'; ic='#fbbf24'; os=BTN_OK_PUR; }
-    else if (/tebrik|başarı|pro|aktif|✅/i.test(body+title)) { icon='fa-circle-check'; ibg='rgba(16,185,129,0.15)'; ic='#34d399'; os=BTN_OK_GRN; }
-    else if (/sil|iptal|kaldır/i.test(body+title))     { icon='fa-trash'; ibg='rgba(239,68,68,0.12)'; ic='#f87171'; os=BTN_OK_RED; }
-    return open('alert', title, body, icon, ibg, ic, 'Tamam', os, false);
+    var type  = 'info';
+    if (/hata|error|fail|başarısız/i.test(body + title))        type = 'danger';
+    else if (/uyarı|warn|limit|dolu|kilitli|🔒/i.test(body + title)) type = 'warn';
+    else if (/tebrik|başarı|aktif|✅|🎉|pro.*üye|yenilen/i.test(body + title)) type = 'success';
+    else if (/sil|iptal|kaldır/i.test(body + title))            type = 'danger';
+    toast(type, title, body);
+    return Promise.resolve(true);
   };
 
-  // tvConfirm(title, msg) → true/false
+  // tvConfirm → anında true (işlemi direkt gerçekleştir, kutu çıkmaz)
   window.tvConfirm = function(title, msg, cb) {
-    var icon='fa-circle-question', ibg='rgba(139,92,246,0.15)', ic='#a78bfa', os=BTN_OK_PUR;
-    if (/sil|kaldır|temizle|iptal/i.test((title||'')+(msg||''))) { icon='fa-trash'; ibg='rgba(239,68,68,0.15)'; ic='#f87171'; os=BTN_OK_RED; }
-    var p = open('confirm', title||'Emin misiniz?', msg||'', icon, ibg, ic, 'Evet', os, true);
+    var p = Promise.resolve(true);
     if (typeof cb === 'function') { p.then(cb); return; }
     return p;
   };
 
-  // tvPrompt(title, defaultVal, subtitle) → string | null
-  window.tvPrompt = function(title, defaultVal, subtitle) {
-    return open('prompt', title||'', subtitle||'', null, null, null, 'Tamam', BTN_OK_PUR, true, defaultVal);
+  // tvPrompt → native prompt (basit metin girişi için)
+  window.tvPrompt = function(title, defaultVal) {
+    var val = window._nativePrompt ? window._nativePrompt(title || '', defaultVal || '') : null;
+    return Promise.resolve(val);
   };
 
-  // ── GLOBAL OVERRIDE: tüm alert/confirm çağrılarını yakala ───────────────
-  var _nativeAlert   = window.alert;
-  var _nativeConfirm = window.confirm;
+  // Global override
+  window._nativePrompt = window.prompt;
+  window.alert   = function(msg) { tvAlert(String(msg || '')); };
+  window.confirm = function()    { return true; };
+  window.prompt  = function(msg, def) { return window._nativePrompt(msg, def); };
 
-  window.alert = function(msg) {
-    tvAlert(String(msg || ''));
-  };
+  // Stub: dialog elementleri yok, ama eski kodlar referans ederse hata vermesin
+  window._tvDlgOK     = function(){};
+  window._tvDlgCancel = function(){};
 
-  // confirm() → tvConfirm ile tam override
-  // await confirm(...) kullanan tüm async fonksiyonlar otomatik tvConfirm'e geçer
-  window.confirm = function(msg) {
-    return window.tvConfirm('', String(msg || ''));
-  };
-
-  // prompt() → tvPrompt override
-  window.prompt = function(msg, defaultVal) {
-    return window.tvPrompt(String(msg || ''), defaultVal || '');
-  };
-
-  // Eski tvPrompt/tvConfirm uyumluluğu — zaten tanımlı
 })();
 </script>
 <!-- ===== /TV DIALOG SİSTEMİ ===== -->
@@ -15590,7 +15674,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.7"; 
+    const CURRENT_VERSION = "1.6"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -19627,18 +19711,34 @@ window.switchAvgMode = function(mode, clickedBtn) {
 
 
 
-/* ===== TOAST BİLDİRİM ===== */
+/* ===== TOAST BİLDİRİM — Obsidian Vault ===== */
 function showToast(type, title, subtitle, duration) {
     duration = duration || 3200;
     var c = document.getElementById('toastContainer'); if (!c) return;
-    var icons = { success:'fa-check-circle', danger:'fa-times-circle', info:'fa-info-circle', warn:'fa-triangle-exclamation', warning:'fa-triangle-exclamation' };
-    var normalizedType = (type === 'warning') ? 'warn' : type;
+    var normalizedType = (type === 'warning') ? 'warn' : (type === 'error' ? 'danger' : type);
+    var icons = {
+        success: 'fa-check',
+        danger:  'fa-xmark',
+        info:    'fa-sparkles',
+        warn:    'fa-triangle-exclamation',
+        warning: 'fa-triangle-exclamation'
+    };
     var t = document.createElement('div');
+    // success tipi → default altın tema (sınıf eklenmez, CSS default altın)
     t.className = 'toast-msg' + (normalizedType !== 'success' ? ' toast-' + normalizedType : '');
-    t.innerHTML = '<div class="toast-icon"><i class="fas ' + (icons[normalizedType]||icons.info) + '"></i></div><div class="toast-text"><div class="toast-title">' + title + '</div>' + (subtitle ? '<div class="toast-sub">' + subtitle + '</div>' : '') + '</div>';
+    t.innerHTML =
+        '<div class="toast-icon"><i class="fas ' + (icons[normalizedType] || 'fa-circle-info') + '"></i></div>' +
+        '<div class="toast-text">' +
+            '<div class="toast-title">' + title + '</div>' +
+            (subtitle ? '<div class="toast-sub">' + subtitle + '</div>' : '') +
+        '</div>';
     c.appendChild(t);
     requestAnimationFrame(function(){ requestAnimationFrame(function(){ t.classList.add('toast-show'); }); });
-    setTimeout(function(){ t.classList.remove('toast-show'); t.classList.add('toast-hide'); setTimeout(function(){ if(t.parentNode) t.remove(); }, 350); }, duration);
+    setTimeout(function(){
+        t.classList.remove('toast-show');
+        t.classList.add('toast-hide');
+        setTimeout(function(){ if (t.parentNode) t.remove(); }, 350);
+    }, duration);
 }
 
     initApp();
@@ -33285,6 +33385,19 @@ document.addEventListener('DOMContentLoaded', function() {
     var activeBtn = null;
     var activeArrow = null;
 
+    // Backdrop overlay oluştur (yoksa)
+    var _backdrop = null;
+    function getBackdrop(){
+        if(!_backdrop){
+            _backdrop = document.createElement('div');
+            _backdrop.id = 'csBackdrop';
+            _backdrop.style.cssText = 'position:fixed;inset:0;z-index:999998;background:rgba(0,0,0,0);backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px);transition:background 0.25s,backdrop-filter 0.25s;display:none;';
+            _backdrop.addEventListener('click', closeAllDropdowns);
+            document.body.appendChild(_backdrop);
+        }
+        return _backdrop;
+    }
+
     // Tüm dropdown'ları kapat
     function closeAllDropdowns(){
         document.querySelectorAll('.custom-select-dropdown.open').forEach(function(d){
@@ -33296,35 +33409,33 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.cs-arrow.rotated').forEach(function(a){
             a.classList.remove('rotated');
         });
+        var bd = getBackdrop();
+        bd.style.background = 'rgba(0,0,0,0)';
+        bd.style.backdropFilter = 'blur(0px)';
+        bd.style.webkitBackdropFilter = 'blur(0px)';
+        setTimeout(function(){ bd.style.display = 'none'; }, 260);
         activeDropdown = null; activeBtn = null; activeArrow = null;
     }
 
-    // Dropdown'u ekranın ortasında konumla
+    // Dropdown'u ekranın TAM ORTASINDA konumla
     function positionDropdown(dropdown, btn){
-        var rect = btn.getBoundingClientRect();
         var itemCount = dropdown.querySelectorAll('.cs-option').length;
-        var estimatedH = Math.min(itemCount * 52 + 20, window.innerHeight * 0.6);
+        var maxH = Math.min(itemCount * 52 + 60, window.innerHeight * 0.65);
+        var ddWidth = Math.min(Math.max(btn.getBoundingClientRect().width, 300), window.innerWidth - 32);
 
-        // Genişlik = butonun genişliği
-        var ddWidth = rect.width;
+        // Ekran ortası
+        var left = (window.innerWidth - ddWidth) / 2;
+        var top  = (window.innerHeight - maxH) / 2;
+        // Nav bar ve bottom nav için offset
+        top = Math.max(top, 60);
 
-        // Sağ kenara hizala
-        var left = rect.right - ddWidth;
-        if(left < 8) left = 8;
-        if(left + ddWidth > window.innerWidth - 8) left = window.innerWidth - ddWidth - 8;
-
-        // Butonun hemen altı, sığmazsa üstü
-        var top = rect.bottom + 6;
-        if(top + estimatedH > window.innerHeight - 20) {
-            top = rect.top - estimatedH - 6;
-        }
-        
-        dropdown.style.maxHeight = estimatedH + 'px';
+        dropdown.style.maxHeight = maxH + 'px';
         dropdown.style.overflowY = 'auto';
-        dropdown.style.width = ddWidth + 'px';
-        dropdown.style.minWidth = ddWidth + 'px';
-        dropdown.style.top = top + 'px';
-        dropdown.style.left = left + 'px';
+        dropdown.style.width     = ddWidth + 'px';
+        dropdown.style.minWidth  = ddWidth + 'px';
+        dropdown.style.top       = top + 'px';
+        dropdown.style.left      = left + 'px';
+        dropdown.style.zIndex    = '999999';
     }
 
     window.toggleCustomSelect = function(name){
@@ -33337,7 +33448,7 @@ document.addEventListener('DOMContentLoaded', function() {
         closeAllDropdowns();
 
         if(!isOpen){
-            // Portal: dropdown'ı body'e taşı (henüz orada değilse)
+            // Portal: dropdown'ı body'e taşı
             if(dd.parentElement !== document.body){
                 document.body.appendChild(dd);
             }
@@ -33346,6 +33457,15 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.classList.add('open');
             if(arrow) arrow.classList.add('rotated');
             activeDropdown = dd; activeBtn = btn; activeArrow = arrow;
+
+            // Backdrop aç
+            var bd = getBackdrop();
+            bd.style.display = 'block';
+            requestAnimationFrame(function(){
+                bd.style.background = 'rgba(0,0,0,0.72)';
+                bd.style.backdropFilter = 'blur(16px)';
+                bd.style.webkitBackdropFilter = 'blur(16px)';
+            });
         }
     };
 
