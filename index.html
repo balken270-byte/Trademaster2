@@ -15581,7 +15581,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.9"; 
+    const CURRENT_VERSION = "1.8"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -27160,8 +27160,6 @@ const MembershipSystem = {
     },
 
     downgrade: async function() {
-        let ok = await tvConfirm('Üyeliği İptal Et', 'Mevcut PRO süreniz dolana kadar özelliklerden yararlanmaya devam edebilirsiniz.');
-        if (!ok) return;
         const endDate = localStorage.getItem('proEndDate');
         if (!endDate) { this.setFree(); location.reload(); return; }
         localStorage.setItem('proCancelled', 'true');
@@ -29539,6 +29537,23 @@ function _renderAccountUI(user) {
         if (menuStatus) menuStatus.innerText = 'Giriş yapılmadı';
         if (btnUpgrade) btnUpgrade.style.display = 'none';
         
+        // ═══ PRO GOLD FRAME & HERO SIFIRLA ═══
+        // Üst profil kartındaki altın çerçeve ve pro-gold arka planı kaldır
+        const profileHeroReset = document.querySelector('#page-settings .ps-profile-hero');
+        if (profileHeroReset) profileHeroReset.classList.remove('pro-gold');
+        
+        // Profil resmi frame'ini FREE'ye çek
+        const liImgReset = document.getElementById('loggedInProfileImg');
+        if (liImgReset) {
+            liImgReset.classList.remove('profile-frame-pro');
+            liImgReset.classList.add('profile-frame-free');
+        }
+        
+        // MembershipSystem UI sıfırla
+        if (typeof MembershipSystem !== 'undefined' && typeof MembershipSystem.refreshUI === 'function') {
+            MembershipSystem.refreshUI();
+        }
+        
         // ═══ AYARLAR ANA SAYFA PROFİL KARTI SIFIRLA ═══
         const menuProfileImg = document.getElementById('menuProfileImg');
         const menuProfileName = document.getElementById('menuProfileName');
@@ -29546,9 +29561,11 @@ function _renderAccountUI(user) {
         
         if (menuProfileImg) {
             menuProfileImg.src = 'https://via.placeholder.com/150/1e2538/ffffff?text=TR';
+            menuProfileImg.classList.remove('profile-frame-pro');
+            menuProfileImg.classList.add('profile-frame-free');
         }
         if (menuProfileName) {
-            menuProfileName.textContent = 'Yükleniyor...';
+            menuProfileName.textContent = 'Misafir';
         }
         if (mainBadge) {
             mainBadge.className = 'ps-badge free pbc-badge';
@@ -30098,54 +30115,34 @@ async function firebaseGoogleLogin() {
 
 // --- Çıkış ---
 async function firebaseLogout() {
-    const isPro = localStorage.getItem('userPlan') === 'PRO';
-    let confirmTitle = 'Çıkış Yap';
-    let confirmMsg = isPro
-        ? 'PRO üyeliğiniz çıkışta iptal edilecek ve özellikler kilitlenecek. Devam etmek istiyor musunuz?'
-        : 'Hesaptan çıkış yapmak istediğine emin misin? Bulut yedeklerin silinmez.';
-
-    // tvConfirm varsa onu kullan, yoksa native confirm
-    const confirmed = await tvConfirm(confirmTitle, confirmMsg);
-    if (!confirmed) return;
-    
+    // Onay kutusu gösterilmez, doğrudan çıkış yapılır
+    // PRO üyelik Firestore'da güvende — tekrar girince syncProStatus ile geri gelir
     try {
-        // PRO ise iptal et
-        if (isPro) {
-            console.log('[TradeVia] PRO üyelik çıkış yapıldığı için iptal ediliyor...');
-            localStorage.setItem('userPlan', 'FREE');
-            localStorage.removeItem('proStartDate');
-            localStorage.removeItem('proEndDate');
-            
-            // Membership sistemini de güncelle
-            if (typeof MembershipSystem !== 'undefined' && typeof MembershipSystem.downgrade === 'function') {
-                MembershipSystem.downgrade();
-            }
-        }
-        
         await fbAuth.signOut();
         
+        // localStorage'daki PRO bilgisini temizle
+        // (Firestore'dan silinmiyor! Tekrar giriş yapınca geri yüklenecek)
+        localStorage.setItem('userPlan', 'FREE');
+        localStorage.removeItem('proStartDate');
+        localStorage.removeItem('proEndDate');
+        localStorage.removeItem('proCancelled');
+        
         if (typeof showToast === 'function') {
-            if (isPro) {
-                showToast('warn', 'Çıkış Yapıldı', 'PRO üyelik iptal edildi. Hesap bağlantısı kesildi.');
-            } else {
-                showToast('info', 'Çıkış Yapıldı', 'Hesabınızın bağlantısı kesildi.');
-            }
+            showToast('info', 'Çıkış Yapıldı', 'Hesabınızın bağlantısı kesildi. Tekrar giriş yapınca PRO üyeliğiniz devam edecek.');
         }
         
-        // UI'ları güncelle
+        // UI'ları güncelle (sayfa yenilenmeden)
         if (typeof updateMembershipBtnUI === 'function') updateMembershipBtnUI();
         if (typeof updatePremiumModalUI === 'function') updatePremiumModalUI();
         if (typeof updateMembershipUI === 'function') updateMembershipUI();
+        if (typeof MembershipSystem !== 'undefined' && typeof MembershipSystem.refreshUI === 'function') {
+            MembershipSystem.refreshUI();
+        }
         
-        // Sayfayı yenile - siyah ekran önlemek için overlay göster
-        setTimeout(() => {
-            // Yumuşak geçiş overlay'i
-            const overlay = document.createElement('div');
-            overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#0b0f19;z-index:999999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;';
-            overlay.innerHTML = '<div style="width:48px;height:48px;border:3px solid rgba(255,255,255,0.1);border-top-color:#8b5cf6;border-radius:50%;animation:spin 0.8s linear infinite;"></div><p style="color:rgba(255,255,255,0.5);font-size:14px;font-family:Inter,sans-serif;">Çıkış yapılıyor...</p><style>@keyframes spin{to{transform:rotate(360deg)}}</style>';
-            document.body.appendChild(overlay);
-            setTimeout(() => location.reload(), 400);
-        }, 1100);
+        // Profil/ayarlar sayfasını kapat, ana sayfaya dön
+        if (typeof showPage === 'function') {
+            showPage('home');
+        }
         
     } catch(err) {
         console.error('Logout error:', err);
