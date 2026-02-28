@@ -12080,29 +12080,41 @@ function openLabFullscreen() {
         #page-settings .ps-membership-btn:active { box-shadow: inset 2px 2px 8px rgba(0,0,0,0.6); }
         #page-settings .ps-membership-btn-left { display:flex; align-items:center; gap:12px; }
         #page-settings .ps-membership-btn-icon {
-            width:44px; height:44px; border-radius:14px; position:relative; flex-shrink:0;
-            background:linear-gradient(135deg, #1a1500 0%, #2d2200 50%, #1a1500 100%);
-            border:1px solid rgba(201,168,76,0.35);
+            width:48px; height:48px; border-radius:16px; position:relative; flex-shrink:0;
+            background:linear-gradient(135deg, #1e1800 0%, #332600 40%, #1e1800 100%);
+            border:1.5px solid rgba(201,168,76,0.4);
             display:flex; align-items:center; justify-content:center;
-            font-size:18px;
-            box-shadow:0 4px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(201,168,76,0.2), 0 0 18px rgba(201,168,76,0.18);
-        }
-        #page-settings .ps-membership-btn-icon i {
-            background:linear-gradient(135deg, #C9A84C 0%, #F5D080 100%);
-            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-            background-clip:text; position:relative; z-index:1;
+            font-size:20px;
+            box-shadow:0 4px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(201,168,76,0.2), 0 0 20px rgba(201,168,76,0.2);
+            animation:ov-core-glow 3s ease-in-out infinite;
         }
         #page-settings .ps-membership-btn-icon::before {
-            content:''; position:absolute; inset:-7px; border-radius:50%;
-            border:1px solid rgba(201,168,76,0.15);
-            animation:ov-rot 10s linear infinite;
+            content:''; position:absolute; width:6px; height:6px; border-radius:50%;
+            background:#C9A84C; box-shadow:0 0 8px #C9A84C, 0 0 16px rgba(201,168,76,0.5);
+            z-index:3;
+            animation:ov-orbit-banner 6s linear infinite;
         }
         #page-settings .ps-membership-btn-icon::after {
-            content:''; position:absolute; inset:-2px; border-radius:50%;
-            border:1px dashed rgba(201,168,76,0.08);
-            animation:ov-rot 6s linear infinite reverse;
+            content:''; position:absolute; width:5px; height:5px; border-radius:50%;
+            background:rgba(201,168,76,0.6); box-shadow:0 0 6px rgba(201,168,76,0.4);
+            z-index:3;
+            animation:ov-orbit-banner2 9s linear infinite;
         }
-        #page-settings .ps-membership-btn-text { font-size:14px; font-weight:600; color:#fff; }
+        @keyframes ov-orbit-banner {
+            0%   { transform: rotate(0deg)   translateX(30px) rotate(0deg); }
+            100% { transform: rotate(360deg) translateX(30px) rotate(-360deg); }
+        }
+        @keyframes ov-orbit-banner2 {
+            0%   { transform: rotate(180deg) translateX(26px) rotate(-180deg); }
+            100% { transform: rotate(540deg) translateX(26px) rotate(-540deg); }
+        }
+        #page-settings .ps-membership-btn-icon i {
+            background:linear-gradient(135deg, #C9A84C 0%, #F5D080 50%, #C9A84C 100%);
+            background-size:200%;
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            background-clip:text; position:relative; z-index:1;
+            animation:ov-title-shimmer 3s linear infinite;
+        }
         #page-settings .ps-membership-btn-sub { font-size:11px; color:rgba(255,255,255,0.5); }
         #page-settings .ps-membership-btn-arrow { color:#FFD60A; font-size:14px; }
         
@@ -12172,6 +12184,11 @@ function openLabFullscreen() {
         @keyframes ov-rot   { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
         @keyframes ov-shine { to{left:150%} }
         @keyframes ov-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.55;transform:scale(.75)} }
+        @keyframes ov-title-shimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
+        @keyframes ov-ring-pulse { 0%,100%{opacity:0.5;transform:scale(1)} 50%{opacity:1;transform:scale(1.03)} }
+        @keyframes ov-core-glow { 0%,100%{box-shadow:0 8px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(201,168,76,0.15), 0 0 0 rgba(201,168,76,0)} 50%{box-shadow:0 8px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(201,168,76,0.15), 0 0 24px rgba(201,168,76,0.3)} }
+        @keyframes ov-orbit-dot { 0%{transform:rotate(0deg) translateX(38px) rotate(0deg)} 100%{transform:rotate(360deg) translateX(38px) rotate(-360deg)} }
+        @keyframes ov-orbit-dot2 { 0%{transform:rotate(180deg) translateX(32px) rotate(-180deg)} 100%{transform:rotate(540deg) translateX(32px) rotate(-540deg)} }
 
         /* Top limited badge */
         #page-settings .ov-badge-wrap {
@@ -12192,7 +12209,7 @@ function openLabFullscreen() {
 
         /* Modal header */
         #page-settings .ps-modal-header {
-            position:relative; padding:12px 20px 16px; text-align:center;
+            position:relative; padding:18px 20px 16px; text-align:center;
             background:linear-gradient(180deg,rgba(201,168,76,0.07) 0%,transparent 100%);
             flex-shrink:0; z-index:1;
         }
@@ -12217,42 +12234,69 @@ function openLabFullscreen() {
             background:rgba(255,255,255,0.12); color:#fff; transform:rotate(90deg);
         }
 
-        /* Animated icon */
+        /* Animated icon - ENHANCED */
         #page-settings .ps-modal-icon {
-            width:64px; height:64px; margin:0 auto 14px; position:relative;
+            width:72px; height:72px; margin:0 auto 14px; position:relative;
+            display:flex; align-items:center; justify-content:center;
         }
         #page-settings .ps-modal-icon .ov-ring-outer {
-            position:absolute; inset:-10px; border-radius:50%;
-            border:1px solid rgba(201,168,76,0.15);
-            animation:ov-rot 12s linear infinite;
+            position:absolute; inset:-14px; border-radius:50%;
+            border:1.5px solid rgba(201,168,76,0.35);
+            animation:ov-rot 8s linear infinite;
+        }
+        #page-settings .ps-modal-icon .ov-ring-outer::before {
+            content:''; position:absolute; width:7px; height:7px; border-radius:50%;
+            background:#C9A84C; box-shadow:0 0 10px #C9A84C, 0 0 20px rgba(201,168,76,0.6);
+            top:50%; left:-3.5px; transform:translateY(-50%);
         }
         #page-settings .ps-modal-icon .ov-ring-inner {
-            position:absolute; inset:-4px; border-radius:50%;
-            border:1px dashed rgba(201,168,76,0.08);
-            animation:ov-rot 7s linear infinite reverse;
+            position:absolute; inset:-6px; border-radius:50%;
+            border:1px dashed rgba(201,168,76,0.2);
+            animation:ov-rot 5s linear infinite reverse;
+        }
+        #page-settings .ps-modal-icon .ov-ring-inner::before {
+            content:''; position:absolute; width:5px; height:5px; border-radius:50%;
+            background:rgba(201,168,76,0.7); box-shadow:0 0 8px rgba(201,168,76,0.5);
+            top:-2.5px; left:50%; transform:translateX(-50%);
         }
         #page-settings .ps-modal-icon .ov-core {
-            width:64px; height:64px; border-radius:18px; position:relative;
-            background:linear-gradient(135deg,#1a1500 0%,#2d2200 50%,#1a1500 100%);
-            border:1px solid rgba(201,168,76,0.3);
+            width:72px; height:72px;
+            border-radius:50%;
+            position:relative;
+            background:linear-gradient(135deg,#1e1800 0%,#332600 40%,#1e1800 100%);
+            border:1.5px solid rgba(201,168,76,0.4);
             display:flex; align-items:center; justify-content:center;
-            box-shadow:0 8px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(201,168,76,0.15);
+            overflow:hidden;
+            flex-shrink:0;
+            animation:ov-core-glow 3s ease-in-out infinite;
+        }
+        #page-settings .ps-modal-icon .ov-core::before {
+            content:''; position:absolute; inset:0; border-radius:inherit;
+            background:radial-gradient(ellipse at 30% 20%, rgba(201,168,76,0.15) 0%, transparent 70%);
         }
         #page-settings .ps-modal-icon .ov-core i {
-            font-size:26px;
-            background:linear-gradient(135deg,#C9A84C 0%,#F5D080 100%);
+            font-size:28px;
+            background:linear-gradient(135deg,#C9A84C 0%,#F5D080 50%,#C9A84C 100%);
+            background-size:200%;
             -webkit-background-clip:text; -webkit-text-fill-color:transparent;
             background-clip:text;
+            animation:ov-title-shimmer 3s linear infinite;
         }
         /* PRO active icon state */
         #page-settings .ps-modal-icon.is-pro .ov-core {
             background:linear-gradient(135deg,#1a1500 0%,#3d3000 50%,#1a1500 100%);
-            border-color:rgba(201,168,76,0.5);
-            box-shadow:0 8px 32px rgba(201,168,76,0.2), inset 0 1px 0 rgba(201,168,76,0.2);
+            border-color:rgba(201,168,76,0.6);
+            box-shadow:0 8px 32px rgba(201,168,76,0.25), inset 0 1px 0 rgba(201,168,76,0.2);
         }
 
         #page-settings .ps-modal-title {
-            font-size:20px; font-weight:800; color:#fff; margin-bottom:4px; letter-spacing:-0.3px;
+            font-size:22px; font-weight:900; margin-bottom:4px; letter-spacing:1px;
+            background: linear-gradient(90deg, #b8902a 0%, #C9A84C 20%, #F5D080 40%, #fff 50%, #F5D080 60%, #C9A84C 80%, #b8902a 100%);
+            background-size:300% auto;
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            background-clip:text;
+            animation:ov-title-shimmer 4s linear infinite;
+            text-transform:uppercase;
         }
         #page-settings .ps-modal-subtitle {
             font-size:11.5px; color:rgba(255,255,255,0.38); line-height:1.4;
@@ -12271,17 +12315,24 @@ function openLabFullscreen() {
             transform:rotate(45deg); flex-shrink:0;
         }
 
-        /* Modal body scrollable */
+        /* Modal body scrollable - plans are OUTSIDE (fixed) */
         #page-settings .ps-modal-body {
             padding:0; overflow-y:auto; flex:1; min-height:0;
             -webkit-overflow-scrolling:touch; position:relative; z-index:1;
             overflow-anchor:none;
         }
 
-        /* Plan selector */
+        /* Plans container - fixed above scroll body */
+        #page-settings .ov-plans-wrapper {
+            flex-shrink:0; background:rgba(9,9,16,0.98); z-index:2;
+            border-bottom:1px solid rgba(255,255,255,0.04);
+        }
+
+        /* Plan selector - FIXED, no scroll */
         #page-settings .ov-plans {
             display:grid; grid-template-columns:1fr 1fr;
-            gap:8px; padding:14px 20px;
+            gap:8px; padding:10px 20px 12px;
+            flex-shrink:0;
         }
         #page-settings .ov-plan {
             border-radius:16px; padding:12px 10px; cursor:pointer;
@@ -13613,10 +13664,8 @@ function openLabFullscreen() {
             <div class="ov-div-line"></div>
         </div>
 
-        <!-- Scrollable body -->
-        <div class="ps-modal-body">
-
-            <!-- Plan seçici (sadece FREE kullanıcıya) -->
+        <!-- Plan seçici - SCROLL DIŞINDA SABİT (sadece FREE kullanıcıya) -->
+        <div class="ov-plans-wrapper" id="ovPlansWrapper">
             <div class="ov-plans" id="ovPlans">
                 <div class="ov-plan sel" id="ovPlanMonthly" onclick="ovSelectPlan('monthly')">
                     <div class="ov-plan-top">
@@ -13636,6 +13685,10 @@ function openLabFullscreen() {
                     <div class="ov-plan-save">%33 Tasarruf</div>
                 </div>
             </div>
+        </div>
+
+        <!-- Scrollable body -->
+        <div class="ps-modal-body">
 
             <!-- Özellik listesi -->
             <div class="ps-features-list">
@@ -14383,6 +14436,7 @@ function updatePremiumModalUI() {
     var btnDown = document.getElementById('btnDowngrade');
     var features = document.querySelectorAll('.ps-feature-item');
     var ovPlans = document.getElementById('ovPlans');
+    var ovPlansWrapper = document.getElementById('ovPlansWrapper');
     var ovBadge = document.getElementById('ovBadgeWrap');
 
     if (isPro) {
@@ -14400,6 +14454,7 @@ function updatePremiumModalUI() {
 
         // Planları ve badge'i gizle
         if (ovPlans) ovPlans.style.display = 'none';
+        if (ovPlansWrapper) ovPlansWrapper.style.display = 'none';
         if (ovBadge) ovBadge.style.display = 'none';
 
         // Upgrade gizle
@@ -14435,6 +14490,7 @@ function updatePremiumModalUI() {
         subtitle.textContent = 'Sınırları kaldır, piyasaya hükmet.';
 
         if (ovPlans) ovPlans.style.display = 'grid';
+        if (ovPlansWrapper) ovPlansWrapper.style.display = 'block';
         if (ovBadge) ovBadge.style.display = 'flex';
 
         if (btnUp) btnUp.style.display = 'flex';
@@ -15675,7 +15731,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
