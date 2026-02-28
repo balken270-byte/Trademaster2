@@ -5312,6 +5312,15 @@ input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
     </div>
     <style>@keyframes commSearchIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}</style>
 
+    <!-- Pinned Fiyat Şeridi -->
+    <div id="commChatPriceBar" style="display:flex; align-items:center; gap:10px; padding:6px 16px; background:rgba(0,0,0,0.2); border-bottom:1px solid rgba(255,255,255,0.04); flex-shrink:0;">
+        <i class="fas fa-thumbtack" style="font-size:10px; color:rgba(255,255,255,0.2); transform:rotate(45deg);"></i>
+        <span id="commChatSymbol" style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.35);"></span>
+        <span id="commChatPrice" style="font-size:12px; font-weight:800; color:white;"></span>
+        <span id="commChatChange" style="font-size:11px; font-weight:700;"></span>
+        <div style="margin-left:auto; font-size:10px; color:rgba(255,255,255,0.2);">Canlı Fiyat</div>
+    </div>
+
     <!-- Mesaj Alanı — derinlikli arka plan -->
     <div id="commChatMessages" style="flex:1; overflow-y:auto; padding:14px 14px 6px; display:flex; flex-direction:column; gap:0; scrollbar-width:none;
         background-color:#111827;
@@ -14757,217 +14766,171 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
 <!-- ===== PORTFOLIO MODAL - PREMIUM REDESIGN ===== -->
 <style>
 #portfolioModal {
-    position: fixed;
-    inset: 0;
-    z-index: 99990;
-    background: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
-    pointer-events: none;
+    position: fixed; inset: 0; z-index: 99990;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    display: none; align-items: center; justify-content: center;
+    padding: 20px;
 }
-#portfolioModal.open {
-    display: flex;
-    pointer-events: auto;
-}
+#portfolioModal.open { display: flex; }
 
-/* ── ANA KART ── */
 .pf-sheet {
-    width: 100%;
-    max-width: 420px;
-    background: #0f1520;
+    width: 100%; max-width: 420px;
+    background: linear-gradient(160deg, #1e2640 0%, #141b2d 50%, #0f1520 100%);
     border-radius: 24px;
     border: 1px solid rgba(255,255,255,0.1);
-    box-shadow: 0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04) inset;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
     max-height: 88vh;
-    display: flex;
-    flex-direction: column;
-    animation: pfSlideIn 0.25s cubic-bezier(0.34, 1.3, 0.64, 1);
+    display: flex; flex-direction: column;
+    animation: pfZoomIn 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
     overflow: hidden;
+    position: relative;
 }
-@keyframes pfSlideIn {
-    from { transform: scale(0.93) translateY(16px); opacity: 0; }
+@keyframes pfZoomIn {
+    from { transform: scale(0.88) translateY(16px); opacity: 0; }
     to   { transform: scale(1) translateY(0); opacity: 1; }
 }
-
-/* ── HEADER ── */
 .pf-handle { display: none; }
 .pf-header {
-    padding: 18px 18px 14px;
+    padding: 16px 20px 12px;
     display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
 }
-.pf-header-title { display: flex; align-items: center; gap: 12px; }
+.pf-header-title { display: flex; align-items: center; gap: 10px; }
 .pf-header-icon {
-    width: 40px; height: 40px; border-radius: 14px;
-    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    width: 36px; height: 36px; border-radius: 12px;
+    background: linear-gradient(135deg, #3b82f6, #6366f1);
     display: flex; align-items: center; justify-content: center;
-    font-size: 16px; color: white;
-    box-shadow: 0 4px 16px rgba(99,102,241,0.4);
+    font-size: 15px; color: white; box-shadow: 0 4px 16px rgba(99,102,241,0.4);
 }
-.pf-header-text { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -0.4px; }
-.pf-header-sub { font-size: 11px; color: #4b5563; margin-top: 2px; font-weight: 500; }
+.pf-header-text { font-size: 17px; font-weight: 800; color: white; letter-spacing: -0.3px; }
+.pf-header-sub { font-size: 11px; color: #64748b; margin-top: 1px; }
 .pf-close {
-    width: 34px; height: 34px; border-radius: 50%;
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.15);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.1) inset;
-    color: #9ca3af; font-size: 13px;
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+    color: #64748b; font-size: 13px;
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.15s;
+    cursor: pointer; transition: all 0.2s;
 }
-.pf-close:active { background: rgba(255,255,255,0.18); transform: scale(0.9); }
-
-/* ── SEKMELER ── */
+.pf-close:active { transform: scale(0.88); background: rgba(255,255,255,0.12); }
 .pf-tabs {
-    display: flex;
-    margin: 0 18px;
-    border-bottom: 1px solid rgba(255,255,255,0.07);
-    flex-shrink: 0;
+    display: flex; border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 0 20px; flex-shrink: 0;
 }
 .pf-tab {
-    flex: 1; padding: 9px 0; font-size: 11px; font-weight: 700;
-    color: #4b5563; text-align: center; cursor: pointer;
-    border-bottom: 2px solid transparent; transition: all 0.18s;
-    text-transform: uppercase; letter-spacing: 0.8px;
+    flex: 1; padding: 10px 0; font-size: 12px; font-weight: 700;
+    color: #475569; text-align: center; cursor: pointer;
+    border-bottom: 2px solid transparent; transition: all 0.2s;
+    text-transform: uppercase; letter-spacing: 0.5px;
 }
-.pf-tab.active { color: #818cf8; border-bottom-color: #818cf8; }
-
-/* ── PANEL / LİSTE ── */
+.pf-tab.active { color: #60a5fa; border-bottom-color: #60a5fa; }
 .pf-panel { display: none; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .pf-panel.active { display: flex; flex-direction: column; }
 .pf-list { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
-
-/* ── CÜZDAN KARTI ── */
 .pf-wallet-card {
     position: relative;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 20px;
-    padding: 16px 18px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.06) inset;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 18px; padding: 14px 16px; cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.34,1.2,0.64,1); overflow: hidden;
 }
 .pf-wallet-card.active-wallet {
-    background: rgba(79,70,229,0.12);
-    border-color: rgba(99,102,241,0.45);
-    box-shadow: 0 6px 28px rgba(79,70,229,0.2), 0 1px 0 rgba(255,255,255,0.08) inset;
+    background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.35);
+    box-shadow: 0 0 0 1px rgba(59,130,246,0.15), 0 8px 32px rgba(59,130,246,0.12);
 }
 .pf-wallet-card:active { transform: scale(0.98); }
 .pf-wallet-glow {
-    position: absolute; top: -30px; right: -30px;
-    width: 100px; height: 100px; border-radius: 50%; pointer-events: none;
-    opacity: 0.5;
+    position: absolute; top: -20px; right: -20px;
+    width: 80px; height: 80px; border-radius: 50%; pointer-events: none;
 }
-.pf-wallet-top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.pf-wallet-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
 .pf-wallet-avatar {
-    width: 46px; height: 46px; border-radius: 15px;
+    width: 42px; height: 42px; border-radius: 14px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 23px; flex-shrink: 0;
+    font-size: 20px; flex-shrink: 0;
 }
 .pf-wallet-info { flex: 1; min-width: 0; }
 .pf-wallet-name {
-    font-size: 15px; font-weight: 800; color: white;
-    display: flex; align-items: center; gap: 8px;
+    font-size: 14px; font-weight: 800; color: white;
+    display: flex; align-items: center; gap: 7px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .pf-wallet-badge {
-    font-size: 9px; padding: 3px 8px; border-radius: 20px;
-    background: rgba(99,102,241,0.25); color: #a5b4fc;
-    font-weight: 800; letter-spacing: 0.6px; flex-shrink: 0;
+    font-size: 9px; padding: 2px 8px; border-radius: 20px;
+    background: rgba(59,130,246,0.2); color: #60a5fa;
+    font-weight: 800; letter-spacing: 0.5px; flex-shrink: 0;
 }
-.pf-wallet-meta { font-size: 11px; color: #4b5563; margin-top: 3px; }
+.pf-wallet-meta { font-size: 11px; color: #475569; margin-top: 3px; }
 .pf-wallet-check {
-    width: 28px; height: 28px; border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.15);
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.12);
     display: flex; align-items: center; justify-content: center;
     transition: all 0.2s; flex-shrink: 0;
 }
 .pf-wallet-check.checked {
-    background: #4f46e5; border-color: #4f46e5;
-    box-shadow: 0 2px 14px rgba(79,70,229,0.55);
+    background: #3b82f6; border-color: #3b82f6;
+    box-shadow: 0 2px 12px rgba(59,130,246,0.45);
 }
-
-/* ── NAKİT/VARLIK — KUTUSUZ ── */
-.pf-wallet-stats { display: flex; gap: 20px; padding: 0 2px; }
+.pf-wallet-stats { display: flex; gap: 8px; }
 .pf-stat-pill {
-    flex: 1;
-    background: none;
-    border: none;
-    border-radius: 0;
-    padding: 0;
-    display: flex; flex-direction: column; gap: 3px;
+    flex: 1; background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px; padding: 8px 10px;
+    display: flex; flex-direction: column; gap: 2px;
 }
-.pf-stat-label {
-    font-size: 9px; color: #4b5563; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.8px;
-}
-.pf-stat-value { font-size: 15px; font-weight: 800; color: white; }
-
-/* ── SİL — STATS SATIRINDA SAĞ TARAF ── */
+.pf-stat-label { font-size: 9px; color: #475569; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.pf-stat-value { font-size: 13px; font-weight: 800; color: white; }
 .pf-del-row {
-    display: none;
-}
-.pf-wallet-stats-row {
-    display: flex; align-items: center; gap: 20px;
+    margin-top: 10px; padding-top: 8px;
+    border-top: 1px solid rgba(239,68,68,0.1);
 }
 .pf-wallet-del-btn {
-    width: 34px; height: 34px;
-    border-radius: 11px;
-    background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.25);
-    color: #f87171; font-size: 14px; font-family: inherit;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.18s;
-    padding: 0; flex-shrink: 0; margin-left: auto;
+    width: 100%; padding: 8px 12px; border-radius: 10px;
+    background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.18);
+    color: #ef4444; font-size: 12px; font-weight: 600; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    cursor: pointer; transition: all 0.2s;
 }
-.pf-wallet-del-btn:active { background: rgba(239,68,68,0.28); transform: scale(0.92); }
-
-/* ── YENİ CÜZDAN FORMU ── */
-.pf-create-section { padding: 16px 18px 20px; }
+.pf-wallet-del-btn:active { background: rgba(239,68,68,0.2); transform: scale(0.98); }
+.pf-create-section { padding: 14px 16px 20px; flex-shrink: 0; }
 .pf-create-label {
-    font-size: 10px; font-weight: 800; color: #4b5563;
+    font-size: 10px; font-weight: 800; color: #475569;
     text-transform: uppercase; letter-spacing: 1px;
     margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
 }
-.pf-emoji-picker { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.pf-emoji-picker { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
 .pf-emoji-opt {
-    width: 42px; height: 42px; border-radius: 13px;
+    width: 40px; height: 40px; border-radius: 12px;
     background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.08);
     display: flex; align-items: center; justify-content: center;
-    font-size: 20px; cursor: pointer; transition: all 0.18s;
+    font-size: 18px; cursor: pointer; transition: all 0.18s;
 }
 .pf-emoji-opt.selected {
-    background: rgba(99,102,241,0.2); border-color: rgba(99,102,241,0.55);
-    transform: scale(1.1); box-shadow: 0 4px 14px rgba(99,102,241,0.3);
+    background: rgba(99,102,241,0.18); border-color: rgba(99,102,241,0.5);
+    transform: scale(1.12); box-shadow: 0 4px 16px rgba(99,102,241,0.3);
 }
-.pf-color-row { display: flex; gap: 8px; margin-bottom: 16px; }
+.pf-color-row { display: flex; gap: 8px; margin-bottom: 14px; }
 .pf-color-dot {
-    width: 30px; height: 30px; border-radius: 50%;
-    cursor: pointer; border: 2.5px solid transparent; transition: all 0.18s; flex-shrink: 0;
+    width: 28px; height: 28px; border-radius: 50%;
+    cursor: pointer; border: 2px solid transparent; transition: all 0.18s; flex-shrink: 0;
 }
-.pf-color-dot.selected { border-color: white; transform: scale(1.2); box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+.pf-color-dot.selected { border-color: white; transform: scale(1.22); box-shadow: 0 2px 10px rgba(0,0,0,0.4); }
 .pf-inp {
     width: 100%; box-sizing: border-box;
-    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 14px; padding: 13px 16px; color: white; font-size: 14px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 14px; padding: 12px 14px; color: white; font-size: 13px;
     outline: none; font-family: inherit; transition: border-color 0.2s; margin-bottom: 10px;
 }
-.pf-inp:focus { border-color: rgba(99,102,241,0.55); }
-.pf-inp::placeholder { color: #374151; }
+.pf-inp:focus { border-color: rgba(99,102,241,0.5); }
+.pf-inp::placeholder { color: #334155; }
 .pf-create-btn {
-    width: 100%; padding: 15px;
+    width: 100%; padding: 14px;
     background: linear-gradient(135deg, #4f46e5, #7c3aed);
     border: none; border-radius: 16px; color: white; font-size: 14px; font-weight: 800;
-    cursor: pointer; transition: all 0.2s; box-shadow: 0 6px 24px rgba(79,70,229,0.45);
+    cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 20px rgba(79,70,229,0.4);
     display: flex; align-items: center; justify-content: center; gap: 8px;
-    font-family: inherit;
 }
-.pf-create-btn:active { transform: scale(0.97); opacity: 0.9; }
-
-/* ── GEÇMİŞ ── */
+.pf-create-btn:active { transform: scale(0.97); }
 .pf-hist-wallet-sel {
     display: flex; gap: 6px; overflow-x: auto;
     padding: 12px 16px 8px; flex-shrink: 0; scrollbar-width: none;
@@ -14977,9 +14940,9 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
     padding: 6px 14px; border-radius: 20px; white-space: nowrap;
     font-size: 11px; font-weight: 700; cursor: pointer;
     background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
-    color: #6b7280; transition: all 0.18s;
+    color: #64748b; transition: all 0.18s;
 }
-.pf-hist-chip.active { background: rgba(79,70,229,0.18); border-color: rgba(99,102,241,0.4); color: #a5b4fc; }
+.pf-hist-chip.active { background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.35); color: #60a5fa; }
 .pf-hist-list { flex: 1; overflow-y: auto; padding: 0 16px 16px; }
 .pf-hist-item {
     display: flex; align-items: center; gap: 12px;
@@ -14994,12 +14957,18 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
 .pf-hist-icon.sell { background: rgba(239,68,68,0.12);  color: #f87171; }
 .pf-hist-body { flex: 1; min-width: 0; }
 .pf-hist-title { font-size: 13px; font-weight: 700; color: white; }
-.pf-hist-sub   { font-size: 11px; color: #4b5563; margin-top: 2px; }
+.pf-hist-sub   { font-size: 11px; color: #475569; margin-top: 2px; }
 .pf-hist-amount { font-size: 13px; font-weight: 800; }
 .pf-hist-amount.pos { color: #34d399; }
 .pf-hist-amount.neg { color: #f87171; }
-.pf-hist-empty { text-align: center; padding: 40px 20px; color: #374151; }
+.pf-hist-empty { text-align: center; padding: 40px 20px; color: #334155; }
 .pf-hist-empty i { font-size: 36px; margin-bottom: 12px; display: block; }
+.pf-vault { padding: 16px; }
+.pf-vault-card {
+    background: linear-gradient(135deg, rgba(30,40,60,0.9), rgba(15,22,35,0.9));
+    border: 1px solid rgba(255,255,255,0.08); border-radius: 20px;
+    padding: 20px; margin-bottom: 12px; position: relative; overflow: hidden;
+}
 .pf-vault-card::before {
     content: ''; position: absolute; top: -30px; right: -30px;
     width: 100px; height: 100px; border-radius: 50%;
@@ -15014,7 +14983,64 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
 .pf-vault-row-value { font-size: 13px; font-weight: 700; color: white; }
 </style>
 
+<div id="portfolioModal">
+    <div class="pf-sheet">
+        <div class="pf-handle"></div>
+        <div class="pf-header">
+            <div class="pf-header-title">
+                <div class="pf-header-icon"><i class="fas fa-layer-group"></i></div>
+                <div>
+                    <div class="pf-header-text">Portföylerim</div>
+                    <div class="pf-header-sub" id="pfHeaderSub">Cüzdanlarınızı yönetin</div>
+                </div>
+            </div>
+            <div class="pf-close" onclick="MultiPortfolio.close()"><i class="fas fa-times"></i></div>
+        </div>
+        <div class="pf-tabs">
+            <div class="pf-tab active" onclick="MultiPortfolio.switchTab('wallets', this)">Cüzdanlar</div>
+            <div class="pf-tab" onclick="MultiPortfolio.switchTab('create', this)">+ Yeni</div>
 
+        </div>
+        <!-- Panel: Cüzdanlar -->
+        <div class="pf-panel active" id="pfPanel-wallets">
+            <div class="pf-list" id="portfolioListContainer"></div>
+        </div>
+        <!-- Panel: Yeni Cüzdan -->
+        <div class="pf-panel" id="pfPanel-create">
+            <div class="pf-create-section">
+                <div class="pf-create-label"><i class="fas fa-smile"></i> Simge Seç</div>
+                <div class="pf-emoji-picker" id="pfEmojiPicker">
+                    <div class="pf-emoji-opt selected" data-emoji="💼" onclick="MultiPortfolio.selectEmoji(this)">💼</div>
+                    <div class="pf-emoji-opt" data-emoji="📈" onclick="MultiPortfolio.selectEmoji(this)">📈</div>
+                    <div class="pf-emoji-opt" data-emoji="₿" onclick="MultiPortfolio.selectEmoji(this)">₿</div>
+                    <div class="pf-emoji-opt" data-emoji="🏦" onclick="MultiPortfolio.selectEmoji(this)">🏦</div>
+                    <div class="pf-emoji-opt" data-emoji="🚀" onclick="MultiPortfolio.selectEmoji(this)">🚀</div>
+                    <div class="pf-emoji-opt" data-emoji="💎" onclick="MultiPortfolio.selectEmoji(this)">💎</div>
+                    <div class="pf-emoji-opt" data-emoji="🌍" onclick="MultiPortfolio.selectEmoji(this)">🌍</div>
+                    <div class="pf-emoji-opt" data-emoji="⚡" onclick="MultiPortfolio.selectEmoji(this)">⚡</div>
+                </div>
+                <div class="pf-create-label"><i class="fas fa-palette"></i> Renk</div>
+                <div class="pf-color-row" id="pfColorPicker">
+                    <div class="pf-color-dot selected" data-color="#6366f1" style="background:#6366f1" onclick="MultiPortfolio.selectColor(this)"></div>
+                    <div class="pf-color-dot" data-color="#3b82f6" style="background:#3b82f6" onclick="MultiPortfolio.selectColor(this)"></div>
+                    <div class="pf-color-dot" data-color="#10b981" style="background:#10b981" onclick="MultiPortfolio.selectColor(this)"></div>
+                    <div class="pf-color-dot" data-color="#f59e0b" style="background:#f59e0b" onclick="MultiPortfolio.selectColor(this)"></div>
+                    <div class="pf-color-dot" data-color="#ef4444" style="background:#ef4444" onclick="MultiPortfolio.selectColor(this)"></div>
+                    <div class="pf-color-dot" data-color="#8b5cf6" style="background:#8b5cf6" onclick="MultiPortfolio.selectColor(this)"></div>
+                    <div class="pf-color-dot" data-color="#ec4899" style="background:#ec4899" onclick="MultiPortfolio.selectColor(this)"></div>
+                    <div class="pf-color-dot" data-color="#06b6d4" style="background:#06b6d4" onclick="MultiPortfolio.selectColor(this)"></div>
+                </div>
+                <div class="pf-create-label"><i class="fas fa-pen"></i> Detaylar</div>
+                <input type="text" id="newPortfolioName" class="pf-inp" placeholder="Cüzdan adı (ör: Kripto, Borsa)">
+                <input type="number" id="newPortfolioCash" class="pf-inp" placeholder="Başlangıç nakdi (opsiyonel)">
+                <button class="pf-create-btn" onclick="MultiPortfolio.create()">
+                    <i class="fas fa-plus-circle"></i> Cüzdan Oluştur
+                </button>
+            </div>
+        </div>
+        <!-- Panel: Geçmiş ve Kasa kaldırıldı -->
+    </div>
+</div>
 
 <div id="lockScreen">
     <div class="lock-icon">
@@ -15555,7 +15581,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.5"; 
+    const CURRENT_VERSION = "1.7"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -25594,7 +25620,7 @@ const MultiPortfolio = {
                 ? `<div class="pf-stat-pill"><div class="pf-stat-label">ROI</div><div class="pf-stat-value" style="color:${parseFloat(roi)>=0?'#34d399':'#f87171'}">${parseFloat(roi)>=0?'+':''}${roi}%</div></div>`
                 : '';
             let delHtml = (key !== 'main' && !isActive)
-                ? `<button class="pf-wallet-del-btn" onclick="event.stopPropagation();MultiPortfolio.delete('${key}')"><i class="fas fa-trash"></i></button>` : '';
+                ? `<button class="pf-wallet-del-btn" onclick="event.stopPropagation();MultiPortfolio.delete('${key}')"><i class="fas fa-trash"></i> Cüzdanı Sil</button>` : '';
             let checkHtml = isActive
                 ? `<div class="pf-wallet-check checked"><i class="fas fa-check" style="font-size:10px;color:white;"></i></div>`
                 : `<div class="pf-wallet-check"></div>`;
@@ -25611,12 +25637,12 @@ const MultiPortfolio = {
                         ${checkHtml}
                     </div>
                 </div>
-                <div class="pf-wallet-stats" style="display:flex;align-items:center;gap:20px;">
+                <div class="pf-wallet-stats">
                     <div class="pf-stat-pill"><div class="pf-stat-label">Nakit</div><div class="pf-stat-value">${sym}${pCash.toLocaleString('tr-TR',{maximumFractionDigits:0})}</div></div>
                     <div class="pf-stat-pill"><div class="pf-stat-label">Varlık</div><div class="pf-stat-value">${pAssets} adet</div></div>
                     ${roiHtml}
-                    ${delHtml ? `<div onclick="event.stopPropagation()" style="margin-left:auto;flex-shrink:0;">${delHtml}</div>` : ''}
                 </div>
+                ${delHtml ? `<div class="pf-del-row" onclick="event.stopPropagation()">${delHtml}</div>` : ''}
             </div>`;
         });
         document.getElementById('portfolioListContainer').innerHTML = html;
@@ -25791,7 +25817,7 @@ function openPortfolioModal() {
 // Modal dış tıklama ile kapat
 document.addEventListener('DOMContentLoaded', function() {
     var pModal = document.getElementById('portfolioModal');
-    if (pModal) { /* overlay click kaldırıldı - artık sadece X butonu kapatır */ }
+    if (pModal) pModal.addEventListener('click', function(e) { if (e.target === pModal) MultiPortfolio.close(); });
     MultiPortfolio.init();
 });
 
@@ -28138,12 +28164,11 @@ const BehaviorTracker = {
     // Oturum süresini kaydet
     trackSessionTime: function(seconds) {
         let data = this.load();
-        let today = new Date().toISOString().split('T')[0]; // 'YYYY-MM-DD'
+        let today = new Date().toLocaleDateString('tr-TR');
         
-        let existing = data.sessionTimes.find(s => s.date && s.date.startsWith(today.substring(0,10)));
+        let existing = data.sessionTimes.find(s => s.date === today);
         if (existing) {
             existing.duration += seconds;
-            existing.date = today; // normalize to ISO if old format
         } else {
             data.sessionTimes.push({ date: today, duration: seconds });
         }
@@ -28193,23 +28218,7 @@ const BehaviorTracker = {
             totalSessions: data.totalSessions,
             searchHistory: data.searchHistory.slice(0, 20),
             pageVisits: data.pageVisits,
-            featureUsage: data.featureUsage,
-            // Haftalık aktivite: Pzt=0 ... Paz=6 (Pazar=0'dan Pzt=1'e normalize)
-            dailySessions: (function() {
-                let arr = [0,0,0,0,0,0,0]; // Pzt, Sal, Çar, Per, Cum, Cmt, Paz
-                (data.sessionTimes || []).forEach(function(s) {
-                    if (!s.date) return;
-                    let d = new Date(s.date);
-                    let dow = d.getDay(); // 0=Pazar,1=Pzt...6=Cmt
-                    let idx = dow === 0 ? 6 : dow - 1; // Pzt=0...Paz=6
-                    arr[idx]++;
-                });
-                // Sayfa ziyaretlerini de ekle (daha zengin veri)
-                let todayIdx = new Date().getDay();
-                todayIdx = todayIdx === 0 ? 6 : todayIdx - 1;
-                arr[todayIdx] = Math.max(arr[todayIdx], 1); // bugün en az 1
-                return arr;
-            })()
+            featureUsage: data.featureUsage
         };
     }
 };
@@ -28235,11 +28244,6 @@ const BehaviorTracker = {
             pageStartTime = Date.now();
             BehaviorTracker.trackPageVisit(pageId);
             
-            // Piyasa sayfasına geçilince arama hook'unu garantile
-            if (pageId === 'market') {
-                setTimeout(_hookSearchTracking, 200);
-            }
-            
             return origSwitchPage.apply(this, arguments);
         };
     }
@@ -28253,7 +28257,7 @@ const BehaviorTracker = {
         };
     }
     
-    // Arama takibi - handleSmartSearch hook (varsa)
+    // Arama takibi
     const origSearch = window.handleSmartSearch || window.performSearch;
     if (typeof origSearch === 'function') {
         window.handleSmartSearch = function(query) {
@@ -28262,26 +28266,6 @@ const BehaviorTracker = {
             return origSearch.apply(this, arguments);
         };
     }
-    
-    // Arama takibi - unifiedSearchInput'a direkt event listener ekle
-    // (DOMContentLoaded zaten geçmiş olabileceği için setTimeout ile garantile)
-    function _hookSearchTracking() {
-        var searchInput = document.getElementById('unifiedSearchInput');
-        if (searchInput && !searchInput._behaviorHooked) {
-            searchInput._behaviorHooked = true;
-            searchInput.addEventListener('input', function() {
-                var val = this.value.trim();
-                if (val.length >= 2) {
-                    BehaviorTracker.trackSearch(val.toUpperCase());
-                    BehaviorTracker.trackFeatureUse('search');
-                }
-            });
-        }
-    }
-    // Hem hemen hem de 1sn sonra dene (sayfa geç render ediliyor olabilir)
-    _hookSearchTracking();
-    setTimeout(_hookSearchTracking, 1000);
-    setTimeout(_hookSearchTracking, 2500);
     
     // Oturum süresini kaydet (sayfa kapatılırken)
     window.addEventListener('beforeunload', function() {
@@ -33293,25 +33277,20 @@ document.addEventListener('DOMContentLoaded', function() {
         activeDropdown = null; activeBtn = null; activeArrow = null;
     }
 
-    // Dropdown'u butonun altına, sağ kenarına hizala
+    // Dropdown'u ekranın ortasında konumla
     function positionDropdown(dropdown, btn){
         var rect = btn.getBoundingClientRect();
         var itemCount = dropdown.querySelectorAll('.cs-option').length;
         var estimatedH = Math.min(itemCount * 52 + 20, window.innerHeight * 0.6);
+        var ddWidth = Math.min(Math.max(rect.width, 280), window.innerWidth - 32);
         
-        // Dropdown genişliği = butonun genişliği
-        var ddWidth = rect.width;
+        // Yatayda ortala
+        var left = (window.innerWidth - ddWidth) / 2;
         
-        // Yatayda: butonun sağ kenarına hizala (sağ kenar = left + width)
-        var left = rect.right - ddWidth;
-        // Ekran dışına taşmasın
-        if(left < 8) left = 8;
-        if(left + ddWidth > window.innerWidth - 8) left = window.innerWidth - ddWidth - 8;
-        
-        // Dikeyde: butonun hemen altı
-        var top = rect.bottom + 6;
+        // Dikeyde: butonun altına koy, sığmazsa ortala
+        var top = rect.bottom + 8;
         if(top + estimatedH > window.innerHeight - 20) {
-            top = rect.top - estimatedH - 6;
+            top = (window.innerHeight - estimatedH) / 2;
         }
         
         dropdown.style.maxHeight = estimatedH + 'px';
@@ -33416,64 +33395,5 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 </script>
 
-
-<div id="portfolioModal">
-    <div class="pf-sheet">
-        <div class="pf-handle"></div>
-        <div class="pf-header">
-            <div class="pf-header-title">
-                <div class="pf-header-icon"><i class="fas fa-layer-group"></i></div>
-                <div>
-                    <div class="pf-header-text">Portföylerim</div>
-                    <div class="pf-header-sub" id="pfHeaderSub">Cüzdanlarınızı yönetin</div>
-                </div>
-            </div>
-            <div class="pf-close" onclick="MultiPortfolio.close()"><i class="fas fa-times"></i></div>
-        </div>
-        <div class="pf-tabs">
-            <div class="pf-tab active" onclick="MultiPortfolio.switchTab('wallets', this)">Cüzdanlar</div>
-            <div class="pf-tab" onclick="MultiPortfolio.switchTab('create', this)">+ Yeni</div>
-
-        </div>
-        <!-- Panel: Cüzdanlar -->
-        <div class="pf-panel active" id="pfPanel-wallets">
-            <div class="pf-list" id="portfolioListContainer"></div>
-        </div>
-        <!-- Panel: Yeni Cüzdan -->
-        <div class="pf-panel" id="pfPanel-create">
-            <div class="pf-create-section">
-                <div class="pf-create-label"><i class="fas fa-smile"></i> Simge Seç</div>
-                <div class="pf-emoji-picker" id="pfEmojiPicker">
-                    <div class="pf-emoji-opt selected" data-emoji="💼" onclick="MultiPortfolio.selectEmoji(this)">💼</div>
-                    <div class="pf-emoji-opt" data-emoji="📈" onclick="MultiPortfolio.selectEmoji(this)">📈</div>
-                    <div class="pf-emoji-opt" data-emoji="₿" onclick="MultiPortfolio.selectEmoji(this)">₿</div>
-                    <div class="pf-emoji-opt" data-emoji="🏦" onclick="MultiPortfolio.selectEmoji(this)">🏦</div>
-                    <div class="pf-emoji-opt" data-emoji="🚀" onclick="MultiPortfolio.selectEmoji(this)">🚀</div>
-                    <div class="pf-emoji-opt" data-emoji="💎" onclick="MultiPortfolio.selectEmoji(this)">💎</div>
-                    <div class="pf-emoji-opt" data-emoji="🌍" onclick="MultiPortfolio.selectEmoji(this)">🌍</div>
-                    <div class="pf-emoji-opt" data-emoji="⚡" onclick="MultiPortfolio.selectEmoji(this)">⚡</div>
-                </div>
-                <div class="pf-create-label"><i class="fas fa-palette"></i> Renk</div>
-                <div class="pf-color-row" id="pfColorPicker">
-                    <div class="pf-color-dot selected" data-color="#6366f1" style="background:#6366f1" onclick="MultiPortfolio.selectColor(this)"></div>
-                    <div class="pf-color-dot" data-color="#3b82f6" style="background:#3b82f6" onclick="MultiPortfolio.selectColor(this)"></div>
-                    <div class="pf-color-dot" data-color="#10b981" style="background:#10b981" onclick="MultiPortfolio.selectColor(this)"></div>
-                    <div class="pf-color-dot" data-color="#f59e0b" style="background:#f59e0b" onclick="MultiPortfolio.selectColor(this)"></div>
-                    <div class="pf-color-dot" data-color="#ef4444" style="background:#ef4444" onclick="MultiPortfolio.selectColor(this)"></div>
-                    <div class="pf-color-dot" data-color="#8b5cf6" style="background:#8b5cf6" onclick="MultiPortfolio.selectColor(this)"></div>
-                    <div class="pf-color-dot" data-color="#ec4899" style="background:#ec4899" onclick="MultiPortfolio.selectColor(this)"></div>
-                    <div class="pf-color-dot" data-color="#06b6d4" style="background:#06b6d4" onclick="MultiPortfolio.selectColor(this)"></div>
-                </div>
-                <div class="pf-create-label"><i class="fas fa-pen"></i> Detaylar</div>
-                <input type="text" id="newPortfolioName" class="pf-inp" placeholder="Cüzdan adı (ör: Kripto, Borsa)">
-                <input type="number" id="newPortfolioCash" class="pf-inp" placeholder="Başlangıç nakdi (opsiyonel)">
-                <button class="pf-create-btn" onclick="MultiPortfolio.create()">
-                    <i class="fas fa-plus-circle"></i> Cüzdan Oluştur
-                </button>
-            </div>
-        </div>
-        <!-- Panel: Geçmiş ve Kasa kaldırıldı -->
-    </div>
-</div>
 </body>
 </html>
