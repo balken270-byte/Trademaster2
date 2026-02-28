@@ -11156,14 +11156,21 @@ document.addEventListener('DOMContentLoaded', function() {
             <!-- Chaos Room -->
             <div class="lab-section-label" style="color: var(--lab-accent-rose);">Kaos Odası</div>
             
-            <select id="chaosScenario" class="lab-input lab-select lab-scenario-select" onchange="runChaosSimulation()">
-                <option value="0">🔮 Senaryo Seçiniz...</option>
-                <option value="crypto_winter">❄️ Kripto Kışı (Bitcoin -%60)</option>
-                <option value="market_crash">📉 Küresel Borsa Çöküşü (-%35)</option>
-                <option value="currency_shock">💱 Kur Şoku (Dolar +%40)</option>
-                <option value="gold_rush">🥇 Güvenli Liman (Altın +%25)</option>
-                <option value="black_monday">⚫ Kara Pazartesi (Her Şey -%20)</option>
-            </select>
+            <div class="custom-select-wrapper" style="width:100%; margin-bottom:12px;">
+                <button type="button" class="custom-select-btn" id="chaosScenarioSelectBtn" onclick="toggleCustomSelect('chaosScenario')" style="width:100%;">
+                    <span class="cs-label" id="chaosScenarioSelectLabel">🔮 Senaryo Seçiniz...</span>
+                    <span class="cs-arrow" id="chaosScenarioSelectArrow">▼</span>
+                </button>
+                <div class="custom-select-dropdown" id="chaosScenarioSelectDropdown">
+                    <div class="cs-option selected" onclick="selectChaosScenario('0','🔮 Senaryo Seçiniz...')">🔮 Senaryo Seçiniz...</div>
+                    <div class="cs-option" onclick="selectChaosScenario('crypto_winter','❄️ Kripto Kışı (Bitcoin -%60)')">❄️ Kripto Kışı (Bitcoin -%60)</div>
+                    <div class="cs-option" onclick="selectChaosScenario('market_crash','📉 Küresel Borsa Çöküşü (-%35)')">📉 Küresel Borsa Çöküşü (-%35)</div>
+                    <div class="cs-option" onclick="selectChaosScenario('currency_shock','💱 Kur Şoku (Dolar +%40)')">💱 Kur Şoku (Dolar +%40)</div>
+                    <div class="cs-option" onclick="selectChaosScenario('gold_rush','🥇 Güvenli Liman (Altın +%25)')">🥇 Güvenli Liman (Altın +%25)</div>
+                    <div class="cs-option" onclick="selectChaosScenario('black_monday','⚫ Kara Pazartesi (Her Şey -%20)')">⚫ Kara Pazartesi (Her Şey -%20)</div>
+                </div>
+            </div>
+            <select id="chaosScenario" style="display:none;"><option value="0">Senaryo Seçiniz</option></select>
 
             <div id="chaosResult" style="display:none;">
                 <div class="lab-stat-label">Senaryo Sonrası Tahmini Bakiye</div>
@@ -11194,9 +11201,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span class="lab-form-label"><i class="fas fa-folder-open"></i> Portföyden Seç</span>
                     <button onclick="populateRiskAssets()" class="lab-btn-secondary"><i class="fas fa-sync-alt"></i></button>
                 </div>
-                <select id="riskAssetSelect" class="lab-input lab-select" onchange="fillRiskFromAsset()">
-                    <option value="-1">Manuel Giriş / Seçiniz</option>
-                </select>
+                <div class="custom-select-wrapper" style="width:100%;">
+                    <button type="button" class="custom-select-btn" id="riskAssetSelectBtn" onclick="toggleCustomSelect('riskAsset')" style="width:100%; font-family:'DM Mono',monospace;">
+                        <span class="cs-label" id="riskAssetSelectLabel">Manuel Giriş / Seçiniz</span>
+                        <span class="cs-arrow" id="riskAssetSelectArrow">▼</span>
+                    </button>
+                    <div class="custom-select-dropdown" id="riskAssetSelectDropdown">
+                        <div class="cs-option selected" onclick="selectLabAsset('risk',-1,'Manuel Giriş / Seçiniz')">Manuel Giriş / Seçiniz</div>
+                    </div>
+                </div>
+                <select id="riskAssetSelect" style="display:none;" onchange="fillRiskFromAsset()"><option value="-1">Manuel Giriş / Seçiniz</option></select>
             </div>
 
             <div class="lab-form-grid">
@@ -11261,9 +11275,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
             <div style="margin-bottom: 16px;">
                 <label class="lab-form-label"><i class="fas fa-folder-open"></i> Varlık Seç (Otomatik Doldur)</label>
-                <select id="advAvgSelect" class="lab-input lab-select" style="margin-top: 6px;" onchange="fillAdvAvgData()">
-                    <option value="-1">Manuel Giriş Yap</option>
-                </select>
+                <div class="custom-select-wrapper" style="width:100%; margin-top:6px;">
+                    <button type="button" class="custom-select-btn" id="advAvgSelectBtn" onclick="toggleCustomSelect('advAvg')" style="width:100%; font-family:'DM Mono',monospace;">
+                        <span class="cs-label" id="advAvgSelectLabel">Manuel Giriş Yap / Seçiniz</span>
+                        <span class="cs-arrow" id="advAvgSelectArrow">▼</span>
+                    </button>
+                    <div class="custom-select-dropdown" id="advAvgSelectDropdown">
+                        <div class="cs-option selected" onclick="selectLabAsset('advAvg',-1,'Manuel Giriş Yap / Seçiniz')">Manuel Giriş Yap / Seçiniz</div>
+                    </div>
+                </div>
+                <select id="advAvgSelect" style="display:none;" onchange="fillAdvAvgData()"><option value="-1">Manuel Giriş Yap</option></select>
             </div>
 
             <div class="lab-mode-toggle">
@@ -11458,9 +11479,16 @@ document.addEventListener('DOMContentLoaded', function() {
         <div style="display:flex; gap:10px; align-items:flex-end;">
             <div style="flex:1;">
                 <label class="lab-form-label" style="color:#a78bfa; font-size:10px; margin-bottom:4px;">VARLIK SEÇ</label>
-                <select id="timeMachineSelect" class="lab-input lab-select" onchange="fillTimeMachineSymbol()" style="background:rgba(0,0,0,0.4); border-color:rgba(139,92,246,0.3); color:white;">
-                    <option value="-1">Manuel Giriş</option>
-                </select>
+                <div class="custom-select-wrapper" style="width:100%;">
+                    <button type="button" class="custom-select-btn" id="timeMachineSelectBtn" onclick="toggleCustomSelect('timeMachine')" style="width:100%; font-family:'DM Mono',monospace; background:rgba(0,0,0,0.4); border-color:rgba(139,92,246,0.3);">
+                        <span class="cs-label" id="timeMachineSelectLabel" style="color:#a78bfa;">Manuel Giriş</span>
+                        <span class="cs-arrow" id="timeMachineSelectArrow" style="color:#a78bfa;">▼</span>
+                    </button>
+                    <div class="custom-select-dropdown" id="timeMachineSelectDropdown">
+                        <div class="cs-option selected" onclick="selectLabAsset('timeMachine',-1,'Manuel Giriş')">Manuel Giriş</div>
+                    </div>
+                </div>
+                <select id="timeMachineSelect" style="display:none;" onchange="fillTimeMachineSymbol()"><option value="-1">Manuel Giriş</option></select>
             </div>
             <div style="flex:1;">
                 <label class="lab-form-label" style="color:#a78bfa; font-size:10px; margin-bottom:4px;">SEMBOL</label>
@@ -15553,7 +15581,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.9"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -19747,9 +19775,13 @@ function loadMarketCategory(cat, btn) {
         document.querySelectorAll('.m-tab-pro').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
     }
+    
+    // Kategori değiştiyse cache'i sıfırla, aynı kategoriyse cache korunur
+    if(cat !== currentCategory) {
+        marketDataCache = [];
+        currentPage = 1;
+    }
     currentCategory = cat;
-    currentPage = 1;
-    marketDataCache = [];
     // Veri gelene kadar bakım/yükleme ekranını göster
     document.getElementById('infiniteMarketList').innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 32px 60px;gap:0;"><div style="position:relative;width:80px;height:80px;margin-bottom:28px;"><svg width="80" height="80" viewBox="0 0 80 80" style="position:absolute;top:0;left:0;animation:tvSpinRing 3s linear infinite;"><circle cx="40" cy="40" r="36" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="3"/><circle cx="40" cy="40" r="36" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2.5" stroke-dasharray="40 185" stroke-linecap="round"/></svg><div style="position:absolute;inset:12px;background:linear-gradient(145deg,#1e3a8a,#0f172a);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(255,255,255,0.06);"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><polyline points="3,17 8,12 13,15 21,7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="21" cy="7" r="2.8" fill="white"/></svg></div></div><div style="font-size:17px;font-weight:900;color:#ffffff;letter-spacing:-0.3px;margin-bottom:10px;text-align:center;">Sizin için bakım yapıyoruz</div><div style="font-size:12px;color:rgba(255,255,255,0.45);font-weight:500;text-align:center;line-height:1.7;margin-bottom:28px;">Piyasa verileri güncelleniyor.<br>Hemen döneceğiz 🚀</div><div style="display:flex;gap:7px;align-items:center;"><div style="width:7px;height:7px;border-radius:50%;background:white;opacity:0.9;animation:tvDot 1.4s ease-in-out infinite;"></div><div style="width:7px;height:7px;border-radius:50%;background:white;opacity:0.7;animation:tvDot 1.4s ease-in-out 0.22s infinite;"></div><div style="width:7px;height:7px;border-radius:50%;background:white;opacity:0.5;animation:tvDot 1.4s ease-in-out 0.44s infinite;"></div></div></div>';
     
@@ -19783,37 +19815,35 @@ async function fetchMarketData() {
         // --- SENARYO 1: KRİPTO (COINGECKO) ---
         if(currentCategory === 'kripto') {
             if (coingeckoApiKey) {
-                // Sayfa başına 50 coin çekelim (Daha akıcı olur)
-                const fetchLimit = 50; 
-                const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${fetchLimit}&page=${currentPage}&sparkline=false&x_cg_demo_api_key=${coingeckoApiKey}`;
+                const fetchLimit = 20; // MAX 20 VARLIK
+                const CACHE_TTL = 180000; // 3 dakika cache
                 
-                // Sayfa 1 ise cache'den hızlı göster
-                if (currentPage === 1) {
-                    try {
-                        const cached = localStorage.getItem('tv_market_cache_p1');
-                        const cachedTime = localStorage.getItem('tv_market_cache_time');
-                        const AGE = Date.now() - parseInt(cachedTime || 0);
-                        // 3 dakikadan eskiyse cache geçerli sayma
-                        if (cached && AGE < 180000) {
-                            const cachedData = JSON.parse(cached);
-                            if (Array.isArray(cachedData) && cachedData.length > 0) {
-                                marketDataCache = cachedData;
-                                processAndRenderData(cachedData);
-                                isMarketLoading = false;
-                                if (loader) loader.classList.remove('active');
-                                // Arka planda güncellemeye devam et
-                            }
+                // Cache kontrolü - geçerliyse API'ye hiç gitme
+                try {
+                    const cached = localStorage.getItem('tv_market_cache_p1');
+                    const cachedTime = localStorage.getItem('tv_market_cache_time');
+                    const AGE = Date.now() - parseInt(cachedTime || 0);
+                    if (cached && AGE < CACHE_TTL) {
+                        const cachedData = JSON.parse(cached);
+                        if (Array.isArray(cachedData) && cachedData.length > 0) {
+                            marketDataCache = cachedData;
+                            processAndRenderData(cachedData);
+                            isMarketLoading = false;
+                            if (loader) loader.classList.remove('active');
+                            return; // Cache geçerli, API'ye gitme
                         }
-                    } catch(e) {}
-                }
+                    }
+                } catch(e) {}
+                
+                const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${fetchLimit}&page=1&sparkline=false&x_cg_demo_api_key=${coingeckoApiKey}`;
                 
                 const res = await fetch(url);
                 const data = await res.json();
                 
-                // Başarılı API cevabını cache'e yaz (sadece sayfa 1)
-                if (currentPage === 1 && Array.isArray(data) && data.length > 0) {
+                // Başarılı API cevabını cache'e yaz
+                if (Array.isArray(data) && data.length > 0) {
                     try {
-                        localStorage.setItem('tv_market_cache_p1', JSON.stringify(data.map(d => ({
+                        localStorage.setItem('tv_market_cache_p1', JSON.stringify(data.slice(0,20).map(d => ({
                             symbol: d.symbol.toUpperCase(), name: d.name,
                             price: d.current_price, change: d.price_change_percentage_24h,
                             vol: d.total_volume, image: d.image,
@@ -19824,7 +19854,7 @@ async function fetchMarketData() {
                 }
                 
                 if(Array.isArray(data) && data.length > 0) {
-                    const cgData = data.map(d => ({
+                    const cgData = data.slice(0,20).map(d => ({
                         symbol: d.symbol.toUpperCase(),
                         name: d.name,
                         price: d.current_price,
@@ -22812,17 +22842,14 @@ let currentSelectedAssetSym = "";
 // 1. Listeyi Doldur: Cüzdandaki varlıkları <select> içine ekler
 function populateTimeMachineAssets() {
     const select = document.getElementById('timeMachineSelect');
-    if(!select) return; // Eğer element yoksa hata vermesin diye
-    
-    // Önce listeyi temizle ve varsayılanı ekle
+    const dd = document.getElementById('timeMachineSelectDropdown');
+    if(!select) return;
     select.innerHTML = '<option value="-1">Manuel Yazacağım</option>';
-    
-    // LocalStorage'dan portföyü çek
+    if(dd) dd.innerHTML = '<div class="cs-option selected" onclick="selectLabAsset(\'timeMachine\',-1,\'Manuel Giriş\')">Manuel Giriş</div>';
     let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
-    
-    // Her varlığı listeye ekle
     as.forEach((a) => {
         select.innerHTML += `<option value="${a.name}">${a.name}</option>`;
+        if(dd) dd.innerHTML += `<div class="cs-option" onclick="selectLabAsset('timeMachine','${a.name}','${a.name}')">${a.name}</div>`;
     });
 }
 
@@ -23048,12 +23075,16 @@ async function deleteStrategy(id) {
    -------------------------------------------------------------------------- */
 function populateRiskAssets() {
     const selectBox = document.getElementById('riskAssetSelect');
+    const dd = document.getElementById('riskAssetSelectDropdown');
     if(!selectBox) return;
     let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
     selectBox.innerHTML = '<option value="-1">Manuel Giriş / Seçiniz</option>';
-    if(as.length === 0) { selectBox.add(new Option("(Portföy Boş)", "-1")); return; }
+    if(dd) dd.innerHTML = '<div class="cs-option selected" onclick="selectLabAsset(\'risk\',-1,\'Manuel Giriş / Seçiniz\')">Manuel Giriş / Seçiniz</div>';
+    if(as.length === 0) return;
     as.forEach((asset, index) => {
-        selectBox.add(new Option(`${asset.name} (${asset.amt} Adet)`, index));
+        let text = `${asset.name} (${asset.amt} Adet)`;
+        selectBox.add(new Option(text, index));
+        if(dd) dd.innerHTML += `<div class="cs-option" onclick="selectLabAsset('risk',${index},'${asset.name}')">${asset.name} <span style="opacity:0.5;font-size:11px;">${asset.amt} Adet</span></div>`;
     });
 }
 
@@ -23800,6 +23831,17 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 /* --- KAOS SİMÜLASYON MOTORU --- */
+function selectChaosScenario(value, label) {
+    document.getElementById('chaosScenario').value = value;
+    var labelEl = document.getElementById('chaosScenarioSelectLabel');
+    if(labelEl) labelEl.textContent = label;
+    // dropdown'ı kapat
+    if(typeof closeAllDropdowns === 'function') closeAllDropdowns();
+    // simülasyonu çalıştır
+    if(value !== '0') runChaosSimulation();
+    else { var r = document.getElementById('chaosResult'); if(r) r.style.display = 'none'; }
+}
+
 function runChaosSimulation() {
     let scenario = document.getElementById('chaosScenario').value;
     if(scenario === "0") {
@@ -27338,15 +27380,18 @@ window.calculateTraderScore = function() {
 if (!window.original_populateAdvAvgAssets) window.original_populateAdvAvgAssets = window.populateAdvAvgAssets;
 window.populateAdvAvgAssets = function() {
     const select = document.getElementById('advAvgSelect');
+    const dd = document.getElementById('advAvgSelectDropdown');
     if (!select) return;
     select.innerHTML = '<option value="-1">Manuel Giriş Yap / Seçiniz</option>';
+    if(dd) dd.innerHTML = '<div class="cs-option selected" onclick="selectLabAsset(\'advAvg\',-1,\'Manuel Giriş Yap / Seçiniz\')">Manuel Giriş Yap / Seçiniz</div>';
     let assets = JSON.parse(localStorage.getItem('myPF_final')) || [];
     assets.forEach((a, i) => {
         let symbol = a.name || 'Bilinmeyen';
         let text = MembershipSystem.isPro()
             ? symbol + ' (Ort: ' + (parseFloat(a.buy) || 0).toFixed(2) + ' ' + (a.origin === 'USD' ? '$' : '₺') + ')'
-            : symbol + ' (🔒 Kilitli Veri)';
+            : symbol + ' (🔒 Kilitli)';
         select.innerHTML += '<option value="' + i + '">' + text + '</option>';
+        if(dd) dd.innerHTML += `<div class="cs-option" onclick="selectLabAsset('advAvg',${i},'${symbol}')">${symbol} <span style="opacity:0.5;font-size:11px;">${MembershipSystem.isPro() ? (parseFloat(a.buy)||0).toFixed(2)+(a.origin==='USD'?'$':'₺') : '🔒'}</span></div>`;
     });
 };
 
@@ -33235,21 +33280,28 @@ document.addEventListener('DOMContentLoaded', function() {
         activeDropdown = null; activeBtn = null; activeArrow = null;
     }
 
-    // Dropdown'u butonun altına konumla
+    // Dropdown'u ekranın ortasında konumla
     function positionDropdown(dropdown, btn){
         var rect = btn.getBoundingClientRect();
-        var ddWidth = Math.max(dropdown.offsetWidth, rect.width);
-        var left = rect.right - ddWidth;
-        if(left < 8) left = 8;
-        var top = rect.bottom + 6;
-        // Ekrandan taşarsa yukarı aç
-        var estimatedH = dropdown.querySelectorAll('.cs-option').length * 50 + 10;
-        if(top + estimatedH > window.innerHeight - 20){
-            top = rect.top - estimatedH - 6;
+        var itemCount = dropdown.querySelectorAll('.cs-option').length;
+        var estimatedH = Math.min(itemCount * 52 + 20, window.innerHeight * 0.6);
+        var ddWidth = Math.min(Math.max(rect.width, 280), window.innerWidth - 32);
+        
+        // Yatayda ortala
+        var left = (window.innerWidth - ddWidth) / 2;
+        
+        // Dikeyde: butonun altına koy, sığmazsa ortala
+        var top = rect.bottom + 8;
+        if(top + estimatedH > window.innerHeight - 20) {
+            top = (window.innerHeight - estimatedH) / 2;
         }
+        
+        dropdown.style.maxHeight = estimatedH + 'px';
+        dropdown.style.overflowY = 'auto';
+        dropdown.style.width = ddWidth + 'px';
+        dropdown.style.minWidth = ddWidth + 'px';
         dropdown.style.top = top + 'px';
         dropdown.style.left = left + 'px';
-        dropdown.style.minWidth = rect.width + 'px';
     }
 
     window.toggleCustomSelect = function(name){
@@ -33284,6 +33336,19 @@ document.addEventListener('DOMContentLoaded', function() {
             closeAllDropdowns();
         }
     });
+
+    // Lab varlık seç (risk, advAvg, timeMachine)
+    window.selectLabAsset = function(type, value, label){
+        closeAllDropdowns();
+        var labelEl = document.getElementById(type+'SelectLabel') || document.getElementById(type === 'timeMachine' ? 'timeMachineSelectLabel' : type+'SelectLabel');
+        if(labelEl) labelEl.textContent = label;
+        // Tüm option'ları güncelle
+        var dd = document.getElementById(type+'SelectDropdown') || document.getElementById(type==='timeMachine'?'timeMachineSelectDropdown':type+'SelectDropdown');
+        if(dd) dd.querySelectorAll('.cs-option').forEach(function(o){ o.classList.remove('selected'); if(o.getAttribute('onclick') && o.getAttribute('onclick').includes("'"+label+"'")) o.classList.add('selected'); });
+        // Hidden select'i güncelle ve change event'i tetikle
+        var sel = document.getElementById(type === 'timeMachine' ? 'timeMachineSelect' : type === 'advAvg' ? 'advAvgSelect' : 'riskAssetSelect');
+        if(sel){ sel.value = value; sel.dispatchEvent(new Event('change')); }
+    };
 
     // Tema seç
     window.selectThemeOption = function(value, label, color){
