@@ -12144,6 +12144,7 @@ function openLabFullscreen() {
             border-radius:28px; overflow:hidden; position:relative;
             transform:scale(0.88) translateY(28px);
             transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+            height:calc(100dvh - 160px - env(safe-area-inset-bottom, 0px));
             max-height:calc(100dvh - 160px - env(safe-area-inset-bottom, 0px));
             display:flex; flex-direction:column;
             box-shadow:0 -20px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
@@ -12272,8 +12273,9 @@ function openLabFullscreen() {
 
         /* Modal body scrollable */
         #page-settings .ps-modal-body {
-            padding:0; overflow-y:auto; flex:0 0 auto;
+            padding:0; overflow-y:auto; flex:1; min-height:0;
             -webkit-overflow-scrolling:touch; position:relative; z-index:1;
+            overflow-anchor:none;
         }
 
         /* Plan selector */
@@ -12336,8 +12338,6 @@ function openLabFullscreen() {
         /* Features list */
         #page-settings .ps-features-list {
             padding:4px 20px 12px; margin-bottom:0;
-            overflow-y:auto; max-height:320px;
-            -webkit-overflow-scrolling:touch;
         }
         #page-settings .ps-feature-item {
             display:flex; align-items:center; gap:11px;
@@ -15675,7 +15675,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.8"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
