@@ -15590,7 +15590,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.7"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -28173,7 +28173,7 @@ const BehaviorTracker = {
     // Oturum süresini kaydet
     trackSessionTime: function(seconds) {
         let data = this.load();
-        let today = new Date().toLocaleDateString('tr-TR');
+        let today = new Date().toISOString().split('T')[0]; // 'YYYY-MM-DD'
         
         let existing = data.sessionTimes.find(s => s.date === today);
         if (existing) {
@@ -28227,7 +28227,22 @@ const BehaviorTracker = {
             totalSessions: data.totalSessions,
             searchHistory: data.searchHistory.slice(0, 20),
             pageVisits: data.pageVisits,
-            featureUsage: data.featureUsage
+            featureUsage: data.featureUsage,
+            dailySessions: (function() {
+                let arr = [0,0,0,0,0,0,0]; // Pzt, Sal, Çar, Per, Cum, Cmt, Paz
+                (data.sessionTimes || []).forEach(function(s) {
+                    if (!s.date) return;
+                    let d = new Date(s.date);
+                    let dow = d.getDay(); // 0=Paz,1=Pzt...6=Cmt
+                    let idx = dow === 0 ? 6 : dow - 1;
+                    arr[idx]++;
+                });
+                // Bugünü en az 1 yap
+                let todayDow = new Date().getDay();
+                let todayIdx = todayDow === 0 ? 6 : todayDow - 1;
+                arr[todayIdx] = Math.max(arr[todayIdx], 1);
+                return arr;
+            })()
         };
     }
 };
@@ -28244,37 +28259,35 @@ const BehaviorTracker = {
     const origSwitchPage = window.switchPage;
     if (typeof origSwitchPage === 'function') {
         window.switchPage = function(pageId, btn) {
-            // Önceki sayfanın süresini kaydet
             let elapsed = Math.round((Date.now() - pageStartTime) / 1000);
             if (elapsed > 2) BehaviorTracker.trackPageTime(currentPage, elapsed);
-            
-            // Yeni sayfa
             currentPage = pageId;
             pageStartTime = Date.now();
             BehaviorTracker.trackPageVisit(pageId);
-            
+            // Piyasa sayfasına geçince arama hook'unu garantile
+            if (pageId === 'market') setTimeout(_hookSearchTracking, 200);
             return origSwitchPage.apply(this, arguments);
         };
     }
-    
-    // Piyasa sekme değişikliğini takip et
-    const origLoadMarket = window.loadMarketCategory;
-    if (typeof origLoadMarket === 'function') {
-        window.loadMarketCategory = function(cat) {
-            BehaviorTracker.trackTabVisit(cat);
-            return origLoadMarket.apply(this, arguments);
-        };
+
+    // Arama takibi — unifiedSearchInput'a direkt listener
+    function _hookSearchTracking() {
+        var searchInput = document.getElementById('unifiedSearchInput');
+        if (searchInput && !searchInput._behaviorHooked) {
+            searchInput._behaviorHooked = true;
+            searchInput.addEventListener('input', function() {
+                var val = this.value.trim();
+                if (val.length >= 2) {
+                    BehaviorTracker.trackSearch(val.toUpperCase());
+                    BehaviorTracker.trackFeatureUse('search');
+                }
+            });
+        }
     }
-    
-    // Arama takibi
-    const origSearch = window.handleSmartSearch || window.performSearch;
-    if (typeof origSearch === 'function') {
-        window.handleSmartSearch = function(query) {
-            BehaviorTracker.trackSearch(query);
-            BehaviorTracker.trackFeatureUse('search');
-            return origSearch.apply(this, arguments);
-        };
-    }
+    // Hemen ve gecikmeli dene
+    _hookSearchTracking();
+    setTimeout(_hookSearchTracking, 1000);
+    setTimeout(_hookSearchTracking, 2500);
     
     // Oturum süresini kaydet (sayfa kapatılırken)
     window.addEventListener('beforeunload', function() {
