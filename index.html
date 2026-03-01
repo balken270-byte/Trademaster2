@@ -4156,6 +4156,9 @@ button:active,
        Sadece gölge ile oynuyoruz. */
 
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    /* PERFORMANS: Ekran dışındaki kartları render etme */
+    content-visibility: auto;
+    contain-intrinsic-size: 0 72px;
 }
 
 /* Tıklayınca daha da derine gömülme efekti */
@@ -5072,7 +5075,7 @@ input[type=range]#aaBudgetSlider:active::-webkit-slider-thumb {
 </div>
 
         </div>
-        <div id="portfolioList"></div>
+        <div id="portfolioList" style="transform:translateZ(0); will-change:scroll-position;"></div>
     </div>
 
     <div id="page-notifications" class="page">
@@ -15747,7 +15750,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.3"; 
+    const CURRENT_VERSION = "1.4"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -16608,57 +16611,36 @@ async function loadPF(refreshData = false) {
 
     if (refreshData) {
         document.getElementById('totalWallet').style.opacity = "0.5";
-        
-        let updatedAssets = []; // Yeni listeyi burada toplayacağız
 
-        // --- ÖNEMLİ DEĞİŞİKLİK: Promise.all YERİNE FOR DÖNGÜSÜ ---
-        // Bu, varlıkları teker teker günceller. Daha yavaştır ama HATA VERMEZ.
-        for (let i = 0; i < as.length; i++) {
-            let a = as[i];
-            
+        // --- OPTİMİZASYON: Tüm varlıklar PARALEL olarak güncellenir ---
+        // Önce mevcut veriyle render et (anlık görüntü), sonra fiyatlar gelince sadece değerleri güncelle
+        renderPortfolioHTML(as); // Hemen eski fiyatlarla göster (donuk hissini engeller)
+
+        const updatePromises = as.map(async (a) => {
             try {
                 let savedSource = (a.source || "").toUpperCase();
                 let strictOrder = null;
+                if (savedSource.includes('MASSIVE')) strictOrder = 'MASSIVE';
+                else if (savedSource.includes('BINANCE') || savedSource.includes('CG') || a.name.includes('USDT') || a.name.includes('BTC')) strictOrder = 'CRYPTO';
+                else if (savedSource.includes('YAHOO') || savedSource.includes('BIST') || a.name.includes('.IS')) strictOrder = 'BORSA';
 
-                // --- MOD BELİRLEME ---
-                if (savedSource.includes('MASSIVE')) {
-                    strictOrder = 'MASSIVE';
-                } 
-                else if (savedSource.includes('BINANCE') || savedSource.includes('CG') || a.name.includes('USDT') || a.name.includes('BTC')) {
-                    strictOrder = 'CRYPTO';
-                } 
-                else if (savedSource.includes('YAHOO') || savedSource.includes('BIST') || a.name.includes('.IS')) {
-                    strictOrder = 'BORSA'; 
-                }
-
-                // API ÇAĞRISI (Her varlık için anlık bekleme)
                 let live = await getPrice(a.name, strictOrder);
-                
                 if (live && live.price > 0) {
                     a.curr = live.price;
                     if (live.source && live.source !== 'Piyasa') a.source = live.source;
                 }
-                // Güvenlik: curr asla 0 veya undefined olmasın
-                if (!a.curr || a.curr <= 0) {
-                    a.curr = a.buy; // En kötü ihtimal maliyeti göster
-                }
-
+                if (!a.curr || a.curr <= 0) a.curr = a.buy;
             } catch (err) {
                 console.error("Varlık hatası:", a.name, err);
-                // Hata olsa bile varlığı listeye ekle (silinmesin)
             }
-            
-            // İşlenen varlığı yeni listeye ekle
-            updatedAssets.push(a); 
-        }
+            return a;
+        });
 
-        // Tüm döngü bitince kaydet
+        // Tüm fiyatlar gelince tek seferde kaydet ve render et
+        const updatedAssets = await Promise.all(updatePromises);
         localStorage.setItem('myPF_final', JSON.stringify(updatedAssets));
         as = updatedAssets;
-        
-        // Massive zaman damgasını güncelle (Artık engel yok, her seferinde güncel)
         lastMassiveUpdate = Date.now();
-        
         document.getElementById('totalWallet').style.opacity = "1";
     }
     renderPortfolioHTML(as);
@@ -16904,9 +16886,37 @@ function renderPortfolioHTML(as) {
     </div>`; 
 });
 
-// Eğer değişken ismin HtmlBuilder ise burayı da HtmlBuilder yapmalısın.
-// Senin attığın kodda atama kısmı "htmlBuilder" (küçük harf) idi, dikkat et.
-l.innerHTML = htmlBuilder; 
+// --- AKILLI DOM GÜNCELLEME ---
+// Kart yapısı değişmediyse (sıralama, varlık sayısı aynı) sadece sayısal değerleri güncelle
+// Bu, DOM'un tamamen yeniden yazılmasını engeller ve performansı önemli ölçüde artırır
+let _renderKey = displayAssets.map(a => a.originalIndex).join(',');
+let _prevKey = l.getAttribute('data-render-key') || '';
+let _prevSort = l.getAttribute('data-sort-mode') || '';
+
+if (_renderKey === _prevKey && _prevSort === currentSortMode && l.children.length > 0) {
+    // Sadece değerleri güncelle (DOM yeniden yazılmaz)
+    let uCurrFast = appSettings.currency;
+    let symFast = uCurrFast === 'TRY' ? '₺' : '$';
+    displayAssets.forEach((a) => {
+        let pnlEl = document.getElementById('live_pnl_val_' + a.originalIndex);
+        let pctEl = document.getElementById('live_pct_' + a.originalIndex);
+        let priceEl = document.getElementById('live_price_' + a.originalIndex);
+        let totalEl = document.getElementById('live_total_val_' + a.originalIndex);
+        let badgeEl = document.getElementById('live_pnl_badge_' + a.originalIndex);
+        if (pnlEl) pnlEl.textContent = a.pnl.toFixed(0);
+        if (pctEl) pctEl.textContent = '(%' + a.pnlPercent.toFixed(1) + ')';
+        if (priceEl) priceEl.textContent = (a.origin === 'USD' ? '$' : '₺') + a.rp.toFixed(2);
+        if (totalEl) totalEl.textContent = symFast + a.dVal.toFixed(0);
+        if (badgeEl) { badgeEl.className = 'asset-pnl ' + (a.pnl >= 0 ? 'pnl-up' : 'pnl-down'); }
+    });
+} else {
+    // Yapı değişti: tam render
+    requestAnimationFrame(() => {
+        l.innerHTML = htmlBuilder;
+        l.setAttribute('data-render-key', _renderKey);
+        l.setAttribute('data-sort-mode', currentSortMode);
+    });
+}
 updateHeaderTotals(totalVal, totalUnrealizedPnL, chartData);
 checkAllAlarms();
 }
