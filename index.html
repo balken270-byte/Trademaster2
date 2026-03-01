@@ -155,7 +155,7 @@ html.ios-pwa body {
 
 /* 3) İçerik sayfaları: kaydırılabilir, nav + safe-area kadar alt boşluk */
 .page {
-    padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: calc(76px + max(env(safe-area-inset-bottom, 8px), 8px)) !important;
 }
 
 /* 4) Bottom nav: fixed, GPU layer, safe-area destekli */
@@ -3956,58 +3956,126 @@ button:active,
 }
 
 
-/* === TRADEVIA 3D WHITE ICONS (FİNAL & MAVİ VURGU YOK) === */
+/* === TRADEVIA ISLAND NAV === */
 
-:root {
-    /* Blok Rengi (Koyu Füme Cam) */
-    --dock-bg: rgba(37, 45, 63, 0.92); 
-    --dock-border: rgba(255, 255, 255, 0.12);
-}
-
-/* 1. 3D SAHNE */
+/* 1. DOCK SAHNE */
 .dock-wrapper {
     position: fixed !important;
-    bottom: max(12px, env(safe-area-inset-bottom)) !important;
+    bottom: 0 !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
-    width: 92% !important;
+    width: calc(100% - 24px) !important;
     max-width: 480px !important;
     z-index: 10000 !important;
-    padding-bottom: 0 !important;
-    
-    /* Derinlik Hissi */
-    perspective: 800px !important;
+    height: calc(68px + max(env(safe-area-inset-bottom, 8px), 8px)) !important;
+    padding: 0 0 max(env(safe-area-inset-bottom, 8px), 8px) 0 !important;
+    perspective: none !important;
+    background: transparent !important;
 }
 
-/* 2. 3D CAM BLOK GÖVDE */
+/* 2. NAV-CONTAINER = KAPALI PILL */
 .nav-container {
-    position: relative !important;
-    height: 75px !important;
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important; right: 0 !important;
     width: 100% !important;
-    
-    /* Zemin */
-    background: var(--dock-bg) !important;
-    backdrop-filter: blur(25px) !important;
-    -webkit-backdrop-filter: blur(25px) !important;
-    
-    /* 3D Kenarlar */
-    border: 1px solid var(--dock-border) !important;
-    border-top: 1px solid rgba(255,255,255,0.3) !important; /* Üst Parlama */
-    border-bottom: 6px solid rgba(0, 0, 0, 0.5) !important;  /* Alt Kalınlık (3D) */
-    border-radius: 28px !important;
-    
-    /* Gölge */
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6) !important;
-
-    /* Duruş Açısı */
-    transform: rotateX(12deg) !important;
-    transform-style: preserve-3d !important;
-    
+    height: 68px !important;
+    border-radius: 26px !important;
+    background: var(--nav-bg) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    border-top: 1.5px solid rgba(255,255,255,0.15) !important;
+    border-bottom: none !important;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 20px 50px rgba(0,0,0,0.85) !important;
     display: flex !important;
-    justify-content: space-around !important;
+    justify-content: space-evenly !important;
     align-items: center !important;
-    padding: 0 10px !important;
+    padding: 0 4px !important;
     margin: 0 !important;
+    transform: none !important;
+    transform-style: flat !important;
+    transition: opacity 0.35s ease, transform 0.35s ease !important;
+    overflow: hidden !important;
+}
+.nav-container::before {
+    content: '';
+    position: absolute; top: 0; left: 6%; right: 6%; height: 1.5px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+}
+/* Açılınca pill solar */
+.dock-wrapper.island-open .nav-container {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: scaleX(0.92) !important;
+}
+
+/* SOL C BLOK */
+.nav-left-block {
+    position: absolute !important;
+    bottom: 0 !important; left: 0 !important;
+    width: calc(50% - 46px) !important;
+    height: 68px !important;
+    opacity: 0 !important;
+    transform: translateX(46px) !important;
+    transition: opacity 0.45s ease, transform 0.5s cubic-bezier(0.34,1.4,0.64,1) !important;
+    pointer-events: none !important;
+    z-index: 2 !important;
+}
+.dock-wrapper.island-open .nav-left-block {
+    opacity: 1 !important;
+    transform: translateX(0) !important;
+    pointer-events: auto !important;
+}
+.nav-left-block canvas {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+.nav-left-block .block-icons {
+    position: relative !important;
+    z-index: 3 !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-evenly !important;
+    padding-right: 24px !important;
+}
+
+/* SAĞ TERS-C BLOK */
+.nav-right-block {
+    position: absolute !important;
+    bottom: 0 !important; right: 0 !important;
+    width: calc(50% - 46px) !important;
+    height: 68px !important;
+    opacity: 0 !important;
+    transform: translateX(-46px) !important;
+    transition: opacity 0.45s ease, transform 0.5s cubic-bezier(0.34,1.4,0.64,1) !important;
+    pointer-events: none !important;
+    z-index: 2 !important;
+}
+.dock-wrapper.island-open .nav-right-block {
+    opacity: 1 !important;
+    transform: translateX(0) !important;
+    pointer-events: auto !important;
+}
+.nav-right-block canvas {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+.nav-right-block .block-icons {
+    position: relative !important;
+    z-index: 3 !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-evenly !important;
+    padding-left: 24px !important;
 }
 
 /* 3. İKON KUTULARI */
@@ -4018,78 +4086,61 @@ button:active,
     align-items: center !important;
     justify-content: center !important;
     gap: 5px !important;
-    
-    /* --- RENGİ SABİTLE (Beyaz) --- */
-    color: #ffffff !important; 
-    opacity: 0.7; /* Pasifken biraz sönük dursun */
-    
+    color: rgba(255,255,255,0.35) !important;
+    opacity: 1 !important;
     cursor: pointer !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1) !important;
     background: transparent !important;
     border: none !important;
     height: 100% !important;
-    
-    /* --- MAVİ TIKLAMA VURGUSUNU KAPATAN KODLAR --- */
+    min-width: 0 !important;
     -webkit-tap-highlight-color: transparent !important;
     outline: none !important;
     user-select: none !important;
-    
-    /* Aşağı İtme (3-4px) */
-    padding-top: 4px !important;
-    
-    /* Zeminin üstünde tut */
-    transform: translateZ(10px) !important;
+    padding-top: 0 !important;
+    transform: none !important;
+    position: relative !important;
 }
 
 .nav-item i {
     font-size: 22px !important;
     transition: 0.3s !important;
-    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
-    color: #ffffff !important; /* İkon rengini beyaza zorla */
+    color: rgba(255,255,255,0.35) !important;
 }
 
 .nav-item span {
     font-size: 10px !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.5px;
-    color: #ffffff !important; /* Yazı rengini beyaza zorla */
+    font-weight: 700 !important;
+    letter-spacing: 0.3px;
+    color: rgba(255,255,255,0.3) !important;
 }
 
 /* 4. AKTİF DURUM */
 .nav-item.active {
-    opacity: 1 !important; /* Tam Parlak */
-    
-    /* Dengeli yukarı kalkış — tüm cihazlarda orantılı */
-    transform: translateZ(10px) translateY(-2px) !important;
+    color: #ffffff !important;
+    transform: translateY(-3px) !important;
 }
 
 .nav-item.active i {
-    /* Beyaz Neon Parlama — dengeli */
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.75) !important;
+    color: #ffffff !important;
+    filter: drop-shadow(0 0 8px rgba(255,255,255,0.8)) drop-shadow(0 0 18px var(--accent-glow, rgba(59,130,246,0.6))) !important;
     transform: scale(1.08) !important;
 }
+
+.nav-item.active span { color: white !important; font-weight: 800 !important; }
 
 /* 5. ARKADAKİ BEYAZ PULSE HALKASI */
 .nav-item.active::before {
     content: '';
     position: absolute;
-    width: 42px;
-    height: 42px;
-    
-    /* Bembeyaz Buzlu Cam */
-    background: rgba(255, 255, 255, 0.10); 
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    
-    border-radius: 14px;
-    z-index: -1; 
-    
-    /* Ortala */
-    top: 50%; left: 50%;
-    margin-top: -20px;
-    margin-left: -21px;
-    
-    /* Beyaz Animasyon */
-    animation: whitePulse 2.5s infinite !important;
+    bottom: 2px; left: 50%;
+    transform: translateX(-50%);
+    width: 20px; height: 2.5px;
+    border-radius: 2px;
+    background: var(--accent, #3b82f6);
+    box-shadow: 0 0 8px var(--accent-glow, rgba(59,130,246,0.8));
+    animation: none !important;
+    top: auto; margin: 0;
 }
 
 /* Beyaz Nefes Alma Animasyonu */
@@ -4108,15 +4159,14 @@ button:active,
 /* --- AERO NAVİGASYON - iOS SAFE AREA DÜZELTMESİ --- */
 .dock-wrapper {
     position: fixed !important;
-    /* iOS home indicator + biraz boşluk */
-    bottom: max(12px, env(safe-area-inset-bottom)) !important;
+    /* Tam alt kenar - safe area padding ile */
+    bottom: 0 !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
     width: 92% !important;
     max-width: 480px !important;
     z-index: 9999 !important;
-    /* iOS'ta taşmasın */
-    padding-bottom: 0 !important;
+    padding-bottom: max(env(safe-area-inset-bottom, 8px), 8px) !important;
 }
 
 .nav-container {
@@ -14682,36 +14732,306 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
 }
 </script>
 
-<div class="dock-wrapper">
-    <div class="nav-container">
-        
-        <div class="nav-item active" onclick="switchPage('portfolio', this)">
+<div class="dock-wrapper" id="islandDock">
+
+    <!-- KAPALI PILL: 5 İKON EŞİT -->
+    <div class="nav-container" id="navPill">
+        <div class="nav-item active" onclick="navItemClick(this,'portfolio')">
             <i class="fas fa-wallet"></i>
             <span data-lang="nav_wallet">Cüzdan</span>
         </div>
-
-        <div class="nav-item" onclick="switchPage('market', this)">
+        <div class="nav-item" onclick="navItemClick(this,'market')">
             <i class="fas fa-chart-line"></i>
             <span data-lang="nav_market">Piyasa</span>
         </div>
-
-        <div class="nav-item" onclick="switchPage('analysis', this)">
+        <div class="nav-item analiz-trigger" onclick="openIslandNav()">
             <i class="fas fa-chart-pie"></i>
             <span>Analiz</span>
         </div>
-
-        <div class="nav-item" onclick="switchPage('news', this)">
+        <div class="nav-item" onclick="navItemClick(this,'news')">
             <i class="far fa-newspaper"></i>
             <span data-lang="nav_news">Haber</span>
         </div>
-
-        <div class="nav-item" onclick="switchPage('settings', this)">
+        <div class="nav-item" onclick="navItemClick(this,'settings')">
             <i class="fas fa-cog"></i>
             <span data-lang="nav_settings">Ayarlar</span>
         </div>
-
     </div>
+
+    <!-- SOL C BLOK -->
+    <div class="nav-left-block" id="navLeftBlock">
+        <canvas id="leftBlockCanvas"></canvas>
+        <div class="block-icons">
+            <div class="nav-item" onclick="navItemClick(this,'portfolio')">
+                <i class="fas fa-wallet"></i>
+                <span data-lang="nav_wallet">Cüzdan</span>
+            </div>
+            <div class="nav-item" onclick="navItemClick(this,'market')">
+                <i class="fas fa-chart-line"></i>
+                <span data-lang="nav_market">Piyasa</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SAĞ TERS-C BLOK -->
+    <div class="nav-right-block" id="navRightBlock">
+        <canvas id="rightBlockCanvas"></canvas>
+        <div class="block-icons">
+            <div class="nav-item" onclick="navItemClick(this,'news')">
+                <i class="far fa-newspaper"></i>
+                <span data-lang="nav_news">Haber</span>
+            </div>
+            <div class="nav-item" onclick="navItemClick(this,'settings')">
+                <i class="fas fa-cog"></i>
+                <span data-lang="nav_settings">Ayarlar</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADA ALANI -->
+    <div id="islandArea" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:92px;height:100px;z-index:300;pointer-events:none;display:flex;align-items:flex-end;justify-content:center;">
+        <div id="islandWrap" style="position:relative;width:80px;height:80px;opacity:0;transform:translateY(30px) scale(0.15);pointer-events:none;">
+            <div id="islandSpawnRings" style="position:absolute;inset:0;pointer-events:none;"></div>
+            <!-- Atmosfer -->
+            <div style="position:absolute;inset:-14px;border-radius:50%;background:radial-gradient(circle,rgba(var(--island-rgb,59,130,246),0.15),rgba(var(--island-rgb,59,130,246),0.05) 55%,transparent);animation:islandAtmo 3s ease-in-out infinite;"></div>
+            <!-- Dış yörünge -->
+            <div id="orbitOut" style="position:absolute;inset:-7px;border-radius:50%;border:1px solid transparent;background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,0)) padding-box,conic-gradient(from 0deg,var(--accent,#3b82f6) 0deg,rgba(255,255,255,0.4) 60deg,rgba(255,255,255,0.03) 130deg,rgba(255,255,255,0.03) 210deg,rgba(255,255,255,0.35) 300deg,var(--accent,#3b82f6) 360deg) border-box;animation:islandSpin 3s linear infinite;"></div>
+            <div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:var(--accent,#3b82f6);box-shadow:0 0 10px var(--accent-glow,rgba(59,130,246,0.8)),0 0 24px var(--accent-glow,rgba(59,130,246,0.5));animation:islandSpin 3s linear infinite;"></div>
+            <!-- İç yörünge -->
+            <div style="position:absolute;inset:13px;border-radius:50%;border:1px dashed rgba(255,255,255,0.2);animation:islandSpin 5s linear infinite reverse;">
+                <div style="position:absolute;right:-4px;top:50%;transform:translateY(-50%);width:7px;height:7px;border-radius:50%;background:var(--accent,#3b82f6);box-shadow:0 0 8px var(--accent-glow);animation:islandSpin 5s linear infinite reverse;"></div>
+            </div>
+            <!-- Ada gövdesi -->
+            <div id="islandBody" style="position:absolute;inset:8px;border-radius:50%;background:radial-gradient(ellipse at 28% 22%,rgba(255,255,255,0.15) 0%,transparent 35%),radial-gradient(circle at 50% 50%,var(--accent,#3b82f6) 0%,color-mix(in srgb,var(--accent,#3b82f6) 60%,#000) 60%,#050a14 100%);box-shadow:0 18px 52px rgba(0,0,0,0.9),0 0 40px var(--accent-glow,rgba(59,130,246,0.5)),inset 0 3px 5px rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;animation:islandBodyFloat 2.8s ease-in-out infinite;">
+                <i class="fas fa-chart-pie" style="font-size:22px;color:rgba(255,255,255,0.9);filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));animation:islandIconFloat 2.8s ease-in-out infinite;position:relative;z-index:5;"></i>
+            </div>
+            <!-- Gölge -->
+            <div style="position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);width:50px;height:9px;border-radius:50%;background:radial-gradient(ellipse,var(--accent-glow,rgba(59,130,246,0.4)),transparent 70%);animation:islandShadow 2.8s ease-in-out infinite;"></div>
+            <!-- Label -->
+            <div id="islandLabel" style="position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:3px;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;">
+                <div style="width:26px;height:3px;border-radius:3px;overflow:hidden;background:rgba(255,255,255,0.08);">
+                    <div style="height:100%;background:linear-gradient(90deg,transparent,var(--accent,#3b82f6) 30%,rgba(255,255,255,0.8) 50%,var(--accent,#3b82f6) 70%,transparent);background-size:300%;animation:islandBarFlow 2s linear infinite;box-shadow:0 0 8px var(--accent-glow);"></div>
+                </div>
+                <span style="font-size:10px;font-weight:800;color:var(--accent,#3b82f6);letter-spacing:0.3px;">Analiz</span>
+            </div>
+        </div>
+    </div>
+
 </div>
+
+<style>
+@keyframes islandAtmo{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.15);opacity:1}}
+@keyframes islandSpin{to{transform:rotate(360deg);}}
+@keyframes islandBodyFloat{0%,100%{box-shadow:0 18px 52px rgba(0,0,0,0.9),0 0 40px var(--accent-glow,rgba(59,130,246,0.5)),inset 0 3px 5px rgba(255,255,255,0.2);}50%{box-shadow:0 28px 68px rgba(0,0,0,0.85),0 0 65px var(--accent-glow,rgba(59,130,246,0.6)),inset 0 3px 5px rgba(255,255,255,0.25);}}
+@keyframes islandIconFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes islandShadow{0%,100%{width:50px;opacity:.6}50%{width:32px;opacity:.2}}
+@keyframes islandBarFlow{0%{background-position:0%}100%{background-position:300%}}
+@keyframes islandSpawnAnim{
+  0%{opacity:0;transform:translateY(30px) scale(0.15) rotate(-20deg);filter:blur(8px);}
+  55%{opacity:1;transform:translateY(-28px) scale(1.12) rotate(4deg);filter:blur(0);}
+  72%{transform:translateY(-10px) scale(0.96) rotate(-1.5deg);}
+  86%{transform:translateY(-18px) scale(1.02) rotate(0.5deg);}
+  100%{opacity:1;transform:translateY(-14px) scale(1) rotate(0);}
+}
+@keyframes islandDespawnAnim{
+  0%{opacity:1;transform:translateY(-14px) scale(1);}
+  100%{opacity:0;transform:translateY(30px) scale(0.1) rotate(15deg);filter:blur(6px);}
+}
+@keyframes islandLevitate{0%,100%{transform:translateY(-14px);}50%{transform:translateY(-24px);}}
+@keyframes islandRingOut{0%{transform:translate(-50%,-50%) scale(0.2);opacity:1;}100%{transform:translate(-50%,-50%) scale(4.5);opacity:0;}}
+</style>
+
+<script>
+(function(){
+  var islandOpen = false;
+  var dock = document.getElementById('islandDock');
+  var wrap = document.getElementById('islandWrap');
+  var rings = document.getElementById('islandSpawnRings');
+  var label = document.getElementById('islandLabel');
+
+  // Tema rengini al
+  function getAccentRGB() {
+    var style = getComputedStyle(document.documentElement);
+    var accent = style.getPropertyValue('--accent').trim();
+    // accent hex → rgb
+    if (accent.startsWith('#')) {
+      var r = parseInt(accent.slice(1,3),16);
+      var g = parseInt(accent.slice(3,5),16);
+      var b = parseInt(accent.slice(5,7),16);
+      return r+','+g+','+b;
+    }
+    return '59,130,246';
+  }
+
+  window.navItemClick = function(el, page) {
+    if (islandOpen) closeIslandNav();
+    document.querySelectorAll('.nav-item').forEach(function(i){ i.classList.remove('active'); });
+    // Tüm eşleşen nav item'ları aktifte
+    document.querySelectorAll('.nav-item').forEach(function(i){
+      if (i.onclick && i.onclick.toString().indexOf("'"+page+"'") > -1) i.classList.add('active');
+    });
+    if (typeof switchPage === 'function') switchPage(page, el);
+  };
+
+  window.openIslandNav = function() {
+    if (islandOpen) {
+      // Zaten açıksa tekrar tıklanınca analiz sayfasına git ve kapat
+      if (typeof switchPage === 'function') switchPage('analysis', document.querySelector('.nav-item.analiz-trigger'));
+      closeIslandNav();
+      return;
+    }
+    islandOpen = true;
+    document.querySelectorAll('.nav-item').forEach(function(i){ i.classList.remove('active'); });
+    // Analiz nav itemını aktif yap
+    var analizBtn = document.querySelector('.nav-item.analiz-trigger');
+    if (analizBtn) analizBtn.classList.add('active');
+    dock.classList.add('island-open');
+    drawCBlocks();
+    // Analiz sayfasına geç
+    if (typeof switchPage === 'function') {
+      switchPage('analysis', analizBtn || document.querySelectorAll('.nav-item')[2]);
+    }
+
+    // Spawn halkaları
+    rings.innerHTML = '';
+    var accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3b82f6';
+    [0,120,240].forEach(function(d, idx) {
+      var r = document.createElement('div');
+      r.style.cssText = 'position:absolute;top:50%;left:50%;width:60px;height:60px;border-radius:50%;border:2.5px solid ' + accent + ';opacity:' + (1 - idx*0.25) + ';animation:islandRingOut 0.75s ease-out forwards;animation-delay:'+d+'ms;';
+      rings.appendChild(r);
+    });
+
+    setTimeout(function(){
+      wrap.style.animation = 'islandSpawnAnim 0.65s cubic-bezier(0.34,1.56,0.64,1) forwards';
+      wrap.style.opacity = '1';
+      setTimeout(function(){
+        wrap.style.animation = 'islandLevitate 2.8s ease-in-out infinite';
+        wrap.style.transform = 'translateY(-14px)';
+        wrap.style.opacity = '1';
+        wrap.style.pointerEvents = 'auto';
+        label.style.opacity = '1';
+      }, 660);
+    }, 100);
+  };
+
+  window.closeIslandNav = function() {
+    if (!islandOpen) return;
+    islandOpen = false;
+    label.style.opacity = '0';
+    wrap.style.animation = 'islandDespawnAnim 0.3s ease-in forwards';
+    wrap.style.pointerEvents = 'none';
+    setTimeout(function(){
+      wrap.style.animation = '';
+      wrap.style.opacity = '0';
+      wrap.style.transform = 'translateY(30px) scale(0.15)';
+      dock.classList.remove('island-open');
+      rings.innerHTML = '';
+    }, 320);
+  };
+
+  function drawCBlocks() {
+    var lc = document.getElementById('leftBlockCanvas');
+    var rc = document.getElementById('rightBlockCanvas');
+    [['left', lc], ['right', rc]].forEach(function(pair) {
+      var side = pair[0], canvas = pair[1];
+      if (!canvas) return;
+      var dpr = window.devicePixelRatio || 1;
+      var W = canvas.offsetWidth, H = canvas.offsetHeight;
+      if (!W || !H) { W = canvas.parentElement.offsetWidth; H = 68; }
+      canvas.width = W * dpr; canvas.height = H * dpr;
+      canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+      var ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      var style = getComputedStyle(document.documentElement);
+      var navBg = style.getPropertyValue('--nav-bg').trim() || 'rgba(21,27,43,0.95)';
+      var r = 24, notch = 32, notchH = 50, notchY = (H - notchH) / 2;
+
+      ctx.beginPath();
+      if (side === 'left') {
+        ctx.moveTo(r, 0);
+        ctx.arcTo(0,0, 0,r, r);
+        ctx.arcTo(0,H, r,H, r);
+        ctx.lineTo(W, H);
+        ctx.lineTo(W, notchY + notchH);
+        ctx.bezierCurveTo(W - notch*1.5, notchY + notchH*0.75, W - notch*1.5, notchY + notchH*0.25, W, notchY);
+        ctx.lineTo(W, 0);
+        ctx.closePath();
+      } else {
+        ctx.moveTo(W - r, 0);
+        ctx.arcTo(W,0, W,r, r);
+        ctx.arcTo(W,H, W-r,H, r);
+        ctx.lineTo(0, H);
+        ctx.lineTo(0, notchY + notchH);
+        ctx.bezierCurveTo(notch*1.5, notchY + notchH*0.75, notch*1.5, notchY + notchH*0.25, 0, notchY);
+        ctx.lineTo(0, 0);
+        ctx.closePath();
+      }
+
+      var grad = ctx.createLinearGradient(0,0,0,H);
+      // Parse nav-bg rengini kullan
+      grad.addColorStop(0, navBg.replace('0.95','0.97'));
+      grad.addColorStop(1, navBg.replace('0.95','0.99'));
+      ctx.fillStyle = grad;
+      ctx.shadowColor = 'rgba(0,0,0,0.7)';
+      ctx.shadowBlur = 20; ctx.shadowOffsetY = 10;
+      ctx.fill();
+      ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+
+      // Üst çizgi
+      ctx.beginPath();
+      var x1 = side==='left' ? r : W*0.2;
+      var x2 = side==='left' ? W*0.7 : W-r;
+      ctx.moveTo(x1, 1); ctx.lineTo(x2, 1);
+      var lg = ctx.createLinearGradient(0,0,W,0);
+      lg.addColorStop(0,'transparent');
+      lg.addColorStop(0.5,'rgba(255,255,255,0.2)');
+      lg.addColorStop(1,'transparent');
+      ctx.strokeStyle = lg; ctx.lineWidth = 1.5; ctx.stroke();
+
+      // Kenarlık
+      ctx.beginPath();
+      if (side === 'left') {
+        ctx.moveTo(r,0); ctx.arcTo(0,0,0,r,r); ctx.arcTo(0,H,r,H,r);
+        ctx.lineTo(W,H); ctx.lineTo(W,notchY+notchH);
+        ctx.bezierCurveTo(W-notch*1.5,notchY+notchH*0.75,W-notch*1.5,notchY+notchH*0.25,W,notchY);
+        ctx.lineTo(W,0); ctx.closePath();
+      } else {
+        ctx.moveTo(W-r,0); ctx.arcTo(W,0,W,r,r); ctx.arcTo(W,H,W-r,H,r);
+        ctx.lineTo(0,H); ctx.lineTo(0,notchY+notchH);
+        ctx.bezierCurveTo(notch*1.5,notchY+notchH*0.75,notch*1.5,notchY+notchH*0.25,0,notchY);
+        ctx.lineTo(0,0); ctx.closePath();
+      }
+      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    });
+  }
+
+  // Dock dışı tıklama
+  document.addEventListener('click', function(e){
+    if (islandOpen && !dock.contains(e.target)) closeIslandNav();
+  });
+
+  // Ada'ya tıklayınca analiz sayfasına git
+  if (wrap) {
+    wrap.addEventListener('click', function(){
+      if (typeof switchPage === 'function') {
+        var analizBtn = document.querySelector('.nav-item.analiz-trigger');
+        switchPage('analysis', analizBtn || document.querySelectorAll('.nav-item')[2]);
+      }
+      closeIslandNav();
+    });
+  }
+
+  // Tema değişince canvas'ı yeniden çiz
+  var origSetTheme = window.setTheme;
+  window.setTheme = function(t) {
+    if (origSetTheme) origSetTheme(t);
+    setTimeout(drawCBlocks, 50);
+  };
+})();
+</script>
 
 <div id="sellModal" class="modal-overlay">
     <div class="modal">
@@ -15820,7 +16140,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
