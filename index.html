@@ -15750,7 +15750,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.4"; 
+    const CURRENT_VERSION = "1.5"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -20148,27 +20148,30 @@ async function fetchMarketData() {
         // --- SENARYO 1: KRİPTO (COINGECKO) ---
         if(currentCategory === 'kripto') {
             if (coingeckoApiKey) {
-                const fetchLimit = 20; // MAX 20 VARLIK
+                const fetchLimit = 20;
                 const CACHE_TTL = 180000; // 3 dakika cache
                 
-                // Cache kontrolü - geçerliyse API'ye hiç gitme
-                try {
-                    const cached = localStorage.getItem('tv_market_cache_p1');
-                    const cachedTime = localStorage.getItem('tv_market_cache_time');
-                    const AGE = Date.now() - parseInt(cachedTime || 0);
-                    if (cached && AGE < CACHE_TTL) {
-                        const cachedData = JSON.parse(cached);
-                        if (Array.isArray(cachedData) && cachedData.length > 0) {
-                            marketDataCache = cachedData;
-                            processAndRenderData(cachedData);
-                            isMarketLoading = false;
-                            if (loader) loader.classList.remove('active');
-                            return; // Cache geçerli, API'ye gitme
+                // Cache kontrolü - SADECE sayfa 1 için geçerli
+                if (currentPage === 1) {
+                    try {
+                        const cached = localStorage.getItem('tv_market_cache_p1');
+                        const cachedTime = localStorage.getItem('tv_market_cache_time');
+                        const AGE = Date.now() - parseInt(cachedTime || 0);
+                        if (cached && AGE < CACHE_TTL) {
+                            const cachedData = JSON.parse(cached);
+                            if (Array.isArray(cachedData) && cachedData.length > 0) {
+                                marketDataCache = cachedData;
+                                processAndRenderData(cachedData);
+                                isMarketLoading = false;
+                                if (loader) loader.classList.remove('active');
+                                return; // Cache geçerli, API'ye gitme
+                            }
                         }
-                    }
-                } catch(e) {}
+                    } catch(e) {}
+                }
                 
-                const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${fetchLimit}&page=1&sparkline=false&x_cg_demo_api_key=${coingeckoApiKey}`;
+                // currentPage kullanarak doğru sayfayı çek
+                const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${fetchLimit}&page=${currentPage}&sparkline=false&x_cg_demo_api_key=${coingeckoApiKey}`;
                 
                 const res = await fetch(url);
                 const data = await res.json();
@@ -20380,32 +20383,7 @@ function renderSpecificBatch(batch) {
     listEl.insertAdjacentHTML('beforeend', html);
 }
 
-/* --- DÜZELTİLMİŞ SCROLL LISTENER (3. ADIM - FİNAL) --- */
-// 1. Önce mevcut bir container varsa onu değişkene alalım, yoksa işlem yapmayalım.
-const existingListContainer = document.getElementById('infiniteMarketList');
-
-if (existingListContainer) {
-    // Eski listener'ları temizlemek için klonlama yöntemi
-    const newContainer = existingListContainer.cloneNode(true);
-    existingListContainer.parentNode.replaceChild(newContainer, existingListContainer);
-
-    // Yeni Scroll Listener'ı ekle
-    newContainer.addEventListener('scroll', function() {
-        // Listenin sonuna 150px kala tetikle
-        if (this.scrollTop + this.clientHeight >= this.scrollHeight - 150) {
-            
-            // Zaten yükleme yapılıyorsa dur
-            if (isMarketLoading) return;
-
-            // Sadece Kripto kategorisinde ve API Key varsa çalıştır
-            if (currentCategory === 'kripto' && coingeckoApiKey) {
-                isMarketLoading = true;
-                currentPage++; 
-                fetchMarketData(); 
-            }
-        }
-    });
-}
+/* --- SCROLL LISTENER (TEK VE DOĞRU VERSİYON - aşağıda tanımlanıyor) --- */
 
 
 
@@ -21769,15 +21747,10 @@ function filterUnifiedList(val) {
     }
 }
 
-/* --- SONSUZ KAYDIRMA VE SAYFALAMA DÜZELTMESİ --- */
+/* --- SONSUZ KAYDIRMA VE SAYFALAMA --- */
 
-// 1. Önce mevcut listener'ı temizleyelim (Varsa çakışmasın)
-const listContainer = document.getElementById('infiniteMarketList');
-const newContainer = listContainer.cloneNode(true);
-listContainer.parentNode.replaceChild(newContainer, listContainer);
-
-// 2. Yeni ve Güçlü Scroll Algılayıcıyı Ekleyelim
-newContainer.addEventListener('scroll', function() {
+// Direkt elemana listener ekle (cloneNode kullanmıyoruz - element referansını kaybettiriyor)
+document.getElementById('infiniteMarketList').addEventListener('scroll', function() {
     
     // Listenin sonuna yaklaştık mı? (Son 100px kala tetiklensin)
     if (this.scrollTop + this.clientHeight >= this.scrollHeight - 100) {
