@@ -762,6 +762,22 @@ html.ios-pwa body {
         .cat-group-header { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.3); padding: 14px 4px 6px; display: flex; align-items: center; gap: 8px; }
         .cat-group-header::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.06); }
 
+        /* ── KATEGORİ KİŞİLEŞTİRME ── */
+        .cat-sw { width: 40px; height: 24px; border-radius: 12px; background: rgba(255,255,255,0.10); position: relative; transition: background 0.2s; flex-shrink: 0; }
+        .cat-sw::after { content:''; position: absolute; top: 4px; left: 4px; width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,0.5); transition: transform 0.2s, background 0.2s; }
+        .cat-sw.on { background: #C9A84C; }
+        .cat-sw.on::after { transform: translateX(16px); background: #fff; }
+        .cs-option-cat { justify-content: space-between !important; }
+        .cs-option-cat .cat-left { display:flex; align-items:center; gap:10px; }
+        .sort-chip-cat-custom { display:flex; align-items:center; gap:4px; }
+        .cat-tune-icon { font-size:10px; opacity:0.6; }
+        .cs-section-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.25); padding: 10px 18px 4px; }
+        .cs-pill-row { display:flex; flex-wrap:wrap; gap:6px; padding:6px 18px 14px; }
+        .cs-pill { padding: 5px 13px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.08); }
+        .cs-pill.active { background: rgba(201,168,76,0.15); color: #C9A84C; border-color: rgba(201,168,76,0.35); }
+        .cs-apply-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #C9A84C, #a07832); border-radius: 12px; text-align: center; font-size: 14px; font-weight: 700; color: #0b0f19; cursor: pointer; transition: opacity 0.15s; box-sizing:border-box; }
+        .cs-apply-btn:active { opacity: 0.8; }
+
         /* --- PİYASA LİSTESİ --- */
         .market-list-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; max-height: 250px; overflow-y: auto; }
         .market-row-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; cursor: pointer; transition: all 0.2s; }
@@ -15731,7 +15747,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.3"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -15949,7 +15965,142 @@ function setSortMode(mode) {
     loadPF(false); 
 }
 
-/* --- SAYFA GEÇİŞ FONKSİYONU (YENİ TASARIM İÇİN GÜNCELLENDİ) --- */
+/* ── KATEGORİ KİŞİLEŞTİRME SİSTEMİ ────────────────────────────────── */
+let catVisibility = { kripto: true, borsa: true, manuel: true };
+let catOrder      = { kripto: 0, borsa: 1, manuel: 2 };
+let catSubSort    = 'value';
+
+var _catDd = null;
+
+function _buildCatDd() {
+    var dd = document.createElement('div');
+    dd.id = 'catSelectDropdown';
+    dd.className = 'custom-select-dropdown';
+    dd.style.overflowY = 'auto';
+    document.body.appendChild(dd);
+    return dd;
+}
+
+function _renderCatDd() {
+    if (!_catDd) _catDd = _buildCatDd();
+    var cats = [
+        { key:'kripto', icon:'🔷', label:'Kripto' },
+        { key:'borsa',  icon:'📈', label:'Borsa'  },
+        { key:'manuel', icon:'✏️',  label:'Manuel' }
+    ];
+    var orderKeys = ['kripto','borsa','manuel'].sort(function(a,b){ return catOrder[a]-catOrder[b]; });
+    var subLabels = { value:'Değer', pnl:'Kâr/Zarar', alpha:'A-Z' };
+
+    _catDd.innerHTML =
+        '<div style="padding:14px 18px 8px;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,0.25);">Kategori Görünümü</div>' +
+        '<div class="cs-section-label">Göster / Gizle</div>' +
+        cats.map(function(c) {
+            return '<div class="cs-option cs-option-cat" onclick="toggleCatVis(\'' + c.key + '\')">' +
+                '<div class="cat-left"><span style="font-size:17px;">' + c.icon + '</span>' +
+                '<span style="font-size:14px;font-weight:600;color:#e2e8f0;">' + c.label + '</span></div>' +
+                '<div class="cat-sw' + (catVisibility[c.key] ? ' on' : '') + '" id="catSw_' + c.key + '"></div>' +
+            '</div>';
+        }).join('') +
+        '<div class="cs-section-label" style="margin-top:6px;">Kategori Sırası</div>' +
+        '<div style="display:flex;gap:6px;padding:6px 18px 14px;flex-wrap:nowrap;" id="catOrderRow">' +
+            orderKeys.map(function(k) {
+                var shortLabel = { kripto:'🔷 Kripto', borsa:'📈 Borsa', manuel:'✏️ Manuel' }[k];
+                return '<div class="cs-pill' + (catOrder[k]===0 ? ' active' : '') + '" style="flex:1;text-align:center;white-space:nowrap;" onclick="setCatFirst(\'' + k + '\')">' + shortLabel + '</div>';
+            }).join('') +
+        '</div>' +
+        '<div class="cs-section-label">Kategori İçi Sıralama</div>' +
+        '<div class="cs-pill-row">' +
+            ['value','pnl','alpha'].map(function(s) {
+                return '<div class="cs-pill' + (catSubSort===s ? ' active' : '') + '" id="catSub_' + s + '" onclick="setCatSubSort(\'' + s + '\')">' + subLabels[s] + '</div>';
+            }).join('') +
+        '</div>' +
+        '<div style="position:sticky;bottom:0;padding:10px 18px 16px;background:#0b0f19;">' +
+            '<div class="cs-apply-btn" onclick="applyCatSettings()">Uygula</div>' +
+        '</div>';
+}
+
+function openCatPanel(e) {
+    if (e) e.stopPropagation();
+    currentSortMode = 'cat_kripto';
+    _renderCatDd();
+
+    var dd = _catDd;
+    dd.style.cssText = 'display:block;visibility:hidden;position:fixed;top:-9999px;left:-9999px;max-height:none;overflow:visible;z-index:999999;border-radius:20px;';
+    document.body.appendChild(dd);
+
+    var bd = document.getElementById('catLightBd');
+    if (!bd) {
+        bd = document.createElement('div');
+        bd.id = 'catLightBd';
+        bd.style.cssText = 'position:fixed;inset:0;z-index:999998;background:rgba(0,0,0,0.52);transition:opacity .2s;';
+        bd.addEventListener('click', closeCatPanel);
+        document.body.appendChild(bd);
+    }
+    bd.style.display = 'block';
+    bd.style.opacity = '0';
+    requestAnimationFrame(function() { bd.style.opacity = '1'; });
+
+    requestAnimationFrame(function() { requestAnimationFrame(function() {
+        var realH = dd.scrollHeight;
+        var w     = Math.min(window.innerWidth - 32, 320);
+        var maxH  = Math.min(realH, window.innerHeight * 0.84);
+        dd.style.width      = w    + 'px';
+        dd.style.minWidth   = w    + 'px';
+        dd.style.maxHeight  = maxH + 'px';
+        dd.style.overflowY  = realH > maxH ? 'scroll' : 'hidden';
+        dd.style.left       = ((window.innerWidth  - w)    / 2) + 'px';
+        dd.style.top        = Math.max((window.innerHeight - maxH) / 2, 48) + 'px';
+        dd.style.visibility = '';
+        dd.classList.add('open');
+    }); });
+}
+
+function closeCatPanel() {
+    if (_catDd) { _catDd.classList.remove('open'); _catDd.style.display = 'none'; }
+    var bd = document.getElementById('catLightBd');
+    if (bd) { bd.style.opacity = '0'; setTimeout(function(){ bd.style.display='none'; }, 200); }
+}
+
+function _refreshCatDd() {
+    if (!_catDd) return;
+    ['kripto','borsa','manuel'].forEach(function(c) {
+        var sw = document.getElementById('catSw_' + c);
+        if (sw) sw.className = 'cat-sw' + (catVisibility[c] ? ' on' : '');
+    });
+    var orderKeys = ['kripto','borsa','manuel'];
+    var row = document.getElementById('catOrderRow');
+    if (row) row.querySelectorAll('.cs-pill').forEach(function(pill, i) {
+        pill.classList.toggle('active', catOrder[orderKeys[i]] === 0);
+    });
+    ['value','pnl','alpha'].forEach(function(s) {
+        var el = document.getElementById('catSub_' + s);
+        if (el) el.classList.toggle('active', catSubSort === s);
+    });
+}
+
+function toggleCatVis(cat) {
+    var openCount = Object.values(catVisibility).filter(Boolean).length;
+    if (catVisibility[cat] && openCount <= 1) return;
+    catVisibility[cat] = !catVisibility[cat];
+    _refreshCatDd();
+}
+
+function setCatFirst(cat) {
+    var others = ['kripto','borsa','manuel'].filter(function(c){ return c !== cat; });
+    catOrder[cat] = 0; catOrder[others[0]] = 1; catOrder[others[1]] = 2;
+    _refreshCatDd();
+}
+
+function setCatSubSort(s) {
+    catSubSort = s;
+    _refreshCatDd();
+}
+
+function applyCatSettings() {
+    closeCatPanel();
+    currentSortMode = 'cat_kripto';
+    loadPF(false);
+}
 // Aktif sayfa takibi (sayfa sıfırlama için)
 let currentActivePage = 'portfolio';
 
@@ -16628,19 +16779,25 @@ function renderPortfolioHTML(as) {
     else if(currentSortMode === 'percent_desc') displayAssets.sort((a,b) => b.pnlPercent - a.pnlPercent); 
     else if(currentSortMode === 'alpha_asc') displayAssets.sort((a,b) => a.name.localeCompare(b.name));
     else if(currentSortMode === 'cat_kripto') {
-        // 3 grup: kripto → borsa → manuel; her grup içinde değere göre
-        const catOrder = { 'kripto': 0, 'borsa': 1, 'manuel': 2 };
+        // Gizli kategorileri filtrele
+        displayAssets = displayAssets.filter(a => {
+            let cat = a.category || 'manuel';
+            return catVisibility[cat] !== false;
+        });
+        // Kullanıcının özel sırası + alt sıralama
         displayAssets.sort((a,b) => {
-            let catA = catOrder[a.category] !== undefined ? catOrder[a.category] : 1;
-            let catB = catOrder[b.category] !== undefined ? catOrder[b.category] : 1;
+            let catA = catOrder[a.category] !== undefined ? catOrder[a.category] : 99;
+            let catB = catOrder[b.category] !== undefined ? catOrder[b.category] : 99;
             if(catA !== catB) return catA - catB;
+            if(catSubSort === 'pnl') return b.pnl - a.pnl;
+            if(catSubSort === 'alpha') return a.name.localeCompare(b.name);
             return b.dVal - a.dVal;
         });
     }
 
     let htmlBuilder = ""; 
     if(displayAssets.length > 0) { 
-        htmlBuilder += `<div class="sort-scroll-wrapper"><div class="sort-chip ${(currentSortMode==='cat_kripto'||currentSortMode==='cat_borsa')?'active':''}" onclick="setSortMode('cat_kripto')">Kategori</div><div class="sort-chip ${currentSortMode==='value_desc'?'active':''}" onclick="setSortMode('value_desc')">Değer</div><div class="sort-chip ${currentSortMode==='pnl_desc'?'active':''}" onclick="setSortMode('pnl_desc')">Kazanç</div><div class="sort-chip ${currentSortMode==='pnl_asc'?'active':''}" onclick="setSortMode('pnl_asc')">Kayıp</div><div class="sort-chip ${currentSortMode==='percent_desc'?'active':''}" onclick="setSortMode('percent_desc')">Kâr (%)</div><div class="sort-chip ${currentSortMode==='alpha_asc'?'active':''}" onclick="setSortMode('alpha_asc')">A-Z</div></div>`;
+        htmlBuilder += `<div class="sort-scroll-wrapper"><div class="sort-chip ${(currentSortMode==='cat_kripto'||currentSortMode==='cat_borsa')?'active':''}" id="catChipBtn" onclick="openCatPanel(event)"><span class="sort-chip-cat-custom">Kategori&nbsp;<i class="fa-solid fa-sliders cat-tune-icon"></i></span></div><div class="sort-chip ${currentSortMode==='value_desc'?'active':''}" onclick="setSortMode('value_desc')">Değer</div><div class="sort-chip ${currentSortMode==='pnl_desc'?'active':''}" onclick="setSortMode('pnl_desc')">Kazanç</div><div class="sort-chip ${currentSortMode==='pnl_asc'?'active':''}" onclick="setSortMode('pnl_asc')">Kayıp</div><div class="sort-chip ${currentSortMode==='percent_desc'?'active':''}" onclick="setSortMode('percent_desc')">Kâr (%)</div><div class="sort-chip ${currentSortMode==='alpha_asc'?'active':''}" onclick="setSortMode('alpha_asc')">A-Z</div></div>`;
     }
 
     let lastGroupLabel = null; // Grup başlığı takipçisi
@@ -33602,6 +33759,298 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 })();
 </script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   TVPanel — MERKEZİ PANEL / DROPDOWN SİSTEMİ
+   ═══════════════════════════════════════════════════════════════
+   Tüm overlay, dropdown ve input panelleri bu tek nesne üzerinden
+   yönetilir. İleride yeni bir panel tipi eklemek için sadece
+   TVPanel.register() çağırmak yeterli.
+
+   PUBLIC API:
+     TVPanel.open(el, refBtn, arrowEl) → herhangi bir elementi panel olarak aç
+     TVPanel.close()                   → aktif paneli kapat
+     TVPanel.prompt(opts)              → input paneli → Promise<string|null>
+     TVPanel.select(name)              → dropdown aç/kapat
+     TVPanel.register(name, fn)        → yeni panel tipi kaydet
+   ═══════════════════════════════════════════════════════════════ */
+window.TVPanel = (function () {
+
+    /* ── 1. BACKDROP ──────────────────────────────────────────────────── */
+    var _bd = null;
+    function backdrop() {
+        if (!_bd) {
+            _bd = document.createElement('div');
+            _bd.id = 'tvPanelBackdrop';
+            _bd.style.cssText = [
+                'position:fixed','inset:0','z-index:999998',
+                'background:rgba(0,0,0,0)',
+                'backdrop-filter:blur(0px)','-webkit-backdrop-filter:blur(0px)',
+                'transition:background .25s,backdrop-filter .25s',
+                'display:none'
+            ].join(';');
+            document.body.appendChild(_bd);
+        }
+        return _bd;
+    }
+
+    function showBackdrop(onClickCb) {
+        var bd = backdrop();
+        bd.onclick = onClickCb || null;
+        bd.style.display = 'block';
+        requestAnimationFrame(function () {
+            bd.style.background           = 'rgba(0,0,0,0.72)';
+            bd.style.backdropFilter       = 'blur(16px)';
+            bd.style.webkitBackdropFilter = 'blur(16px)';
+        });
+    }
+
+    function hideBackdrop() {
+        var bd = backdrop();
+        bd.style.background           = 'rgba(0,0,0,0)';
+        bd.style.backdropFilter       = 'blur(0px)';
+        bd.style.webkitBackdropFilter = 'blur(0px)';
+        setTimeout(function () { bd.style.display = 'none'; bd.onclick = null; }, 260);
+    }
+
+    /* ── 2. KONUM: ekran ortası ────────────────────────────────────────── */
+    function centerEl(el, refBtn) {
+        var itemCount = el.querySelectorAll('.cs-option').length;
+        var w = Math.min(
+            refBtn ? Math.max(refBtn.getBoundingClientRect().width, 300) : 340,
+            window.innerWidth - 32
+        );
+        var maxH = itemCount > 0
+            ? Math.min(itemCount * 52 + 60, window.innerHeight * 0.65)
+            : Math.min(el.scrollHeight || 200, window.innerHeight * 0.65);
+
+        el.style.width     = w    + 'px';
+        el.style.minWidth  = w    + 'px';
+        el.style.maxHeight = maxH + 'px';
+        el.style.left      = ((window.innerWidth  - w)    / 2) + 'px';
+        el.style.top       = Math.max((window.innerHeight - maxH) / 2, 60) + 'px';
+        el.style.zIndex    = '999999';
+        el.style.overflowY = 'auto';
+    }
+
+    /* ── 3. AKTİF PANEL TAKİBİ ──────────────────────────────────────────── */
+    var _active      = null;
+    var _activeBtn   = null;
+    var _activeArrow = null;
+
+    /* ── 4. PUBLIC: open / close ─────────────────────────────────────────── */
+    function open(el, refBtn, arrowEl) {
+        close();
+        if (!el) return;
+        if (el.parentElement !== document.body) document.body.appendChild(el);
+        centerEl(el, refBtn);
+        el.classList.add('open');
+        el.style.display = 'block';
+        _active      = el;
+        _activeBtn   = refBtn  || null;
+        _activeArrow = arrowEl || null;
+        if (_activeBtn)   _activeBtn.classList.add('open');
+        if (_activeArrow) _activeArrow.classList.add('rotated');
+        showBackdrop(close);
+    }
+
+    function close() {
+        if (_active) {
+            _active.classList.remove('open');
+            _active.style.display = '';
+            _active = null;
+        }
+        if (_activeBtn)   { _activeBtn.classList.remove('open');      _activeBtn = null; }
+        if (_activeArrow) { _activeArrow.classList.remove('rotated'); _activeArrow = null; }
+        hideBackdrop();
+    }
+
+    /* ── 5. SELECT DROPDOWN ──────────────────────────────────────────────── */
+    function select(name) {
+        var dd    = document.getElementById(name + 'SelectDropdown');
+        var btn   = document.getElementById(name + 'SelectBtn');
+        var arrow = document.getElementById(name + 'SelectArrow');
+        if (!dd || !btn) return;
+        var isOpen = dd.classList.contains('open');
+        close();
+        if (!isOpen) open(dd, btn, arrow);
+    }
+
+    window.addEventListener('scroll', function () {
+        if (_active && _activeBtn) centerEl(_active, _activeBtn);
+    }, true);
+    window.addEventListener('resize', function () {
+        if (_active && _activeBtn) centerEl(_active, _activeBtn);
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('.custom-select-wrapper') &&
+            !e.target.closest('.custom-select-dropdown') &&
+            !e.target.closest('#tvPromptPanel')) {
+            close();
+        }
+    });
+
+    /* ── 6. PROMPT PANELİ ───────────────────────────────────────────────────── */
+    var _promptPanel = null;
+
+    function _buildPromptPanel() {
+        var p = document.createElement('div');
+        p.id = 'tvPromptPanel';
+        p.style.cssText = [
+            'display:none','position:fixed',
+            'background:#0d1220',
+            'border:1px solid rgba(201,168,76,0.25)',
+            'border-radius:20px','overflow:hidden',
+            'box-shadow:0 40px 80px rgba(0,0,0,0.85)',
+            'z-index:999999'
+        ].join(';');
+        p.innerHTML = [
+            '<div id="tvPPTitle" style="color:#C9A84C;font-size:15px;font-weight:700;padding:20px 20px 14px;"></div>',
+            '<div style="padding:0 16px 16px;">',
+              '<input id="tvPPInput" type="text" style="',
+                'width:100%;box-sizing:border-box;background:transparent;',
+                'border:1.5px solid rgba(201,168,76,0.35);border-radius:12px;',
+                'color:#e2e8f0;font-size:15px;font-family:inherit;',
+                'padding:13px 15px;outline:none;">',
+            '</div>',
+            '<div style="height:1px;background:rgba(255,255,255,0.07);"></div>',
+            '<div style="display:flex;">',
+              '<div id="tvPPCancel" style="flex:1;padding:16px;text-align:center;color:rgba(255,255,255,0.45);font-size:15px;font-weight:500;cursor:pointer;">İptal</div>',
+              '<div style="width:1px;background:rgba(255,255,255,0.07);"></div>',
+              '<div id="tvPPOk" style="flex:1;padding:16px;text-align:center;color:#C9A84C;font-size:15px;font-weight:700;cursor:pointer;">Tamam</div>',
+            '</div>'
+        ].join('');
+        document.body.appendChild(p);
+        return p;
+    }
+
+    function prompt(opts) {
+        opts = opts || {};
+        return new Promise(function (resolve) {
+            if (!_promptPanel) _promptPanel = _buildPromptPanel();
+            var panel  = _promptPanel;
+            var title  = panel.querySelector('#tvPPTitle');
+            var input  = panel.querySelector('#tvPPInput');
+            var okBtn  = panel.querySelector('#tvPPOk');
+            var canBtn = panel.querySelector('#tvPPCancel');
+
+            title.textContent = opts.title       || 'Giriş';
+            input.value       = opts.value        || '';
+            input.placeholder = opts.placeholder  || '';
+
+            var w    = Math.min(window.innerWidth - 48, 360);
+            var left = (window.innerWidth  - w)   / 2;
+            var top  = Math.max((window.innerHeight - 180) / 2, 60);
+            panel.style.width   = w    + 'px';
+            panel.style.left    = left + 'px';
+            panel.style.top     = top  + 'px';
+            panel.style.display = 'block';
+            panel.style.animation = 'dropdownFadeIn .28s cubic-bezier(.34,1.2,.64,1)';
+
+            showBackdrop(cancel);
+            setTimeout(function () { input.focus(); }, 80);
+
+            var newOk  = okBtn.cloneNode(true);
+            var newCan = canBtn.cloneNode(true);
+            okBtn.parentNode.replaceChild(newOk,  okBtn);
+            canBtn.parentNode.replaceChild(newCan, canBtn);
+
+            function done(val) {
+                panel.style.display = 'none';
+                hideBackdrop();
+                resolve(val);
+            }
+            function cancel() { done(null); }
+
+            newOk.addEventListener('click',  function () { done(input.value); });
+            newCan.addEventListener('click', cancel);
+        });
+    }
+
+    /* ── 7. GENİŞLETME: register ─────────────────────────────────────────────── */
+    /*
+       Yeni panel tipi eklemek için:
+         TVPanel.register('confirm', function(opts){ ...return Promise; });
+       Sonra kullanmak için:
+         TVPanel.confirm({ title:'Emin misin?', msg:'...' })
+    */
+    function register(name, fn) {
+        TVPanel[name] = fn;
+    }
+
+    /* ── 8. MEVCUT SEÇİCİ FONKSİYONLAR (backward compat) ─────────────────── */
+    window.toggleCustomSelect = function (name) { select(name); };
+
+    window.selectLabAsset = function (type, value, label) {
+        close();
+        var labelEl = document.getElementById(type + 'SelectLabel');
+        if (labelEl) labelEl.textContent = label;
+        var dd = document.getElementById(type + 'SelectDropdown');
+        if (dd) dd.querySelectorAll('.cs-option').forEach(function (o) {
+            o.classList.remove('selected');
+            if (o.getAttribute('onclick') && o.getAttribute('onclick').includes("'" + label + "'"))
+                o.classList.add('selected');
+        });
+        var selMap = { timeMachine: 'timeMachineSelect', advAvg: 'advAvgSelect' };
+        var sel = document.getElementById(selMap[type] || 'riskAssetSelect');
+        if (sel) { sel.value = value; sel.dispatchEvent(new Event('change')); }
+    };
+
+    window.selectThemeOption = function (value, label, color) {
+        document.getElementById('themeSelectLabel').textContent = label;
+        var dot = document.getElementById('themeSelectDot');
+        if (dot) { dot.style.background = color; dot.style.border = value === 'oled' ? '1px solid #555' : ''; }
+        var sel = document.getElementById('themeSelect');
+        sel.value = value; sel.dispatchEvent(new Event('change'));
+        document.querySelectorAll('#themeSelectDropdown .cs-option').forEach(function (o) {
+            o.classList.toggle('selected', o.textContent.trim() === label);
+        });
+        close();
+    };
+
+    window.selectCurrOption = function (value, label) {
+        document.getElementById('currSelectLabel').textContent = label;
+        var sel = document.getElementById('currSelect');
+        sel.value = value; sel.dispatchEvent(new Event('change'));
+        document.querySelectorAll('#currSelectDropdown .cs-option').forEach(function (o) {
+            o.classList.toggle('selected', o.textContent.trim() === label);
+        });
+        close();
+    };
+
+    window.selectLangOption = function (value, label) {
+        document.getElementById('langSelectLabel').textContent = label;
+        var sel = document.getElementById('langSelect');
+        sel.value = value; sel.dispatchEvent(new Event('change'));
+        document.querySelectorAll('#langSelectDropdown .cs-option').forEach(function (o) {
+            o.classList.toggle('selected', o.textContent.trim() === label);
+        });
+        close();
+    };
+
+    window.selectStartPageOption = function (value, label) {
+        document.getElementById('startPageSelectLabel').textContent = label;
+        var sel = document.getElementById('startPageSelect');
+        sel.value = value; sel.dispatchEvent(new Event('change'));
+        document.querySelectorAll('#startPageSelectDropdown .cs-option').forEach(function (o) {
+            o.classList.toggle('selected', o.textContent.trim() === label);
+        });
+        close();
+    };
+
+    /* ── 9. tvPrompt backward compat ────────────────────────────────────────── */
+    window.tvPrompt = function (title, defaultVal, placeholder) {
+        return TVPanel.prompt({ title: title, value: defaultVal, placeholder: placeholder });
+    };
+
+    /* ── PUBLIC API ─────────────────────────────────────────────────────────────── */
+    return { open: open, close: close, select: select, prompt: prompt, register: register, showBackdrop: showBackdrop, hideBackdrop: hideBackdrop };
+
+}());
+</script>
+
 
 </body>
 </html>
