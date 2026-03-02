@@ -1332,25 +1332,25 @@ html.ios-pwa body {
 
         /* ─── Canvas (shared background) ─── */
         #splashCanvas {
-            position: fixed;
+            position: absolute;
             inset: 0;
-            z-index: 9999990;
+            z-index: 1;
             pointer-events: none;
         }
         /* ─── Depth layers ─── */
         .splash-depth-fog {
-            position: fixed; inset: 0; z-index: 9999991; pointer-events: none;
+            position: absolute; inset: 0; z-index: 2; pointer-events: none;
             background:
                 radial-gradient(ellipse 90% 55% at 50% 105%, rgba(2,4,8,0.98) 0%, transparent 100%),
                 radial-gradient(ellipse 100% 35% at 50% -5%,  rgba(2,4,8,0.80) 0%, transparent 100%),
                 linear-gradient(to bottom, rgba(2,4,8,0.25) 0%, transparent 25%, transparent 65%, rgba(2,4,8,0.92) 100%);
         }
         .splash-depth-sides {
-            position: fixed; inset: 0; z-index: 9999991; pointer-events: none;
+            position: absolute; inset: 0; z-index: 2; pointer-events: none;
             background: linear-gradient(to right, rgba(2,4,8,0.65) 0%, transparent 22%, transparent 78%, rgba(2,4,8,0.65) 100%);
         }
         .splash-grain {
-            position: fixed; inset: 0; z-index: 9999992; pointer-events: none;
+            position: absolute; inset: 0; z-index: 3; pointer-events: none;
             opacity: 0.025;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
             background-size: 160px;
@@ -1362,7 +1362,7 @@ html.ios-pwa body {
             100% { transform: translate(3px,-2px); }
         }
         .splash-vignette {
-            position: fixed; inset: 0; z-index: 9999992; pointer-events: none;
+            position: absolute; inset: 0; z-index: 3; pointer-events: none;
             background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.72) 100%);
         }
 
@@ -1370,6 +1370,7 @@ html.ios-pwa body {
             position: fixed; inset: 0; z-index: 9999993;
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
+            padding-bottom: 80px;
             transition: opacity 0.5s ease-out, visibility 0.5s;
             background: #0b0f19;
         }
@@ -1378,6 +1379,7 @@ html.ios-pwa body {
         /* Logo */
         .logo-hexagon-wrap {
             position: relative;
+            z-index: 10;
             width: 120px; height: 120px;
             opacity: 0;
             animation: splashEntrance 1.2s cubic-bezier(0.16,1,0.3,1) 0.2s forwards,
@@ -1423,6 +1425,8 @@ html.ios-pwa body {
             margin-top: 28px;
             text-align: center;
             opacity: 0;
+            position: relative;
+            z-index: 10;
             animation: splashFadeUpIn 0.8s ease-out 0.8s forwards;
         }
         @keyframes splashFadeUpIn {
@@ -1458,6 +1462,8 @@ html.ios-pwa body {
             margin-top: 36px;
             display: flex; align-items: center; gap: 8px;
             opacity: 0;
+            position: relative;
+            z-index: 10;
             animation: splashFadeUpIn 0.8s ease-out 1.3s forwards;
         }
         .splash-live-dot {
@@ -1477,14 +1483,16 @@ html.ios-pwa body {
 
         /* Progress bar */
         .splash-loader-bar {
-            position: absolute;
-            bottom: 52px;
-            left: 50%; transform: translateX(-50%);
+            position: relative;
+            margin-top: 28px;
+            left: auto;
+            transform: none;
             width: 120px; height: 2px;
             background: rgba(255,255,255,0.06);
             border-radius: 2px;
             overflow: hidden;
             opacity: 0;
+            z-index: 10;
             animation: splashFadeUpIn 0.5s ease 1.6s forwards;
         }
         .splash-loader-bar::after {
@@ -1507,6 +1515,7 @@ html.ios-pwa body {
             display: flex; justify-content: center; gap: 12px;
             font-size: 10px; color: rgba(255,255,255,0.12);
             opacity: 0;
+            z-index: 10;
             animation: splashFadeUpIn 0.5s ease 2s forwards;
         }
         .splash-legal-footer a { color: rgba(255,255,255,0.12); text-decoration: none; transition: color 0.2s; }
@@ -5038,11 +5047,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var origHide = window.hideSplashScreen;
     window.hideSplashScreen = function() {
+        // Canvas animasyonunu hemen durdur, fade-out sırasında görünmesin
+        stopped = true;
+        if (rafId) cancelAnimationFrame(rafId);
+        var canvas = document.getElementById('splashCanvas');
+        if (canvas) { canvas.style.opacity = '0'; }
         if (origHide) origHide();
-        setTimeout(function() {
-            stopped = true;
-            if (rafId) cancelAnimationFrame(rafId);
-        }, 540);
     };
 });
 </script>
@@ -5172,14 +5182,13 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </div>
 
+<div id="splash-screen">
 <!-- ─── Splash arkaplan katmanları (canvas + fog + grain + vignette) ─── -->
 <canvas id="splashCanvas"></canvas>
 <div class="splash-depth-fog"></div>
 <div class="splash-depth-sides"></div>
 <div class="splash-grain"></div>
 <div class="splash-vignette"></div>
-
-<div id="splash-screen">
     <div class="logo-hexagon-wrap">
         <div class="logo-ring"></div>
         <div class="logo-ring-2"></div>
@@ -16511,7 +16520,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.0"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -16834,10 +16843,8 @@ function hideSplashScreen() {
         // toggle butonu ve login ekranını gizle
         if (toggleBtn) { toggleBtn.classList.add('gone'); }
         if (loginScr)  { loginScr.style.display = 'none'; }
-        // Canvas ve depth layer'ları fade-out bittikten sonra gizle
+        // fade-out bittikten sonra splash'ı (ve içindeki tüm katmanları) DOM'dan kaldır
         setTimeout(function() {
-            ['splashCanvas'].forEach(function(id) { var el = document.getElementById(id); if(el) el.style.display = 'none'; });
-            ['splash-depth-fog','splash-depth-sides','splash-grain','splash-vignette'].forEach(function(cls) { var el = document.querySelector('.'+cls); if(el) el.style.display = 'none'; });
             splash.remove();
         }, 520);
     }
