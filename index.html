@@ -16874,7 +16874,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.5"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -19673,10 +19673,28 @@ let globalSearchTimer;
 
 function filterUnifiedList(val) {
     val = val.trim(); // Boşlukları temizle
+    
+    // Aktif mod tespiti (Piyasa mı, İzleme mi?)
+    const isMain = !document.getElementById('mv-main') || document.getElementById('mv-main').classList.contains('active');
+    
+    if (!isMain) {
+        // İzleme listesi filtresi
+        const wlContainer = document.getElementById('wlList');
+        if (!wlContainer) return;
+        const wlItems = wlContainer.querySelectorAll('.wl-pro-card');
+        wlItems.forEach(item => {
+            const symEl = item.querySelector('.wl-pro-sym');
+            const text = symEl ? symEl.innerText.toUpperCase() : '';
+            item.style.display = text.includes(val.toUpperCase()) ? 'block' : 'none';
+        });
+        return;
+    }
+    
     const listContainer = document.getElementById('infiniteMarketList');
+    if (!listContainer) return;
     
     // 1. ÖNCE MEVCUT LİSTEYİ FİLTRELE (HIZLI SONUÇ)
-    // Ekranda zaten varsa anında gösterelim
+    // Sembol VE isim bazlı arama
     const items = listContainer.querySelectorAll('.infinite-item');
     let visibleCount = 0;
 
@@ -19691,16 +19709,16 @@ function filterUnifiedList(val) {
     }
 
     items.forEach(item => {
-        // Sembolü al (HTML içinden)
+        // Sembol VE isim aranır
         let symElement = item.querySelector('.ii-sym');
-        if (symElement) {
-            let text = symElement.innerText.toUpperCase();
-            if (text.includes(val.toUpperCase())) {
-                item.style.display = 'flex';
-                visibleCount++;
-            } else {
-                item.style.display = 'none';
-            }
+        let nameElement = item.querySelector('.ii-vol');
+        const symText = symElement ? symElement.innerText.toUpperCase() : '';
+        const nameText = nameElement ? nameElement.innerText.toUpperCase() : '';
+        if (symText.includes(val.toUpperCase()) || nameText.includes(val.toUpperCase())) {
+            item.style.display = 'flex';
+            visibleCount++;
+        } else {
+            item.style.display = 'none';
         }
     });
 
@@ -23955,18 +23973,7 @@ function toggleUnifiedSearch(btn) {
     }
 }
 
-// Listeyi Filtrele
-function filterUnifiedList(val) {
-    val = val.toUpperCase().trim();
-    const isMain = document.getElementById('mv-main').classList.contains('active');
-    const container = document.getElementById(isMain ? 'infiniteMarketList' : 'wlList');
-    const items = container.querySelectorAll(isMain ? '.infinite-item' : '.wl-pro-card');
-
-    items.forEach(item => {
-        let text = isMain ? item.querySelector('.ii-sym').innerText : item.querySelector('.wl-pro-sym').innerText;
-        item.style.display = text.toUpperCase().includes(val) ? (isMain ? 'flex' : 'block') : 'none';
-    });
-}
+// filterUnifiedList - yukarıda tanımlı (duplicate kaldırıldı)
 
 // Mod Değiştirme (Piyasa <-> İzleme) - GÜNCELLENMİŞ
 switchMarketMode = function(mode, btn) {
@@ -24008,6 +24015,7 @@ loadMarketCategory = function(cat, btn) {
     currentCategory = cat;
     currentPage = 1;
     marketDataCache = []; // Önceki kategori verisini kesinlikle temizle
+    window._sortedMarketCache = null; // Sıralama cache'ini de temizle
     isMarketLoading = false; // Önceki yüklemeyi iptal et
     const listEl = document.getElementById('infiniteMarketList');
     if(listEl) listEl.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 32px 60px;gap:0;"><div style="position:relative;width:80px;height:80px;margin-bottom:28px;"><svg width="80" height="80" viewBox="0 0 80 80" style="position:absolute;top:0;left:0;animation:tvSpinRing 3s linear infinite;"><circle cx="40" cy="40" r="36" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="3"/><circle cx="40" cy="40" r="36" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2.5" stroke-dasharray="40 185" stroke-linecap="round"/></svg><div style="position:absolute;inset:12px;background:linear-gradient(145deg,#1e3a8a,#0f172a);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(255,255,255,0.06);"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><polyline points="3,17 8,12 13,15 21,7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="21" cy="7" r="2.8" fill="white"/></svg></div></div><div style="font-size:17px;font-weight:900;color:#ffffff;letter-spacing:-0.3px;margin-bottom:10px;text-align:center;">Sizin için bakım yapıyoruz</div><div style="font-size:12px;color:rgba(255,255,255,0.45);font-weight:500;text-align:center;line-height:1.7;margin-bottom:28px;">Piyasa verileri güncelleniyor.<br>Hemen döneceğiz 🚀</div><div style="display:flex;gap:7px;align-items:center;"><div style="width:7px;height:7px;border-radius:50%;background:white;opacity:0.9;animation:tvDot 1.4s ease-in-out infinite;"></div><div style="width:7px;height:7px;border-radius:50%;background:white;opacity:0.7;animation:tvDot 1.4s ease-in-out 0.22s infinite;"></div><div style="width:7px;height:7px;border-radius:50%;background:white;opacity:0.5;animation:tvDot 1.4s ease-in-out 0.44s infinite;"></div></div></div>';
@@ -24029,94 +24037,7 @@ loadMarketCategory = function(cat, btn) {
 /* --- TAM KAPSAMLI GLOBAL ARAMA (COINGECKO ENGINE) --- */
 let autoSearchTimer;
 
-function filterUnifiedList(val) {
-    val = val.trim(); // Boşlukları al ama uppercase yapma (API hassas olabilir)
-    
-    // Aktif Listeyi Bul
-    const isMain = document.getElementById('mv-main').classList.contains('active');
-    const container = document.getElementById(isMain ? 'infiniteMarketList' : 'wlList');
-    if(!container) return;
-
-    // Eski sonuçları temizle
-    const oldResult = document.getElementById('global-search-result');
-    if(oldResult) oldResult.remove();
-    clearTimeout(autoSearchTimer);
-
-    // 1. MEVCUT LİSTEYİ FİLTRELE
-    const itemClass = isMain ? '.infinite-item' : '.wl-pro-card';
-    const items = container.querySelectorAll(itemClass);
-    let visibleCount = 0;
-
-    items.forEach(item => {
-        let text = isMain ? item.querySelector('.ii-sym').innerText : item.querySelector('.wl-pro-sym').innerText;
-        if (text.toUpperCase().includes(val.toUpperCase())) {
-            item.style.display = isMain ? 'flex' : 'block';
-            visibleCount++;
-        } else {
-            item.style.display = 'none';
-        }
-    });
-
-    // 2. LİSTEDE YOKSA -> COINGECKO DEV HAVUZUNDA ARA
-    if (visibleCount === 0 && val.length > 2) {
-        
-        // Yükleniyor Mesajı
-        const loadingHtml = `
-            <div id="global-search-result" style="text-align:center; padding:20px; color:var(--text-sub); animation:fadeIn 0.3s;">
-                <i class="fas fa-satellite-dish fa-spin"></i> CoinGecko Veritabanı Taranıyor: <b>${val}</b>
-            </div>`;
-        container.insertAdjacentHTML('beforeend', loadingHtml);
-
-        autoSearchTimer = setTimeout(async () => {
-            const resultBox = document.getElementById('global-search-result');
-            if(!resultBox) return;
-
-            // CoinGecko Search API (Her şeyi bulur)
-            if(typeof coingeckoApiKey !== "undefined" && coingeckoApiKey) {
-                try {
-                    const url = `https://api.coingecko.com/api/v3/search?query=${val}&x_cg_demo_api_key=${coingeckoApiKey}`;
-                    const res = await fetch(url);
-                    const data = await res.json();
-                    
-                    // İlk 5 sonucu al (Çok fazla sonuç gelebilir)
-                    const coins = data.coins ? data.coins.slice(0, 5) : [];
-
-                    if(coins.length > 0) {
-                        resultBox.innerHTML = `<div style="padding:10px; font-size:11px; color:var(--text-sub); text-align:center;">GLOBAL SONUÇLAR</div>`;
-                        
-                        coins.forEach(coin => {
-                            // Kart HTML'i
-                            resultBox.innerHTML += `
-                                <div class="infinite-item" onclick="openCoinGeckoDetail('${coin.id}')" style="border: 1px solid var(--accent); background: rgba(59, 130, 246, 0.05); margin-bottom:5px;">
-                                    <div class="ii-left">
-                                        <div class="ii-rank" style="background:#8bc34a; color:white;">CG</div>
-                                        <div class="asset-logo-wrap" style="background:transparent; border:none; width:32px; height:32px;">
-                                            <img src="${coin.thumb}" class="asset-logo-img">
-                                        </div>
-                                        <div class="ii-info">
-                                            <span class="ii-sym">${coin.symbol}</span>
-                                            <span class="ii-vol">${coin.name}</span>
-                                        </div>
-                                    </div>
-                                    <div class="ii-right">
-                                        <span class="ii-price" style="font-size:11px; color:var(--accent);">Görüntüle <i class="fas fa-chevron-right"></i></span>
-                                    </div>
-                                </div>
-                            `;
-                        });
-                    } else {
-                        resultBox.innerHTML = `<div style="opacity:0.5; text-align:center;">"${val}" bulunamadı.</div>`;
-                    }
-                } catch(e) {
-                    resultBox.innerHTML = `<div style="color:var(--danger); text-align:center;">Bağlantı Hatası</div>`;
-                }
-            } else {
-                // Anahtar yoksa eski usul
-                filterUnifiedListOld(val); 
-            }
-        }, 800);
-    }
-}
+// filterUnifiedList - yukarıda tanımlı (3. duplicate kaldırıldı)
 
 /* --- SONSUZ KAYDIRMA VE SAYFALAMA --- */
 
@@ -24137,15 +24058,23 @@ document.getElementById('infiniteMarketList').addEventListener('scroll', functio
             fetchMarketData(); // Yeni sayfayı API'den iste
         } 
         
-        // --- SENARYO 2: Diğerleri (Binance/Bist) ---
+        // --- SENARYO 2: Diğerleri (Binance/Bist) veya Sıralanmış veri ---
         // Veri zaten cache'de var, sadece sıradakileri göstermeliyiz.
         else {
-            // Cache'de daha gösterilecek veri var mı?
-            if ((currentPage * itemsPerPage) < marketDataCache.length) {
+            // Sıralama yapılmışsa _sortedMarketCache'i kullan, yoksa marketDataCache
+            const activeCache = window._sortedMarketCache || marketDataCache;
+            if ((currentPage * itemsPerPage) < activeCache.length) {
                 isMarketLoading = true;
                 currentPage++;
-                renderNextBatch(); // Cache'den sıradaki grubu bas
-                isMarketLoading = false; // İşlem bitti
+                // Sıralı cache varsa ondan render et
+                if (window._sortedMarketCache) {
+                    const start = (currentPage - 1) * itemsPerPage;
+                    const batch = window._sortedMarketCache.slice(start, start + itemsPerPage);
+                    renderSpecificBatch(batch);
+                } else {
+                    renderNextBatch();
+                }
+                isMarketLoading = false;
             }
         }
     }
@@ -33252,8 +33181,6 @@ function applyMarketSort() {
 
     switch(sortBy) {
         case 'market_cap':
-            // CoinGecko zaten market_cap_desc sırasıyla geliyor
-            // source alanındaki rank numarasını kullan (RANK #1, RANK #2...)
             sorted.sort((a, b) => {
                 const rankA = parseInt((a.source || '').replace('RANK #', '')) || 9999;
                 const rankB = parseInt((b.source || '').replace('RANK #', '')) || 9999;
@@ -33275,11 +33202,15 @@ function applyMarketSort() {
     }
 
     // Listeyi temizle ve yeniden render et
+    // NOT: sortMarketData ile entegre — currentSortType güncellenerek processAndRenderData üzerinden render edilir
     const listEl = document.getElementById('infiniteMarketList');
     if (listEl) {
         listEl.innerHTML = '';
         currentPage = 1;
-        renderSpecificBatch(sorted); // processAndRenderData değil — sıralama zaten yapıldı
+        // Sıralı veriyi render et (infinite scroll için paginated)
+        renderSpecificBatch(sorted.slice(0, (currentPage * (typeof itemsPerPage !== 'undefined' ? itemsPerPage : 20))));
+        // Kalan sayfalama için sorted'ı geçici cache'e yaz
+        window._sortedMarketCache = sorted;
     }
 }
 
@@ -33295,6 +33226,7 @@ async function filterByTrend(trend, btn) {
     if (trend === 'all') {
         currentPage = 1;
         marketDataCache = [];
+        window._sortedMarketCache = null;
         const listEl = document.getElementById('infiniteMarketList');
         if (listEl) listEl.innerHTML = '';
         
