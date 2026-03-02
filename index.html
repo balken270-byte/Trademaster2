@@ -1265,7 +1265,7 @@ html.ios-pwa body {
             width: 100%; 
             height: 100%; 
             background: rgba(4, 7, 18, 0.55); 
-            z-index: 200; 
+            z-index: 999995; 
             display: none; 
             align-items: center !important; 
             justify-content: center !important; 
@@ -15525,7 +15525,7 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
     </div>
 </div>
 
-<div id="alarmModal" class="modal-overlay">
+<div id="alarmModal" class="modal-overlay" style="align-items:center; justify-content:center; padding: calc(env(safe-area-inset-top, 12px) + 12px) 16px calc(env(safe-area-inset-bottom, 12px) + 12px); overflow-y:auto;">
     <div class="modal">
         <h3 id="alarmAssetTitle" style="text-align:center; margin-bottom:15px; color:var(--accent);">Fiyat Alarmı</h3>
         <input type="hidden" id="alarmIdx">
@@ -16520,7 +16520,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -18952,127 +18952,580 @@ function openAlarmModal(i) {
     let priceText = currentPrice > 0 ? currentPrice.toFixed(2) : "0.00";
 
     // --- ÖZEL CSS STİLLERİ ---
+    // ═══════════════════════════════════════════════════════════
+    // QUANTUM FIELD — ALARM MODAL (3 Tab Unified Design)
+    // ═══════════════════════════════════════════════════════════
     const customStyles = `
         <style>
-            .alarm-tabs { display: flex; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 4px; margin-bottom: 20px; }
-            .a-tab { flex: 1; text-align: center; padding: 10px; font-size: 12px; font-weight: 700; color: #64748b; cursor: pointer; border-radius: 8px; transition: 0.3s; }
-            .a-tab.active { background: var(--bg-card); color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-            .a-tab.active i { transform: scale(1.2); }
-            
-            .alarm-input-box { position: relative; margin-bottom: 15px; }
-            .alarm-input-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-sub); }
-            .alarm-fancy-input { width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 14px 14px 14px 40px; border-radius: 12px; color: white; font-weight: 700; font-size: 16px; outline: none; transition: 0.3s; }
-            .alarm-fancy-input:focus { border-color: var(--accent); background: rgba(59,130,246,0.05); }
-            
-            .dir-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-            .dir-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 12px 5px; border-radius: 10px; color: var(--text-sub); font-size: 10px; font-weight: 700; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; transition: 0.2s; }
-            .dir-btn i { font-size: 16px; margin-bottom: 2px; }
-            .dir-btn.active { border-color: var(--accent); background: rgba(59,130,246,0.15); color: white; }
-            .dir-btn.up.active { border-color: #10b981; background: rgba(16,185,129,0.15); color: #10b981; }
-            .dir-btn.down.active { border-color: #ef4444; background: rgba(239,68,68,0.15); color: #ef4444; }
-            
-            .ai-pulse-container { position: relative; width: 80px; height: 80px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; }
-            .ai-core { width: 50px; height: 50px; background: linear-gradient(135deg, #8b5cf6, #3b82f6); border-radius: 50%; z-index: 2; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(139, 92, 246, 0.6); }
-            .ai-core i { font-size: 22px; color: white; }
-            .ai-ripple { position: absolute; width: 100%; height: 100%; border: 2px solid rgba(139, 92, 246, 0.5); border-radius: 50%; opacity: 0; animation: ripple 2s infinite cubic-bezier(0, 0.2, 0.8, 1); }
-            .ai-ripple:nth-child(2) { animation-delay: -0.5s; }
-            @keyframes ripple { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
-            
-            .rsi-label { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-sub); font-weight: 700; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; }
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap');
+
+        /* ── MODAL RESET ── */
+        #alarmModal .modal {
+            background: #04050a !important;
+            border-radius: 28px !important;
+            border: 1px solid rgba(108,63,255,0.22) !important;
+            box-shadow: 0 0 0 1px rgba(108,63,255,0.06), 0 40px 80px rgba(0,0,0,0.7), 0 0 60px rgba(108,63,255,0.07) inset !important;
+            padding: 0 !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            max-width: 420px !important;
+            width: 93vw !important;
+            max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 32px) !important;
+            position: relative !important;
+        }
+        #alarmModal .modal::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 10%; right: 10%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(108,63,255,0.6), rgba(30,126,255,0.4), transparent);
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        /* ── CANVAS AREA (tab header visual) ── */
+        .qam-canvas {
+            position: relative;
+            height: 140px;
+            overflow: hidden;
+            background: radial-gradient(ellipse 100% 100% at 50% 0%, rgba(108,63,255,0.07) 0%, transparent 70%);
+        }
+        .qam-space-bg {
+            position: absolute; inset: 0;
+            background:
+                radial-gradient(ellipse 180px 130px at 20% 70%, rgba(108,63,255,0.13) 0%, transparent 70%),
+                radial-gradient(ellipse 140px 110px at 80% 30%, rgba(30,126,255,0.1) 0%, transparent 70%),
+                radial-gradient(ellipse 110px 80px at 60% 85%, rgba(0,214,143,0.06) 0%, transparent 60%);
+        }
+        .qam-grid {
+            position: absolute; inset: -20px;
+            background-image:
+                linear-gradient(rgba(108,63,255,0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(108,63,255,0.08) 1px, transparent 1px);
+            background-size: 28px 28px;
+            transform: perspective(400px) rotateX(20deg);
+            transform-origin: center bottom;
+            mask-image: linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%);
+            animation: qamGridFlow 8s linear infinite;
+        }
+        @keyframes qamGridFlow { 0%{background-position:0 0} 100%{background-position:0 28px} }
+
+        .qam-scanline {
+            position: absolute; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(108,63,255,0.4), rgba(30,126,255,0.5), transparent);
+            animation: qamScan 3.5s ease-in-out infinite;
+            box-shadow: 0 0 16px rgba(108,63,255,0.4);
+            pointer-events: none;
+        }
+        @keyframes qamScan { 0%{top:5%;opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{top:95%;opacity:0} }
+
+        /* ── TAB ICON SCENES ── */
+        .qam-scene { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .qam-orb-wrap { position: relative; width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; }
+
+        /* Halo — dışarıda büyüyüp küçülen parlaklık */
+        .qam-halo {
+            position:absolute; width:170px; height:170px; border-radius:50%;
+            background:radial-gradient(circle, rgba(108,63,255,0.09) 0%, transparent 70%);
+            animation:qamHaloPulse 4s ease-in-out infinite; pointer-events:none;
+        }
+        @keyframes qamHaloPulse { 0%,100%{transform:scale(1);opacity:0.7} 50%{transform:scale(1.15);opacity:1} }
+
+        /* Floating data particles */
+        .qam-particles { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+        .qam-particle {
+            position:absolute; width:2px; border-radius:1px;
+            background:var(--qp-color,#6c3fff); opacity:0;
+            animation:qamParticleFall var(--qp-dur,3s) var(--qp-delay,0s) ease-in infinite;
+        }
+        @keyframes qamParticleFall {
+            0%   { opacity:0; transform:translateY(-10px) scaleY(1); }
+            10%  { opacity:0.8; }
+            80%  { opacity:0.3; }
+            100% { opacity:0; transform:translateY(140px) scaleY(3); }
+        }
+
+        /* Shared rings */
+        .qam-ring { position: absolute; border-radius: 50%; border: 1px solid transparent; }
+        .qam-ring-1 { width: 138px; height: 138px; border-color: rgba(108,63,255,0.3); animation: qamR1 14s linear infinite; box-shadow:0 0 20px rgba(108,63,255,0.05) inset; }
+        .qam-ring-2 { width: 106px; height: 106px; border-color: rgba(30,126,255,0.25); animation: qamR2 9s linear infinite; }
+        .qam-ring-3 { width: 76px; height: 76px; border: 1px dashed rgba(0,214,143,0.2); animation: qamR3 6s linear infinite; }
+        .qam-ring-4 { width: 54px; height: 54px; border-color: rgba(108,63,255,0.4); animation: qamR4 4s linear infinite; }
+        @keyframes qamR1 { from{transform:rotate(0deg) rotateX(55deg)} to{transform:rotate(360deg) rotateX(55deg)} }
+        @keyframes qamR2 { from{transform:rotate(45deg) rotateX(55deg)} to{transform:rotate(405deg) rotateX(55deg)} }
+        @keyframes qamR3 { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
+        @keyframes qamR4 { from{transform:rotate(0deg) rotateY(40deg)} to{transform:rotate(360deg) rotateY(40deg)} }
+
+        /* Ring orbital particles */
+        .qam-ring-1::before { content:''; position:absolute; width:7px;height:7px;background:#6c3fff;border-radius:50%;top:-3.5px;left:50%;transform:translateX(-50%);box-shadow:0 0 14px #6c3fff,0 0 28px rgba(108,63,255,0.6),0 0 50px rgba(108,63,255,0.3); }
+        .qam-ring-1::after  { content:''; position:absolute; width:4px;height:4px;background:#a78bfa;border-radius:50%;bottom:-2px;right:20%;box-shadow:0 0 10px #a78bfa; }
+        .qam-ring-2::before { content:''; position:absolute; width:5px;height:5px;background:#1e7eff;border-radius:50%;bottom:-2.5px;left:50%;transform:translateX(-50%);box-shadow:0 0 12px #1e7eff,0 0 24px rgba(30,126,255,0.5); }
+        .qam-ring-2::after  { content:''; position:absolute; width:3px;height:3px;background:#60a5fa;border-radius:50%;top:-1.5px;right:15%;box-shadow:0 0 8px #60a5fa; }
+        .qam-ring-3::before { content:''; position:absolute; width:4px;height:4px;background:#00d68f;border-radius:50%;top:-2px;right:-2px;box-shadow:0 0 10px #00d68f; }
+
+        /* Nucleus core */
+        .qam-nucleus {
+            width: 52px; height: 52px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 10; position: relative;
+            animation: qamNuc 4s ease-in-out infinite;
+        }
+        .qam-nucleus-inner { position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 30% 30%,#8b5cf6,#4c1d95 50%,#1e1458);overflow:hidden; }
+        .qam-nucleus-inner::after { content:'';position:absolute;top:15%;left:20%;width:30%;height:20%;background:rgba(255,255,255,0.2);border-radius:50%;filter:blur(4px); }
+        .qam-nucleus::before { content:'';position:absolute;inset:-3px;border-radius:50%;background:conic-gradient(from 0deg,#6c3fff,#1e7eff,#00d68f,#ff3d6e,#6c3fff);z-index:-1;animation:qamNucBorder 3s linear infinite; }
+        @keyframes qamNuc { 0%,100%{transform:scale(1);filter:brightness(1)} 50%{transform:scale(1.08);filter:brightness(1.2)} }
+        @keyframes qamNucBorder { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        .qam-nucleus::after { content:'';position:absolute;inset:-12px;border-radius:50%;background:radial-gradient(circle,rgba(108,63,255,0.2) 0%,transparent 70%);animation:qamNuc 4s ease-in-out infinite; }
+        .qam-nucleus i { font-size:20px;color:white;position:relative;z-index:2;filter:drop-shadow(0 0 8px rgba(255,255,255,0.5)); }
+
+        /* Price tab icon (crosshair) */
+        .qam-crosshair-scene { position:absolute;inset:0;display:flex;align-items:center;justify-content:center; }
+        .qam-ch-outer { width:110px;height:110px;border-radius:50%;border:1px solid rgba(0,214,143,0.3);position:relative;animation:qamChOuter 8s linear infinite; }
+        @keyframes qamChOuter { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        .qam-ch-outer::before { content:'';position:absolute;width:9px;height:9px;background:#00d68f;border-radius:50%;top:-4.5px;left:50%;transform:translateX(-50%);box-shadow:0 0 14px #00d68f,0 0 28px rgba(0,214,143,0.5); }
+        .qam-ch-outer::after { content:'';position:absolute;width:5px;height:5px;background:#ff3d6e;border-radius:50%;bottom:-2.5px;right:20%;box-shadow:0 0 10px #ff3d6e; }
+        .qam-ch-inner { position:absolute;width:70px;height:70px;border-radius:50%;border:1px dashed rgba(0,214,143,0.2);animation:qamChInner 5s linear infinite reverse; }
+        @keyframes qamChInner { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        .qam-ch-core { position:relative;width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 30% 30%,rgba(0,214,143,0.5),rgba(16,185,129,0.2));display:flex;align-items:center;justify-content:center;border:1px solid rgba(0,214,143,0.4);box-shadow:0 0 20px rgba(0,214,143,0.3); }
+        .qam-ch-core i { font-size:18px;color:#00d68f;filter:drop-shadow(0 0 6px rgba(0,214,143,0.8)); }
+        /* Crosshair lines */
+        .qam-ch-line-h,.qam-ch-line-v { position:absolute;background:rgba(0,214,143,0.15); }
+        .qam-ch-line-h { width:110px;height:1px;top:50%;transform:translateY(-50%); }
+        .qam-ch-line-v { width:1px;height:110px;left:50%;transform:translateX(-50%); }
+
+        /* Volatility tab icon (lightning orb) */
+        .qam-volt-outer { width:110px;height:110px;border-radius:50%;border:1px solid rgba(245,158,11,0.3);position:relative;animation:qamVoltOuter 12s linear infinite; }
+        @keyframes qamVoltOuter { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        .qam-volt-outer::before { content:'';position:absolute;width:9px;height:9px;background:#fbbf24;border-radius:50%;top:-4.5px;left:50%;transform:translateX(-50%);box-shadow:0 0 14px #fbbf24,0 0 28px rgba(251,191,36,0.5); }
+        .qam-volt-inner { position:absolute;width:70px;height:70px;border-radius:50%;border:1px dashed rgba(245,158,11,0.2);animation:qamVoltInner 6s linear infinite; }
+        @keyframes qamVoltInner { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
+        .qam-volt-core { position:relative;width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 30% 30%,rgba(245,158,11,0.5),rgba(180,83,9,0.2));display:flex;align-items:center;justify-content:center;border:1px solid rgba(245,158,11,0.4);box-shadow:0 0 20px rgba(245,158,11,0.3);animation:qamVoltPulse 2s ease-in-out infinite; }
+        @keyframes qamVoltPulse { 0%,100%{box-shadow:0 0 20px rgba(245,158,11,0.3)} 50%{box-shadow:0 0 35px rgba(245,158,11,0.6)} }
+        .qam-volt-core i { font-size:18px;color:#fbbf24;filter:drop-shadow(0 0 6px rgba(251,191,36,0.8)); }
+
+        /* Corner live chip */
+        .qam-live-chip {
+            position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+            font-family: 'Space Mono', monospace; font-size: 7px; letter-spacing: 0.5px;
+            padding: 5px 10px; border-radius: 10px;
+            display: flex; align-items: center; gap: 5px;
+            background: rgba(108,63,255,0.12); border: 1px solid rgba(108,63,255,0.35);
+            color: #a78bfa; white-space: nowrap; z-index: 10;
+            animation: qamChipFloat 3.5s ease-in-out infinite;
+        }
+        .qam-live-chip::before { content:'';width:5px;height:5px;border-radius:50%;background:#6c3fff;box-shadow:0 0 8px #6c3fff;animation:qamLiveBlink 1.2s ease-in-out infinite;flex-shrink:0; }
+        @keyframes qamChipFloat { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-4px)} }
+        @keyframes qamLiveBlink { 0%,100%{opacity:1;box-shadow:0 0 8px #6c3fff} 50%{opacity:0.3;box-shadow:0 0 3px #6c3fff} }
+
+        /* Price chip (green) */
+        .qam-chip-green {
+            position: absolute; top: 14px; left: 14px;
+            font-family: 'Space Mono', monospace; font-size: 8px;
+            padding: 5px 9px; border-radius: 10px;
+            display: flex; align-items: center; gap: 4px;
+            background: rgba(0,214,143,0.08); border: 1px solid rgba(0,214,143,0.3);
+            color: #00d68f; z-index: 10;
+            animation: qamChipFloatL 3s ease-in-out infinite;
+        }
+        .qam-chip-red {
+            position: absolute; top: 14px; right: 14px;
+            font-family: 'Space Mono', monospace; font-size: 8px;
+            padding: 5px 9px; border-radius: 10px;
+            display: flex; align-items: center; gap: 4px;
+            background: rgba(255,61,110,0.08); border: 1px solid rgba(255,61,110,0.3);
+            color: #ff3d6e; z-index: 10;
+            animation: qamChipFloatL 3s ease-in-out infinite;
+            animation-delay: -1.5s;
+        }
+        @keyframes qamChipFloatL { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+
+        /* ── DIVIDER ── */
+        .qam-divider { height:1px;background:linear-gradient(90deg,transparent,rgba(108,63,255,0.22),rgba(30,126,255,0.15),transparent); }
+
+        /* ── BODY ── */
+        .qam-body { padding: 14px 18px 18px; }
+
+        /* ── TAB NAV ── */
+        .qam-tabs {
+            display: flex;
+            background: rgba(0,0,0,0.3);
+            border-radius: 14px;
+            padding: 4px;
+            margin-bottom: 14px;
+            border: 1px solid rgba(108,63,255,0.1);
+        }
+        .qam-tab {
+            flex: 1; text-align: center; padding: 10px 6px;
+            font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 1px;
+            font-weight: 700; color: #3d4a5c; cursor: pointer;
+            border-radius: 10px; transition: all 0.25s;
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+        }
+        .qam-tab i { font-size: 10px; }
+        .qam-tab.active {
+            background: rgba(108,63,255,0.18);
+            border: 1px solid rgba(108,63,255,0.35);
+            color: #a78bfa;
+            box-shadow: 0 2px 12px rgba(108,63,255,0.15);
+        }
+        .qam-tab.active-price { background:rgba(0,214,143,0.12);border:1px solid rgba(0,214,143,0.3);color:#00d68f; }
+        .qam-tab.active-vol { background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);color:#fbbf24; }
+
+        /* ── ASSET HEADER ── */
+        .qam-asset-row {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .qam-asset-name {
+            font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800;
+            color: white; letter-spacing: -0.3px; line-height: 1.1;
+        }
+        .qam-price-badge {
+            font-family: 'Space Mono', monospace; font-size: 10px;
+            color: #6c3fff; background: rgba(108,63,255,0.12);
+            border: 1px solid rgba(108,63,255,0.3); border-radius: 8px;
+            padding: 4px 10px;
+            text-shadow: 0 0 15px rgba(108,63,255,0.5);
+        }
+
+        /* ── INPUT FIELDS ── */
+        .qam-field-label {
+            font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: 1.5px;
+            margin-bottom: 8px; font-weight: 700;
+        }
+        .qam-field-label.up { color: rgba(0,214,143,0.7); }
+        .qam-field-label.down { color: rgba(255,61,110,0.7); }
+        .qam-field-label.neutral { color: rgba(108,63,255,0.7); }
+        .qam-field-label.warn { color: rgba(245,158,11,0.7); }
+
+        .qam-input-wrap { position: relative; margin-bottom: 14px; }
+        .qam-input-wrap i { position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:12px; }
+        .qam-input-wrap i.up { color:#00d68f; }
+        .qam-input-wrap i.down { color:#ff3d6e; }
+        .qam-input-wrap i.warn { color:#fbbf24; }
+
+        .qam-input {
+            width: 100%;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(108,63,255,0.2);
+            padding: 14px 14px 14px 38px;
+            border-radius: 12px;
+            color: white; font-weight: 700; font-size: 16px;
+            outline: none; transition: 0.3s;
+            font-family: 'Syne', sans-serif;
+        }
+        .qam-input:focus { border-color: rgba(108,63,255,0.6); background: rgba(108,63,255,0.05); box-shadow: 0 0 20px rgba(108,63,255,0.1); }
+
+        /* ── DATA PANELS (Low/High) ── */
+        .qam-data-row { display:flex;gap:8px;margin-bottom:16px; }
+        .qam-data-panel { flex:1;border-radius:12px;padding:11px 12px 10px;position:relative;overflow:hidden; }
+        .qam-data-panel::before { content:'';position:absolute;top:0;left:0;right:0;height:2px; }
+        .qam-data-panel.low { background:rgba(0,214,143,0.05);border:1px solid rgba(0,214,143,0.18); }
+        .qam-data-panel.low::before { background:linear-gradient(90deg,transparent,rgba(0,214,143,0.5),transparent); }
+        .qam-data-panel.high { background:rgba(255,61,110,0.05);border:1px solid rgba(255,61,110,0.18); }
+        .qam-data-panel.high::before { background:linear-gradient(90deg,transparent,rgba(255,61,110,0.5),transparent); }
+        .qam-panel-tag { font-family:'Space Mono',monospace;font-size:7px;letter-spacing:1.5px;margin-bottom:5px;display:flex;align-items:center;gap:4px; }
+        .qam-data-panel.low .qam-panel-tag { color:rgba(0,214,143,0.7); }
+        .qam-data-panel.high .qam-panel-tag { color:rgba(255,61,110,0.7); }
+        .qam-panel-val { font-family:'Syne',sans-serif;font-size:13px;font-weight:700; }
+        .qam-data-panel.low .qam-panel-val { color:#00d68f; }
+        .qam-data-panel.high .qam-panel-val { color:#ff3d6e; }
+
+        /* ── DIRECTION BUTTONS ── */
+        .qam-dir-grid { display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px; }
+        .qam-dir-btn {
+            background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.08);
+            padding:12px 5px; border-radius:12px; color:#3d4a5c;
+            font-family:'Space Mono',monospace; font-size:8px; letter-spacing:0.5px; font-weight:700;
+            cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px; transition:0.2s;
+        }
+        .qam-dir-btn i { font-size:14px;margin-bottom:2px; }
+        .qam-dir-btn.active { border-color:rgba(108,63,255,0.5);background:rgba(108,63,255,0.12);color:#a78bfa; }
+        .qam-dir-btn.up-active { border-color:rgba(0,214,143,0.5);background:rgba(0,214,143,0.1);color:#00d68f; }
+        .qam-dir-btn.down-active { border-color:rgba(255,61,110,0.5);background:rgba(255,61,110,0.1);color:#ff3d6e; }
+
+        /* Quick ratio buttons */
+        .qam-ratios { display:flex;gap:8px;justify-content:center;margin-bottom:14px; }
+        .qam-ratio-btn {
+            padding:7px 16px; border-radius:10px;
+            background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2);
+            color:#fbbf24; font-family:'Space Mono',monospace; font-size:10px; font-weight:700;
+            cursor:pointer; transition:0.2s;
+        }
+        .qam-ratio-btn:hover { background:rgba(245,158,11,0.15);border-color:rgba(245,158,11,0.4); }
+
+        /* ── PROGRESS BAR (RSI tab) ── */
+        .qam-progress-wrap { margin-bottom: 18px; }
+        .qam-progress-label { display:flex;justify-content:space-between;align-items:center;margin-bottom:8px; }
+        .qam-progress-title { font-family:'Space Mono',monospace;font-size:8px;color:#2d3a4d;letter-spacing:1.5px; }
+        .qam-progress-pct { font-family:'Space Mono',monospace;font-size:10px;color:#6c3fff; }
+        .qam-progress-track { height:4px;background:rgba(255,255,255,0.05);border-radius:4px;position:relative; }
+        .qam-progress-fill {
+            height:100%;width:63%;border-radius:4px;
+            background:linear-gradient(90deg,#6c3fff,#1e7eff);
+            position:relative;box-shadow:0 0 10px rgba(108,63,255,0.5);
+        }
+        .qam-progress-fill::after {
+            content:'';position:absolute;right:-1px;top:-3px;
+            width:10px;height:10px;border-radius:50%;background:white;
+            box-shadow:0 0 0 2px #6c3fff,0 0 12px rgba(108,63,255,0.6);
+        }
+        .qam-progress-dots { display:flex;justify-content:space-between;margin-top:8px;padding:0 2px; }
+        .qam-pd { font-family:'Space Mono',monospace;font-size:7px;color:#2d3a4d;letter-spacing:0.5px; }
+        .qam-pd.active { color:#6c3fff; }
+
+        /* ── MAIN CTA BUTTON ── */
+        .qam-btn-wrap { position:relative;margin-bottom:8px; }
+        .qam-btn-glow {
+            position:absolute;inset:-4px;border-radius:20px;
+            background:linear-gradient(135deg,#6c3fff,#1e7eff,#00d68f);
+            filter:blur(12px);opacity:0;
+            animation:qamBtnGlow 3s ease-in-out infinite;
+        }
+        @keyframes qamBtnGlow { 0%,100%{opacity:0.25} 50%{opacity:0.5} }
+        .qam-btn {
+            width:100%;padding:15px;border:none;border-radius:14px;
+            font-family:'Syne',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;
+            cursor:pointer;position:relative;overflow:hidden;
+            background:linear-gradient(135deg,#5b2ee8 0%,#1e7eff 50%,#0abf7e 100%);
+            background-size:200% 200%;color:white;
+            animation:qamBtnShift 5s ease-in-out infinite;
+            transition:transform 0.15s,box-shadow 0.15s;
+            display:flex;align-items:center;justify-content:center;gap:10px;
+            border:1px solid rgba(255,255,255,0.15);
+        }
+        @keyframes qamBtnShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+        .qam-btn:active { transform:scale(0.98); }
+        .qam-btn::after { content:'';position:absolute;top:0;left:-100%;width:50%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);animation:qamBtnShine 2.5s ease-in-out infinite; }
+        @keyframes qamBtnShine { 0%{left:-50%} 100%{left:150%} }
+        .qam-btn-icon { width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0; }
+
+        /* Price tab CTA - green */
+        .qam-btn.price-btn { background:linear-gradient(135deg,#065f46 0%,#10b981 50%,#34d399 100%); }
+        /* Volatility tab CTA - amber */
+        .qam-btn.vol-btn { background:linear-gradient(135deg,#78350f 0%,#d97706 50%,#fbbf24 100%); }
+        .qam-btn-glow.price-glow { background:linear-gradient(135deg,#10b981,#34d399); }
+        .qam-btn-glow.vol-glow { background:linear-gradient(135deg,#d97706,#fbbf24); }
+
+        /* ── CANCEL ── */
+        .qam-cancel { width:100%;padding:9px;background:none;border:none;color:#2d3a4d;font-size:11px;cursor:pointer;transition:color 0.2s;font-family:'Space Mono',monospace;letter-spacing:0.5px; }
+        .qam-cancel:hover { color:#4a5a72; }
+
+        /* ── INFO BOX ── */
+        .qam-info { background:rgba(245,158,11,0.08);padding:11px 13px;border-radius:11px;font-size:11px;color:#fbbf24;margin-bottom:14px;border:1px solid rgba(245,158,11,0.18);line-height:1.5; }
         </style>
     `;
 
     // --- HTML İÇERİĞİ ---
     let modalInner = `
         ${customStyles}
-        
+
         <input type="hidden" id="alarmIdx" value="${i}">
-        <div style="text-align: center; margin-bottom: 20px;">
-            <div style="font-size: 18px; font-weight: 800; color: white;">${asset.name}</div>
-            <div style="font-size: 12px; color: var(--text-sub);">Şu Anki Fiyat: <span style="color:var(--accent); font-weight:700;">${priceText}</span></div>
-        </div>
 
-        <div class="alarm-tabs">
-            <div class="a-tab active" onclick="switchNewTab('price', this)"><i class="fas fa-crosshairs"></i> Fiyat</div>
-            <div class="a-tab" onclick="switchNewTab('volatility', this)"><i class="fas fa-bolt"></i> Volatilite</div>
-            <div class="a-tab" onclick="switchNewTab('rsi', this)"><i class="fas fa-wave-square"></i> İndikatör</div>
-        </div>
+        <!-- ═══ CLOSE BUTTON ═══ -->
+        <button onclick="closeModal('alarmModal')" style="position:absolute;top:14px;right:14px;z-index:9999;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.65);font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+            <i class="fas fa-times"></i>
+        </button>
 
-        <div id="tab-content-price" class="alarm-tab-content">
-            <div style="font-size:11px; color:var(--text-sub); margin-bottom:8px; font-weight:600;">HEDEF FİYAT (YUKARI)</div>
-            <div class="alarm-input-box">
-                <i class="fas fa-arrow-up" style="color:#10b981"></i>
-                <input type="number" id="alarmUpper" class="alarm-fancy-input" placeholder="Örn: ${ (currentPrice * 1.05).toFixed(2) }">
+        <!-- ═══ CANVAS AREA (visual changes per tab) ═══ -->
+        <div class="qam-canvas" id="qamCanvas">
+            <div class="qam-space-bg"></div>
+            <div class="qam-grid"></div>
+            <div class="qam-scanline"></div>
+
+            <!-- PRICE SCENE (default hidden, shown on price tab) -->
+            <div class="qam-scene" id="qamScenePrice" style="display:none;">
+                <div class="qam-particles" id="qamParticlesPrice"></div>
+                <div class="qam-orb-wrap">
+                    <div style="position:absolute;width:130px;height:130px;border-radius:50%;border:1px solid rgba(0,214,143,0.12);"></div>
+                    <div class="qam-ch-line-h"></div>
+                    <div class="qam-ch-line-v"></div>
+                    <div class="qam-ch-outer">
+                        <div class="qam-ch-inner"></div>
+                        <div class="qam-ch-core"><i class="fas fa-crosshairs"></i></div>
+                    </div>
+                </div>
             </div>
 
-            <div style="font-size:11px; color:var(--text-sub); margin-bottom:8px; font-weight:600;">STOP / DÜŞÜŞ (AŞAĞI)</div>
-            <div class="alarm-input-box">
-                <i class="fas fa-arrow-down" style="color:#ef4444"></i>
-                <input type="number" id="alarmLower" class="alarm-fancy-input" placeholder="Örn: ${ (currentPrice * 0.95).toFixed(2) }">
-            </div>
-            
-            <button class="btn-main" onclick="saveAlarm('PRICE')">ALARM KUR</button>
-        </div>
-
-        <div id="tab-content-volatility" class="alarm-tab-content" style="display:none;">
-            <div style="background:rgba(245,158,11,0.1); padding:12px; border-radius:12px; font-size:11px; color:#fbbf24; margin-bottom:15px; border:1px solid rgba(245,158,11,0.2);">
-                <i class="fas fa-info-circle"></i> <b>Ani Hareket Yakalayıcı:</b><br>
-                Fiyat aniden sert bir hareket yaparsa (Pump veya Dump) seni uyarır.
-            </div>
-
-            <div style="font-size:11px; color:var(--text-sub); margin-bottom:8px; font-weight:600;">TAKİP YÖNÜ</div>
-            <div class="dir-grid">
-                <div class="dir-btn up" onclick="selectDirection('UP', this)"><i class="fas fa-rocket"></i> Ralli</div>
-                <div class="dir-btn active" onclick="selectDirection('BOTH', this)"><i class="fas fa-arrows-alt-v"></i> Farketmez</div>
-                <div class="dir-btn down" onclick="selectDirection('DOWN', this)"><i class="fas fa-crash"></i> Çöküş</div>
-            </div>
-            <input type="hidden" id="volDirection" value="BOTH">
-
-            <div style="font-size:11px; color:var(--text-sub); margin-bottom:8px; font-weight:600;">YÜZDE KAÇ OYNARSA?</div>
-            <div class="alarm-input-box">
-                <i class="fas fa-percent" style="color:#fbbf24"></i>
-                <input type="number" id="alarmPctUp" class="alarm-fancy-input" placeholder="%5">
-            </div>
-            
-            <div style="display:flex; gap:8px; justify-content:center; margin-bottom:15px;">
-                <button class="ratio-btn" onclick="document.getElementById('alarmPctUp').value=3">%3</button>
-                <button class="ratio-btn" onclick="document.getElementById('alarmPctUp').value=5">%5</button>
-                <button class="ratio-btn" onclick="document.getElementById('alarmPctUp').value=10">%10</button>
+            <!-- VOLATILITY SCENE -->
+            <div class="qam-scene" id="qamSceneVol" style="display:none;">
+                <div class="qam-particles" id="qamParticlesVol"></div>
+                <div class="qam-orb-wrap">
+                    <div class="qam-volt-outer">
+                        <div class="qam-volt-inner"></div>
+                        <div class="qam-volt-core"><i class="fas fa-bolt"></i></div>
+                    </div>
+                </div>
+                <div class="qam-live-chip" style="color:#fbbf24;background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.35);" >
+                    <span style="width:5px;height:5px;border-radius:50%;background:#fbbf24;box-shadow:0 0 8px #fbbf24;flex-shrink:0;"></span>
+                    ANİ HAREKET TAKİPÇİSİ
+                </div>
             </div>
 
-            <button class="btn-main" onclick="saveAlarm('VOLATILITY')">TAKİBİ BAŞLAT</button>
-        </div>
+            <!-- RSI / AI SCENE (default active) -->
+            <div class="qam-scene" id="qamSceneRsi">
+                <!-- Floating data particles -->
+                <div class="qam-particles" id="qamParticles"></div>
 
-        <div id="tab-content-rsi" class="alarm-tab-content" style="display:none;">
-            <div style="text-align:center; padding:10px 0;">
-                
-                <div class="ai-pulse-container">
-                    <div class="ai-ripple"></div>
-                    <div class="ai-ripple"></div>
-                    <div class="ai-core">
+                <div class="qam-orb-wrap" style="width:180px;height:180px;">
+                    <div class="qam-halo"></div>
+                    <div class="qam-ring qam-ring-1"></div>
+                    <div class="qam-ring qam-ring-2"></div>
+                    <div class="qam-ring qam-ring-3"></div>
+                    <div class="qam-ring qam-ring-4"></div>
+                    <div class="qam-nucleus">
+                        <div class="qam-nucleus-inner"></div>
                         <i class="fas fa-brain"></i>
                     </div>
                 </div>
+                <div class="qam-live-chip">CANLI ANALİZ · ${asset.name} · 30G</div>
+            </div>
+        </div>
 
-                <div style="font-size:15px; font-weight:800; color:white;">AI Trend Analizi</div>
-                <p style="font-size:11px; color:var(--text-sub); margin:10px 0; line-height:1.6;">
-                    Yapay zeka, <b>${asset.name}</b> fiyatının <b>son 30 günün</b> zirve ve dip noktalarına göre konumunu izler.<br>Fırsat oluştuğunda otomatik bildirir.
-                </p>
-                
-                <div class="rsi-label">
-                    <span style="color:#10b981"><i class="fas fa-arrow-down"></i> AYLIK DİP</span>
-                    <span style="color:#ef4444">AYLIK ZİRVE <i class="fas fa-arrow-up"></i></span>
+        <div class="qam-divider"></div>
+
+        <!-- ═══ BODY ═══ -->
+        <div class="qam-body">
+
+            <!-- Asset header -->
+            <div class="qam-asset-row">
+                <div class="qam-asset-name">${asset.name}<br><span style="font-size:12px;color:#3d4a5c;font-weight:400;font-family:'Space Mono',monospace;letter-spacing:0.5px;">Alarm Kurulumu</span></div>
+                <div class="qam-price-badge">\$${priceText}</div>
+            </div>
+
+            <!-- Tab nav -->
+            <div class="qam-tabs">
+                <div class="qam-tab active active-price" id="qamTabPrice" onclick="qamSwitchTab('price')"><i class="fas fa-crosshairs"></i> FİYAT</div>
+                <div class="qam-tab" id="qamTabVol" onclick="qamSwitchTab('vol')"><i class="fas fa-bolt"></i> VOLATİLİTE</div>
+                <div class="qam-tab" id="qamTabRsi" onclick="qamSwitchTab('rsi')"><i class="fas fa-brain"></i> AI</div>
+            </div>
+
+            <!-- ─── PRICE TAB ─── -->
+            <div id="qamPanePrice" class="alarm-tab-content">
+                <div class="qam-field-label up"><i class="fas fa-arrow-up" style="font-size:8px;"></i> YÜKSELIŞ HEDEFİ</div>
+                <div class="qam-input-wrap">
+                    <i class="fas fa-arrow-up up"></i>
+                    <input type="number" id="alarmUpper" class="qam-input" placeholder="Örn: ${ (currentPrice * 1.05).toFixed(2) }">
+                </div>
+
+                <div class="qam-field-label down"><i class="fas fa-arrow-down" style="font-size:8px;"></i> STOP / DÜŞÜŞ SINIRI</div>
+                <div class="qam-input-wrap">
+                    <i class="fas fa-arrow-down down"></i>
+                    <input type="number" id="alarmLower" class="qam-input" placeholder="Örn: ${ (currentPrice * 0.95).toFixed(2) }">
+                </div>
+
+                <div class="qam-data-row">
+                    <div class="qam-data-panel low">
+                        <div class="qam-panel-tag"><i class="fas fa-arrow-down" style="font-size:6px;"></i> MEVCUT FİYAT</div>
+                        <div class="qam-panel-val">\$${priceText}</div>
+                    </div>
+                    <div class="qam-data-panel high">
+                        <div class="qam-panel-tag">FİYAT ALARMI <i class="fas fa-bell" style="font-size:6px;"></i></div>
+                        <div class="qam-panel-val">2 Yön</div>
+                    </div>
+                </div>
+
+                <div class="qam-btn-wrap">
+                    <div class="qam-btn-glow price-glow"></div>
+                    <button class="qam-btn price-btn" onclick="saveAlarm('PRICE')">
+                        <span class="qam-btn-icon"><i class="fas fa-bell" style="font-size:8px;"></i></span>
+                        ALARM KUR
+                    </button>
                 </div>
             </div>
-            
-            <button class="btn-main" onclick="saveAlarm('RSI')" style="margin-top:20px; background:linear-gradient(135deg, #8b5cf6, #3b82f6); box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);">
-                <i class="fas fa-magic"></i> ANALİZİ BAŞLAT
-            </button>
-        </div>
-        
-        <div style="margin-top:15px; text-align:center;">
-            <button onclick="closeModal('alarmModal')" style="background:none; border:none; color:var(--text-sub); font-size:12px; cursor:pointer;">Vazgeç</button>
-        </div>
+
+            <!-- ─── VOLATILITY TAB ─── -->
+            <div id="qamPaneVol" class="alarm-tab-content" style="display:none;">
+                <div class="qam-info">
+                    <i class="fas fa-info-circle"></i> <b>Ani Hareket Yakalayıcı:</b><br>
+                    Fiyat aniden sert bir hareket yaparsa (Pump / Dump) seni uyarır.
+                </div>
+
+                <div class="qam-field-label neutral">TAKİP YÖNÜ</div>
+                <div class="qam-dir-grid">
+                    <div class="qam-dir-btn" id="dirUp" onclick="qamDir('UP')"><i class="fas fa-rocket"></i> RALLİ</div>
+                    <div class="qam-dir-btn active" id="dirBoth" onclick="qamDir('BOTH')"><i class="fas fa-arrows-alt-v"></i> İKİSİ</div>
+                    <div class="qam-dir-btn" id="dirDown" onclick="qamDir('DOWN')"><i class="fas fa-skull-crossbones"></i> ÇÖKÜŞ</div>
+                </div>
+                <input type="hidden" id="volDirection" value="BOTH">
+
+                <div class="qam-field-label warn"><i class="fas fa-percent" style="font-size:7px;"></i> YÜZDE KAÇ OYNARSA?</div>
+                <div class="qam-input-wrap">
+                    <i class="fas fa-percent warn"></i>
+                    <input type="number" id="alarmPctUp" class="qam-input" placeholder="%5">
+                </div>
+                <div class="qam-ratios">
+                    <button class="qam-ratio-btn" onclick="document.getElementById('alarmPctUp').value=3">%3</button>
+                    <button class="qam-ratio-btn" onclick="document.getElementById('alarmPctUp').value=5">%5</button>
+                    <button class="qam-ratio-btn" onclick="document.getElementById('alarmPctUp').value=10">%10</button>
+                </div>
+
+                <div class="qam-btn-wrap">
+                    <div class="qam-btn-glow vol-glow"></div>
+                    <button class="qam-btn vol-btn" onclick="saveAlarm('VOLATILITY')">
+                        <span class="qam-btn-icon"><i class="fas fa-satellite-dish" style="font-size:8px;"></i></span>
+                        TAKİBİ BAŞLAT
+                    </button>
+                </div>
+            </div>
+
+            <!-- ─── RSI / AI TAB ─── -->
+            <div id="qamPaneRsi" class="alarm-tab-content" style="display:none;">
+                <div class="qam-asset-row" style="margin-bottom:10px;">
+                    <div>
+                        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:white;line-height:1.1;">AI Trend<br>Analizi</div>
+                        <span style="font-family:'Space Mono',monospace;font-size:7px;letter-spacing:1.5px;padding:4px 8px;border-radius:6px;background:rgba(108,63,255,0.15);border:1px solid rgba(108,63,255,0.3);color:#a78bfa;margin-top:4px;display:inline-block;">NEURAL ENGINE v2</span>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                        <div id="qamRsiPct" style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:#6c3fff;line-height:1;text-shadow:0 0 20px rgba(108,63,255,0.5);">--</div>
+                        <div style="font-family:'Space Mono',monospace;font-size:7px;color:#3d4a5c;letter-spacing:1.5px;">POZİSYON</div>
+                    </div>
+                </div>
+
+                <p style="font-size:11px;color:#4a5a72;line-height:1.6;margin-bottom:12px;">
+                    Yapay zeka, <strong style="color:#8899b0;">${asset.name}</strong> fiyatının <strong style="color:#8899b0;">son 30 günün</strong> zirve ve dip noktalarına göre konumunu sürekli izler. Fırsat oluştuğunda otomatik bildirir.
+                </p>
+
+                <div style="font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1.5px;color:rgba(108,63,255,0.7);margin-bottom:8px;">ALARM SEÇ · TIKLAYARAK AKTİF ET</div>
+                <div class="qam-data-row">
+                    <div class="qam-data-panel low" id="qamBtnLow" onclick="saveAlarmAtLevel('DOWN')" style="cursor:pointer;transition:all 0.2s;position:relative;">
+                        <div class="qam-panel-tag"><i class="fas fa-arrow-down" style="font-size:6px;"></i> AYLIK DİP <i class="fas fa-bell" style="font-size:7px;margin-left:4px;opacity:0.6;"></i></div>
+                        <div class="qam-panel-val" id="qamLow30">Yükleniyor...</div>
+                        <div style="font-size:8px;color:rgba(0,214,143,0.4);margin-top:3px;font-family:'Space Mono',monospace;letter-spacing:0.5px;" id="qamLowSub">30G EN DÜŞÜK</div>
+                    </div>
+                    <div class="qam-data-panel high" id="qamBtnHigh" onclick="saveAlarmAtLevel('UP')" style="cursor:pointer;transition:all 0.2s;position:relative;">
+                        <div class="qam-panel-tag">AYLIK ZİRVE <i class="fas fa-arrow-up" style="font-size:6px;"></i> <i class="fas fa-bell" style="font-size:7px;margin-left:4px;opacity:0.6;"></i></div>
+                        <div class="qam-panel-val" id="qamHigh30">Yükleniyor...</div>
+                        <div style="font-size:8px;color:rgba(255,61,110,0.4);margin-top:3px;font-family:'Space Mono',monospace;letter-spacing:0.5px;" id="qamHighSub">30G EN YÜKSEK</div>
+                    </div>
+                </div>
+
+                <div class="qam-progress-wrap">
+                    <div class="qam-progress-label">
+                        <span class="qam-progress-title">ARALIK İÇİ KONUM</span>
+                        <span class="qam-progress-pct" id="qamProgressPct">--%</span>
+                    </div>
+                    <div class="qam-progress-track">
+                        <div class="qam-progress-fill" id="qamProgressFill" style="width:0%"></div>
+                    </div>
+                    <div class="qam-progress-dots">
+                        <span class="qam-pd">DİP</span>
+                        <span class="qam-pd active">▼ ŞU AN</span>
+                        <span class="qam-pd">ZİRVE</span>
+                    </div>
+                </div>
+
+                <div class="qam-btn-wrap">
+                    <div class="qam-btn-glow"></div>
+                    <button class="qam-btn" onclick="saveAlarm('RSI')">
+                        <span class="qam-btn-icon"><i class="fas fa-play" style="font-size:8px;"></i></span>
+                        ANALİZİ BAŞLAT
+                    </button>
+                </div>
+            </div>
+
+        </div><!-- /qam-body -->
     `;
 
     // Eski modalın içini temizle ve yenisini bas
@@ -19080,29 +19533,328 @@ function openAlarmModal(i) {
     if(modalEl) {
         modalEl.innerHTML = modalInner;
         document.getElementById('alarmModal').style.display = 'flex';
+        // Default olarak fiyat tab'ını aktif et
+        qamSwitchTab('price');
+
+        // ─── Quantum Field Particles — tüm scene'lere ───
+        (function() {
+            var colors = ['#6c3fff','#1e7eff','#00d68f','#a78bfa','#60a5fa'];
+            ['qamParticles','qamParticlesPrice','qamParticlesVol'].forEach(function(containerId) {
+                var container = document.getElementById(containerId);
+                if (!container) return;
+                for (var p = 0; p < 22; p++) {
+                    var el = document.createElement('div');
+                    el.className = 'qam-particle';
+                    var color = colors[Math.floor(Math.random() * colors.length)];
+                    el.style.cssText = 'left:' + (Math.random()*100) + '%;height:' + (20+Math.random()*60) + 'px;--qp-color:' + color + ';--qp-dur:' + (2.5+Math.random()*4) + 's;--qp-delay:-' + (Math.random()*5) + 's;';
+                    container.appendChild(el);
+                }
+            });
+        })();
+
+        // ─── 30G Veri: CoinGecko (A) → Binance (B) → Massive (C) → Polygon (D) ───
+        window._qamLow30 = null;
+        window._qamHigh30 = null;
+        window._qamAssetIdx = i;
+
+        (async function() {
+            let low30 = Infinity, high30 = -Infinity, dataFound = false;
+
+            // API key — let değişkeni window'a bağlanmaz, direkt referans et
+            const CG_KEY = typeof AUTO_CG_KEY !== 'undefined' ? AUTO_CG_KEY
+                         : (typeof coingeckoApiKey !== 'undefined' ? coingeckoApiKey : '');
+
+            // Sembolü temizle — tüm prefix/suffix at
+            let cleanSym = (asset.name || '')
+                .replace(/^BINANCE:/i,'').replace(/^NASDAQ:/i,'').replace(/^NYSE:/i,'')
+                .replace(/^BIST:/i,'').replace(/^TVC:/i,'').replace(/^FX:/i,'')
+                .replace(/USDT$/i,'').replace(/BUSD$/i,'').replace(/USDC$/i,'')
+                .replace(/TRY$/i,'').replace(/BTC$/i,'').replace(/ETH$/i,'')
+                .trim().toUpperCase();
+
+            // ── PLAN A: CoinGecko arama → OHLC (en doğru high/low) ──
+            if (CG_KEY) {
+                try {
+                    // 1. Sembolü CoinGecko ID'ye çevir
+                    const sRes = await fetch(
+                        `https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(cleanSym)}&x_cg_demo_api_key=${CG_KEY}`
+                    );
+                    if (sRes.ok) {
+                        const sData = await sRes.json();
+                        const coins = sData.coins || [];
+                        if (coins.length > 0) {
+                            // Önce tam sembol eşleşmesi, sonra isim içerenler, sonra ilk sonuç
+                            const matched = coins.find(c => c.symbol.toUpperCase() === cleanSym)
+                                         || coins.find(c => c.name.toUpperCase().includes(cleanSym))
+                                         || coins[0];
+                            const cgId = matched.id;
+
+                            // 2. OHLC dene: [ts, open, HIGH, LOW, close]
+                            const oRes = await fetch(
+                                `https://api.coingecko.com/api/v3/coins/${cgId}/ohlc?vs_currency=usd&days=30&x_cg_demo_api_key=${CG_KEY}`
+                            );
+                            if (oRes.ok) {
+                                const oData = await oRes.json();
+                                if (Array.isArray(oData) && oData.length > 0) {
+                                    oData.forEach(c => { if(c[2]>high30)high30=c[2]; if(c[3]<low30)low30=c[3]; });
+                                    dataFound = true;
+                                }
+                            }
+                            // 3. OHLC boşsa market_chart dene
+                            if (!dataFound) {
+                                const cRes = await fetch(
+                                    `https://api.coingecko.com/api/v3/coins/${cgId}/market_chart?vs_currency=usd&days=30&x_cg_demo_api_key=${CG_KEY}`
+                                );
+                                if (cRes.ok) {
+                                    const cData = await cRes.json();
+                                    if (cData.prices && cData.prices.length > 0) {
+                                        cData.prices.forEach(p => { if(p[1]>high30)high30=p[1]; if(p[1]<low30)low30=p[1]; });
+                                        dataFound = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch(cgErr) { /* Plan B'ye geç */ }
+            }
+
+            // ── PLAN B: Binance klines — kripto yedek ──
+            if (!dataFound) {
+                try {
+                    const bRes = await fetch(
+                        `https://api.binance.com/api/v3/klines?symbol=${cleanSym}USDT&interval=1d&limit=30`
+                    );
+                    if (bRes.ok) {
+                        const candles = await bRes.json();
+                        if (Array.isArray(candles) && candles.length > 0) {
+                            candles.forEach(c => {
+                                const h=parseFloat(c[2]), l=parseFloat(c[3]);
+                                if(h>high30)high30=h; if(l<low30)low30=l;
+                            });
+                            dataFound = true;
+                        }
+                    }
+                } catch(binErr) {}
+            }
+
+            // ── PLAN C: CoinGecko Massive — hardcoded ID (rate limit / küçük coin fallback) ──
+            if (!dataFound) {
+                const massiveMap = {
+                    'BTC':'bitcoin','ETH':'ethereum','BNB':'binancecoin','SOL':'solana',
+                    'XRP':'ripple','DOGE':'dogecoin','ADA':'cardano','AVAX':'avalanche-2',
+                    'DOT':'polkadot','MATIC':'matic-network','LINK':'chainlink','UNI':'uniswap',
+                    'ATOM':'cosmos','LTC':'litecoin','BCH':'bitcoin-cash','XLM':'stellar',
+                    'ALGO':'algorand','ICP':'internet-computer','FIL':'filecoin','TRX':'tron',
+                    'NEAR':'near','APT':'aptos','ARB':'arbitrum','OP':'optimism',
+                    'INJ':'injective-protocol','SUI':'sui','SEI':'sei-network',
+                    'TIA':'celestia','PEPE':'pepe','WIF':'dogwifcoin',
+                    'SHIB':'shiba-inu','TON':'the-open-network','HBAR':'hedera-hashgraph',
+                    'VET':'vechain','FTM':'fantom','SAND':'the-sandbox','MANA':'decentraland',
+                    'AXS':'axie-infinity','CRV':'curve-dao-token','AAVE':'aave',
+                    'MKR':'maker','LDO':'lido-dao','RUNE':'thorchain','ZEC':'zcash',
+                    'XMR':'monero','ETC':'ethereum-classic','RENDER':'render-token',
+                    'FET':'fetch-ai','GRT':'the-graph','BAT':'basic-attention-token',
+                    'CAKE':'pancakeswap-token','BONK':'bonk','PYTH':'pyth-network',
+                    'JUP':'jupiter-exchange-solana','NOT':'notcoin','DOGS':'dogs',
+                    'STRK':'starknet','BLUR':'blur','IMX':'immutable-x',
+                    'GALA':'gala','CHZ':'chiliz','ENJ':'enjincoin','FLOW':'flow',
+                    'SNX':'synthetix-network-token','COMP':'compound-governance-token',
+                    'KSM':'kusama','DASH':'dash','1INCH':'1inch',
+                    'PIPPIN':'pippin-the-dog','MEW':'cat-in-a-dogs-world',
+                    'POPCAT':'popcat','MOG':'mog-coin','BOME':'book-of-meme',
+                    'WEN':'wen-4','MYRO':'myro','FLOKI':'floki','BABYDOGE':'baby-doge-coin',
+                    'TURBO':'turbo','BRETT':'based-brett','ANDY':'andyerc','NEIRO':'neiro-on-eth',
+                    'MOODENG':'moo-deng','PNUT':'peanut-the-squirrel','ACT':'act-i-the-ai-prophecy',
+                    'GOAT':'goat-of-all-trades','FWOG':'fwog','AI16Z':'ai16z',
+                    'VIRTUAL':'virtual-protocol','AIXBT':'aixbt-by-virtuals'
+                };
+                const cgId = massiveMap[cleanSym];
+                if (cgId) {
+                    try {
+                        const baseUrl = `https://api.coingecko.com/api/v3/coins/${cgId}/ohlc?vs_currency=usd&days=30`;
+                        const mRes = await fetch(CG_KEY ? `${baseUrl}&x_cg_demo_api_key=${CG_KEY}` : baseUrl);
+                        if (mRes.ok) {
+                            const mData = await mRes.json();
+                            if (Array.isArray(mData) && mData.length > 0) {
+                                mData.forEach(c => { if(c[2]>high30)high30=c[2]; if(c[3]<low30)low30=c[3]; });
+                                dataFound = true;
+                            }
+                        }
+                    } catch(mErr) {}
+                }
+            }
+
+            // ── PLAN D: Polygon.io — ABD hisseleri (AAPL, TSLA, NVDA...) ──
+            if (!dataFound) {
+                try {
+                    const pKey = typeof polyApiKey !== 'undefined' ? polyApiKey
+                               : localStorage.getItem('tm_poly_key');
+                    if (!pKey) throw new Error('no polygon key');
+                    const toDate   = new Date();
+                    const fromDate = new Date(); fromDate.setDate(fromDate.getDate() - 31);
+                    const dateFmt  = d => d.toISOString().split('T')[0];
+                    const pRes = await fetch(
+                        `https://api.polygon.io/v2/aggs/ticker/${cleanSym}/range/1/day/${dateFmt(fromDate)}/${dateFmt(toDate)}?adjusted=true&sort=asc&limit=31&apiKey=${pKey}`
+                    );
+                    if (pRes.ok) {
+                        const pData = await pRes.json();
+                        if (pData.results && pData.results.length > 0) {
+                            pData.results.forEach(bar => { if(bar.h>high30)high30=bar.h; if(bar.l<low30)low30=bar.l; });
+                            dataFound = true;
+                        }
+                    }
+                } catch(polyErr) {}
+            }
+
+            // ── UI Güncelle ──
+            const fmt = v => {
+                if (!isFinite(v)) return 'Veri yok';
+                if (v >= 10000) return '$' + v.toFixed(0);
+                if (v >= 1000)  return '$' + v.toFixed(2);
+                if (v >= 1)     return '$' + v.toFixed(4);
+                if (v >= 0.01)  return '$' + v.toFixed(5);
+                return '$' + v.toFixed(8);
+            };
+
+            const lowEl   = document.getElementById('qamLow30');
+            const highEl  = document.getElementById('qamHigh30');
+            const lowSub  = document.getElementById('qamLowSub');
+            const highSub = document.getElementById('qamHighSub');
+            const pctEl   = document.getElementById('qamRsiPct');
+            const pctLbl  = document.getElementById('qamProgressPct');
+            const fillEl  = document.getElementById('qamProgressFill');
+
+            if (dataFound && isFinite(low30) && isFinite(high30)) {
+                window._qamLow30  = low30;
+                window._qamHigh30 = high30;
+                let loc = Math.round(((currentPrice - low30) / (high30 - low30)) * 100);
+                loc = Math.max(0, Math.min(100, loc));
+                if (lowEl)  lowEl.textContent  = fmt(low30);
+                if (highEl) highEl.textContent = fmt(high30);
+                if (lowSub)  lowSub.textContent  = '30G EN DÜŞÜK  ·  Alarm Kur \u2192';
+                if (highSub) highSub.textContent = '30G EN YÜKSEK  ·  Alarm Kur \u2192';
+                if (pctEl)  pctEl.textContent  = loc + '%';
+                if (pctLbl) pctLbl.textContent = loc + '%';
+                if (fillEl) fillEl.style.width = loc + '%';
+            } else {
+                if (lowEl)  lowEl.textContent  = 'Veri alınamadı';
+                if (highEl) highEl.textContent = 'Veri alınamadı';
+                if (lowSub)  lowSub.textContent  = 'Bağlantı hatası';
+                if (highSub) highSub.textContent = 'Bağlantı hatası';
+                if (pctEl)  pctEl.textContent  = '--%';
+            }
+        })();
     } else {
         console.error("Alarm Modal HTML yapısı bulunamadı!");
     }
 }
 
 // Sekme Değiştirme
+// Legacy (eski modal için - artık kullanılmıyor ama hata vermemesi için bırakıldı)
 function switchNewTab(tabName, btn) {
     document.querySelectorAll('.alarm-tab-content').forEach(el => el.style.display = 'none');
     let target = document.getElementById('tab-content-' + tabName);
     if(target) target.style.display = 'block';
-    
     document.querySelectorAll('.a-tab').forEach(t => t.classList.remove('active'));
-    btn.classList.add('active');
+    if(btn) btn.classList.add('active');
+}
+function selectDirection(dir, btn) {
+    let vd = document.getElementById('volDirection');
+    if(vd) vd.value = dir;
+    document.querySelectorAll('.dir-btn').forEach(b => b.classList.remove('active'));
+    if(btn) btn.classList.add('active');
 }
 
-// Yön Seçimi
-function selectDirection(dir, btn) {
-    document.getElementById('volDirection').value = dir;
-    document.querySelectorAll('.dir-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+// ═══ QUANTUM ALARM MODAL — TAB SWITCHER ═══
+function qamSwitchTab(tab) {
+    ['qamPanePrice','qamPaneVol','qamPaneRsi'].forEach(id => {
+        let el = document.getElementById(id);
+        if(el) el.style.display = 'none';
+    });
+    ['qamScenePrice','qamSceneVol','qamSceneRsi'].forEach(id => {
+        let el = document.getElementById(id);
+        if(el) el.style.display = 'none';
+    });
+    ['qamTabPrice','qamTabVol','qamTabRsi'].forEach(id => {
+        let el = document.getElementById(id);
+        if(el) { el.classList.remove('active','active-price','active-vol'); }
+    });
+
+    if(tab === 'price') {
+        let p = document.getElementById('qamPanePrice'); if(p) p.style.display = 'block';
+        let s = document.getElementById('qamScenePrice'); if(s) s.style.display = 'flex';
+        let t = document.getElementById('qamTabPrice'); if(t) t.classList.add('active','active-price');
+    } else if(tab === 'vol') {
+        let p = document.getElementById('qamPaneVol'); if(p) p.style.display = 'block';
+        let s = document.getElementById('qamSceneVol'); if(s) s.style.display = 'flex';
+        let t = document.getElementById('qamTabVol'); if(t) t.classList.add('active','active-vol');
+    } else {
+        let p = document.getElementById('qamPaneRsi'); if(p) p.style.display = 'block';
+        let s = document.getElementById('qamSceneRsi'); if(s) s.style.display = 'flex';
+        let t = document.getElementById('qamTabRsi'); if(t) t.classList.add('active');
+    }
+}
+
+// ═══ QUANTUM ALARM — DIRECTION SELECTOR ═══
+function qamDir(dir) {
+    let vd = document.getElementById('volDirection');
+    if(vd) vd.value = dir;
+    document.querySelectorAll('.qam-dir-btn').forEach(b => {
+        b.classList.remove('active','up-active','down-active');
+    });
+    let map = { UP: 'dirUp', BOTH: 'dirBoth', DOWN: 'dirDown' };
+    let btn = document.getElementById(map[dir]);
+    if(btn) {
+        if(dir === 'UP') btn.classList.add('up-active');
+        else if(dir === 'DOWN') btn.classList.add('down-active');
+        else btn.classList.add('active');
+    }
 }
 
 // 2. KAYIT VE UNDEFINED HATASINI ÖNLEYEN FONKSİYON
+function saveAlarmAtLevel(direction) {
+    let idx = window._qamAssetIdx;
+    let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
+    let asset = as[idx];
+    if (!asset) return addNotification('danger', 'Hata', 'Varlık bulunamadı!');
+
+    let targetPrice = direction === 'DOWN' ? window._qamLow30 : window._qamHigh30;
+    if (!targetPrice) return addNotification('warn', 'Bekleniyor', 'Veriler henüz yüklenmedi, lütfen bekleyin.');
+
+    let alarms = JSON.parse(localStorage.getItem('tradeVia_alarms')) || [];
+    let label = direction === 'DOWN' ? 'Aylık Dip' : 'Aylık Zirve';
+
+    // Aynı alarm zaten var mı?
+    let exists = alarms.find(function(a) {
+        return a.symbol === asset.name && a.type === 'PRICE' && a.direction === direction && Math.abs(a.target - targetPrice) < 0.0001 && a.active;
+    });
+    if (exists) {
+        addNotification('info', 'Zaten Var', label + ' alarmı zaten kurulu.');
+        return;
+    }
+
+    alarms.push({ id: Date.now(), symbol: asset.name, target: targetPrice, direction: direction, type: 'PRICE', active: true, label: label });
+    localStorage.setItem('tradeVia_alarms', JSON.stringify(alarms));
+
+    asset.alarm = true;
+    as[idx] = asset;
+    localStorage.setItem('myPF_final', JSON.stringify(as));
+    if (typeof renderPortfolio === 'function') renderPortfolio();
+
+    // Butonu yeşil/kırmızı yap (onay göstergesi)
+    let btnId = direction === 'DOWN' ? 'qamBtnLow' : 'qamBtnHigh';
+    let btn = document.getElementById(btnId);
+    if (btn) {
+        btn.style.background = direction === 'DOWN' ? 'rgba(0,214,143,0.18)' : 'rgba(255,61,110,0.18)';
+        btn.style.borderColor = direction === 'DOWN' ? 'rgba(0,214,143,0.6)' : 'rgba(255,61,110,0.6)';
+        let sub = btn.querySelector('div:last-child');
+        if (sub) { sub.textContent = '✓ Alarm Kuruldu!'; sub.style.opacity = '1'; }
+    }
+
+    addNotification('success', '🔔 Alarm Kuruldu', asset.name + ' ' + label + ' alarmı aktif: $' + targetPrice.toFixed(4));
+    setTimeout(function() { closeModal('alarmModal'); }, 800);
+}
+
 function saveAlarm(type) {
     let idxElement = document.getElementById('alarmIdx');
     if (!idxElement) {
