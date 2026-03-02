@@ -16874,7 +16874,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.5"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -19672,29 +19672,29 @@ function toggleAutoRefresh(btn) {
 let globalSearchTimer;
 
 function filterUnifiedList(val) {
-    val = val.trim(); // Boşlukları temizle
-    
-    // Aktif mod tespiti (Piyasa mı, İzleme mi?)
-    const isMain = !document.getElementById('mv-main') || document.getElementById('mv-main').classList.contains('active');
-    
+    val = val.trim();
+
+    // Aktif mod: Piyasa mı Watchlist mi?
+    const mvMain = document.getElementById('mv-main');
+    const isMain = !mvMain || mvMain.classList.contains('active');
+
+    // Watchlist modu
     if (!isMain) {
-        // İzleme listesi filtresi
         const wlContainer = document.getElementById('wlList');
         if (!wlContainer) return;
-        const wlItems = wlContainer.querySelectorAll('.wl-pro-card');
-        wlItems.forEach(item => {
+        wlContainer.querySelectorAll('.wl-pro-card').forEach(item => {
             const symEl = item.querySelector('.wl-pro-sym');
-            const text = symEl ? symEl.innerText.toUpperCase() : '';
-            item.style.display = text.includes(val.toUpperCase()) ? 'block' : 'none';
+            const txt = symEl ? symEl.innerText.toUpperCase() : '';
+            item.style.display = txt.includes(val.toUpperCase()) ? 'block' : 'none';
         });
         return;
     }
-    
+
+    // Piyasa modu
     const listContainer = document.getElementById('infiniteMarketList');
     if (!listContainer) return;
     
     // 1. ÖNCE MEVCUT LİSTEYİ FİLTRELE (HIZLI SONUÇ)
-    // Sembol VE isim bazlı arama
     const items = listContainer.querySelectorAll('.infinite-item');
     let visibleCount = 0;
 
@@ -19703,18 +19703,17 @@ function filterUnifiedList(val) {
     if (oldGlobal) oldGlobal.remove();
 
     if (val.length === 0) {
-        // Arama kutusu boşsa her şeyi göster
         items.forEach(item => item.style.display = 'flex');
         return;
     }
 
     items.forEach(item => {
-        // Sembol VE isim aranır
-        let symElement = item.querySelector('.ii-sym');
-        let nameElement = item.querySelector('.ii-vol');
-        const symText = symElement ? symElement.innerText.toUpperCase() : '';
-        const nameText = nameElement ? nameElement.innerText.toUpperCase() : '';
-        if (symText.includes(val.toUpperCase()) || nameText.includes(val.toUpperCase())) {
+        // Sembol VE isim araması
+        const symEl = item.querySelector('.ii-sym');
+        const nameEl = item.querySelector('.ii-vol');
+        const symTxt = symEl ? symEl.innerText.toUpperCase() : '';
+        const nameTxt = nameEl ? nameEl.innerText.toUpperCase() : '';
+        if (symTxt.includes(val.toUpperCase()) || nameTxt.includes(val.toUpperCase())) {
             item.style.display = 'flex';
             visibleCount++;
         } else {
@@ -22473,11 +22472,10 @@ function loadMarketCategory(cat, btn) {
         btn.classList.add('active');
     }
     
-    // Kategori değiştiyse cache'i sıfırla, aynı kategoriyse cache korunur
-    if(cat !== currentCategory) {
-        marketDataCache = [];
-        currentPage = 1;
-    }
+    // Her kategori yüklemesinde page'i sıfırla (önceki session kalıntısı önlenir)
+    marketDataCache = [];
+    window._sortedMarketCache = null;
+    currentPage = 1;
     currentCategory = cat;
     // Veri gelene kadar bakım/yükleme ekranını göster
     document.getElementById('infiniteMarketList').innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 32px 60px;gap:0;"><div style="position:relative;width:80px;height:80px;margin-bottom:28px;"><svg width="80" height="80" viewBox="0 0 80 80" style="position:absolute;top:0;left:0;animation:tvSpinRing 3s linear infinite;"><circle cx="40" cy="40" r="36" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="3"/><circle cx="40" cy="40" r="36" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2.5" stroke-dasharray="40 185" stroke-linecap="round"/></svg><div style="position:absolute;inset:12px;background:linear-gradient(145deg,#1e3a8a,#0f172a);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(255,255,255,0.06);"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><polyline points="3,17 8,12 13,15 21,7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="21" cy="7" r="2.8" fill="white"/></svg></div></div><div style="font-size:17px;font-weight:900;color:#ffffff;letter-spacing:-0.3px;margin-bottom:10px;text-align:center;">Sizin için bakım yapıyoruz</div><div style="font-size:12px;color:rgba(255,255,255,0.45);font-weight:500;text-align:center;line-height:1.7;margin-bottom:28px;">Piyasa verileri güncelleniyor.<br>Hemen döneceğiz 🚀</div><div style="display:flex;gap:7px;align-items:center;"><div style="width:7px;height:7px;border-radius:50%;background:white;opacity:0.9;animation:tvDot 1.4s ease-in-out infinite;"></div><div style="width:7px;height:7px;border-radius:50%;background:white;opacity:0.7;animation:tvDot 1.4s ease-in-out 0.22s infinite;"></div><div style="width:7px;height:7px;border-radius:50%;background:white;opacity:0.5;animation:tvDot 1.4s ease-in-out 0.44s infinite;"></div></div></div>';
@@ -22523,6 +22521,7 @@ async function fetchMarketData() {
                 const CACHE_TTL = 180000; // 3 dakika cache
                 
                 // Cache kontrolü - SADECE sayfa 1 için geçerli
+                // VE cache'deki ilk coin rank=1 olmalı (bozuk cache önleme)
                 if (currentPage === 1) {
                     try {
                         const cached = localStorage.getItem('tv_market_cache_p1');
@@ -22530,15 +22529,25 @@ async function fetchMarketData() {
                         const AGE = Date.now() - parseInt(cachedTime || 0);
                         if (cached && AGE < CACHE_TTL) {
                             const cachedData = JSON.parse(cached);
-                            if (Array.isArray(cachedData) && cachedData.length > 0) {
+                            // Rank 1 (BTC) içerdiğini doğrula — bozuk/yanlış sayfa cache'i reddet
+                            const hasRank1 = Array.isArray(cachedData) && cachedData.length > 0 &&
+                                cachedData.some(c => c.source === 'RANK #1' || c.source === 'RANK #2');
+                            if (hasRank1) {
                                 marketDataCache = cachedData;
                                 processAndRenderData(cachedData);
                                 isMarketLoading = false;
                                 if (loader) loader.classList.remove('active');
                                 return; // Cache geçerli, API'ye gitme
+                            } else {
+                                // Bozuk cache'i temizle
+                                localStorage.removeItem('tv_market_cache_p1');
+                                localStorage.removeItem('tv_market_cache_time');
                             }
                         }
-                    } catch(e) {}
+                    } catch(e) {
+                        localStorage.removeItem('tv_market_cache_p1');
+                        localStorage.removeItem('tv_market_cache_time');
+                    }
                 }
                 
                 // currentPage kullanarak doğru sayfayı çek
@@ -23973,7 +23982,7 @@ function toggleUnifiedSearch(btn) {
     }
 }
 
-// filterUnifiedList - yukarıda tanımlı (duplicate kaldırıldı)
+// filterUnifiedList - yukarıda tanımlı (duplicate kaldırıldı #2)
 
 // Mod Değiştirme (Piyasa <-> İzleme) - GÜNCELLENMİŞ
 switchMarketMode = function(mode, btn) {
@@ -24015,7 +24024,7 @@ loadMarketCategory = function(cat, btn) {
     currentCategory = cat;
     currentPage = 1;
     marketDataCache = []; // Önceki kategori verisini kesinlikle temizle
-    window._sortedMarketCache = null; // Sıralama cache'ini de temizle
+    window._sortedMarketCache = null; // Sıralama cache'ini temizle
     isMarketLoading = false; // Önceki yüklemeyi iptal et
     const listEl = document.getElementById('infiniteMarketList');
     if(listEl) listEl.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 32px 60px;gap:0;"><div style="position:relative;width:80px;height:80px;margin-bottom:28px;"><svg width="80" height="80" viewBox="0 0 80 80" style="position:absolute;top:0;left:0;animation:tvSpinRing 3s linear infinite;"><circle cx="40" cy="40" r="36" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="3"/><circle cx="40" cy="40" r="36" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2.5" stroke-dasharray="40 185" stroke-linecap="round"/></svg><div style="position:absolute;inset:12px;background:linear-gradient(145deg,#1e3a8a,#0f172a);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(255,255,255,0.06);"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><polyline points="3,17 8,12 13,15 21,7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="21" cy="7" r="2.8" fill="white"/></svg></div></div><div style="font-size:17px;font-weight:900;color:#ffffff;letter-spacing:-0.3px;margin-bottom:10px;text-align:center;">Sizin için bakım yapıyoruz</div><div style="font-size:12px;color:rgba(255,255,255,0.45);font-weight:500;text-align:center;line-height:1.7;margin-bottom:28px;">Piyasa verileri güncelleniyor.<br>Hemen döneceğiz 🚀</div><div style="display:flex;gap:7px;align-items:center;"><div style="width:7px;height:7px;border-radius:50%;background:white;opacity:0.9;animation:tvDot 1.4s ease-in-out infinite;"></div><div style="width:7px;height:7px;border-radius:50%;background:white;opacity:0.7;animation:tvDot 1.4s ease-in-out 0.22s infinite;"></div><div style="width:7px;height:7px;border-radius:50%;background:white;opacity:0.5;animation:tvDot 1.4s ease-in-out 0.44s infinite;"></div></div></div>';
@@ -24037,7 +24046,7 @@ loadMarketCategory = function(cat, btn) {
 /* --- TAM KAPSAMLI GLOBAL ARAMA (COINGECKO ENGINE) --- */
 let autoSearchTimer;
 
-// filterUnifiedList - yukarıda tanımlı (3. duplicate kaldırıldı)
+// filterUnifiedList - yukarıda tanımlı (duplicate kaldırıldı #3)
 
 /* --- SONSUZ KAYDIRMA VE SAYFALAMA --- */
 
@@ -24058,19 +24067,15 @@ document.getElementById('infiniteMarketList').addEventListener('scroll', functio
             fetchMarketData(); // Yeni sayfayı API'den iste
         } 
         
-        // --- SENARYO 2: Diğerleri (Binance/Bist) veya Sıralanmış veri ---
-        // Veri zaten cache'de var, sadece sıradakileri göstermeliyiz.
+        // --- SENARYO 2: Diğerleri (Binance/Bist) veya sıralanmış veri ---
         else {
-            // Sıralama yapılmışsa _sortedMarketCache'i kullan, yoksa marketDataCache
             const activeCache = window._sortedMarketCache || marketDataCache;
             if ((currentPage * itemsPerPage) < activeCache.length) {
                 isMarketLoading = true;
                 currentPage++;
-                // Sıralı cache varsa ondan render et
                 if (window._sortedMarketCache) {
                     const start = (currentPage - 1) * itemsPerPage;
-                    const batch = window._sortedMarketCache.slice(start, start + itemsPerPage);
-                    renderSpecificBatch(batch);
+                    renderSpecificBatch(window._sortedMarketCache.slice(start, start + itemsPerPage));
                 } else {
                     renderNextBatch();
                 }
@@ -33201,16 +33206,15 @@ function applyMarketSort() {
             break;
     }
 
-    // Listeyi temizle ve yeniden render et
-    // NOT: sortMarketData ile entegre — currentSortType güncellenerek processAndRenderData üzerinden render edilir
+    // Sıralı veriyi _sortedMarketCache'e kaydet (infinite scroll için)
+    window._sortedMarketCache = sorted;
+    currentPage = 1;
+
+    // Listeyi temizle ve ilk batch'i render et
     const listEl = document.getElementById('infiniteMarketList');
     if (listEl) {
         listEl.innerHTML = '';
-        currentPage = 1;
-        // Sıralı veriyi render et (infinite scroll için paginated)
-        renderSpecificBatch(sorted.slice(0, (currentPage * (typeof itemsPerPage !== 'undefined' ? itemsPerPage : 20))));
-        // Kalan sayfalama için sorted'ı geçici cache'e yaz
-        window._sortedMarketCache = sorted;
+        renderSpecificBatch(sorted.slice(0, itemsPerPage));
     }
 }
 
@@ -33226,7 +33230,6 @@ async function filterByTrend(trend, btn) {
     if (trend === 'all') {
         currentPage = 1;
         marketDataCache = [];
-        window._sortedMarketCache = null;
         const listEl = document.getElementById('infiniteMarketList');
         if (listEl) listEl.innerHTML = '';
         
