@@ -1328,86 +1328,285 @@ html.ios-pwa body {
         .nav-container { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .nav-hidden { transform: translate(-50%, 200%) !important; }
 
-        /* --- ORİJİNAL LOGO SPLASH SCREEN (HIZLI & LÜKS) --- */
+        /* === YENİ SPLASH SCREEN (tradevia-final.html'den) === */
+
+        /* ─── Canvas (shared background) ─── */
+        #splashCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 9999990;
+            pointer-events: none;
+        }
+        /* ─── Depth layers ─── */
+        .splash-depth-fog {
+            position: fixed; inset: 0; z-index: 9999991; pointer-events: none;
+            background:
+                radial-gradient(ellipse 90% 55% at 50% 105%, rgba(2,4,8,0.98) 0%, transparent 100%),
+                radial-gradient(ellipse 100% 35% at 50% -5%,  rgba(2,4,8,0.80) 0%, transparent 100%),
+                linear-gradient(to bottom, rgba(2,4,8,0.25) 0%, transparent 25%, transparent 65%, rgba(2,4,8,0.92) 100%);
+        }
+        .splash-depth-sides {
+            position: fixed; inset: 0; z-index: 9999991; pointer-events: none;
+            background: linear-gradient(to right, rgba(2,4,8,0.65) 0%, transparent 22%, transparent 78%, rgba(2,4,8,0.65) 100%);
+        }
+        .splash-grain {
+            position: fixed; inset: 0; z-index: 9999992; pointer-events: none;
+            opacity: 0.025;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-size: 160px;
+            animation: splashGrn 0.7s steps(2) infinite;
+        }
+        @keyframes splashGrn {
+            0%   { transform: translate(0,0); }
+            50%  { transform: translate(-3px, 2px); }
+            100% { transform: translate(3px,-2px); }
+        }
+        .splash-vignette {
+            position: fixed; inset: 0; z-index: 9999992; pointer-events: none;
+            background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.72) 100%);
+        }
+
         #splash-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
-            z-index: 9999999; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 0.4s ease-out, visibility 0.4s;
+            position: fixed; inset: 0; z-index: 9999993;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            transition: opacity 0.5s ease-out, visibility 0.5s;
+            background: #0b0f19;
         }
         #splash-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-        .original-logo-container { width: 200px; height: 200px; animation: zoomInLogo 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5)); }
-        .tm-part { opacity: 0; animation: fadeInPart 0.5s ease-out forwards; }
-        .tm-shield-outer { animation-delay: 0.1s; } .tm-shield-blue { animation-delay: 0.2s; } .tm-shield-gold { animation-delay: 0.3s; }
-        .tm-bull-bear { animation-delay: 0.4s; } .tm-letters { animation-delay: 0.5s; } .tm-arrow { animation-delay: 0.6s; transform-origin: center; animation: drawArrowOriginal 0.6s ease-out forwards 0.6s; opacity: 0; }
-        .splash-brand-name { margin-top: 30px; font-family: 'Inter', sans-serif; font-size: 28px; letter-spacing: 4px; background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; opacity: 0; animation: fadeUpText 0.5s ease-out forwards 0.7s; }
-        .splash-loader-bar { 
-            width: 160px; 
-            height: 4px; 
-            background: rgba(255,255,255,0.1); 
-            border-radius: 2px; 
-            overflow: hidden; 
-            opacity: 0; 
-            animation: fadeInPart 0.3s ease-out forwards 0.8s;
-            /* Ekranın altına, footer'ın hemen üstüne sabitle */
-            position: absolute;
-            bottom: 70px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        .splash-loader-bar::after { content: ''; display: block; width: 40%; height: 100%; background: linear-gradient(90deg, #f59e0b, #d97706); animation: loadingMove 1s infinite ease-in-out; }
-        @keyframes zoomInLogo { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        @keyframes fadeInPart { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes fadeUpText { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes drawArrowOriginal { from { opacity: 0; transform: translate(-20px, 20px) scale(0.8); } to { opacity: 1; transform: translate(0, 0) scale(1); } }
-        @keyframes loadingMove { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
 
-        /* === CRYSTAL PREMIUM LOGO STYLES === */
-        .crystal-logo-wrapper {
+        /* Logo */
+        .logo-hexagon-wrap {
             position: relative;
-            animation: crystalFloat 4s ease-in-out infinite;
+            width: 120px; height: 120px;
+            opacity: 0;
+            animation: splashEntrance 1.2s cubic-bezier(0.16,1,0.3,1) 0.2s forwards,
+                       logoFloat 6s ease-in-out 1.4s infinite;
         }
-        
-        .crystal-logo-svg {
-            filter: drop-shadow(0 0 30px rgba(59, 130, 246, 0.4));
-            animation: crystalGlow 3s ease-in-out infinite;
+        @keyframes splashEntrance {
+            from { opacity: 0; transform: scale(0.75) translateY(18px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
         }
-        
-        @keyframes crystalFloat {
+        @keyframes logoFloat {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+            50%       { transform: translateY(-9px); }
         }
-        
-        @keyframes crystalGlow {
-            0%, 100% { filter: drop-shadow(0 0 30px rgba(59, 130, 246, 0.4)); }
-            50% { filter: drop-shadow(0 0 50px rgba(59, 130, 246, 0.7)); }
+        .logo-ring {
+            position: absolute; inset: -16px;
+            border-radius: 50%;
+            border: 1px solid rgba(201,168,76,0.18);
+            animation: ringRotate 14s linear infinite;
         }
-        
-        .glass-reflection-overlay {
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(
-                45deg,
-                transparent 40%,
-                rgba(255,255,255,0.03) 45%,
-                rgba(255,255,255,0.05) 50%,
-                rgba(255,255,255,0.03) 55%,
-                transparent 60%
-            );
-            animation: glassShimmer 6s infinite linear;
-            pointer-events: none;
-            z-index: 10;
+        .logo-ring::before {
+            content: '';
+            position: absolute; top: -3px; left: 50%;
+            width: 6px; height: 6px;
+            background: #C9A84C; border-radius: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 10px #C9A84C;
         }
-        
-        @keyframes glassShimmer {
-            0% { transform: translateX(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) rotate(45deg); }
+        .logo-ring-2 {
+            position: absolute; inset: -30px;
+            border-radius: 50%;
+            border: 1px solid rgba(59,130,246,0.08);
+            animation: ringRotate 22s linear infinite reverse;
+        }
+        @keyframes ringRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .logo-svg-main {
+            width: 120px; height: 120px;
+            position: relative; z-index: 2;
+            filter: drop-shadow(0 0 28px rgba(59,130,246,0.45)) drop-shadow(0 0 55px rgba(59,130,246,0.18));
         }
 
-        /* === KİLİT EKRANI (LOCK SCREEN) === */
+        /* Brand */
+        .splash-brand {
+            margin-top: 28px;
+            text-align: center;
+            opacity: 0;
+            animation: splashFadeUpIn 0.8s ease-out 0.8s forwards;
+        }
+        @keyframes splashFadeUpIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .brand-name {
+            font-family: 'Syne', sans-serif;
+            font-size: 40px; font-weight: 800;
+            letter-spacing: -1px; line-height: 1;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .brand-name span {
+            background: linear-gradient(135deg, #e8c96a 0%, #C9A84C 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .brand-tagline {
+            margin-top: 12px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .tagline-line { width: 28px; height: 1px; background: linear-gradient(90deg, transparent, #C9A84C); }
+        .tagline-line.rev { background: linear-gradient(90deg, #C9A84C, transparent); }
+        .tagline-text {
+            font-size: 9px; font-weight: 600;
+            color: #C9A84C; letter-spacing: 4px;
+            text-transform: uppercase;
+            font-family: 'DM Mono', monospace;
+        }
+
+        /* Live dot */
+        .splash-live-indicator {
+            margin-top: 36px;
+            display: flex; align-items: center; gap: 8px;
+            opacity: 0;
+            animation: splashFadeUpIn 0.8s ease-out 1.3s forwards;
+        }
+        .splash-live-dot {
+            width: 5px; height: 5px;
+            background: #22c55e; border-radius: 50%;
+            box-shadow: 0 0 6px #22c55e;
+            animation: splashDotPulse 1.8s ease-in-out infinite;
+        }
+        @keyframes splashDotPulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 6px #22c55e; }
+            50%       { opacity: 0.45; box-shadow: 0 0 2px #22c55e; }
+        }
+        .splash-live-text {
+            font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+            color: rgba(255,255,255,0.22); font-weight: 400;
+        }
+
+        /* Progress bar */
+        .splash-loader-bar {
+            position: absolute;
+            bottom: 52px;
+            left: 50%; transform: translateX(-50%);
+            width: 120px; height: 2px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 2px;
+            overflow: hidden;
+            opacity: 0;
+            animation: splashFadeUpIn 0.5s ease 1.6s forwards;
+        }
+        .splash-loader-bar::after {
+            content: '';
+            display: block; width: 38%; height: 100%;
+            background: linear-gradient(90deg, transparent, #C9A84C, transparent);
+            animation: splashProgSweep 2s ease-in-out infinite;
+            box-shadow: 0 0 8px #C9A84C;
+            border-radius: 2px;
+        }
+        @keyframes splashProgSweep {
+            0%   { transform: translateX(-150%); }
+            100% { transform: translateX(500%); }
+        }
+
+        /* Footer */
+        .splash-legal-footer {
+            position: absolute; bottom: 14px;
+            left: 0; right: 0; text-align: center;
+            display: flex; justify-content: center; gap: 12px;
+            font-size: 10px; color: rgba(255,255,255,0.12);
+            opacity: 0;
+            animation: splashFadeUpIn 0.5s ease 2s forwards;
+        }
+        .splash-legal-footer a { color: rgba(255,255,255,0.12); text-decoration: none; transition: color 0.2s; }
+        .splash-legal-footer a:hover { color: #C9A84C; }
+        .splash-legal-footer .sep { opacity: 0.3; }
+
+        /* ══ SCREEN TOGGLE — sağ köşe (tradevia-final'den) ══ */
+        .tv-screen-toggle {
+            position: fixed; top: 20px; right: 20px; z-index: 9999997;
+            width: 42px; height: 42px; border-radius: 50%;
+            background: rgba(6,9,18,0.75);
+            border: 1px solid rgba(201,168,76,0.25);
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: border-color 0.3s, background 0.3s, opacity 0.4s;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        .tv-screen-toggle:hover { border-color: rgba(201,168,76,0.55); background: rgba(6,9,18,0.92); }
+        .tv-screen-toggle i { font-size: 15px; color: #C9A84C; transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+        .tv-screen-toggle:hover i { transform: scale(1.15); }
+        .tv-screen-toggle::after {
+            content: attr(data-tip); position: absolute;
+            right: calc(100% + 10px); top: 50%; transform: translateY(-50%);
+            background: rgba(6,9,18,0.9); border: 1px solid rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.55); font-size: 10px; letter-spacing: 1px;
+            white-space: nowrap; padding: 5px 10px; border-radius: 6px;
+            opacity: 0; pointer-events: none; transition: opacity 0.2s;
+        }
+        .tv-screen-toggle:hover::after { opacity: 1; }
+        .tv-screen-toggle.gone { opacity: 0; pointer-events: none; }
+
+        /* ══ LOGIN SCREEN (tradevia-final'den birebir) ══ */
+        #tv-login-screen {
+            position: fixed; inset: 0; z-index: 9999996;
+            display: none; overflow-y: auto; -webkit-overflow-scrolling: touch;
+            background: #020408;
+        }
+        .tv-login-layout {
+            min-height: 100%; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; padding: 48px 20px 40px; position: relative;
+        }
+        .tv-login-mini-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 32px; opacity: 0; animation: tvFadeUpIn 0.8s ease 0.1s forwards; }
+        .tv-login-logo-icon {
+            width: 36px; height: 36px; background: linear-gradient(135deg, #0a1628, #0d2248);
+            border: 1px solid rgba(59,130,246,0.25); border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(59,130,246,0.15);
+        }
+        .tv-login-logo-name { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; background: linear-gradient(135deg, #fff 0%, #94a3b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .tv-login-logo-name span { background: linear-gradient(135deg, #e8c96a, #C9A84C); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .tv-login-card {
+            width: 100%; max-width: 370px;
+            background: rgba(4,7,14,0.72); border: 1px solid rgba(255,255,255,0.08);
+            border-top: 1px solid rgba(255,255,255,0.13);
+            backdrop-filter: blur(32px); -webkit-backdrop-filter: blur(32px);
+            padding: 36px 32px 30px; position: relative; overflow: hidden;
+            opacity: 0; animation: tvFadeUpIn 0.9s ease 0.25s forwards;
+        }
+        .tv-login-card::before { content: ''; position: absolute; top: 0; left: 20%; right: 20%; height: 1px; background: linear-gradient(90deg, transparent, rgba(201,168,76,0.45), transparent); }
+        .tv-login-card::after { content: ''; position: absolute; top: 0; right: 0; width: 80px; height: 80px; background: radial-gradient(circle at 100% 0%, rgba(59,130,246,0.06) 0%, transparent 70%); pointer-events: none; }
+        @keyframes tvFadeUpIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .tv-card-header { margin-bottom: 26px; }
+        .tv-card-header h2 { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 5px; }
+        .tv-card-header p { font-size: 13px; color: rgba(226,232,240,0.45); font-weight: 300; }
+        .tv-market-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px; background: rgba(34,197,94,0.07); border: 1px solid rgba(34,197,94,0.15); border-radius: 100px; font-size: 9px; font-weight: 600; color: #22c55e; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 18px; }
+        .tv-market-dot { width: 5px; height: 5px; background: #22c55e; border-radius: 50%; animation: tvDotPulse 1.8s ease-in-out infinite; }
+        @keyframes tvDotPulse { 0%,100%{opacity:1;box-shadow:0 0 6px #22c55e;} 50%{opacity:.45;box-shadow:0 0 2px #22c55e;} }
+        .tv-btn-google { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 13px; background: rgba(255,255,255,0.95); border: none; border-radius: 12px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; color: #111; cursor: pointer; transition: all 0.25s; margin-bottom: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.35); }
+        .tv-btn-google:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(0,0,0,0.45); }
+        .tv-divider { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+        .tv-divider-line { flex: 1; height: 1px; background: rgba(255,255,255,0.07); }
+        .tv-divider-text { font-size: 10px; color: rgba(255,255,255,0.2); letter-spacing: 0.5px; white-space: nowrap; }
+        .tv-field-group { margin-bottom: 16px; }
+        .tv-field-label { display: block; font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 8px; }
+        .tv-field-wrap { position: relative; }
+        .tv-field-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 13px; color: rgba(255,255,255,0.18); pointer-events: none; transition: color 0.3s; }
+        .tv-field-input { width: 100%; padding: 12px 14px 12px 40px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; color: #fff; font-family: 'Inter', sans-serif; font-size: 14px; outline: none; transition: all 0.3s; -webkit-appearance: none; box-sizing: border-box; }
+        .tv-field-input::placeholder { color: rgba(255,255,255,0.15); }
+        .tv-field-input:focus { border-color: rgba(201,168,76,0.45); background: rgba(255,255,255,0.06); box-shadow: 0 0 0 3px rgba(201,168,76,0.07); }
+        .tv-field-wrap:focus-within .tv-field-icon { color: rgba(201,168,76,0.6); }
+        .tv-pw-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: rgba(255,255,255,0.2); cursor: pointer; padding: 4px; font-size: 13px; transition: color 0.3s; }
+        .tv-pw-toggle:hover { color: #C9A84C; }
+        .tv-field-row { text-align: right; margin-top: 6px; }
+        .tv-forgot-link { font-size: 11px; color: rgba(201,168,76,0.65); font-weight: 500; cursor: pointer; text-decoration: none; }
+        .tv-forgot-link:hover { color: #C9A84C; }
+        .tv-btn-submit { width: 100%; padding: 13px; background: transparent; border: 1px solid rgba(201,168,76,0.4); border-radius: 12px; color: #e8c96a; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; cursor: pointer; position: relative; overflow: hidden; transition: color 0.4s, border-color 0.4s; margin-bottom: 20px; }
+        .tv-btn-submit::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, #C9A84C 0%, #a07830 100%); transform: scaleX(0); transform-origin: left; transition: transform 0.45s cubic-bezier(0.16,1,0.3,1); z-index: -1; }
+        .tv-btn-submit:hover { color: #060912; border-color: #C9A84C; }
+        .tv-btn-submit:hover::before { transform: scaleX(1); }
+        .tv-register-row { text-align: center; font-size: 12px; color: rgba(255,255,255,0.28); margin-bottom: 20px; }
+        .tv-register-link { color: #C9A84C; font-weight: 600; cursor: pointer; text-decoration: none; }
+        .tv-register-link:hover { opacity: 0.8; }
+        .tv-security-row { display: flex; justify-content: center; align-items: center; gap: 14px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .tv-sec-badge { display: flex; align-items: center; gap: 5px; font-size: 9px; color: rgba(255,255,255,0.18); }
+        .tv-sec-badge i { font-size: 10px; color: rgba(255,255,255,0.2); }
+        .tv-screen-fade-in { animation: tvFadeUpIn 0.45s cubic-bezier(0.16,1,0.3,1) both; }
+
+        /* ── Sekmeler ── */
+        .tv-tabs { display: flex; gap: 4px; margin-bottom: 24px; background: rgba(255,255,255,0.04); border-radius: 10px; padding: 4px; }
+        .tv-tab { flex: 1; padding: 9px; border-radius: 7px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; background: none; color: rgba(255,255,255,0.35); transition: all 0.25s; font-family: 'Inter', sans-serif; }
+        .tv-tab.active { background: rgba(201,168,76,0.15); color: #e8c96a; border: 1px solid rgba(201,168,76,0.25); }
         #lock-screen {
             position: fixed;
             top: 0; left: 0;
@@ -3277,36 +3476,7 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 
 
 
-/* --- SPLASH SCREEN YASAL LİNKLER --- */
-.splash-legal-footer {
-    position: absolute;
-    bottom: 30px;        /* Ekranın en altından 30px yukarıda */
-    width: 100%;
-    text-align: center;
-    z-index: 2;
-    opacity: 0;          /* Başlangıçta gizli */
-    animation: fadeUpText 0.5s ease-out forwards 1s; /* Logo geldikten sonra belirsin */
-}
-
-.splash-legal-footer a {
-    color: rgba(255, 255, 255, 0.5); /* Hafif silik beyaz */
-    text-decoration: none;
-    font-size: 11px;
-    font-weight: 600;
-    transition: color 0.3s;
-    font-family: 'Inter', sans-serif;
-}
-
-.splash-legal-footer a:hover {
-    color: #ffffff;      /* Üzerine gelince parlasın */
-    text-decoration: underline;
-}
-
-.splash-legal-footer .sep {
-    color: rgba(255, 255, 255, 0.2);
-    margin: 0 8px;
-    font-size: 10px;
-}
+/* --- SPLASH SCREEN YASAL LİNKLER (yeni tasarımda üstte tanımlı) --- */
 
 /* --- YENİ LAB LİSTE TASARIMI --- */
 .lab-list-container {
@@ -4683,200 +4853,405 @@ html.ios-pwa .bottom-nav { padding-bottom: max(env(safe-area-inset-bottom, 0px),
      <head>
     
 <body>
+<script>
+/* ════════════════════════════════════
+   SPLASH CANVAS — Sayfa açılır açılmaz başlar
+════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function() {
+    var canvas = document.getElementById('splashCanvas');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var W, H;
+
+    function resize() {
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function genCandles(n) {
+        var arr = [];
+        var price = 2600 + Math.random() * 300;
+        for (var i = 0; i < n; i++) {
+            var move  = (Math.random() - 0.468) * price * 0.021;
+            var open  = price;
+            var close = price + move;
+            var span  = Math.abs(move) * (1.3 + Math.random() * 1.6);
+            arr.push({
+                open: open, close: close,
+                high: Math.max(open, close) + Math.random() * span * 0.55,
+                low:  Math.min(open, close) - Math.random() * span * 0.55,
+            });
+            price = close;
+        }
+        return arr;
+    }
+
+    var candles = genCandles(130);
+    var scrollX = 0;
+    var SPEED   = 0.25;
+    var rafId   = null;
+    var stopped = false;
+
+    function draw() {
+        if (stopped) return;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#0b0f19';
+        ctx.fillRect(0, 0, W, H);
+
+        var cw    = W / 26;
+        var gap   = cw * 0.2;
+        var bodyW = cw - gap * 2;
+        var total = candles.length;
+        var start = Math.floor(scrollX / cw) % total;
+        var vis   = Math.ceil(W / cw) + 3;
+
+        var lo = Infinity, hi = -Infinity;
+        for (var i = 0; i < vis + 6; i++) {
+            var c = candles[(start + i) % total];
+            if (c.low  < lo) lo = c.low;
+            if (c.high > hi) hi = c.high;
+        }
+        var range  = hi - lo || 1;
+        var padY   = H * 0.14;
+        var chartH = H - padY * 2;
+        function toY(p) { return padY + chartH - ((p - lo) / range) * chartH; }
+
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255,255,255,0.025)';
+        ctx.lineWidth = 1;
+        for (var g = 0; g <= 5; g++) {
+            var y = padY + (chartH / 5) * g;
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+        }
+        ctx.restore();
+
+        ctx.save();
+        ctx.beginPath();
+        var first = true;
+        for (var i = 0; i < vis + 2; i++) {
+            var c = candles[(start + i) % total];
+            var x = i * cw - (scrollX % cw);
+            var yc = toY(c.close);
+            if (first) { ctx.moveTo(x, yc); first = false; } else { ctx.lineTo(x, yc); }
+        }
+        var lastX = (vis + 1) * cw - (scrollX % cw);
+        ctx.lineTo(lastX, H); ctx.lineTo(0, H); ctx.closePath();
+        var aFill = ctx.createLinearGradient(0, padY, 0, H);
+        aFill.addColorStop(0,   'rgba(59,130,246,0.09)');
+        aFill.addColorStop(0.7, 'rgba(59,130,246,0.02)');
+        aFill.addColorStop(1,   'rgba(59,130,246,0)');
+        ctx.fillStyle = aFill;
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        ctx.strokeStyle = 'rgba(201,168,76,0.16)';
+        ctx.lineWidth = 1.3;
+        ctx.beginPath();
+        var mf = true;
+        for (var i = 0; i < vis + 2; i++) {
+            var idx = (start + i) % total;
+            var sum = 0;
+            for (var j = 0; j < 26; j++) sum += candles[(idx - j + total) % total].close;
+            var yma = toY(sum / 26);
+            var xma = i * cw - (scrollX % cw);
+            if (mf) { ctx.moveTo(xma, yma); mf = false; } else { ctx.lineTo(xma, yma); }
+        }
+        ctx.stroke(); ctx.restore();
+
+        for (var i = 0; i < vis + 2; i++) {
+            var c   = candles[(start + i) % total];
+            var x   = i * cw - (scrollX % cw);
+            var oY  = toY(c.open), cY2 = toY(c.close);
+            var hY  = toY(c.high), lY  = toY(c.low);
+            var bull = c.close >= c.open;
+            var edge  = Math.min(x, W - x);
+            var alpha = Math.min(1, edge / (W * 0.1));
+
+            ctx.save();
+            ctx.globalAlpha = 0.3 * alpha;
+            ctx.strokeStyle = bull ? '#22c55e' : '#ef4444';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x + bodyW/2 + gap, hY);
+            ctx.lineTo(x + bodyW/2 + gap, lY);
+            ctx.stroke();
+            ctx.restore();
+
+            var bTop = Math.min(oY, cY2);
+            var bH   = Math.max(Math.abs(oY - cY2), 1.5);
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            var bg = ctx.createLinearGradient(0, bTop, 0, bTop + bH);
+            if (bull) {
+                bg.addColorStop(0, 'rgba(34,197,94,0.80)');
+                bg.addColorStop(1, 'rgba(21,128,61,0.55)');
+            } else {
+                bg.addColorStop(0, 'rgba(239,68,68,0.80)');
+                bg.addColorStop(1, 'rgba(185,28,28,0.55)');
+            }
+            ctx.fillStyle = bg;
+            ctx.fillRect(x + gap, bTop, bodyW, bH);
+            ctx.strokeStyle = bull ? 'rgba(74,222,128,0.35)' : 'rgba(252,165,165,0.25)';
+            ctx.lineWidth = 0.5;
+            ctx.strokeRect(x + gap, bTop, bodyW, bH);
+            ctx.restore();
+        }
+
+        ctx.save();
+        ctx.strokeStyle = 'rgba(74,144,217,0.3)';
+        ctx.lineWidth = 1; ctx.setLineDash([4,7]);
+        var lastClose = candles[(start + vis - 1) % total].close;
+        var lpy = toY(lastClose);
+        ctx.beginPath(); ctx.moveTo(0, lpy); ctx.lineTo(W, lpy); ctx.stroke();
+        ctx.restore();
+
+        var volZone = H * 0.07;
+        for (var i = 0; i < vis + 2; i++) {
+            var c = candles[(start + i) % total];
+            var x = i * cw - (scrollX % cw);
+            var vol = Math.abs(c.close - c.open) / c.open;
+            var bHv  = volZone * Math.min(vol * 55, 1) * 0.8;
+            var edgev = Math.min(x, W - x);
+            var alphav = Math.min(1, edgev / (W * 0.08)) * 0.22;
+            ctx.save();
+            ctx.globalAlpha = alphav;
+            ctx.fillStyle = c.close >= c.open ? '#22c55e' : '#ef4444';
+            ctx.fillRect(x + gap, H - bHv, bodyW, bHv);
+            ctx.restore();
+        }
+
+        scrollX += SPEED;
+        if (scrollX >= total * cw) {
+            scrollX -= total * cw;
+            var fresh = genCandles(10);
+            candles.splice(0, 10);
+            candles.push.apply(candles, fresh);
+        }
+
+        rafId = requestAnimationFrame(draw);
+    }
+
+    rafId = requestAnimationFrame(draw);
+
+    var origHide = window.hideSplashScreen;
+    window.hideSplashScreen = function() {
+        if (origHide) origHide();
+        setTimeout(function() {
+            stopped = true;
+            if (rafId) cancelAnimationFrame(rafId);
+        }, 540);
+    };
+});
+</script>
     <canvas id="bg-canvas"></canvas>
     <div class="toast-container" id="toastContainer"></div>
  
 
-<div id="splash-screen">
-    
-    <div class="original-logo-container">
-        <div class="crystal-logo-wrapper" style="
-            display:flex; 
-            flex-direction:column; 
-            align-items:center; 
-            position:relative;
-            padding: 20px;
-        ">
-            <!-- Glass Reflection Effect -->
-            <div class="glass-reflection-overlay"></div>
-    
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 280" width="180" height="180" class="crystal-logo-svg">
-                <defs>
-                    <!-- Premium Gradients -->
-                    <linearGradient id="crystalCoreGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-                        <stop offset="0%" stop-color="#020617"/>
-                        <stop offset="30%" stop-color="#0f172a"/>
-                        <stop offset="70%" stop-color="#1e3a8a"/>
-                        <stop offset="100%" stop-color="#2563eb"/>
-                    </linearGradient>
-                    
-                    <linearGradient id="crystalEdgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.8"/>
-                        <stop offset="50%" stop-color="#3b82f6" stop-opacity="0.4"/>
-                        <stop offset="100%" stop-color="#1d4ed8" stop-opacity="0.2"/>
-                    </linearGradient>
-                    
-                    <linearGradient id="crystalPathGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-                        <stop offset="0%" stop-color="#3b82f6"/>
-                        <stop offset="35%" stop-color="#06b6d4"/>
-                        <stop offset="65%" stop-color="#10b981"/>
-                        <stop offset="100%" stop-color="#34d399"/>
-                    </linearGradient>
-                    
-                    <linearGradient id="crystalGoldAccent" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#fcd34d"/>
-                        <stop offset="50%" stop-color="#f59e0b"/>
-                        <stop offset="100%" stop-color="#d97706"/>
-                    </linearGradient>
-                    
-                    <!-- Premium Filters -->
-                    <filter id="crystalInnerShadow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>
-                        <feOffset dx="2" dy="4" result="offsetBlur"/>
-                        <feComposite in="SourceGraphic" in2="offsetBlur" operator="out" result="inverse"/>
-                        <feFlood flood-color="#000" flood-opacity="0.3" result="color"/>
-                        <feComposite in="color" in2="inverse" operator="in" result="shadow"/>
-                        <feComposite in="shadow" in2="SourceGraphic" operator="over"/>
-                    </filter>
-                    
-                    <filter id="crystalGlow" x="-100%" y="-100%" width="300%" height="300%">
-                        <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur1"/>
-                        <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur2"/>
-                        <feMerge>
-                            <feMergeNode in="blur2"/>
-                            <feMergeNode in="blur1"/>
-                            <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                    </filter>
-                    
-                    <filter id="crystalStarGlow">
-                        <feGaussianBlur stdDeviation="3" result="blur"/>
-                        <feMerge>
-                            <feMergeNode in="blur"/>
-                            <feMergeNode in="blur"/>
-                            <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                    </filter>
-                </defs>
-                
-                <!-- Outer Glow Ring -->
-                <circle cx="140" cy="140" r="130" fill="none" stroke="url(#crystalEdgeGrad)" stroke-width="1" opacity="0.3"/>
-                
-                <!-- Background Grid Pattern -->
-                <g opacity="0.08" stroke="#3b82f6" stroke-width="0.5">
-                    <line x1="60" y1="140" x2="220" y2="140"/>
-                    <line x1="140" y1="60" x2="140" y2="220"/>
-                    <line x1="80" y1="80" x2="200" y2="200"/>
-                    <line x1="200" y1="80" x2="80" y2="200"/>
-                </g>
-                
-                <!-- Main Hexagon with 3D effect -->
-                <g filter="url(#crystalInnerShadow)">
-                    <!-- Back face (depth) -->
-                    <path d="M140 45 L215 95 L215 185 L140 235 L65 185 L65 95 Z" 
-                          fill="#020617" transform="translate(3, 3)" opacity="0.5"/>
-                    
-                    <!-- Main face -->
-                    <path d="M140 45 L215 95 L215 185 L140 235 L65 185 L65 95 Z" 
-                          fill="url(#crystalCoreGrad)"/>
-                </g>
-                
-                <!-- Hexagon Border Glow -->
-                <path d="M140 45 L215 95 L215 185 L140 235 L65 185 L65 95 Z" 
-                      fill="none" stroke="url(#crystalEdgeGrad)" stroke-width="2"/>
-                
-                <!-- Top Edge Highlight -->
-                <path d="M65 95 L140 45 L215 95" 
-                      fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" stroke-linecap="round"/>
-                
-                <!-- Inner Hexagon Pattern -->
-                <path d="M140 70 L190 105 L190 175 L140 210 L90 175 L90 105 Z" 
-                      fill="none" stroke="rgba(59, 130, 246, 0.15)" stroke-width="1"/>
-                
-                <!-- Main Chart Path with Enhanced Glow -->
-                <g filter="url(#crystalGlow)">
-                    <path d="M90 175 L125 190 L165 155 L165 85 L205 50" 
-                          stroke="url(#crystalPathGrad)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                </g>
-                
-                <!-- Path Reflection -->
-                <path d="M90 175 L125 190 L165 155 L165 85 L205 50" 
-                      stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"
-                      transform="translate(-1, -1)"/>
-                
-                <!-- Data Points -->
-                <circle cx="90" cy="175" r="4" fill="#3b82f6" opacity="0.8"/>
-                <circle cx="125" cy="190" r="4" fill="#06b6d4" opacity="0.8"/>
-                <circle cx="165" cy="155" r="4" fill="#10b981" opacity="0.8"/>
-                <circle cx="165" cy="85" r="4" fill="#10b981" opacity="0.8"/>
-                
-                <!-- Premium Star Point -->
-                <g filter="url(#crystalStarGlow)">
-                    <circle cx="205" cy="50" r="10" fill="url(#crystalGoldAccent)">
-                        <animate attributeName="r" values="10;13;10" dur="2s" repeatCount="indefinite"/>
-                    </circle>
-                    <circle cx="205" cy="50" r="5" fill="#ffffff">
-                        <animate attributeName="opacity" values="1;0.7;1" dur="2s" repeatCount="indefinite"/>
-                    </circle>
-                </g>
-                
-                <!-- Sparkle Effects -->
-                <g fill="#ffffff" opacity="0.8">
-                    <circle cx="80" cy="75" r="1.5">
-                        <animate attributeName="opacity" values="0;1;0" dur="3s" repeatCount="indefinite" begin="0s"/>
-                    </circle>
-                    <circle cx="200" cy="130" r="1">
-                        <animate attributeName="opacity" values="0;1;0" dur="2.5s" repeatCount="indefinite" begin="0.5s"/>
-                    </circle>
-                    <circle cx="100" cy="200" r="1.5">
-                        <animate attributeName="opacity" values="0;1;0" dur="4s" repeatCount="indefinite" begin="1s"/>
-                    </circle>
-                </g>
-            </svg>
+<!-- ─── Toggle icon — sağ köşe ─── -->
+<button class="tv-screen-toggle" id="tvToggleBtn" onclick="tvToggleScreen()" data-tip="Giriş Yap">
+    <i class="fas fa-arrow-right-to-bracket" id="tvToggleIcon"></i>
+</button>
 
-            <!-- Premium Text -->
-            <div style="text-align:center; z-index:1; margin-top: 15px;">
-                <h1 style="
-                    margin: 0;
-                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-                    font-size: 40px; 
-                    font-weight: 900; 
-                    letter-spacing: -1px;
-                    background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                ">
-                    TRADE<span style="
-                        background: linear-gradient(135deg, #60a5fa 0%, #34d399 50%, #fcd34d 100%);
-                        -webkit-background-clip: text;
-                        -webkit-text-fill-color: transparent;
-                    ">VIA</span>
-                </h1>
-                
-                <div style="
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 12px;
-                    margin-top: 12px;
-                ">
-                    <div style="width: 30px; height: 1px; background: linear-gradient(90deg, transparent, #f59e0b);"></div>
-                    <p style="
-                        margin: 0;
-                        font-family: 'Inter', sans-serif; 
-                        font-size: 9px; 
-                        font-weight: 700; 
-                        color: #f59e0b; 
-                        letter-spacing: 4px; 
-                        text-transform: uppercase;
-                    ">
-                        GELİŞMİŞ FİNANS TERMİNALİ
-                    </p>
-                    <div style="width: 30px; height: 1px; background: linear-gradient(90deg, #f59e0b, transparent);"></div>
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="tv-login-screen">
+    <div class="tv-login-layout">
+        <div class="tv-login-mini-logo">
+            <div class="tv-login-logo-icon">
+                <svg width="20" height="20" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
+                    <defs><linearGradient id="tvMiniPath" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#34d399"/></linearGradient></defs>
+                    <path d="M140 45 L215 95 L215 185 L140 235 L65 185 L65 95 Z" fill="#0a1628" stroke="rgba(59,130,246,0.35)" stroke-width="3"/>
+                    <path d="M65 95 L140 45 L215 95" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M90 175 L125 190 L165 155 L165 85 L205 50" stroke="url(#tvMiniPath)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    <circle cx="205" cy="50" r="16" fill="#d97706"/><circle cx="205" cy="50" r="8" fill="#fff" opacity="0.9"/>
+                </svg>
+            </div>
+            <div class="tv-login-logo-name">TRADE<span>VIA</span></div>
+        </div>
+
+        <div class="tv-login-card">
+            <!-- Sekmeler -->
+            <div class="tv-tabs">
+                <button class="tv-tab active" id="tvTabLogin" onclick="tvSwitchTab('login')">Giriş Yap</button>
+                <button class="tv-tab" id="tvTabRegister" onclick="tvSwitchTab('register')">Kayıt Ol</button>
+            </div>
+
+            <!-- ── GİRİŞ PANELİ ── -->
+            <div id="tvPanelLogin">
+                <div class="tv-card-header">
+                    <div class="tv-market-badge"><div class="tv-market-dot"></div>Piyasalar Açık</div>
+                    <h2>Tekrar hoş geldiniz</h2>
+                    <p>Hesabınıza giriş yaparak portföyünüze erişin</p>
+                </div>
+
+                <button class="tv-btn-google" onclick="tvGoogleSignIn()">
+                    <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/><path d="M3.964 10.706c-.18-.54-.282-1.117-.282-1.706s.102-1.166.282-1.706V4.962H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.038l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.962L3.964 6.294C4.672 4.169 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
+                    Google ile Devam Et
+                </button>
+
+                <div class="tv-divider"><div class="tv-divider-line"></div><span class="tv-divider-text">ya da e-posta ile giriş yap</span><div class="tv-divider-line"></div></div>
+
+                <div class="tv-field-group">
+                    <label class="tv-field-label">E-posta</label>
+                    <div class="tv-field-wrap">
+                        <input type="email" class="tv-field-input" placeholder="trader@example.com" id="tvEmailInp">
+                        <i class="fas fa-at tv-field-icon"></i>
+                    </div>
+                </div>
+
+                <div class="tv-field-group">
+                    <label class="tv-field-label">Şifre</label>
+                    <div class="tv-field-wrap">
+                        <input type="password" class="tv-field-input" placeholder="••••••••" id="tvPwInp">
+                        <i class="fas fa-lock tv-field-icon"></i>
+                        <button class="tv-pw-toggle" onclick="tvTogglePw('tvPwInp','tvPwIcon')" type="button"><i class="fas fa-eye" id="tvPwIcon"></i></button>
+                    </div>
+                    <div class="tv-field-row"><a class="tv-forgot-link">Şifremi unuttum?</a></div>
+                </div>
+
+                <button class="tv-btn-submit" onclick="tvEmailSignIn()">Giriş Yap</button>
+
+                <div class="tv-security-row">
+                    <div class="tv-sec-badge"><i class="fas fa-shield-halved"></i> SSL Şifreli</div>
+                    <div class="tv-sec-badge"><i class="fas fa-lock"></i> 2FA Destekli</div>
+                    <div class="tv-sec-badge"><i class="fas fa-eye-slash"></i> Gizlilik</div>
+                </div>
+            </div>
+
+            <!-- ── KAYIT PANELİ ── -->
+            <div id="tvPanelRegister" style="display:none;">
+                <div class="tv-card-header">
+                    <div class="tv-market-badge"><div class="tv-market-dot"></div>Ücretsiz Hesap</div>
+                    <h2>Hesap Oluştur</h2>
+                    <p>Birkaç saniyede ücretsiz hesabınızı açın</p>
+                </div>
+
+                <button class="tv-btn-google" onclick="tvGoogleSignIn()">
+                    <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/><path d="M3.964 10.706c-.18-.54-.282-1.117-.282-1.706s.102-1.166.282-1.706V4.962H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.038l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.962L3.964 6.294C4.672 4.169 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
+                    Google ile Kayıt Ol
+                </button>
+
+                <div class="tv-divider"><div class="tv-divider-line"></div><span class="tv-divider-text">ya da e-posta ile kayıt ol</span><div class="tv-divider-line"></div></div>
+
+                <div class="tv-field-group">
+                    <label class="tv-field-label">Ad Soyad</label>
+                    <div class="tv-field-wrap">
+                        <input type="text" class="tv-field-input" placeholder="Adınız Soyadınız" id="tvRegName">
+                        <i class="fas fa-user tv-field-icon"></i>
+                    </div>
+                </div>
+
+                <div class="tv-field-group">
+                    <label class="tv-field-label">E-posta</label>
+                    <div class="tv-field-wrap">
+                        <input type="email" class="tv-field-input" placeholder="trader@example.com" id="tvRegEmail">
+                        <i class="fas fa-at tv-field-icon"></i>
+                    </div>
+                </div>
+
+                <div class="tv-field-group">
+                    <label class="tv-field-label">Şifre</label>
+                    <div class="tv-field-wrap">
+                        <input type="password" class="tv-field-input" placeholder="En az 6 karakter" id="tvRegPw">
+                        <i class="fas fa-lock tv-field-icon"></i>
+                        <button class="tv-pw-toggle" onclick="tvTogglePw('tvRegPw','tvRegPwIcon')" type="button"><i class="fas fa-eye" id="tvRegPwIcon"></i></button>
+                    </div>
+                </div>
+
+                <button class="tv-btn-submit" onclick="tvEmailRegister()">Kayıt Ol</button>
+
+                <div class="tv-security-row">
+                    <div class="tv-sec-badge"><i class="fas fa-shield-halved"></i> SSL Şifreli</div>
+                    <div class="tv-sec-badge"><i class="fas fa-lock"></i> 2FA Destekli</div>
+                    <div class="tv-sec-badge"><i class="fas fa-eye-slash"></i> Gizlilik</div>
                 </div>
             </div>
         </div>
-    </div> <div class="splash-loader-bar"></div>
+    </div>
+</div>
+
+<!-- ─── Splash arkaplan katmanları (canvas + fog + grain + vignette) ─── -->
+<canvas id="splashCanvas"></canvas>
+<div class="splash-depth-fog"></div>
+<div class="splash-depth-sides"></div>
+<div class="splash-grain"></div>
+<div class="splash-vignette"></div>
+
+<div id="splash-screen">
+    <div class="logo-hexagon-wrap">
+        <div class="logo-ring"></div>
+        <div class="logo-ring-2"></div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 280" class="logo-svg-main">
+            <defs>
+                <linearGradient id="splashCoreGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                    <stop offset="0%"   stop-color="#020617"/>
+                    <stop offset="30%"  stop-color="#0f172a"/>
+                    <stop offset="70%"  stop-color="#1e3a8a"/>
+                    <stop offset="100%" stop-color="#2563eb"/>
+                </linearGradient>
+                <linearGradient id="splashEdgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%"   stop-color="#60a5fa" stop-opacity="0.9"/>
+                    <stop offset="100%" stop-color="#1d4ed8" stop-opacity="0.2"/>
+                </linearGradient>
+                <linearGradient id="splashPathGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                    <stop offset="0%"   stop-color="#3b82f6"/>
+                    <stop offset="50%"  stop-color="#06b6d4"/>
+                    <stop offset="100%" stop-color="#34d399"/>
+                </linearGradient>
+                <linearGradient id="splashGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%"   stop-color="#fcd34d"/>
+                    <stop offset="100%" stop-color="#d97706"/>
+                </linearGradient>
+                <filter id="splashGlow" x="-80%" y="-80%" width="260%" height="260%">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="b"/>
+                    <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+            </defs>
+            <path d="M140 45 L215 95 L215 185 L140 235 L65 185 L65 95 Z" fill="#020617" transform="translate(4,4)" opacity="0.5"/>
+            <path d="M140 45 L215 95 L215 185 L140 235 L65 185 L65 95 Z" fill="url(#splashCoreGrad)"/>
+            <path d="M140 45 L215 95 L215 185 L140 235 L65 185 L65 95 Z" fill="none" stroke="url(#splashEdgeGrad)" stroke-width="2"/>
+            <path d="M65 95 L140 45 L215 95" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M140 70 L190 105 L190 175 L140 210 L90 175 L90 105 Z" fill="none" stroke="rgba(59,130,246,0.12)" stroke-width="1"/>
+            <g filter="url(#splashGlow)">
+                <path d="M90 175 L125 190 L165 155 L165 85 L205 50" stroke="url(#splashPathGrad)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </g>
+            <circle cx="90"  cy="175" r="4" fill="#3b82f6" opacity="0.9"/>
+            <circle cx="125" cy="190" r="4" fill="#06b6d4" opacity="0.9"/>
+            <circle cx="165" cy="155" r="4" fill="#10b981" opacity="0.9"/>
+            <circle cx="165" cy="85"  r="4" fill="#10b981" opacity="0.9"/>
+            <circle cx="205" cy="50"  r="10" fill="url(#splashGoldGrad)" filter="url(#splashGlow)">
+                <animate attributeName="r" values="10;13;10" dur="2.5s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="205" cy="50" r="5" fill="#fff" opacity="0.95">
+                <animate attributeName="opacity" values="0.95;0.5;0.95" dur="2.5s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="205" cy="50" r="10" fill="none" stroke="rgba(201,168,76,0.2)" stroke-width="1">
+                <animate attributeName="r"       values="12;22;12"   dur="2.5s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values="0.5;0;0.5"  dur="2.5s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="78"  cy="72"  r="1.5" fill="#fff" opacity="0.7"><animate attributeName="opacity" values="0;1;0" dur="3s"   repeatCount="indefinite" begin="0s"/></circle>
+            <circle cx="202" cy="128" r="1"   fill="#fff" opacity="0.7"><animate attributeName="opacity" values="0;1;0" dur="2.5s" repeatCount="indefinite" begin="0.6s"/></circle>
+            <circle cx="98"  cy="202" r="1.5" fill="#fff" opacity="0.7"><animate attributeName="opacity" values="0;1;0" dur="4s"   repeatCount="indefinite" begin="1.2s"/></circle>
+        </svg>
+    </div>
+
+    <div class="splash-brand">
+        <div class="brand-name">TRADE<span>VIA</span></div>
+        <div class="brand-tagline">
+            <div class="tagline-line"></div>
+            <div class="tagline-text">Gelişmiş Finans Terminali</div>
+            <div class="tagline-line rev"></div>
+        </div>
+    </div>
+
+    <div class="splash-live-indicator">
+        <div class="splash-live-dot"></div>
+        <span class="splash-live-text">Piyasalar Açık</span>
+    </div>
+
+    <div class="splash-loader-bar"></div>
 
     <div class="splash-legal-footer">
         <a href="gizlilik.html" target="_blank">Gizlilik Politikası</a>
@@ -4885,10 +5260,6 @@ html.ios-pwa .bottom-nav { padding-bottom: max(env(safe-area-inset-bottom, 0px),
         <span class="sep">•</span>
         <a href="iletisim.html" target="_blank">İletişim</a>
     </div>
-
-        
-    </div>
-
 </div>
 
     </div>
@@ -16140,7 +16511,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -16311,7 +16682,12 @@ function initApp(){
     });
 
     // 5. Splash Ekranını Gizle ve Geçmişi Yükle
-    setTimeout(() => { hideSplashScreen(); }, 3500); 
+    // Login ekranındaysa uygulama açılmasın — sadece splash ekranındaysa geç
+    setTimeout(() => {
+        if (typeof tvCurrentScreen === 'undefined' || tvCurrentScreen === 'splash') {
+            hideSplashScreen();
+        }
+    }, 5000);
     renderHistory();
     setEntryCurrency('TRY'); 
 
@@ -16341,11 +16717,129 @@ function initApp(){
     }, 100); 
 }
 
+/* ════════════════════════════════════
+   TV SCREEN TOGGLE — tradevia-final'den birebir
+════════════════════════════════════ */
+var tvCurrentScreen = 'splash';
+var tvSplashTimer = null;
+
+function tvToggleScreen() {
+    var splash = document.getElementById('splash-screen');
+    var login  = document.getElementById('tv-login-screen');
+    var icon   = document.getElementById('tvToggleIcon');
+    var btn    = document.getElementById('tvToggleBtn');
+    if (!splash || !login) return;
+
+    if (tvCurrentScreen === 'splash') {
+        // Splash → Login: timer'ı durdur
+        if (tvSplashTimer) { clearTimeout(tvSplashTimer); tvSplashTimer = null; }
+        splash.style.opacity = '0';
+        splash.style.transform = 'translateY(-12px)';
+        splash.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+        setTimeout(function() {
+            splash.style.display = 'none';
+            splash.style.opacity = '';
+            splash.style.transform = '';
+            splash.style.transition = '';
+            login.style.display = 'block';
+            login.classList.add('tv-screen-fade-in');
+            setTimeout(function() { login.classList.remove('tv-screen-fade-in'); }, 500);
+        }, 320);
+        icon.className = 'fas fa-house';
+        btn.setAttribute('data-tip', 'Ana Ekran');
+        tvCurrentScreen = 'login';
+    } else {
+        // Login → Splash: geri dön ve 3sn sonra uygulamaya geç
+        login.style.opacity = '0';
+        login.style.transform = 'translateY(12px)';
+        login.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        setTimeout(function() {
+            login.style.display = 'none';
+            login.style.opacity = '';
+            login.style.transform = '';
+            login.style.transition = '';
+            splash.style.display = 'flex';
+            splash.classList.add('tv-screen-fade-in');
+            setTimeout(function() { splash.classList.remove('tv-screen-fade-in'); }, 500);
+        }, 280);
+        icon.className = 'fas fa-arrow-right-to-bracket';
+        btn.setAttribute('data-tip', 'Giriş Yap');
+        tvCurrentScreen = 'splash';
+        // Splash'a döndükten 3 saniye sonra uygulamaya geç
+        tvSplashTimer = setTimeout(function() {
+            if (tvCurrentScreen === 'splash') hideSplashScreen();
+        }, 3000);
+    }
+}
+
+function tvTogglePw(inputId, iconId) {
+    var inp  = document.getElementById(inputId);
+    var icon = document.getElementById(iconId);
+    if (!inp) return;
+    if (inp.type === 'password') { inp.type = 'text'; if(icon) icon.className = 'fas fa-eye-slash'; }
+    else { inp.type = 'password'; if(icon) icon.className = 'fas fa-eye'; }
+}
+
+function tvSwitchTab(tab) {
+    var loginPanel    = document.getElementById('tvPanelLogin');
+    var registerPanel = document.getElementById('tvPanelRegister');
+    var tabLogin      = document.getElementById('tvTabLogin');
+    var tabRegister   = document.getElementById('tvTabRegister');
+    if (tab === 'login') {
+        loginPanel.style.display = 'block';
+        registerPanel.style.display = 'none';
+        tabLogin.classList.add('active');
+        tabRegister.classList.remove('active');
+    } else {
+        loginPanel.style.display = 'none';
+        registerPanel.style.display = 'block';
+        tabRegister.classList.add('active');
+        tabLogin.classList.remove('active');
+    }
+}
+
+function tvGoogleSignIn() {
+    if (typeof firebase !== 'undefined') {
+        var provider = new firebase.auth.GoogleAuthProvider();
+        fbAuth.signInWithRedirect(provider);
+    }
+}
+
+function tvEmailSignIn() {
+    var email = document.getElementById('tvEmailInp');
+    var pw    = document.getElementById('tvPwInp');
+    if (!email || !pw || !email.value || !pw.value) return;
+    if (typeof fbAuth !== 'undefined') {
+        fbAuth.signInWithEmailAndPassword(email.value, pw.value)
+            .catch(function(e) { alert(e.message); });
+    }
+}
+
+function tvEmailRegister() {
+    var email = document.getElementById('tvRegEmail');
+    var pw    = document.getElementById('tvRegPw');
+    if (!email || !pw || !email.value || !pw.value) { alert('E-posta ve şifre alanlarını doldurun.'); return; }
+    if (typeof fbAuth !== 'undefined') {
+        fbAuth.createUserWithEmailAndPassword(email.value, pw.value)
+            .catch(function(e) { alert(e.message); });
+    }
+}
+
 function hideSplashScreen() {
-    const splash = document.getElementById('splash-screen');
-    if(splash && !splash.classList.contains('hidden')) {
+    var splash = document.getElementById('splash-screen');
+    var loginScr = document.getElementById('tv-login-screen');
+    var toggleBtn = document.getElementById('tvToggleBtn');
+    if (splash && !splash.classList.contains('hidden')) {
         splash.classList.add('hidden');
-        setTimeout(() => { splash.remove(); }, 400); 
+        // toggle butonu ve login ekranını gizle
+        if (toggleBtn) { toggleBtn.classList.add('gone'); }
+        if (loginScr)  { loginScr.style.display = 'none'; }
+        // Canvas ve depth layer'ları fade-out bittikten sonra gizle
+        setTimeout(function() {
+            ['splashCanvas'].forEach(function(id) { var el = document.getElementById(id); if(el) el.style.display = 'none'; });
+            ['splash-depth-fog','splash-depth-sides','splash-grain','splash-vignette'].forEach(function(cls) { var el = document.querySelector('.'+cls); if(el) el.style.display = 'none'; });
+            splash.remove();
+        }, 520);
     }
 }
 /* --- EKSİK OLAN SIRALAMA FONKSİYONU --- */
