@@ -2902,6 +2902,7 @@ html.ios-pwa body {
             border: 1px solid rgba(255,255,255,.07);
             background: linear-gradient(145deg, rgba(15,23,42,.95) 0%, rgba(20,16,48,.9) 100%);
             position: relative;
+            display: block !important;
         }
         .dash-card.perf-combined-card::before {
             content: '';
@@ -2911,59 +2912,84 @@ html.ios-pwa body {
                         radial-gradient(ellipse at 15% 80%, rgba(16,185,129,.05) 0%, transparent 50%);
             pointer-events: none;
         }
+        /* ── LUXURY GOLD — Dağılım Kartı ── */
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+        .perf-combined-card {
+            background: linear-gradient(158deg, #0e0d18 0%, #0a0a14 55%, #0c0b18 100%) !important;
+            border: 1px solid rgba(245,193,40,0.18) !important;
+            border-radius: 26px !important;
+            overflow: hidden !important;
+            position: relative !important;
+            box-shadow:
+                0 0 0 1px rgba(245,193,40,0.04),
+                0 1px 0 rgba(245,193,40,0.08) inset,
+                0 50px 120px rgba(0,0,0,0.8),
+                0 0 100px rgba(210,155,10,0.05) !important;
+        }
+        .perf-combined-card::before {
+            content: '';
+            position: absolute;
+            top: -90px; right: -70px;
+            width: 300px; height: 300px;
+            background: radial-gradient(circle at 35% 35%, rgba(245,193,40,0.09) 0%, rgba(245,193,40,0.02) 45%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .perf-combined-card::after {
+            content: '';
+            position: absolute;
+            bottom: -80px; left: -80px;
+            width: 280px; height: 280px;
+            background: radial-gradient(circle, rgba(220,155,10,0.06) 0%, transparent 65%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Header */
         .pcb-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 14px 16px 0;
+            padding: 20px 20px 0;
+            position: relative; z-index: 2;
         }
-        .pcb-tabs {
-            display: flex;
-            gap: 6px;
-            background: rgba(255,255,255,.04);
-            border: 1px solid rgba(255,255,255,.06);
-            border-radius: 14px;
-            padding: 4px;
-        }
+        .pcb-tabs { display: flex; }
         .pcb-tab {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 7px 14px;
-            border-radius: 10px;
+            gap: 8px;
             border: none;
             background: transparent;
-            color: rgba(255,255,255,.38);
-            font-size: 12px;
-            font-weight: 600;
-            font-family: inherit;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 20px;
+            font-weight: 500;
+            font-style: italic;
+            color: rgba(255,255,255,0.92);
+            letter-spacing: 0.3px;
             cursor: pointer;
-            transition: all .22s cubic-bezier(.4,0,.2,1);
-            white-space: nowrap;
+            padding: 0;
         }
-        .pcb-tab i { font-size: 11px; }
-        .pcb-tab.active {
-            background: linear-gradient(135deg, rgba(99,102,241,.28) 0%, rgba(139,92,246,.22) 100%);
-            color: #c4b5fd;
-            border: 1px solid rgba(139,92,246,.3);
-            box-shadow: 0 2px 12px rgba(99,102,241,.2);
-        }
-        .pcb-tab:not(.active):hover {
-            background: rgba(255,255,255,.06);
-            color: rgba(255,255,255,.6);
-        }
+        .pcb-tab i { color: rgba(245,193,40,0.65); font-size: 14px; font-style: normal; }
+        .pcb-tab.active { color: rgba(255,255,255,0.92); }
         .pcb-glow-badge {
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 700;
-            color: #34d399;
-            background: rgba(16,185,129,.12);
-            border: 1px solid rgba(16,185,129,.22);
-            border-radius: 20px;
-            padding: 4px 10px;
-            letter-spacing: .5px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 5px 12px;
+            border-radius: 6px;
+            background: rgba(245,193,40,0.07);
+            border: 1px solid rgba(245,193,40,0.2);
+            color: rgba(245,193,40,0.9);
+            font-family: 'JetBrains Mono', monospace;
+            box-shadow: 0 0 12px rgba(245,193,40,0.06);
         }
+
+        /* Panel */
         .pcb-panel {
-            padding: 14px 16px 16px;
+            padding: 20px 20px 0;
+            position: relative; z-index: 2;
             animation: pcbFadeIn .28s ease;
         }
         .pcb-panel.pcb-hidden { display: none; }
@@ -2971,58 +2997,387 @@ html.ios-pwa body {
             from { opacity: 0; transform: translateY(5px); }
             to   { opacity: 1; transform: translateY(0); }
         }
-        /* Allocation panel layout */
+
+        /* Alloc wrap: donut sağda, legend solda */
         .pcb-alloc-wrap {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 16px;
+            flex-direction: row-reverse;
         }
         .pcb-chart-area {
-            width: 150px;
-            height: 150px;
+            width: 118px;
+            height: 118px;
             flex-shrink: 0;
             position: relative;
+            filter: drop-shadow(0 4px 16px rgba(245,193,40,0.18)) drop-shadow(0 0 40px rgba(245,193,40,0.08));
         }
         .pcb-chart-area canvas { width: 100% !important; height: 100% !important; }
+
+        /* Stacked bar */
+        .pcb-stacked-bar {
+            height: 7px;
+            border-radius: 4px;
+            display: flex;
+            overflow: hidden;
+            gap: 2px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.4), 0 0 20px rgba(245,193,40,0.06);
+        }
+        .pcb-bar-seg {
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            border-radius: 2px;
+        }
+        .pcb-bar-seg::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 50%;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px 2px 0 0;
+        }
+
+        /* Legend pills */
         .pcb-legend {
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 9px;
+            gap: 7px;
         }
         .pcb-legend-item {
             display: flex;
             align-items: center;
             gap: 9px;
+            padding: 7px 11px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.25s;
+            position: relative;
+            overflow: hidden;
+            cursor: default;
+        }
+        .pcb-legend-item:hover {
+            background: rgba(245,193,40,0.04);
+            border-color: rgba(245,193,40,0.14);
+            transform: translateX(2px);
+        }
+        .pcb-legend-item-accent {
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 2px;
+            border-radius: 2px 0 0 2px;
         }
         .pcb-legend-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 3px;
+            width: 7px; height: 7px;
+            border-radius: 2px;
             flex-shrink: 0;
         }
         .pcb-legend-label {
             flex: 1;
-            font-size: 11.5px;
-            color: rgba(255,255,255,.55);
-            font-weight: 500;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.45);
+            font-family: 'JetBrains Mono', monospace;
         }
         .pcb-legend-pct {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 700;
-            color: rgba(255,255,255,.85);
+            font-family: 'Cormorant Garamond', serif;
         }
-        .pcb-legend-bar-wrap {
-            width: 100%;
-            height: 3px;
-            background: rgba(255,255,255,.07);
-            border-radius: 4px;
-            margin-top: 2px;
+        .pcb-legend-bar-wrap { display: none; }
+
+        /* Divider */
+        .pcb-lux-divider {
+            margin: 16px 20px 0;
+            height: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative; z-index: 2;
         }
-        .pcb-legend-bar {
-            height: 100%;
-            border-radius: 4px;
-            transition: width .6s ease;
+        .pcb-lux-divider::before,
+        .pcb-lux-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(245,193,40,0.18), transparent);
+        }
+        .pcb-lux-diamond {
+            width: 5px; height: 5px;
+            background: rgba(245,193,40,0.5);
+            transform: rotate(45deg);
+            box-shadow: 0 0 8px rgba(245,193,40,0.6);
+            flex-shrink: 0;
+        }
+
+        /* Sub tabs */
+        .pcb-sub-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            padding: 0 20px;
+            margin-top: 4px;
+            position: relative; z-index: 2;
+        }
+        .pcb-sub-tab {
+            padding: 14px 0;
+            text-align: center;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: rgba(255,255,255,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.25s;
+            position: relative;
+        }
+        .pcb-sub-tab::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 25%; right: 25%;
+            height: 1px;
+            background: #f5c128;
+            transform: scaleX(0);
+            transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+            box-shadow: 0 0 8px rgba(245,193,40,0.6);
+        }
+        .pcb-sub-tab.active { color: #f5c128; }
+        .pcb-sub-tab.active::after { transform: scaleX(1); }
+
+        /* ── Full-width fix for sub panels ── */
+        #perfCombinedCard,
+        #perfCombinedCard .pcb-panel,
+        #perfCombinedCard .pcb-sub-panel,
+        #perfCombinedCard #subPanelWinners,
+        #perfCombinedCard #subPanelDaily,
+        #perfCombinedCard #topPerformersListInline {
+            width: 100% !important;
+            min-width: 0 !important;
+            box-sizing: border-box !important;
+            align-self: stretch !important;
+        }
+        #perfCombinedCard #topPerformersListInline {
+            display: block !important;
+        }
+        #perfCombinedCard #topPerformersListInline .top-performer-row {
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Best/Worst row */
+        .pcb-bw-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 14px;
+            padding: 13px 15px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .pcb-bw-col { flex: 1; }
+        .pcb-bw-sep {
+            width: 1px; height: 32px;
+            background: rgba(255,255,255,0.07);
+            margin: 0 16px; flex-shrink: 0;
+        }
+        .pcb-bw-label {
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.22);
+            margin-bottom: 5px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .pcb-bw-val {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 19px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            line-height: 1;
+        }
+
+        /* Log count */
+        .pcb-log-count {
+            font-size: 9px;
+            color: rgba(255,255,255,0.15);
+            text-align: right;
+            margin-bottom: 10px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Daily list */
+        .daily-log-container .log-row,
+        .pcb-log-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 11px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            transition: padding-left 0.2s;
+        }
+        .daily-log-container .log-row:last-child { border-bottom: none; }
+        .daily-log-container .log-row:hover { padding-left: 4px; }
+        .log-date {
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.3);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .log-val {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        /* Winner rows */
+        .pcb-winner-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 8px;
+            transition: all 0.25s;
+        }
+        .pcb-winner-row:last-child { margin-bottom: 0; }
+        .pcb-winner-row:hover {
+            background: rgba(245,193,40,0.04);
+            border-color: rgba(245,193,40,0.14);
+            transform: translateX(2px);
+        }
+        .pcb-winner-badge {
+            width: 30px; height: 30px;
+            border-radius: 9px;
+            flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+        }
+        .pcb-winner-name {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.85);
+        }
+        .pcb-winner-pnl {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        /* daily-log-container Luxury Gold override */
+        .perf-combined-card .daily-log-container {
+            background: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .perf-combined-card .daily-log-container .daily-log-row,
+        .perf-combined-card .daily-log-container .log-row {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            padding: 11px 0 !important;
+            border: none !important;
+            border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+            background: none !important;
+            border-radius: 0 !important;
+            transition: padding-left 0.2s !important;
+            font-size: inherit !important;
+        }
+        .perf-combined-card .daily-log-container .daily-log-row:last-child,
+        .perf-combined-card .daily-log-container .log-row:last-child {
+            border-bottom: none !important;
+        }
+        .perf-combined-card .daily-log-container .daily-log-row:hover,
+        .perf-combined-card .daily-log-container .log-row:hover {
+            padding-left: 4px !important;
+            background: none !important;
+        }
+        /* topPerformersListInline winner rows */
+        .perf-combined-card #topPerformersListInline {
+            padding: 0 !important;
+        }
+        .perf-combined-card #topPerformersListInline .top-performer-row {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 10px !important;
+            padding: 12px 15px !important;
+            border-radius: 14px !important;
+            background: rgba(255,255,255,0.025) !important;
+            border: 1px solid rgba(255,255,255,0.05) !important;
+            margin-bottom: 6px !important;
+            transition: all 0.25s !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+        .perf-combined-card #topPerformersListInline .top-performer-row:hover {
+            background: rgba(245,193,40,0.04) !important;
+            border-color: rgba(245,193,40,0.14) !important;
+            transform: translateX(2px) !important;
+        }
+        .perf-combined-card #topPerformersListInline .tp-name {
+            flex: 1 !important;
+            font-weight: 700 !important;
+            color: rgba(255,255,255,0.85) !important;
+            font-size: 14px !important;
+        }
+        .perf-combined-card #topPerformersListInline .tp-icon .asset-logo-wrap {
+            width: 36px !important;
+            height: 36px !important;
+            margin: 0 !important;
+        }
+        .perf-combined-card #topPerformersListInline .tp-val {
+            font-family: 'Cormorant Garamond', serif !important;
+            font-size: 16px !important;
+            font-weight: 600 !important;
+            letter-spacing: -0.3px !important;
+        }
+        .perf-combined-card #topPerformersListInline .rank-badge {
+            width: 28px !important; height: 28px !important;
+            border-radius: 9px !important;
+            display: flex !important; align-items: center !important; justify-content: center !important;
+            font-size: 12px !important; font-weight: 700 !important;
+            background: rgba(245,193,40,0.1) !important;
+            color: rgba(245,193,40,0.8) !important;
+            border: none !important; box-shadow: none !important;
+        }
+        .pcb-donut-center {
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 2px; pointer-events: none;
+        }
+        .pcb-donut-icon {
+            font-size: 22px;
+            color: #f5c128;
+            text-shadow: 0 0 24px rgba(245,193,40,0.5);
+            animation: lux-glow 3s ease-in-out infinite;
+        }
+        .pcb-donut-sub {
+            font-size: 8px; font-weight: 700;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            color: rgba(245,193,40,0.3);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        @keyframes lux-glow {
+            0%,100% { text-shadow: 0 0 18px rgba(245,193,40,0.45); }
+            50% { text-shadow: 0 0 28px rgba(245,193,40,0.7), 0 0 60px rgba(245,193,40,0.25); }
         }
 
         /* ─── GOAL PROGRESS ─── */
@@ -7857,9 +8212,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
 
-            <!-- ═══ DAĞILIM PREMIUM BLOK ═══ -->
+            <!-- ═══ DAĞILIM LUXURY GOLD ═══ -->
             <div class="dash-card full-width perf-combined-card" id="perfCombinedCard">
-                <!-- Header - sadece Dağılım -->
+
+                <!-- Header -->
                 <div class="pcb-header">
                     <div class="pcb-tabs">
                         <button class="pcb-tab active" onclick="switchPerfTab('allocation', this)">
@@ -7871,50 +8227,57 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 <!-- Pasta Grafik -->
                 <div class="pcb-panel" id="pcbPanelAllocation">
+
+                    <!-- Stacked bar -->
+                    <div class="pcb-stacked-bar" id="pcbStackedBar">
+                        <!-- JS tarafından doldurulur -->
+                    </div>
+
+                    <!-- Donut sağda, Legend solda -->
                     <div class="pcb-alloc-wrap">
                         <div class="pcb-chart-area">
                             <canvas id="newAllocationChart"></canvas>
+                            <div class="pcb-donut-center">
+                                <div class="pcb-donut-icon">◈</div>
+                                <div class="pcb-donut-sub" id="pcbDonutSub">-- Sınıf</div>
+                            </div>
                         </div>
                         <div class="pcb-legend" id="pcbLegend"></div>
                     </div>
 
-                    <!-- Ayraç + Underline Tab Bar -->
-                    <div style="margin-top:16px; border-top:1px solid rgba(255,255,255,0.08);">
-                        <div style="display:grid; grid-template-columns:1fr 1fr;">
-                            <button id="subTabDaily" onclick="switchSubTab('daily')"
-                                style="padding:12px 0; background:none; border:none; border-bottom:2px solid #60a5fa; color:#f8fafc; font-size:13px; font-weight:600; cursor:pointer; letter-spacing:0.3px;">
-                                Günlük
-                            </button>
-                            <button id="subTabWinners" onclick="switchSubTab('winners')"
-                                style="padding:12px 0; background:none; border:none; border-bottom:2px solid transparent; color:rgba(148,163,184,0.6); font-size:13px; font-weight:600; cursor:pointer; letter-spacing:0.3px;">
-                                Kazananlar
-                            </button>
-                        </div>
+                    <!-- Diamond divider -->
+                    <div class="pcb-lux-divider">
+                        <div class="pcb-lux-diamond"></div>
                     </div>
 
-                    <!-- Alt Panel: Günlük Kazanç (varsayılan açık) -->
-                    <div id="subPanelDaily" style="padding-top:12px;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:4px; padding:8px 0;">
-                            <div>
-                                <div style="font-size:9px;color:rgba(148,163,184,0.5);text-transform:uppercase;letter-spacing:0.8px;font-weight:600;margin-bottom:3px;">EN İYİ GÜN</div>
-                                <div style="font-size:15px;font-weight:800;color:#34d399;" id="logBestDay">+₺0</div>
+                    <!-- Sub tabs: Kazananlar | Günlük -->
+                    <div class="pcb-sub-tabs">
+                        <button id="subTabWinners" class="pcb-sub-tab active" onclick="switchSubTab('winners')">Kazananlar</button>
+                        <button id="subTabDaily"   class="pcb-sub-tab"        onclick="switchSubTab('daily')">Günlük</button>
+                    </div>
+
+                    <!-- Kazananlar paneli (varsayılan açık) -->
+                    <div id="subPanelWinners" class="pcb-sub-panel">
+                        <div id="topPerformersListInline" style="width:100%;box-sizing:border-box;"></div>
+                    </div>
+
+                    <!-- Günlük paneli (gizli) -->
+                    <div id="subPanelDaily" class="pcb-sub-panel" style="display:none;">
+                        <div class="pcb-bw-row">
+                            <div class="pcb-bw-col">
+                                <div class="pcb-bw-label">En İyi Gün</div>
+                                <div class="pcb-bw-val" style="color:#4ade80;" id="logBestDay">+₺0</div>
                             </div>
-                            <div style="text-align:right;">
-                                <div style="font-size:9px;color:rgba(148,163,184,0.5);text-transform:uppercase;letter-spacing:0.8px;font-weight:600;margin-bottom:3px;">EN KÖTÜ GÜN</div>
-                                <div style="font-size:15px;font-weight:800;color:#f87171;" id="logWorstDay">₺0</div>
+                            <div class="pcb-bw-sep"></div>
+                            <div class="pcb-bw-col" style="text-align:right;">
+                                <div class="pcb-bw-label">En Kötü Gün</div>
+                                <div class="pcb-bw-val" style="color:#f87171;" id="logWorstDay">₺0</div>
                             </div>
                         </div>
-                        <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
-                            <span style="font-size:10px;color:rgba(148,163,184,0.4);font-weight:600;" id="logEntryCount">0 kayıt</span>
-                        </div>
+                        <div class="pcb-log-count" id="logEntryCount">0 kayıt</div>
                         <div id="dailyLogList" class="daily-log-container" style="max-height:300px;overflow-y:auto;">
                             <div style="text-align:center;padding:20px;color:rgba(148,163,184,0.4);font-size:11px;">Yükleniyor...</div>
                         </div>
-                    </div>
-
-                    <!-- Alt Panel: Kazananlar (gizli) -->
-                    <div id="subPanelWinners" style="display:none; padding-top:12px;">
-                        <div id="topPerformersListInline" style="display:flex; flex-direction:column; gap:6px; max-height:300px; overflow-y:auto;"></div>
                     </div>
 
                 </div>
@@ -17067,7 +17430,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.7"; 
+    const CURRENT_VERSION = "1.6"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -18753,9 +19116,15 @@ function renderAnalyticsPage() {
     sortedAssets.forEach((a, i) => { 
         let currentP = a.curr || a.buy; 
         let rawPnL = (currentP - a.buy) * a.amt; 
-        let pnlColor = rawPnL >= 0 ? '#34d399' : '#fb7185'; 
-        let rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
-        topListHTML += `<div class="top-performer-row"><div class="tp-name"><div class="rank-badge ${rankClass}">${i+1}</div>${a.name.replace('.IS','')}</div><div class="tp-val" style="color:${pnlColor}">${rawPnL >= 0 ? '+' : ''}${rawPnL.toFixed(0)}</div></div>`; 
+        let pnlColor = rawPnL >= 0 ? '#4ade80' : '#f87171'; 
+        let sym = (a.name||'').replace('.IS','');
+        let logoHtml = typeof getAssetLogoHtml === 'function' ? getAssetLogoHtml(a.name) : '';
+        logoHtml = logoHtml.replace(/width:\s*4[0-9]px/g,'width:36px').replace(/height:\s*4[0-9]px/g,'height:36px').replace(/margin-right:\s*\d+px/,'margin-right:0');
+        topListHTML += `<div class="top-performer-row" style="width:100%;box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:12px 15px;border-radius:14px;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.05);margin-bottom:6px;">
+            <div class="tp-icon" style="width:36px;height:36px;flex-shrink:0;">${logoHtml}</div>
+            <div class="tp-name" style="flex:1;font-size:14px;font-weight:700;color:rgba(255,255,255,0.85);padding-left:10px;">${sym}</div>
+            <div class="tp-val" style="color:${pnlColor};font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;letter-spacing:-0.3px;">${rawPnL >= 0 ? '+' : ''}₺${Math.abs(rawPnL).toLocaleString('tr-TR',{maximumFractionDigits:0})}</div>
+        </div>`; 
     });
     
     document.getElementById('topPerformersList').innerHTML = topListHTML;
@@ -19080,13 +19449,30 @@ function renderNewAllocationChart(as) {
             animation: { animateRotate: true, duration: 700 }
         }
     });
-    // Render custom legend
+    // Render custom legend — Luxury Gold pill style
     const legendEl = document.getElementById('pcbLegend');
     if (!legendEl) return;
     legendEl.innerHTML = '';
+    const stackedBar = document.getElementById('pcbStackedBar');
+    if (stackedBar) {
+        stackedBar.innerHTML = '';
+        labels.forEach((lbl, i) => {
+            const pct = total > 0 ? ((data[i] / total) * 100).toFixed(1) : '0';
+            const seg = document.createElement('div');
+            seg.className = 'pcb-bar-seg';
+            seg.style.flex = pct;
+            seg.style.background = colors[i];
+            if (i === 0) seg.style.borderRadius = '4px 1px 1px 4px';
+            if (i === labels.length - 1) seg.style.borderRadius = '1px 4px 4px 1px';
+            stackedBar.appendChild(seg);
+        });
+    }
+    const donutSub = document.getElementById('pcbDonutSub');
+    if (donutSub) donutSub.textContent = labels.length + ' Sınıf';
     labels.forEach((lbl, i) => {
         const pct = total > 0 ? ((data[i] / total) * 100).toFixed(1) : '0';
-        legendEl.innerHTML += '<div class="pcb-legend-item"><div class="pcb-legend-dot" style="background:' + colors[i] + '"></div><div style="flex:1"><div style="display:flex;justify-content:space-between"><span class="pcb-legend-label">' + lbl + '</span><span class="pcb-legend-pct">%' + pct + '</span></div><div class="pcb-legend-bar-wrap"><div class="pcb-legend-bar" style="width:' + pct + '%;background:' + colors[i] + '"></div></div></div></div>';
+        const op = parseFloat(pct) === 0 ? 'opacity:0.35;' : '';
+        legendEl.innerHTML += '<div class="pcb-legend-item" style="' + op + '"><div class="pcb-legend-item-accent" style="background:' + colors[i] + ';"></div><div class="pcb-legend-dot" style="background:' + colors[i] + ';box-shadow:0 0 6px ' + colors[i] + '55;"></div><span class="pcb-legend-label">' + lbl + '</span><span class="pcb-legend-pct" style="color:' + colors[i] + ';">%' + pct + '</span></div>';
     });
 }
 
@@ -19119,13 +19505,13 @@ window.switchSubTab = function(tab) {
     if (tab === 'winners') {
         if(wp) wp.style.display = '';
         if(dp) dp.style.display = 'none';
-        if(btnW) { btnW.style.borderBottom='2px solid #f59e0b'; btnW.style.color='#f8fafc'; }
-        if(btnD) { btnD.style.borderBottom='2px solid transparent'; btnD.style.color='rgba(148,163,184,0.6)'; }
+        if(btnW) btnW.classList.add('active');
+        if(btnD) btnD.classList.remove('active');
     } else {
         if(wp) wp.style.display = 'none';
         if(dp) dp.style.display = '';
-        if(btnD) { btnD.style.borderBottom='2px solid #60a5fa'; btnD.style.color='#f8fafc'; }
-        if(btnW) { btnW.style.borderBottom='2px solid transparent'; btnW.style.color='rgba(148,163,184,0.6)'; }
+        if(btnD) btnD.classList.add('active');
+        if(btnW) btnW.classList.remove('active');
     }
 };
     function updateGrowthChart(days, btn) { document.querySelectorAll('.wc-filter-btns .chart-filter-btn').forEach(b => b.classList.remove('active')); if(btn) btn.classList.add('active'); const pl = document.getElementById('wcPeriodLabel'); if(pl) pl.textContent = 'SON ' + days + ' GÜN'; renderRealGrowthChart(days); }
