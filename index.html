@@ -7857,34 +7857,71 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
 
-            <!-- ═══ KAZANANLAR + DAĞILIM PREMIUM BLOK ═══ -->
+            <!-- ═══ DAĞILIM PREMIUM BLOK ═══ -->
             <div class="dash-card full-width perf-combined-card" id="perfCombinedCard">
-                <!-- Header -->
+                <!-- Header - sadece Dağılım -->
                 <div class="pcb-header">
                     <div class="pcb-tabs">
-                        <button class="pcb-tab active" onclick="switchPerfTab('winners', this)">
-                            <i class="fas fa-crown"></i> Kazananlar
-                        </button>
-                        <button class="pcb-tab" onclick="switchPerfTab('allocation', this)">
+                        <button class="pcb-tab active" onclick="switchPerfTab('allocation', this)">
                             <i class="fas fa-chart-pie"></i> Dağılım
                         </button>
                     </div>
-                    <div class="pcb-glow-badge" id="pcbBadge"></div>
+                    <div class="pcb-glow-badge" id="pcbBadge">PIE</div>
                 </div>
 
-                <!-- Winners Panel -->
-                <div class="pcb-panel" id="pcbPanelWinners">
-                    <div id="topPerformersList"></div>
-                </div>
-
-                <!-- Allocation Panel -->
-                <div class="pcb-panel pcb-hidden" id="pcbPanelAllocation">
+                <!-- Pasta Grafik -->
+                <div class="pcb-panel" id="pcbPanelAllocation">
                     <div class="pcb-alloc-wrap">
                         <div class="pcb-chart-area">
                             <canvas id="newAllocationChart"></canvas>
                         </div>
                         <div class="pcb-legend" id="pcbLegend"></div>
                     </div>
+
+                    <!-- Ayraç + Underline Tab Bar -->
+                    <div style="margin-top:16px; border-top:1px solid rgba(255,255,255,0.08);">
+                        <div style="display:grid; grid-template-columns:1fr 1fr;">
+                            <button id="subTabDaily" onclick="switchSubTab('daily')"
+                                style="padding:12px 0; background:none; border:none; border-bottom:2px solid #60a5fa; color:#f8fafc; font-size:13px; font-weight:600; cursor:pointer; letter-spacing:0.3px;">
+                                Günlük
+                            </button>
+                            <button id="subTabWinners" onclick="switchSubTab('winners')"
+                                style="padding:12px 0; background:none; border:none; border-bottom:2px solid transparent; color:rgba(148,163,184,0.6); font-size:13px; font-weight:600; cursor:pointer; letter-spacing:0.3px;">
+                                Kazananlar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Alt Panel: Günlük Kazanç (varsayılan açık) -->
+                    <div id="subPanelDaily" style="padding-top:12px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px; padding:8px 0;">
+                            <div>
+                                <div style="font-size:9px;color:rgba(148,163,184,0.5);text-transform:uppercase;letter-spacing:0.8px;font-weight:600;margin-bottom:3px;">EN İYİ GÜN</div>
+                                <div style="font-size:15px;font-weight:800;color:#34d399;" id="logBestDay">+₺0</div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="font-size:9px;color:rgba(148,163,184,0.5);text-transform:uppercase;letter-spacing:0.8px;font-weight:600;margin-bottom:3px;">EN KÖTÜ GÜN</div>
+                                <div style="font-size:15px;font-weight:800;color:#f87171;" id="logWorstDay">₺0</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+                            <span style="font-size:10px;color:rgba(148,163,184,0.4);font-weight:600;" id="logEntryCount">0 kayıt</span>
+                        </div>
+                        <div id="dailyLogList" class="daily-log-container" style="max-height:300px;overflow-y:auto;">
+                            <div style="text-align:center;padding:20px;color:rgba(148,163,184,0.4);font-size:11px;">Yükleniyor...</div>
+                        </div>
+                    </div>
+
+                    <!-- Alt Panel: Kazananlar (gizli) -->
+                    <div id="subPanelWinners" style="display:none; padding-top:12px;">
+                        <div id="topPerformersListInline" style="display:flex; flex-direction:column; gap:6px; max-height:300px; overflow-y:auto;"></div>
+                    </div>
+
+                </div>
+
+                <!-- Gizli Winners Panel (JS uyumu) -->
+                <div style="display:none;" id="pcbPanelWinners">
+                    <div id="topPerformersList"></div>
                 </div>
             </div>
 
@@ -10098,8 +10135,8 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
 
 
-            <!-- Günlük Kazanç Raporu - ULTRA PREMIUM -->
-            <div class="vision-log-card">
+            <!-- Günlük Kazanç Raporu Dağılım paneline taşındı -->
+            <div class="vision-log-card" style="display:none;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                     <div style="display:flex; align-items:center; gap:10px;">
                         <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg, rgba(168,85,247,0.2), rgba(168,85,247,0.1)); display:flex; align-items:center; justify-content:center;">
@@ -10107,7 +10144,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         <div class="lbl-sm" style="margin:0; font-size:10px; letter-spacing:1.5px;">GÜNLÜK KAZANÇ RAPORU</div>
                     </div>
-                    <div style="font-size:10px; color:rgba(148,163,184,0.6); background:rgba(0,0,0,0.2); padding:4px 10px; border-radius:8px; font-weight:600;" id="logEntryCount">0 kayıt</div>
+                    <div style="font-size:10px; color:rgba(148,163,184,0.6); background:rgba(0,0,0,0.2); padding:4px 10px; border-radius:8px; font-weight:600;" id="logEntryCount_old">0 kayıt</div>
                 </div>
                 
                 <!-- Özet Kartları - PREMIUM -->
@@ -10120,7 +10157,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             </div>
                             <div>
                                 <div style="font-size:8px; color:rgba(148,163,184,0.7); text-transform:uppercase; letter-spacing:0.8px; font-weight:700;">EN İYİ GÜN</div>
-                                <div style="font-size:14px; font-weight:800; color:#6ee7b7; text-shadow:0 0 15px rgba(52,211,153,0.4);" id="logBestDay">+₺0</div>
+                                <div style="font-size:14px; font-weight:800; color:#6ee7b7; text-shadow:0 0 15px rgba(52,211,153,0.4);" id="logBestDay_old">+₺0</div>
                             </div>
                         </div>
                     </div>
@@ -10132,13 +10169,13 @@ document.addEventListener('DOMContentLoaded', function() {
                             </div>
                             <div>
                                 <div style="font-size:8px; color:rgba(148,163,184,0.7); text-transform:uppercase; letter-spacing:0.8px; font-weight:700;">EN KÖTÜ GÜN</div>
-                                <div style="font-size:14px; font-weight:800; color:#fca5a5; text-shadow:0 0 15px rgba(248,113,113,0.4);" id="logWorstDay">₺0</div>
+                                <div style="font-size:14px; font-weight:800; color:#fca5a5; text-shadow:0 0 15px rgba(248,113,113,0.4);" id="logWorstDay_old">₺0</div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <div id="dailyLogList" class="daily-log-container">
+                <div id="dailyLogList_old" class="daily-log-container">
                     <div style="text-align:center; padding:20px; color:var(--vision-text-secondary);">Veriler yükleniyor...</div>
                 </div>
             </div>
@@ -17030,7 +17067,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.9"; 
+    const CURRENT_VERSION = "1.7"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -18722,6 +18759,8 @@ function renderAnalyticsPage() {
     });
     
     document.getElementById('topPerformersList').innerHTML = topListHTML;
+    var _inlineList = document.getElementById('topPerformersListInline');
+    if (_inlineList) _inlineList.innerHTML = topListHTML;
     // Init badge
     var _badge = document.getElementById('pcbBadge');
     if (_badge && !_badge.textContent) _badge.textContent = 'TOP'; 
@@ -19067,9 +19106,26 @@ window.switchPerfTab = function(tab, btnEl) {
         if(ap) { ap.classList.remove('pcb-hidden'); }
         var badge2 = document.getElementById('pcbBadge');
         if(badge2) badge2.textContent = 'PIE';
-        // Re-render chart since canvas may have been hidden
         if (typeof window._lastAllocAssets !== 'undefined') renderNewAllocationChart(window._lastAllocAssets);
         else if (typeof assets !== 'undefined') renderNewAllocationChart(assets);
+    }
+};
+
+window.switchSubTab = function(tab) {
+    var wp = document.getElementById('subPanelWinners');
+    var dp = document.getElementById('subPanelDaily');
+    var btnW = document.getElementById('subTabWinners');
+    var btnD = document.getElementById('subTabDaily');
+    if (tab === 'winners') {
+        if(wp) wp.style.display = '';
+        if(dp) dp.style.display = 'none';
+        if(btnW) { btnW.style.borderBottom='2px solid #f59e0b'; btnW.style.color='#f8fafc'; }
+        if(btnD) { btnD.style.borderBottom='2px solid transparent'; btnD.style.color='rgba(148,163,184,0.6)'; }
+    } else {
+        if(wp) wp.style.display = 'none';
+        if(dp) dp.style.display = '';
+        if(btnD) { btnD.style.borderBottom='2px solid #60a5fa'; btnD.style.color='#f8fafc'; }
+        if(btnW) { btnW.style.borderBottom='2px solid transparent'; btnW.style.color='rgba(148,163,184,0.6)'; }
     }
 };
     function updateGrowthChart(days, btn) { document.querySelectorAll('.wc-filter-btns .chart-filter-btn').forEach(b => b.classList.remove('active')); if(btn) btn.classList.add('active'); const pl = document.getElementById('wcPeriodLabel'); if(pl) pl.textContent = 'SON ' + days + ' GÜN'; renderRealGrowthChart(days); }
