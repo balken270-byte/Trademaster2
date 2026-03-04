@@ -70,7 +70,7 @@
     
     <!-- Fonts & Libraries -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Mono:wght@400;500&family=Orbitron:wght@700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
@@ -2428,12 +2428,34 @@ html.ios-pwa body {
         }
 
         /* ─── ÖZET BLOK: NET VARLIK + BAŞARI + NAKİT ─── */
+        /* ═══ ECLIPSE LUXURY — PREMIUM NET VARLIK KARTI ═══ */
         .dash-card.perf-summary-card {
-            background: linear-gradient(140deg, rgba(8,16,36,.97) 0%, rgba(4,10,24,.99) 100%);
-            border-color: rgba(59,130,246,.18);
-            padding: 18px 18px 16px;
+            background: linear-gradient(148deg, rgba(7,11,26,.98) 0%, rgba(4,8,20,.99) 100%);
+            border-color: rgba(255,255,255,.06);
+            box-shadow: 0 0 0 1px rgba(0,0,0,.65), 0 28px 56px rgba(0,0,0,.6);
+            padding: 0;
             gap: 0;
+            overflow: hidden;
         }
+        /* Üst gradient şerit */
+        .dash-card.perf-summary-card::after {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 2px; z-index: 3;
+            background: linear-gradient(90deg, #1d4ed8, #4f46e5, #7c3aed, rgba(124,58,237,0));
+        }
+        /* Grid doku */
+        .psb-grid-bg {
+            position: absolute; top: 2px; left: 0; right: 0; height: 130px; pointer-events: none; z-index: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+            background-size: 28px 28px;
+            mask-image: linear-gradient(180deg, rgba(0,0,0,.5), transparent);
+            -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,.5), transparent);
+        }
+        .psb-body { position: relative; z-index: 1; padding: 14px 16px 0; }
+        .psb-cash-section { position: relative; z-index: 1; padding: 0 16px 14px; }
+
         /* Üst kısım: büyük değer + donut */
         .psb-top {
             display: flex;
@@ -2443,40 +2465,41 @@ html.ios-pwa body {
         }
         .psb-top-left { flex: 1; }
         .psb-label {
-            font-size: 9px;
+            font-size: 8.5px;
             font-weight: 700;
-            letter-spacing: 1.6px;
+            letter-spacing: 2.2px;
             text-transform: uppercase;
-            color: rgba(96,165,250,.75);
-            margin-bottom: 6px;
+            color: rgba(96,165,250,.6);
+            margin-bottom: 7px;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
         }
-        .psb-label i { font-size: 10px; }
+        .psb-label i { font-size: 9px; opacity: .8; }
         .psb-main-value {
-            font-size: 30px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 28px;
             font-weight: 800;
-            letter-spacing: -1.5px;
+            letter-spacing: -1px;
             color: #fff;
             line-height: 1;
         }
         .psb-pnl {
             display: flex;
             align-items: center;
-            gap: 7px;
+            gap: 8px;
             margin-top: 7px;
             flex-wrap: wrap;
         }
         .psb-pnl-lbl {
             font-size: 10px;
-            color: rgba(148,163,184,.4);
+            color: rgba(148,163,184,.3);
         }
-        /* Donut */
+        /* Donut — dönen halkalar */
         .psb-donut-wrap {
             position: relative;
-            width: 72px;
-            height: 72px;
+            width: 68px;
+            height: 68px;
             flex-shrink: 0;
             display: flex;
             align-items: center;
@@ -2486,6 +2509,23 @@ html.ios-pwa body {
             position: absolute;
             inset: 0;
         }
+        .psb-donut-glow {
+            position: absolute; inset: -12px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(6,182,212,.09) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .psb-donut-ring-outer {
+            position: absolute; inset: -9px; border-radius: 50%;
+            border: 1px solid rgba(99,102,241,.13);
+            animation: psb-spin 20s linear infinite;
+        }
+        .psb-donut-ring-inner {
+            position: absolute; inset: -4px; border-radius: 50%;
+            border: 1px solid rgba(6,182,212,.2);
+            border-top-color: rgba(6,182,212,.55);
+            animation: psb-spin 8s linear infinite reverse;
+        }
+        @keyframes psb-spin { to { transform: rotate(360deg); } }
         .psb-donut-inner {
             position: relative;
             z-index: 2;
@@ -2495,25 +2535,28 @@ html.ios-pwa body {
         .psb-wr-val {
             display: block;
             font-size: 14px;
-            font-weight: 800;
+            font-weight: 500;
+            font-family: 'DM Mono', monospace;
             color: #06b6d4;
             letter-spacing: -.5px;
+            text-shadow: 0 0 10px rgba(6,182,212,.4);
         }
         .psb-wr-lbl {
             display: block;
-            font-size: 7.5px;
+            font-size: 7px;
             font-weight: 700;
-            letter-spacing: .8px;
+            letter-spacing: 1px;
             text-transform: uppercase;
-            color: rgba(148,163,184,.5);
+            color: rgba(148,163,184,.4);
+            margin-top: 2px;
         }
-        /* Ayraç */
+        /* Altın ayraç */
         .psb-divider {
             height: 1px;
-            background: rgba(255,255,255,.06);
-            margin: 14px 0;
+            background: linear-gradient(90deg, rgba(201,168,76,.35), rgba(240,204,106,.12), transparent 75%);
+            margin: 12px 0;
         }
-        /* Alt kısım: nakit */
+        /* Nakit */
         .psb-bottom {}
         .psb-cash-header {
             display: flex;
@@ -2522,32 +2565,43 @@ html.ios-pwa body {
             margin-bottom: 8px;
         }
         .psb-cash-val {
-            font-size: 16px;
-            font-weight: 800;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 22px;
+            font-weight: 400;
             color: #f59e0b;
-            letter-spacing: -.5px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 14px rgba(245,158,11,.2);
         }
         .psb-bar-bg {
-            height: 5px;
-            background: rgba(255,255,255,.06);
+            height: 6px;
+            background: rgba(255,255,255,.04);
             border-radius: 10px;
-            overflow: hidden;
+            overflow: visible;
+            position: relative;
         }
         .psb-bar-fill {
-            height: 100%;
+            position: absolute; left: 0; top: 0; height: 100%;
             border-radius: 10px;
-            background: linear-gradient(90deg, #d97706, #fbbf24);
+            background: linear-gradient(90deg, #78350f, #b45309, #f59e0b, #fde68a);
+            box-shadow: 0 0 14px rgba(245,158,11,.4);
             transition: width .7s cubic-bezier(.4,0,.2,1);
-            box-shadow: 0 0 8px rgba(245,158,11,.3);
+        }
+        .psb-bar-tip {
+            position: absolute; right: -5px; top: 50%; transform: translateY(-50%);
+            width: 14px; height: 14px; border-radius: 50%;
+            background: radial-gradient(circle, #fde68a 30%, #f59e0b);
+            box-shadow: 0 0 12px rgba(253,230,138,.9), 0 0 24px rgba(245,158,11,.4);
+            pointer-events: none;
         }
         .psb-bar-sub {
             font-size: 9.5px;
-            color: rgba(148,163,184,.45);
-            margin-top: 6px;
+            color: rgba(148,163,184,.35);
+            margin-top: 8px;
         }
         .psb-cash-raw {
-            color: rgba(251,191,36,.8);
-            font-weight: 700;
+            font-family: 'DM Mono', monospace;
+            color: rgba(251,191,36,.65);
+            font-weight: 500;
         }
 
         /* ─── HERO NET WORTH CARD ─── */
@@ -8106,38 +8160,50 @@ document.addEventListener('DOMContentLoaded', function() {
             <!-- ═══ ÖZET BLOK: NET VARLIK + BAŞARI + NAKİT ═══ -->
             <div class="dash-card full-width perf-summary-card">
 
+                <!-- Arka plan grid doku -->
+                <div class="psb-grid-bg"></div>
+
                 <!-- Üst: Net Varlık -->
-                <div class="psb-top">
-                    <div class="psb-top-left">
-                        <div class="psb-label"><i class="fas fa-wave-square"></i> TOPLAM NET VARLIK</div>
-                        <div class="psb-main-value" id="anNetWorth">--</div>
-                        <div class="psb-pnl" id="anNetWorthSub">
-                            <span id="anPnlPill">--</span>
-                            <span class="psb-pnl-lbl">Toplam Kâr / Zarar</span>
+                <div class="psb-body">
+                    <div class="psb-top">
+                        <div class="psb-top-left">
+                            <div class="psb-label"><i class="fas fa-wave-square"></i> TOPLAM NET VARLIK</div>
+                            <div class="psb-main-value" id="anNetWorth">--</div>
+                            <div class="psb-pnl" id="anNetWorthSub">
+                                <span id="anPnlPill">--</span>
+                                <span class="psb-pnl-lbl">Toplam Kâr / Zarar</span>
+                            </div>
+                        </div>
+                        <div class="psb-donut-wrap">
+                            <div class="psb-donut-glow"></div>
+                            <div class="psb-donut-ring-outer"></div>
+                            <div class="psb-donut-ring-inner"></div>
+                            <canvas id="winRateChart" width="68" height="68"></canvas>
+                            <div class="psb-donut-inner">
+                                <span class="psb-wr-val" id="winRateVal">--%</span>
+                                <span class="psb-wr-lbl">Başarı</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="psb-donut-wrap">
-                        <canvas id="winRateChart" width="72" height="72"></canvas>
-                        <div class="psb-donut-inner">
-                            <span class="psb-wr-val" id="winRateVal">--%</span>
-                            <span class="psb-wr-lbl">Başarı</span>
-                        </div>
-                    </div>
+
+                    <!-- Altın ayraç -->
+                    <div class="psb-divider"></div>
                 </div>
 
-                <!-- Ayraç -->
-                <div class="psb-divider"></div>
-
                 <!-- Alt: Nakit Oranı -->
-                <div class="psb-bottom">
-                    <div class="psb-cash-header">
-                        <span class="psb-label"><i class="fas fa-coins"></i> NAKİT ORANI</span>
-                        <span class="psb-cash-val" id="anCashRatioVal">--%</span>
+                <div class="psb-cash-section">
+                    <div class="psb-bottom">
+                        <div class="psb-cash-header">
+                            <span class="psb-label"><i class="fas fa-coins"></i> NAKİT ORANI</span>
+                            <span class="psb-cash-val" id="anCashRatioVal">--%</span>
+                        </div>
+                        <div class="psb-bar-bg">
+                            <div id="cashRatioBar" class="psb-bar-fill" style="width:0%">
+                                <div class="psb-bar-tip"></div>
+                            </div>
+                        </div>
+                        <div class="psb-bar-sub">Kasada: <span id="anCashRaw" class="psb-cash-raw">--</span></div>
                     </div>
-                    <div class="psb-bar-bg">
-                        <div id="cashRatioBar" class="psb-bar-fill" style="width:0%"></div>
-                    </div>
-                    <div class="psb-bar-sub">Kasada: <span id="anCashRaw" class="psb-cash-raw">--</span></div>
                 </div>
 
             </div>
@@ -17434,7 +17500,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.0"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
