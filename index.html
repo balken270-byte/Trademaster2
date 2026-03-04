@@ -734,6 +734,10 @@ html.ios-pwa body {
         .page { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 15px; padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
         .page.active { display: flex; z-index: 10; }
 
+        /* ── GLOBAL SCROLLBAR GİZLE (PWA/Mobil uygulama görünümü) ── */
+        * { scrollbar-width: none !important; -ms-overflow-style: none !important; }
+        *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; background: transparent !important; }
+
         /* GENEL BİLEŞENLER */
         .card, .analysis-card { background: rgba(255,255,255,0.04); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); color: var(--text-main); }
         .modern-input { width: 100%; background: var(--bg-input); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 10px; font-size: 16px; margin-bottom: 5px; outline: none; }
@@ -17580,7 +17584,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.3"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -17652,45 +17656,39 @@ let notifySettings = JSON.parse(localStorage.getItem('tm_notify_settings')) || {
 
 /* ── ÇOKLU DİL VE PARA BİRİMİ ALTYAPISI ────────────────────────────── */
 /*
- * İleride yeni dil eklemek için sadece bu objeye yeni satır eklenmesi yeter.
+ * İleride yeni dil eklemek için sadece LANG_CONFIG'e yeni satır eklemek yeter.
  * Dil kodu → { label, currency, currencySymbol, currencyLabel }
  * Uygulama ilk açılışta navigator.language'a bakarak otomatik seçer.
- * Kullanıcı ayarlardan manuel olarak değiştirebilir.
+ * Kullanıcı ayarlardan manuel değiştirebilir, o tercih korunur.
  */
 const LANG_CONFIG = {
-    'tr': { label: 'Türkçe',    currency: 'TRY', currencySymbol: '₺', currencyLabel: 'TRY (₺)' },
-    'en': { label: 'English',   currency: 'USD', currencySymbol: '$', currencyLabel: 'USD ($)' },
-    // İleride eklenecek diller (altyapı hazır):
-    // 'de': { label: 'Deutsch',   currency: 'EUR', currencySymbol: '€', currencyLabel: 'EUR (€)' },
-    // 'fr': { label: 'Français',  currency: 'EUR', currencySymbol: '€', currencyLabel: 'EUR (€)' },
-    // 'es': { label: 'Español',   currency: 'USD', currencySymbol: '$', currencyLabel: 'USD ($)' },
-    // 'ar': { label: 'العربية',   currency: 'USD', currencySymbol: '$', currencyLabel: 'USD ($)' },
-    // 'ja': { label: '日本語',    currency: 'USD', currencySymbol: '$', currencyLabel: 'USD ($)' },
+    'tr': { label: 'Türkçe',   currency: 'TRY', currencySymbol: '₺', currencyLabel: 'TRY (₺)' },
+    'en': { label: 'English',  currency: 'USD', currencySymbol: '$', currencyLabel: 'USD ($)' },
+    // İleride eklenecek diller (altyapı hazır — yorum kaldırarak aktive et):
+    // 'de': { label: 'Deutsch',  currency: 'EUR', currencySymbol: '€', currencyLabel: 'EUR (€)' },
+    // 'fr': { label: 'Français', currency: 'EUR', currencySymbol: '€', currencyLabel: 'EUR (€)' },
+    // 'es': { label: 'Español',  currency: 'USD', currencySymbol: '$', currencyLabel: 'USD ($)' },
+    // 'ar': { label: 'العربية',  currency: 'USD', currencySymbol: '$', currencyLabel: 'USD ($)' },
+    // 'ja': { label: '日本語',   currency: 'USD', currencySymbol: '$', currencyLabel: 'USD ($)' },
+    // 'ru': { label: 'Русский',  currency: 'USD', currencySymbol: '$', currencyLabel: 'USD ($)' },
 };
 
-/*
- * Telefon dilini otomatik algıla.
- * - Eğer localStorage'da kayıtlı bir dil seçimi varsa ONU kullan (manuel seçim > otomatik).
- * - Yoksa navigator.language'dan dil kodunu al (ör: "tr-TR" → "tr", "en-US" → "en").
- * - Desteklenmeyen dil ise varsayılan "en" (USD) kullan.
- */
 function detectDeviceLang() {
     var deviceLang = (navigator.language || navigator.userLanguage || 'en').split('-')[0].toLowerCase();
     return LANG_CONFIG[deviceLang] ? deviceLang : 'en';
 }
 
-// İlk kurulum: eğer hiç ayar kaydedilmemişse cihaz diline göre dil + para birimi ata
+// İlk kurulum: hiç ayar kaydedilmemişse cihaz diline göre dil + para birimi ata
 (function _autoDetectLangOnFirstRun() {
     var existing = localStorage.getItem('tm_settings');
     if (!existing) {
         var detectedLang = detectDeviceLang();
         var langCfg = LANG_CONFIG[detectedLang];
-        var firstRunSettings = {
+        localStorage.setItem('tm_settings', JSON.stringify({
             currency: langCfg.currency,
-            lang: detectedLang,
-            theme: 'ocean'
-        };
-        localStorage.setItem('tm_settings', JSON.stringify(firstRunSettings));
+            lang:     detectedLang,
+            theme:    'ocean'
+        }));
     }
 })();
 
@@ -18156,9 +18154,9 @@ var catSubSort    = 'value';
     var saved = null;
     try { saved = JSON.parse(localStorage.getItem('tm_cat_settings')); } catch(e) {}
     if (saved) {
-        if (saved.visibility) { catVisibility = saved.visibility; }
-        if (saved.order)      { catOrder      = saved.order; }
-        if (saved.subSort)    { catSubSort     = saved.subSort; }
+        if (saved.visibility) catVisibility = saved.visibility;
+        if (saved.order)      catOrder      = saved.order;
+        if (saved.subSort)    catSubSort    = saved.subSort;
     }
 })();
 
