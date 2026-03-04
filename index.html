@@ -17580,7 +17580,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -17786,6 +17786,21 @@ function initApp(){
 var tvCurrentScreen = 'splash';
 var tvSplashTimer = null;
 
+// Misafir modunda sayfa yenilenirse splash'ı atla
+(function() {
+    try {
+        if (sessionStorage.getItem('tv_guest_mode') === '1') {
+            tvCurrentScreen = 'app';
+            document.addEventListener('DOMContentLoaded', function() {
+                var splash = document.getElementById('splash-screen');
+                var login  = document.getElementById('tv-login-screen');
+                if (splash) { splash.style.display = 'none'; splash.remove(); }
+                if (login)  { login.style.display  = 'none'; }
+            });
+        }
+    } catch(e) {}
+}());
+
 function tvToggleScreen() {
     var splash = document.getElementById('splash-screen');
     var login  = document.getElementById('tv-login-screen');
@@ -17864,7 +17879,12 @@ function tvSwitchTab(tab) {
 function tvGoogleSignIn() {
     if (typeof firebase !== 'undefined') {
         var provider = new firebase.auth.GoogleAuthProvider();
-        fbAuth.signInWithRedirect(provider);
+        fbAuth.signInWithPopup(provider)
+            .catch(function(e) {
+                if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
+                    tvShowAuthError('login', 'Google girişi başarısız: ' + (e.message || e.code));
+                }
+            });
     }
 }
 
@@ -18035,6 +18055,7 @@ function splashGoRegister() {
 }
 
 function splashGuestLogin() {
+    try { sessionStorage.setItem('tv_guest_mode', '1'); } catch(e) {}
     tvCurrentScreen = 'app';
     hideSplashScreen();
 }
@@ -32156,11 +32177,14 @@ fbAuth.onAuthStateChanged(function(user) {
     updateAccountUI(user);
     if (user) {
         // Giriş başarılı — splash/login ekranını kapat
+        // Zaten giriş yapmışsa (sayfa yüklenince) hızlı geç
+        // Yeni giriş yapıyorsa (butondan) biraz bekle animasyon bitsin
+        var delay = (tvCurrentScreen === 'login') ? 400 : 100;
         setTimeout(function() {
-            if (typeof tvCurrentScreen !== 'undefined' && (tvCurrentScreen === 'splash' || tvCurrentScreen === 'login')) {
+            if (typeof tvCurrentScreen !== 'undefined' && tvCurrentScreen !== 'app') {
                 hideSplashScreen();
             }
-        }, 300);
+        }, delay);
         // Firestore'dan PRO durumunu çek
         syncProStatus(user.uid);
         
