@@ -735,7 +735,7 @@ html.ios-pwa body {
         .page.active { display: flex; z-index: 10; }
 
         /* GENEL BİLEŞENLER */
-        .card, .analysis-card { background: var(--bg-card); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); color: var(--text-main); }
+        .card, .analysis-card { background: rgba(255,255,255,0.04); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); color: var(--text-main); }
         .modern-input { width: 100%; background: var(--bg-input); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 10px; font-size: 16px; margin-bottom: 5px; outline: none; }
         .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .btn-main { width: 100%; background: var(--accent); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; }
@@ -2171,8 +2171,8 @@ html.ios-pwa body {
 
         /* Ayarlar Sayfası - Güvenlik Bölümü */
         .security-setting-card {
-            background: linear-gradient(165deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.05);
             border-radius: 16px;
             padding: 20px;
             margin-bottom: 15px;
@@ -13465,44 +13465,25 @@ function openLabFullscreen() {
     padding: 0;
     min-height: 100vh;
     color: #e0e0e0;
-    background: var(--bg-body);
+    background: transparent;
 ">
 
     
     
     
     
-    <!-- Ambient Background Orbs -->
-    <div style="position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden;">
-        <div style="position:absolute; width:500px; height:500px; background:radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%); top:-200px; right:-150px; border-radius:50%; filter:blur(100px); opacity:0.5; animation:orbFloat1 25s ease-in-out infinite;"></div>
-        <div style="position:absolute; width:400px; height:400px; background:radial-gradient(circle, rgba(139,92,246,0.06) 0%, transparent 70%); bottom:10%; left:-150px; border-radius:50%; filter:blur(100px); opacity:0.5; animation:orbFloat2 30s ease-in-out infinite;"></div>
-        <div style="position:absolute; width:300px; height:300px; background:radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 70%); top:50%; right:-100px; border-radius:50%; filter:blur(100px); opacity:0.5; animation:orbFloat3 20s ease-in-out infinite;"></div>
-    </div>
+    <!-- Ambient Background Orbs kaldırıldı - uygulamanın kendi animasyonu kullanılıyor -->
     
     <style>
-        @keyframes orbFloat1 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            25% { transform: translate(-30px, 40px) scale(1.1); }
-            50% { transform: translate(20px, -20px) scale(0.9); }
-            75% { transform: translate(-40px, -30px) scale(1.05); }
-        }
-        @keyframes orbFloat2 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(50px, -40px) scale(1.15); }
-            66% { transform: translate(-30px, 30px) scale(0.95); }
-        }
-        @keyframes orbFloat3 {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            50% { transform: translate(-40px, 40px) rotate(180deg); }
-        }
+        /* orbFloat keyframes kaldırıldı */
         
         /* Premium Settings Styles */
-        #page-settings .ps-container { position:relative; z-index:1; max-width:480px; margin:0 auto; padding:20px 20px 120px; }
+        #page-settings .ps-container { position:relative; z-index:1; width:100%; padding:12px 12px 120px; box-sizing:border-box; }
         
         /* Profile Hero */
         #page-settings .ps-profile-hero {
             position:relative;
-            background: linear-gradient(160deg, rgba(20,30,50,0.95) 0%, rgba(10,18,35,1) 100%);
+            background: rgba(255,255,255,0.04);
             border: none;
             border-radius:24px; padding:24px; margin-bottom:16px; overflow:hidden;
             cursor:pointer; transition:all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -13558,78 +13539,75 @@ function openLabFullscreen() {
         }
         #page-settings .ps-profile-hero:hover .ps-arrow { background:rgba(255,255,255,0.06); color:#fff; transform:translateX(4px); }
         
-        /* Kompakt Membership Button */
-        #page-settings .ps-membership-btn {
-            display:flex; align-items:center; justify-content:space-between;
-            background: linear-gradient(160deg, rgba(25,18,5,0.98) 0%, rgba(15,10,2,1) 100%);
-            border: none;
-            border-radius:18px;
-            padding:16px 18px; margin-bottom:24px; cursor:pointer;
-            transition:all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow:
-                5px 5px 16px rgba(0,0,0,0.75),
-                -2px -2px 7px rgba(255,255,255,0.03),
-                inset 0 1px 0 rgba(255,214,10,0.15),
-                inset 0 -1px 0 rgba(0,0,0,0.5),
-                0 0 0 1px rgba(255,180,0,0.2);
+        /* PRO Membership — menü item stili */
+        #page-settings .ps-pro-item {
+            background: linear-gradient(135deg,
+                rgba(201,168,76,0.18) 0%,
+                rgba(255,214,10,0.10) 100%) !important;
+            border-bottom: 1px solid rgba(201,168,76,0.2) !important;
+            position: relative;
         }
-        #page-settings .ps-membership-btn:hover {
-            box-shadow: 6px 6px 20px rgba(0,0,0,0.8), 0 0 20px rgba(255,214,10,0.18), inset 0 1px 0 rgba(255,214,10,0.2), 0 0 0 1px rgba(255,180,0,0.3);
+        #page-settings .ps-pro-item::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            box-shadow: inset 0 0 0 1px rgba(201,168,76,0.08);
+            pointer-events: none;
         }
-        #page-settings .ps-membership-btn:active { box-shadow: inset 2px 2px 8px rgba(0,0,0,0.6); }
-        #page-settings .ps-membership-btn-left { display:flex; align-items:center; gap:12px; }
-        #page-settings .ps-membership-btn-icon {
-            width:48px; height:48px; border-radius:16px; position:relative; flex-shrink:0;
-            background:linear-gradient(135deg, #1e1800 0%, #332600 40%, #1e1800 100%);
-            border:1.5px solid rgba(201,168,76,0.4);
-            display:flex; align-items:center; justify-content:center;
-            font-size:20px;
-            box-shadow:0 4px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(201,168,76,0.2), 0 0 20px rgba(201,168,76,0.2);
-            animation:ov-core-glow 3s ease-in-out infinite;
+        #page-settings .ps-pro-item:hover::before { opacity: 1; background: rgba(201,168,76,0.04) !important; }
+        #page-settings .ps-pro-icon {
+            background: linear-gradient(135deg, #2a1e00, #3d2c00) !important;
+            box-shadow: 3px 3px 8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(201,168,76,0.25), 0 0 12px rgba(201,168,76,0.15) !important;
+            position: relative;
+            overflow: visible;
         }
-        #page-settings .ps-membership-btn-icon::before {
-            content:''; position:absolute; width:6px; height:6px; border-radius:50%;
-            background:#C9A84C; box-shadow:0 0 8px #C9A84C, 0 0 16px rgba(201,168,76,0.5);
-            z-index:3;
+        #page-settings .ps-pro-icon::before {
+            content:''; position:absolute; width:5px; height:5px; border-radius:50%;
+            background:#C9A84C; box-shadow:0 0 6px #C9A84C;
             animation:ov-orbit-banner 6s linear infinite;
         }
-        #page-settings .ps-membership-btn-icon::after {
-            content:''; position:absolute; width:5px; height:5px; border-radius:50%;
-            background:rgba(201,168,76,0.6); box-shadow:0 0 6px rgba(201,168,76,0.4);
-            z-index:3;
-            animation:ov-orbit-banner2 9s linear infinite;
-        }
         @keyframes ov-orbit-banner {
-            0%   { transform: rotate(0deg)   translateX(30px) rotate(0deg); }
-            100% { transform: rotate(360deg) translateX(30px) rotate(-360deg); }
+            0%   { transform: rotate(0deg)   translateX(26px) rotate(0deg); }
+            100% { transform: rotate(360deg) translateX(26px) rotate(-360deg); }
         }
-        @keyframes ov-orbit-banner2 {
-            0%   { transform: rotate(180deg) translateX(26px) rotate(-180deg); }
-            100% { transform: rotate(540deg) translateX(26px) rotate(-540deg); }
+        #page-settings .ps-pro-icon i {
+            background: linear-gradient(135deg, #C9A84C 0%, #F5D080 50%, #C9A84C 100%);
+            background-size: 200%;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: ov-title-shimmer 3s linear infinite;
         }
-        #page-settings .ps-membership-btn-icon i {
-            background:linear-gradient(135deg, #C9A84C 0%, #F5D080 50%, #C9A84C 100%);
-            background-size:200%;
-            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-            background-clip:text; position:relative; z-index:1;
-            animation:ov-title-shimmer 3s linear infinite;
+        #page-settings .ps-pro-title {
+            background: linear-gradient(135deg, #FFE566, #FFD700, #C9A84C);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-        #page-settings .ps-membership-btn-sub { font-size:11px; color:rgba(255,255,255,0.5); }
-        #page-settings .ps-membership-btn-arrow { color:#FFD60A; font-size:14px; }
-        
-        /* PRO durumunda buton */
-        #page-settings .ps-membership-btn.is-pro {
-            background:linear-gradient(135deg, rgba(48,209,88,0.1) 0%, rgba(16,185,129,0.05) 100%);
-            border-color:rgba(48,209,88,0.25);
+        #page-settings .ps-pro-sub { color: rgba(255,214,10,0.7) !important; }
+        #page-settings .ps-pro-arrow { color: #FFD700 !important; }
+
+        /* PRO item is-pro (aktif üyelik) durumu */
+        #page-settings .ps-pro-item.is-pro {
+            background: linear-gradient(135deg, rgba(0,30,10,0.5) 0%, rgba(0,20,8,0.4) 100%) !important;
         }
-        #page-settings .ps-membership-btn.is-pro:hover {
-            border-color:rgba(48,209,88,0.4);
-            box-shadow:0 0 30px rgba(48,209,88,0.15);
+        #page-settings .ps-pro-item.is-pro .ps-pro-icon {
+            background: linear-gradient(135deg, #30D158, #00A040) !important;
+            box-shadow: 3px 3px 8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 12px rgba(48,209,88,0.2) !important;
         }
-        #page-settings .ps-membership-btn.is-pro .ps-membership-btn-icon {
-            background:linear-gradient(135deg, #30D158 0%, #00A040 100%);
+        #page-settings .ps-pro-item.is-pro .ps-pro-icon::before { display:none; }
+        #page-settings .ps-pro-item.is-pro .ps-pro-icon i {
+            background: #fff;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: none;
         }
-        #page-settings .ps-membership-btn.is-pro .ps-membership-btn-arrow { color:#30D158; }
+        #page-settings .ps-pro-item.is-pro .ps-pro-title {
+            background: linear-gradient(135deg, #30D158, #00F060);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        #page-settings .ps-pro-item.is-pro .ps-pro-sub { color: rgba(48,209,88,0.6) !important; }
+        #page-settings .ps-pro-item.is-pro .ps-pro-arrow { color: #30D158 !important; }
         
         /* ═══════════════════════════════════════════
            OBSIDIAN VAULT — Premium Modal v3.0
@@ -13998,17 +13976,30 @@ function openLabFullscreen() {
         /* Section Label */
         #page-settings .ps-section-label { font-size:10px; font-weight:800; color:rgba(255,255,255,0.32); text-transform:uppercase; letter-spacing:1.5px; padding:0 6px; margin-bottom:10px; }
         
+        /* Section Block — kabartmalı kart wrapper */
+        #page-settings .ps-section-block {
+            background: rgba(0,0,0,0.0);
+            border-radius: 0px;
+            padding: 0 0 4px;
+            margin-bottom: 20px;
+            box-shadow: none;
+            border: none;
+            position: relative;
+        }
+        /* ps-section-block::before kaldırıldı */
+        #page-settings .ps-section-block .ps-section-label {
+            padding: 0 4px;
+            margin-bottom: 12px;
+        }
+
         /* Menu List */
         #page-settings .ps-menu-list {
-            background: rgba(0,0,0,0.28);
-            border: none;
-            border-radius: 22px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 18px;
             overflow: hidden;
-            margin-bottom: 28px;
-            box-shadow:
-                inset 0 2px 10px rgba(0,0,0,0.65),
-                inset 0 -1px 3px rgba(255,255,255,0.02),
-                0 1px 0 rgba(255,255,255,0.04);
+            margin-bottom: 10px;
+            box-shadow: none;
         }
         #page-settings .ps-menu-item {
             display:flex; align-items:center; padding:16px 18px; cursor:pointer;
@@ -14070,15 +14061,12 @@ function openLabFullscreen() {
         
         /* Card */
         #page-settings .ps-card {
-            background: rgba(0,0,0,0.28);
-            border: none;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.05);
             border-radius: 22px;
             padding: 20px;
             margin-bottom: 16px;
-            box-shadow:
-                inset 0 2px 10px rgba(0,0,0,0.65),
-                inset 0 -1px 3px rgba(255,255,255,0.02),
-                0 1px 0 rgba(255,255,255,0.04);
+            box-shadow: none;
         }
         #page-settings .ps-card-label {
             font-size:10px; font-weight:800; color:rgba(255,255,255,0.38);
@@ -14153,7 +14141,7 @@ function openLabFullscreen() {
         
         /* Stats Grid */
         #page-settings .ps-stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-        #page-settings .ps-stat-card { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04); border-radius:16px; padding:18px; text-align:center; }
+        #page-settings .ps-stat-card { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.05); border-radius:16px; padding:18px; text-align:center; }
         #page-settings .ps-stat-label { font-size:10px; font-weight:600; color:rgba(255,255,255,0.32); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
         #page-settings .ps-stat-value { font-size:26px; font-weight:800; color:#fff; }
         
@@ -14286,13 +14274,13 @@ function openLabFullscreen() {
     <style>
         /* ---- ACCOUNTING HERO ---- */
         #page-settings #set-history .ps-accounting-hero {
-            background: linear-gradient(145deg, #0a1628 0%, #061020 100%);
+            background: rgba(255,255,255,0.04);
             border-radius: 20px;
             padding: 22px 20px 18px;
             margin-bottom: 14px;
             margin-top: 0;
             border: 1px solid rgba(255,255,255,0.06);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
+            box-shadow: none;
             position: relative;
             overflow: hidden;
         }
@@ -15016,112 +15004,95 @@ function openLabFullscreen() {
                 </div>
             </div>
 
-            <!-- Kompakt Membership Button -->
-            <div class="ps-membership-btn" id="membershipBtn" onclick="openPremiumModal()">
-                <div class="ps-membership-btn-left">
-                    <div class="ps-membership-btn-icon">
-                        <i class="fas fa-crown"></i>
-                    </div>
-                    <div>
-                        <div class="ps-membership-btn-text" id="membershipBtnText">PRO'ya Yükselt</div>
-                        <div class="ps-membership-btn-sub" id="membershipBtnSub">Tüm özellikleri aç</div>
-                    </div>
-                </div>
-                <div class="ps-membership-btn-arrow">
-                    <i class="fas fa-chevron-right"></i>
-                </div>
-            </div>
+            <!-- Uygulama Ayarları — Kabartmalı Blok -->
+            <div class="ps-section-block">
+                <div class="ps-section-label">Uygulama Ayarları</div>
 
-            <!-- Uygulama Ayarları -->
-            <div class="ps-section-label">Uygulama Ayarları</div>
-            <div class="ps-menu-list">
-                <!-- YENİ: Güvenlik -->
-                <div class="ps-menu-item" onclick="openSubPage('security')">
-                    <div class="ps-menu-icon cyan" id="securityMenuIcon"><i class="fas fa-lock-open"></i></div>
-                    <div class="ps-menu-text">
-                        <div class="ps-menu-title">Güvenlik</div>
-                        <div class="ps-menu-subtitle">
-                            <span id="securityStatusBadge">
-                                <!-- JS ile doldurulacak -->
-                            </span>
+                <div class="ps-menu-list">
+                    <!-- PRO Üyelik — menü item olarak -->
+                    <div class="ps-menu-item ps-pro-item" id="membershipBtn" onclick="openPremiumModal()">
+                        <div class="ps-menu-icon ps-pro-icon" id="membershipBtnIcon">
+                            <i class="fas fa-crown"></i>
                         </div>
+                        <div class="ps-menu-text">
+                            <div class="ps-menu-title ps-pro-title" id="membershipBtnText">PRO'ya Yükselt</div>
+                            <div class="ps-menu-subtitle ps-pro-sub" id="membershipBtnSub">Tüm özellikleri aç</div>
+                        </div>
+                        <div class="ps-menu-arrow ps-pro-arrow"><i class="fas fa-chevron-right"></i></div>
                     </div>
-                    <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
-                </div>
-                <div class="ps-menu-item" onclick="openSubPage('general')">
-                    <div class="ps-menu-icon blue"><i class="fas fa-sliders-h"></i></div>
-                    <div class="ps-menu-text">
-                        <div class="ps-menu-title">Genel & Görünüm</div>
-                        <div class="ps-menu-subtitle">Tema, dil, para birimi</div>
+                    <div class="ps-menu-item" onclick="openSubPage('security')">
+                        <div class="ps-menu-icon cyan" id="securityMenuIcon"><i class="fas fa-lock-open"></i></div>
+                        <div class="ps-menu-text">
+                            <div class="ps-menu-title">Güvenlik</div>
+                            <div class="ps-menu-subtitle"><span id="securityStatusBadge"></span></div>
+                        </div>
+                        <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
                     </div>
-                    <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
-                </div>
-                <div class="ps-menu-item" onclick="openSubPage('notify')">
-                    <div class="ps-menu-icon orange"><i class="fas fa-bell"></i></div>
-                    <div class="ps-menu-text">
-                        <div class="ps-menu-title">Bildirimler</div>
-                        <div class="ps-menu-subtitle">Alarm ve uyarı ayarları</div>
+                    <div class="ps-menu-item" onclick="openSubPage('general')">
+                        <div class="ps-menu-icon blue"><i class="fas fa-sliders-h"></i></div>
+                        <div class="ps-menu-text">
+                            <div class="ps-menu-title">Genel & Görünüm</div>
+                            <div class="ps-menu-subtitle">Tema, dil, para birimi</div>
+                        </div>
+                        <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
                     </div>
-                    <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
-                </div>
-                <div class="ps-menu-item" onclick="openSubPage('history')">
-                    <div class="ps-menu-icon green"><i class="fas fa-wallet"></i></div>
-                    <div class="ps-menu-text">
-                        <div class="ps-menu-title">Geçmiş İşlemler</div>
-                        <div class="ps-menu-subtitle">İşlem kayıtları ve muhasebe</div>
+                    <div class="ps-menu-item" onclick="openSubPage('notify')">
+                        <div class="ps-menu-icon orange"><i class="fas fa-bell"></i></div>
+                        <div class="ps-menu-text">
+                            <div class="ps-menu-title">Bildirimler</div>
+                            <div class="ps-menu-subtitle">Alarm ve uyarı ayarları</div>
+                        </div>
+                        <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
                     </div>
-                    <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
-                </div>
-            </div>
-
-            <!-- Destek & Yasal -->
-            <div class="ps-section-label">Destek & Yasal</div>
-<div class="ps-menu-list">
-    <div class="ps-menu-item" onclick="openSupportPanel()">
-        <div class="ps-menu-icon purple"><i class="fas fa-envelope"></i></div>
-        <div class="ps-menu-text">
-            <div class="ps-menu-title">Bize Ulaşın</div>
-            <div class="ps-menu-subtitle" id="supportUnreadBadge" style="display:none; color:#a78bfa; font-size:11px;">● Yeni cevap var</div>
-        </div>
-        <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
-    </div>
-
-    <div class="ps-menu-item" onclick="window.open('gizlilik.html','_blank')">
-        <div class="ps-menu-icon cyan"><i class="fas fa-shield-alt"></i></div>
-        <div class="ps-menu-text">
-            <div class="ps-menu-title">Gizlilik Politikası</div>
-        </div>
-        <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
-    </div>
-
-    <div class="ps-menu-item" onclick="window.open('kullanim-kosullari.html','_blank')">
-        <div class="ps-menu-icon gray"><i class="fas fa-file-contract"></i></div>
-        <div class="ps-menu-text">
-            <div class="ps-menu-title">Kullanım Koşulları</div>
-        </div>
-        <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
-    </div>
-
-    <div class="ps-menu-item" style="cursor: default;">
-        <div class="ps-menu-icon orange"><i class="fas fa-code-branch"></i></div>
-        <div class="ps-menu-text">
-            <div class="ps-menu-title">Uygulama Sürümü</div>
-        </div>
-        <div class="ps-menu-arrow" style="font-size: 0.85rem; opacity: 0.7; font-family: monospace;">v1.0.2</div>
-    </div>
-</div>
-
-
-            <!-- Verileri Sıfırla -->
-            <div class="ps-menu-list" style="margin-bottom:120px;">
-                <div class="ps-menu-item" onclick="clearAllData()">
-                    <div class="ps-menu-icon red"><i class="fas fa-trash-alt"></i></div>
-                    <div class="ps-menu-text">
-                        <div class="ps-menu-title danger" data-lang="reset_data">Verileri Sıfırla</div>
-                        <div class="ps-menu-subtitle">Tüm veriler kalıcı olarak silinir</div>
+                    <div class="ps-menu-item" onclick="openSubPage('history')">
+                        <div class="ps-menu-icon green"><i class="fas fa-wallet"></i></div>
+                        <div class="ps-menu-text">
+                            <div class="ps-menu-title">Geçmiş İşlemler</div>
+                            <div class="ps-menu-subtitle">İşlem kayıtları ve muhasebe</div>
+                        </div>
+                        <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
                     </div>
                 </div>
             </div>
+
+            <!-- Destek & Yasal — Kabartmalı Blok -->
+            <div class="ps-section-block">
+                <div class="ps-section-label">Destek & Yasal</div>
+                <div class="ps-menu-list">
+                    <div class="ps-menu-item" onclick="openSupportPanel()">
+                        <div class="ps-menu-icon purple"><i class="fas fa-envelope"></i></div>
+                        <div class="ps-menu-text">
+                            <div class="ps-menu-title">Bize Ulaşın</div>
+                            <div class="ps-menu-subtitle" id="supportUnreadBadge" style="display:none; color:#a78bfa; font-size:11px;">● Yeni cevap var</div>
+                        </div>
+                        <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
+                    </div>
+                    <div class="ps-menu-item" onclick="window.open('gizlilik.html','_blank')">
+                        <div class="ps-menu-icon cyan"><i class="fas fa-shield-alt"></i></div>
+                        <div class="ps-menu-text">
+                            <div class="ps-menu-title">Gizlilik Politikası</div>
+                        </div>
+                        <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
+                    </div>
+                    <div class="ps-menu-item" onclick="window.open('kullanim-kosullari.html','_blank')">
+                        <div class="ps-menu-icon gray"><i class="fas fa-file-contract"></i></div>
+                        <div class="ps-menu-text">
+                            <div class="ps-menu-title">Kullanım Koşulları</div>
+                        </div>
+                        <div class="ps-menu-arrow"><i class="fas fa-chevron-right"></i></div>
+                    </div>
+                    <div class="ps-menu-item" style="cursor: default;">
+                        <div class="ps-menu-icon orange"><i class="fas fa-code-branch"></i></div>
+                        <div class="ps-menu-text">
+                            <div class="ps-menu-title">Uygulama Sürümü</div>
+                        </div>
+                        <div class="ps-menu-arrow" style="font-size: 0.85rem; opacity: 0.7; font-family: monospace;">v1.0.2</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verileri Sıfırla profil sayfasına taşındı -->
+            <div style="margin-bottom:120px;"></div>
 
         </div>
 
@@ -15397,6 +15368,63 @@ function openLabFullscreen() {
                             Hesabınız yok mu? <span onclick="showRegisterForm()" style="color:#818cf8;font-weight:700;cursor:pointer;">Kayıt Ol</span>
                         </div>
                     </div>
+
+                    <!-- ── KAYIT FORMU (gizli, showRegisterForm ile açılır) ── -->
+                    <div id="profileRegisterForm" style="background:var(--bg-card);border-radius:20px;padding:24px;margin-top:12px;border:1px solid rgba(99,102,241,0.2);display:none;text-align:center;position:relative;overflow:hidden;">
+                        <div style="position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:200px;height:200px;background:radial-gradient(circle,rgba(99,102,241,0.12) 0%,transparent 70%);pointer-events:none;"></div>
+                        <div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:4px;">Hesap Oluştur</div>
+                        <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:24px;">Ücretsiz hesabınızı açın</div>
+                        <!-- Ad Soyad -->
+                        <div style="margin-bottom:12px;text-align:left;">
+                            <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.5);margin-bottom:6px;">Ad Soyad</div>
+                            <div style="position:relative;">
+                                <i class="fas fa-user" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:13px;color:rgba(255,255,255,0.3);pointer-events:none;"></i>
+                                <input type="text" id="regNameInput" placeholder="Adınız Soyadınız"
+                                       style="width:100%;padding:12px 12px 12px 40px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#fff;font-size:14px;outline:none;box-sizing:border-box;transition:border-color 0.2s;"
+                                       onfocus="this.style.borderColor='rgba(99,102,241,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
+                            </div>
+                        </div>
+                        <!-- E-posta -->
+                        <div style="margin-bottom:12px;text-align:left;">
+                            <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.5);margin-bottom:6px;">E-posta Adresi</div>
+                            <div style="position:relative;">
+                                <i class="fas fa-envelope" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:13px;color:rgba(255,255,255,0.3);pointer-events:none;"></i>
+                                <input type="email" id="regEmailInput" placeholder="user@example.com"
+                                       style="width:100%;padding:12px 12px 12px 40px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#fff;font-size:14px;outline:none;box-sizing:border-box;transition:border-color 0.2s;"
+                                       onfocus="this.style.borderColor='rgba(99,102,241,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
+                            </div>
+                        </div>
+                        <!-- Şifre -->
+                        <div style="margin-bottom:20px;text-align:left;">
+                            <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.5);margin-bottom:6px;">Şifre</div>
+                            <div style="position:relative;">
+                                <i class="fas fa-lock" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:13px;color:rgba(255,255,255,0.3);pointer-events:none;"></i>
+                                <input type="password" id="regPasswordInput" placeholder="En az 6 karakter"
+                                       style="width:100%;padding:12px 44px 12px 40px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#fff;font-size:14px;outline:none;box-sizing:border-box;transition:border-color 0.2s;"
+                                       onfocus="this.style.borderColor='rgba(99,102,241,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"
+                                       onkeydown="if(event.key==='Enter')doProfileRegister()">
+                                <button onclick="toggleRegPw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;padding:4px;font-size:13px;"><i class="fas fa-eye" id="regPwIcon"></i></button>
+                            </div>
+                        </div>
+                        <!-- Kayıt Ol Butonu -->
+                        <button onclick="doProfileRegister()" id="regSubmitBtn"
+                                style="width:100%;padding:13px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:16px;box-shadow:0 4px 16px rgba(99,102,241,0.35);transition:opacity 0.2s;"
+                                onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                            Hesap Oluştur
+                        </button>
+                        <!-- Google ile kayıt -->
+                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+                            <div style="flex:1;height:1px;background:rgba(255,255,255,0.07);"></div>
+                            <span style="font-size:11px;color:rgba(255,255,255,0.25);">veya</span>
+                            <div style="flex:1;height:1px;background:rgba(255,255,255,0.07);"></div>
+                        </div>
+                        <button onclick="firebaseGoogleLogin()" style="width:100%;padding:11px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:16px;">
+                            <img src="https://www.google.com/favicon.ico" width="16" height="16"> Google ile Kayıt Ol
+                        </button>
+                        <div style="font-size:12px;color:rgba(255,255,255,0.35);">
+                            Zaten hesabınız var mı? <span onclick="hideRegisterForm()" style="color:#818cf8;font-weight:700;cursor:pointer;">Giriş Yap</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- HESAP & BULUT (LOGGED IN) -->
@@ -15413,7 +15441,7 @@ function openLabFullscreen() {
                         <div style="padding:20px 20px 16px;">
                             <div style="display:flex;align-items:center;gap:16px;">
 
-                                <!-- Avatar -->
+                                <!-- Avatar — kamera artık yeşil noktanın yerinde -->
                                 <div style="position:relative;flex-shrink:0;">
                                     <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:2.5px;box-shadow:0 6px 24px rgba(99,102,241,0.4);">
                                         <div style="width:67px;height:67px;border-radius:50%;background:#151929;display:flex;align-items:center;justify-content:center;overflow:hidden;">
@@ -15421,7 +15449,11 @@ function openLabFullscreen() {
                                             <div id="loggedInAvatarInitials" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:26px;font-weight:800;color:#fff;letter-spacing:-1px;">?</div>
                                         </div>
                                     </div>
-                                    <div style="position:absolute;bottom:3px;right:3px;width:14px;height:14px;border-radius:50%;background:#10b981;border:2px solid var(--bg-card);box-shadow:0 0 7px rgba(16,185,129,0.8);"></div>
+                                    <!-- Kamera butonu — yeşil noktanın yerine -->
+                                    <label for="loggedInImgUpload" style="position:absolute;bottom:1px;right:1px;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:2.5px solid var(--bg-card);box-shadow:0 0 8px rgba(59,130,246,0.7);display:flex;align-items:center;justify-content:center;cursor:pointer;">
+                                        <i class="fas fa-camera" style="font-size:9px;color:#fff;"></i>
+                                        <input type="file" id="loggedInImgUpload" accept="image/*" style="display:none;" onchange="setLoggedInProfileImg(this)">
+                                    </label>
                                 </div>
 
                                 <!-- İsim & Email -->
@@ -15435,11 +15467,10 @@ function openLabFullscreen() {
                                     <div id="loggedInEmailDisplay" style="font-size:11px;color:rgba(255,255,255,0.38);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">—</div>
                                 </div>
 
-                                <!-- Kamera -->
-                                <label for="loggedInImgUpload" style="flex-shrink:0;width:38px;height:38px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.28);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;">
-                                    <i class="fas fa-camera" style="font-size:13px;color:#60a5fa;"></i>
-                                    <input type="file" id="loggedInImgUpload" accept="image/*" style="display:none;" onchange="setLoggedInProfileImg(this)">
-                                </label>
+                                <!-- Çıkış butonu — sağ üst köşede ikon olarak -->
+                                <button onclick="firebaseLogout()" title="Çıkış Yap" style="flex-shrink:0;width:38px;height:38px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.22);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'">
+                                    <i class="fas fa-sign-out-alt" style="font-size:14px;color:#ef4444;"></i>
+                                </button>
                             </div>
 
                             <!-- İsim düzenleme satırı -->
@@ -15542,7 +15573,7 @@ function openLabFullscreen() {
                             </button>
                         </div>
                         <!-- Açılır Manuel Butonlar -->
-                        <div id="manualBackupButtons" style="display:none;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div id="manualBackupButtons" style="display:none;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
                             <button onclick="firebaseBackup()" style="padding:13px 10px;border:none;border-radius:14px;cursor:pointer;background:linear-gradient(135deg,#4f46e5,#6d28d9);color:#fff;display:flex;flex-direction:column;align-items:center;gap:5px;box-shadow:0 6px 20px rgba(79,70,229,0.3);transition:transform 0.15s;" ontouchstart="this.style.transform='scale(0.96)'" ontouchend="this.style.transform=''">
                                 <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;"><i class="fas fa-cloud-upload-alt" style="font-size:17px;"></i></div>
                                 <span style="font-size:12px;font-weight:700;">Yedekle</span>
@@ -15554,14 +15585,22 @@ function openLabFullscreen() {
                                 <span style="font-size:9px;opacity:0.65;">Buluttan çek</span>
                             </button>
                         </div>
+
+                        <!-- Verileri Sıfırla — kart içinde ayraçtan sonra -->
+                        <div style="height:1px;background:rgba(239,68,68,0.15);margin:4px 0 8px;"></div>
+                        <div style="display:flex;align-items:center;padding:11px 4px;cursor:pointer;border-radius:12px;transition:background 0.15s;" onclick="clearAllData()" onmouseover="this.style.background='rgba(239,68,68,0.07)'" onmouseout="this.style.background='transparent'">
+                            <div style="width:28px;height:28px;border-radius:9px;background:rgba(239,68,68,0.15);display:flex;align-items:center;justify-content:center;font-size:12px;color:#ef4444;margin-right:10px;flex-shrink:0;">
+                                <i class="fas fa-trash-alt"></i>
+                            </div>
+                            <div style="flex:1;">
+                                <div style="font-size:12px;font-weight:700;color:#ef4444;">Verileri Sıfırla</div>
+                                <div style="font-size:10px;color:rgba(239,68,68,0.45);margin-top:1px;">Tüm veriler kalıcı olarak silinir</div>
+                            </div>
+                            <i class="fas fa-chevron-right" style="font-size:11px;color:rgba(239,68,68,0.4);"></i>
+                        </div>
                     </div>
 
-                    <!-- Çıkış -->
-                    <div style="background:var(--bg-card); border-radius:16px; padding:16px; margin-bottom:90px; border:1px solid rgba(255,255,255,0.05);">
-                        <button onclick="firebaseLogout()" style="width:100%; padding:12px; border:none; border-radius:10px; cursor:pointer; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:#ef4444; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px;">
-                            <i class="fas fa-sign-out-alt"></i> Çıkış Yap
-                        </button>
-                    </div>
+                    <div style="margin-bottom:90px;"></div>
                 </div>
             </div>
 
@@ -15872,7 +15911,7 @@ function openLabFullscreen() {
                 </div>
 
                 <!-- Güvenlik İpuçları -->
-                <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; padding: 15px; margin-top: 15px;">
+                <div style="background: rgba(59, 130, 246, 0.06); border: 1px solid rgba(59, 130, 246, 0.15); border-radius: 12px; padding: 15px; margin-top: 15px;">
                     <div style="display: flex; align-items: flex-start; gap: 12px;">
                         <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(59, 130, 246, 0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             <i class="fas fa-info-circle" style="color: #3b82f6; font-size: 14px;"></i>
@@ -15889,7 +15928,7 @@ function openLabFullscreen() {
                 </div>
 
                 <!-- Uyarı Mesajı -->
-                <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 12px; padding: 15px; margin-top: 12px;">
+                <div style="background: rgba(245, 158, 11, 0.06); border: 1px solid rgba(245, 158, 11, 0.15); border-radius: 12px; padding: 15px; margin-top: 12px;">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <i class="fas fa-exclamation-triangle" style="color: #f59e0b; font-size: 16px;"></i>
                         <div style="font-size: 12px; color: #fbbf24; font-weight: 500;">
@@ -16034,7 +16073,7 @@ function updateMembershipBtnUI() {
         btn.classList.add('is-pro');
         btnText.textContent = 'PRO Üyelik Aktif';
         btnSub.textContent = isCancelled2 ? '⚠️ İptal Edildi · ' + remaining2 + ' gün kaldı' : '✓ ' + remaining2 + ' gün kaldı · Yönet';
-        btn.querySelector('.ps-membership-btn-icon i').className = 'fas fa-gem';
+        btn.querySelector('.ps-pro-icon i').className = 'fas fa-gem';
         
         // Butonu aktif bırak - tıklayınca modal açılsın (yönetim)
         btn.style.opacity = '1';
@@ -16049,7 +16088,7 @@ function updateMembershipBtnUI() {
         btn.classList.remove('is-pro');
         btnText.textContent = 'PRO\'ya Yükselt';
         btnSub.textContent = 'Tüm özellikleri aç';
-        btn.querySelector('.ps-membership-btn-icon i').className = 'fas fa-crown';
+        btn.querySelector('.ps-pro-icon i').className = 'fas fa-crown';
         
         // Butonu aktif et
         btn.style.opacity = '1';
@@ -17500,7 +17539,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -17802,6 +17841,53 @@ function tvEmailSignIn() {
         fbAuth.signInWithEmailAndPassword(email.value, pw.value)
             .catch(function(e) { alert(e.message); });
     }
+}
+
+function showRegisterForm() {
+    var loginCard = document.querySelector('#accountLoggedOut > div:first-child');
+    var regForm = document.getElementById('profileRegisterForm');
+    if (loginCard) loginCard.style.display = 'none';
+    if (regForm) regForm.style.display = 'block';
+}
+
+function hideRegisterForm() {
+    var loginCard = document.querySelector('#accountLoggedOut > div:first-child');
+    var regForm = document.getElementById('profileRegisterForm');
+    if (loginCard) loginCard.style.display = 'block';
+    if (regForm) regForm.style.display = 'none';
+}
+
+function toggleRegPw() {
+    var inp = document.getElementById('regPasswordInput');
+    var ico = document.getElementById('regPwIcon');
+    if (!inp) return;
+    if (inp.type === 'password') { inp.type = 'text'; ico.className = 'fas fa-eye-slash'; }
+    else { inp.type = 'password'; ico.className = 'fas fa-eye'; }
+}
+
+function doProfileRegister() {
+    var name = (document.getElementById('regNameInput') || {}).value || '';
+    var email = (document.getElementById('regEmailInput') || {}).value || '';
+    var pw = (document.getElementById('regPasswordInput') || {}).value || '';
+    var btn = document.getElementById('regSubmitBtn');
+    if (!email || !pw) { showToast && showToast('error','Hata','E-posta ve şifre zorunludur.'); return; }
+    if (pw.length < 6) { showToast && showToast('error','Hata','Şifre en az 6 karakter olmalıdır.'); return; }
+    if (btn) { btn.disabled = true; btn.textContent = 'Kayıt yapılıyor...'; }
+    fbAuth.createUserWithEmailAndPassword(email, pw)
+        .then(function(cred) {
+            if (name && cred.user) return cred.user.updateProfile({ displayName: name });
+        })
+        .then(function() {
+            showToast && showToast('success','Başarılı','Hesabınız oluşturuldu!');
+            hideRegisterForm();
+        })
+        .catch(function(err) {
+            var msg = err.message || 'Bir hata oluştu.';
+            if (err.code === 'auth/email-already-in-use') msg = 'Bu e-posta zaten kullanımda.';
+            if (err.code === 'auth/invalid-email') msg = 'Geçersiz e-posta adresi.';
+            showToast && showToast('error','Kayıt Hatası', msg);
+            if (btn) { btn.disabled = false; btn.textContent = 'Hesap Oluştur'; }
+        });
 }
 
 function tvEmailRegister() {
