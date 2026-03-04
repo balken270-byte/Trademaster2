@@ -17580,7 +17580,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.3"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -17649,6 +17649,50 @@ let coingeckoApiKey = AUTO_CG_KEY;
 let notifySettings = JSON.parse(localStorage.getItem('tm_notify_settings')) || {
     price: true, trade: true, news: false, sound: true, vibrate: true
 };
+
+/* ── ÇOKLU DİL VE PARA BİRİMİ ALTYAPISI ────────────────────────────── */
+/*
+ * İleride yeni dil eklemek için sadece bu objeye yeni satır eklenmesi yeter.
+ * Dil kodu → { label, currency, currencySymbol, currencyLabel }
+ * Uygulama ilk açılışta navigator.language'a bakarak otomatik seçer.
+ * Kullanıcı ayarlardan manuel olarak değiştirebilir.
+ */
+const LANG_CONFIG = {
+    'tr': { label: 'Türkçe',    currency: 'TRY', currencySymbol: '₺', currencyLabel: 'TRY (₺)' },
+    'en': { label: 'English',   currency: 'USD', currencySymbol: '$', currencyLabel: 'USD ($)' },
+    // İleride eklenecek diller (altyapı hazır):
+    // 'de': { label: 'Deutsch',   currency: 'EUR', currencySymbol: '€', currencyLabel: 'EUR (€)' },
+    // 'fr': { label: 'Français',  currency: 'EUR', currencySymbol: '€', currencyLabel: 'EUR (€)' },
+    // 'es': { label: 'Español',   currency: 'USD', currencySymbol: '$', currencyLabel: 'USD ($)' },
+    // 'ar': { label: 'العربية',   currency: 'USD', currencySymbol: '$', currencyLabel: 'USD ($)' },
+    // 'ja': { label: '日本語',    currency: 'USD', currencySymbol: '$', currencyLabel: 'USD ($)' },
+};
+
+/*
+ * Telefon dilini otomatik algıla.
+ * - Eğer localStorage'da kayıtlı bir dil seçimi varsa ONU kullan (manuel seçim > otomatik).
+ * - Yoksa navigator.language'dan dil kodunu al (ör: "tr-TR" → "tr", "en-US" → "en").
+ * - Desteklenmeyen dil ise varsayılan "en" (USD) kullan.
+ */
+function detectDeviceLang() {
+    var deviceLang = (navigator.language || navigator.userLanguage || 'en').split('-')[0].toLowerCase();
+    return LANG_CONFIG[deviceLang] ? deviceLang : 'en';
+}
+
+// İlk kurulum: eğer hiç ayar kaydedilmemişse cihaz diline göre dil + para birimi ata
+(function _autoDetectLangOnFirstRun() {
+    var existing = localStorage.getItem('tm_settings');
+    if (!existing) {
+        var detectedLang = detectDeviceLang();
+        var langCfg = LANG_CONFIG[detectedLang];
+        var firstRunSettings = {
+            currency: langCfg.currency,
+            lang: detectedLang,
+            theme: 'ocean'
+        };
+        localStorage.setItem('tm_settings', JSON.stringify(firstRunSettings));
+    }
+})();
 
 const trans = { tr: { loading:"Yükleniyor..." }, en: { loading:"Loading..." } };
 let appSettings = JSON.parse(localStorage.getItem('tm_settings')) || {currency:'TRY', lang:'tr', theme:'ocean'};
@@ -18103,9 +18147,30 @@ function setSortMode(mode) {
 }
 
 /* ── KATEGORİ KİŞİLEŞTİRME SİSTEMİ ────────────────────────────────── */
-let catVisibility = { kripto: true, borsa: true, manuel: true };
-let catOrder      = { kripto: 0, borsa: 1, manuel: 2 };
-let catSubSort    = 'value';
+var catVisibility = { kripto: true, borsa: true, manuel: true };
+var catOrder      = { kripto: 0, borsa: 1, manuel: 2 };
+var catSubSort    = 'value';
+
+// Kategori ayarlarını localStorage'dan yükle (uygulama kapatılınca kaybolmaz)
+(function _loadCatSettings() {
+    var saved = null;
+    try { saved = JSON.parse(localStorage.getItem('tm_cat_settings')); } catch(e) {}
+    if (saved) {
+        if (saved.visibility) { catVisibility = saved.visibility; }
+        if (saved.order)      { catOrder      = saved.order; }
+        if (saved.subSort)    { catSubSort     = saved.subSort; }
+    }
+})();
+
+function _saveCatSettings() {
+    try {
+        localStorage.setItem('tm_cat_settings', JSON.stringify({
+            visibility: catVisibility,
+            order:      catOrder,
+            subSort:    catSubSort
+        }));
+    } catch(e) {}
+}
 
 var _catDd = null;
 
@@ -18126,7 +18191,7 @@ function _renderCatDd() {
         { key:'manuel', icon:'✏️',  label:'Manuel' }
     ];
     var orderKeys = ['kripto','borsa','manuel'].sort(function(a,b){ return catOrder[a]-catOrder[b]; });
-    var subLabels = { value:'Değer', pnl:'Kâr/Zarar', alpha:'A-Z' };
+    var subLabels = { value:'Değer', pnl_profit:'Kâr', pnl_loss:'Zarar', alpha:'A-Z' };
 
     _catDd.innerHTML =
         '<div style="padding:14px 18px 8px;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,0.25);">Kategori Görünümü</div>' +
@@ -18147,7 +18212,7 @@ function _renderCatDd() {
         '</div>' +
         '<div class="cs-section-label">Kategori İçi Sıralama</div>' +
         '<div class="cs-pill-row">' +
-            ['value','pnl','alpha'].map(function(s) {
+            ['value','pnl_profit','pnl_loss','alpha'].map(function(s) {
                 return '<div class="cs-pill' + (catSubSort===s ? ' active' : '') + '" id="catSub_' + s + '" onclick="setCatSubSort(\'' + s + '\')">' + subLabels[s] + '</div>';
             }).join('') +
         '</div>' +
@@ -18209,7 +18274,7 @@ function _refreshCatDd() {
     if (row) row.querySelectorAll('.cs-pill').forEach(function(pill, i) {
         pill.classList.toggle('active', catOrder[orderKeys[i]] === 0);
     });
-    ['value','pnl','alpha'].forEach(function(s) {
+    ['value','pnl_profit','pnl_loss','alpha'].forEach(function(s) {
         var el = document.getElementById('catSub_' + s);
         if (el) el.classList.toggle('active', catSubSort === s);
     });
@@ -18235,6 +18300,7 @@ function setCatSubSort(s) {
 
 function applyCatSettings() {
     closeCatPanel();
+    _saveCatSettings(); // Ayarları localStorage'a kaydet
     currentSortMode = 'cat_kripto';
     loadPF(false);
 }
@@ -18850,6 +18916,8 @@ function renderPortfolioHTML(as) {
             let catB = catOrder[b.category] !== undefined ? catOrder[b.category] : 99;
             if(catA !== catB) return catA - catB;
             if(catSubSort === 'pnl') return b.pnl - a.pnl;
+            if(catSubSort === 'pnl_profit') return b.pnl - a.pnl;
+            if(catSubSort === 'pnl_loss') return a.pnl - b.pnl;
             if(catSubSort === 'alpha') return a.name.localeCompare(b.name);
             return b.dVal - a.dVal;
         });
