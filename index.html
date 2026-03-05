@@ -70,7 +70,7 @@
     
     <!-- Fonts & Libraries -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Mono:wght@400;500&family=Orbitron:wght@700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Mono:wght@400;500&family=Orbitron:wght@700;800;900&family=Bebas+Neue&family=Unbounded:wght@700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
@@ -4389,13 +4389,70 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     left: 0;
     right: 0;
     bottom: 0;
-    background: #1a2236;
+    background: #0b0f19;
     z-index: 200;
     overflow-y: auto;
     overflow-x: hidden; /* Yatay scroll engelle */
     -webkit-overflow-scrolling: touch;
     padding: 0 20px 100px 20px; /* Sağ/sol padding + alt boşluk */
 }
+
+/* ===== ALT SAYFA ANİMASYONLU ARKA PLAN ===== */
+@keyframes sdOrbFloat1 {
+    0%   { transform: translate(0,0) scale(1); }
+    33%  { transform: translate(22%,-16%) scale(1.14); }
+    66%  { transform: translate(-8%,-30%) scale(0.9); }
+    100% { transform: translate(0,0) scale(1); }
+}
+@keyframes sdOrbFloat2 {
+    0%   { transform: translate(0,0) scale(1); }
+    40%  { transform: translate(-22%,18%) scale(1.18); }
+    70%  { transform: translate(14%,26%) scale(0.86); }
+    100% { transform: translate(0,0) scale(1); }
+}
+@keyframes sdOrbFloat3 {
+    0%   { transform: translate(0,0) scale(1); }
+    50%  { transform: translate(16%,22%) scale(1.22); }
+    100% { transform: translate(0,0) scale(1); }
+}
+
+/* Orb elemanları */
+.sd-orb1, .sd-orb2, .sd-orb3 {
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    will-change: transform;
+}
+.sd-orb1 {
+    width: 360px; height: 360px;
+    top: -100px; left: -100px;
+    background: radial-gradient(circle, rgba(59,130,246,0.25) 0%, rgba(59,130,246,0.07) 50%, transparent 75%);
+    filter: blur(72px);
+    animation: sdOrbFloat1 16s ease-in-out infinite;
+}
+.sd-orb2 {
+    width: 300px; height: 300px;
+    bottom: 60px; right: -80px;
+    background: radial-gradient(circle, rgba(245,158,11,0.22) 0%, rgba(245,158,11,0.06) 50%, transparent 75%);
+    filter: blur(65px);
+    animation: sdOrbFloat2 20s ease-in-out infinite;
+}
+.sd-orb3 {
+    width: 240px; height: 240px;
+    top: 40%; left: 20%;
+    background: radial-gradient(circle, rgba(52,211,153,0.15) 0%, rgba(52,211,153,0.04) 50%, transparent 75%);
+    filter: blur(55px);
+    animation: sdOrbFloat3 25s ease-in-out infinite;
+}
+
+/* İçerik z-index koruması */
+.settings-detail-wrapper .sub-header,
+.settings-detail-wrapper .settings-content {
+    position: relative;
+    z-index: 1;
+}
+
 .sub-header { 
     display: flex; 
     align-items: center; 
@@ -4407,7 +4464,7 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(26, 34, 54, 0.99);
+    background: rgba(11, 15, 25, 0.97);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -13730,10 +13787,123 @@ function openLabFullscreen() {
     
     
     
-    <!-- Ambient Background Orbs kaldırıldı - uygulamanın kendi animasyonu kullanılıyor -->
+    <!-- Animasyonlu Arka Plan Orb'ları -->
+    <div class="ps-bg-orb1"></div>
+    <div class="ps-bg-orb2"></div>
+    <div class="ps-bg-orb3"></div>
     
     <style>
-        /* orbFloat keyframes kaldırıldı */
+        /* ===== AYARLAR ANİMASYONLU ARKA PLAN ===== */
+        @keyframes psOrbFloat1 {
+            0%   { transform: translate(0%, 0%) scale(1); opacity: 0.55; }
+            25%  { transform: translate(18%, -12%) scale(1.12); opacity: 0.7; }
+            50%  { transform: translate(8%, -28%) scale(0.92); opacity: 0.45; }
+            75%  { transform: translate(-14%, -10%) scale(1.08); opacity: 0.65; }
+            100% { transform: translate(0%, 0%) scale(1); opacity: 0.55; }
+        }
+        @keyframes psOrbFloat2 {
+            0%   { transform: translate(0%, 0%) scale(1); opacity: 0.45; }
+            30%  { transform: translate(-20%, 15%) scale(1.15); opacity: 0.6; }
+            60%  { transform: translate(12%, 22%) scale(0.88); opacity: 0.38; }
+            85%  { transform: translate(18%, -8%) scale(1.05); opacity: 0.52; }
+            100% { transform: translate(0%, 0%) scale(1); opacity: 0.45; }
+        }
+        @keyframes psOrbFloat3 {
+            0%   { transform: translate(0%, 0%) scale(1); opacity: 0.35; }
+            40%  { transform: translate(14%, 20%) scale(1.2); opacity: 0.5; }
+            70%  { transform: translate(-10%, 5%) scale(0.85); opacity: 0.28; }
+            100% { transform: translate(0%, 0%) scale(1); opacity: 0.35; }
+        }
+        @keyframes psShimmer {
+            0%   { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        @keyframes psProfileGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.0), 5px 5px 16px rgba(0,0,0,0.75), -2px -2px 8px rgba(255,255,255,0.04); }
+            50%       { box-shadow: 0 0 24px 4px rgba(59,130,246,0.10), 5px 5px 16px rgba(0,0,0,0.75), -2px -2px 8px rgba(255,255,255,0.04); }
+        }
+        @keyframes psMenuItemFade {
+            from { opacity: 0; transform: translateX(-10px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes psListShimmer {
+            0%   { background-position: -300% 0; }
+            100% { background-position: 300% 0; }
+        }
+
+        /* Ayarlar sayfası genel - animasyonlu orb container */
+        #page-settings { position: relative; overflow: hidden; }
+
+        /* Orb 1 - sol üst, mavi */
+        #page-settings .ps-bg-orb1 {
+            position: fixed;
+            width: 340px; height: 340px;
+            top: -80px; left: -90px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(59,130,246,0.22) 0%, rgba(59,130,246,0.06) 55%, transparent 80%);
+            filter: blur(70px);
+            pointer-events: none;
+            z-index: 0;
+            animation: psOrbFloat1 15s ease-in-out infinite;
+        }
+        /* Orb 2 - sağ alt, altın */
+        #page-settings .ps-bg-orb2 {
+            position: fixed;
+            width: 300px; height: 300px;
+            bottom: 80px; right: -70px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(245,158,11,0.20) 0%, rgba(245,158,11,0.05) 55%, transparent 80%);
+            filter: blur(65px);
+            pointer-events: none;
+            z-index: 0;
+            animation: psOrbFloat2 19s ease-in-out infinite;
+        }
+        /* Orb 3 - ortada, yeşil-teal */
+        #page-settings .ps-bg-orb3 {
+            position: fixed;
+            width: 220px; height: 220px;
+            top: 38%; left: 25%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(52,211,153,0.13) 0%, rgba(52,211,153,0.03) 55%, transparent 80%);
+            filter: blur(55px);
+            pointer-events: none;
+            z-index: 0;
+            animation: psOrbFloat3 23s ease-in-out infinite;
+        }
+
+        /* Profil hero - nabız animasyonu */
+        #page-settings .ps-profile-hero {
+            animation: psProfileGlow 5s ease-in-out infinite;
+        }
+
+        /* Menu list - shimmer çizgi animasyonu */
+        #page-settings .ps-menu-list {
+            position: relative;
+            overflow: hidden;
+        }
+        #page-settings .ps-menu-list::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(105deg,
+                transparent 40%,
+                rgba(59,130,246,0.045) 50%,
+                rgba(52,211,153,0.03) 55%,
+                transparent 65%
+            );
+            background-size: 300% 100%;
+            animation: psListShimmer 8s linear infinite;
+            pointer-events: none;
+            border-radius: inherit;
+            z-index: 0;
+        }
+
+        /* Menu item'lar slide-in animasyonu */
+        #page-settings .ps-menu-item:nth-child(1) { animation: psMenuItemFade 0.4s ease 0.05s both; }
+        #page-settings .ps-menu-item:nth-child(2) { animation: psMenuItemFade 0.4s ease 0.12s both; }
+        #page-settings .ps-menu-item:nth-child(3) { animation: psMenuItemFade 0.4s ease 0.19s both; }
+        #page-settings .ps-menu-item:nth-child(4) { animation: psMenuItemFade 0.4s ease 0.26s both; }
+        #page-settings .ps-menu-item:nth-child(5) { animation: psMenuItemFade 0.4s ease 0.33s both; }
         
         /* Premium Settings Styles */
         #page-settings .ps-container { position:relative; z-index:1; width:100%; padding:12px 12px 120px; box-sizing:border-box; }
@@ -14518,380 +14688,469 @@ function openLabFullscreen() {
         #page-settings .ps-avatar-upload-btn:hover { transform:scale(1.1); }
         #page-settings .ps-avatar-hint { font-size:13px; color:rgba(255,255,255,0.48); }
         
-        /* History Header */
+        /* History Header — kept for compat */
         #page-settings .ps-history-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
-        #page-settings .ps-tool-btn {
-            padding:8px 14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
-            border-radius:12px; font-family:inherit; font-size:13px; font-weight:500; color:#fff;
-            cursor:pointer; display:flex; align-items:center; gap:6px; transition:all 0.15s;
-        }
-        #page-settings .ps-tool-btn:hover { background:rgba(255,255,255,0.06); }
     </style>
 
-    <!-- ===== GEÇMİŞ İŞLEMLER - PREMIUM REDESIGN ===== -->
+    <!-- ===== GEÇMİŞ İŞLEMLER - PREMIUM B REDESIGN ===== -->
     <style>
-        /* ---- ACCOUNTING HERO ---- */
-        #page-settings #set-history .ps-accounting-hero {
-            background: rgba(255,255,255,0.04);
-            border-radius: 20px;
-            padding: 22px 20px 18px;
-            margin-bottom: 14px;
-            margin-top: 0;
-            border: 1px solid rgba(255,255,255,0.06);
-            box-shadow: none;
-            position: relative;
+
+        /* ━━━ HERO CARD ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        #page-settings #set-history .sh-hero {
+            margin: 0 0 14px;
+            border-radius: 22px;
             overflow: hidden;
+            position: relative;
+            background: linear-gradient(160deg, #1a1508 0%, #0e0c04 40%, #0b0e18 100%);
+            border: 1px solid rgba(201,168,76,0.28);
+            box-shadow:
+                0 0 0 1px rgba(201,168,76,0.07) inset,
+                0 28px 70px rgba(0,0,0,0.55),
+                0 0 50px rgba(201,168,76,0.05);
+            animation: sh-heroRise 0.55s cubic-bezier(0.22,1,0.36,1) both;
         }
-        #page-settings #set-history .ps-accounting-hero::before {
+        #page-settings #set-history .sh-hero::before {
             content: '';
             position: absolute;
-            top: -40px; right: -40px;
-            width: 160px; height: 160px;
-            background: radial-gradient(circle, rgba(48,209,88,0.08) 0%, transparent 70%);
+            top: -100px; left: -100px;
+            width: 300px; height: 300px;
+            background: conic-gradient(
+                from 200deg at 50% 50%,
+                transparent 0deg,
+                rgba(201,168,76,0.07) 30deg,
+                rgba(201,168,76,0.15) 60deg,
+                rgba(201,168,76,0.05) 90deg,
+                transparent 120deg
+            );
             pointer-events: none;
+            animation: sh-shimmer 9s linear infinite;
         }
-        #page-settings #set-history .ps-accounting-hero::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(48,209,88,0.3), transparent);
+
+        @keyframes sh-shimmer { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes sh-heroRise {
+            from { opacity:0; transform: translateY(20px) scale(0.98); }
+            to   { opacity:1; transform: translateY(0) scale(1); }
         }
-        #page-settings #set-history .ps-acc-grid {
-            display: grid;
-            grid-template-columns: minmax(0,1fr) minmax(0,1fr);
-            gap: 0;
-            margin-bottom: 16px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
+        @keyframes sh-slideUp {
+            from { opacity:0; transform: translateY(12px); }
+            to   { opacity:1; transform: translateY(0); }
         }
-        #page-settings #set-history .ps-acc-item { text-align: left; overflow: hidden; min-width: 0; }
-        #page-settings #set-history .ps-acc-item.right { text-align: right; overflow: hidden; min-width: 0; }
-        #page-settings #set-history .ps-acc-label {
-            font-size: 9px;
-            font-weight: 700;
-            color: rgba(255,255,255,0.28);
-            text-transform: uppercase;
-            letter-spacing: 1.2px;
-            margin-bottom: 5px;
+        @keyframes sh-rowIn {
+            from { opacity:0; transform: translateX(-6px); }
+            to   { opacity:1; transform: translateX(0); }
+        }
+
+        .sh-hero-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 20px 0;
+            position: relative; z-index: 1;
+        }
+        .sh-hero-brand {
+            display: flex; align-items: center; gap: 9px;
+        }
+        .sh-hero-icon {
+            width: 30px; height: 30px;
+            border-radius: 9px;
+            background: rgba(201,168,76,0.1);
+            border: 1px solid rgba(201,168,76,0.22);
+            display: flex; align-items: center; justify-content: center;
+            color: #C9A84C; font-size: 12px;
+        }
+        .sh-hero-brand-lbl {
+            font-size: 9px; letter-spacing: 2.5px;
+            text-transform: uppercase; color: rgba(201,168,76,0.5);
             font-family: 'DM Mono', monospace;
         }
-        #page-settings #set-history .ps-acc-label.success { color: rgba(48,209,88,0.6); }
-        #page-settings #set-history .ps-acc-value {
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-            font-size: 18px;
-            font-weight: 800;
-            color: #fff;
-            line-height: 1.1;
-            letter-spacing: -0.5px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            max-width: 100%;
+        .sh-live-pill {
+            display: flex; align-items: center; gap: 5px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 7px; padding: 4px 10px;
+            font-family: 'DM Mono', monospace;
+            font-size: 9px; letter-spacing: 1px; text-transform: uppercase;
+            color: rgba(255,255,255,0.25);
+        }
+        .sh-live-dot {
+            width: 5px; height: 5px; border-radius: 50%;
+            background: #00e676; box-shadow: 0 0 7px #00e676;
+            animation: sh-pulse 1.8s infinite;
+        }
+        @keyframes sh-pulse {
+            0%,100%{ opacity:1; transform:scale(1); }
+            50%{ opacity:0.45; transform:scale(0.75); }
+        }
+
+        /* Big amount */
+        .sh-amount-block {
+            padding: 16px 20px 18px;
+            position: relative; z-index: 1;
+        }
+        .sh-amount-lbl {
+            font-family: 'DM Mono', monospace;
+            font-size: 8px; letter-spacing: 3px;
+            text-transform: uppercase; color: rgba(201,168,76,0.38);
+            margin-bottom: 8px;
+        }
+        .sh-amount {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 40px; font-weight: 900;
+            letter-spacing: -2.5px; line-height: 0.95;
+            background: linear-gradient(135deg,#c8a44a 0%,#e8d080 28%,#f0e090 42%,#e8c96a 58%,#b88a30 78%,#d4a84c 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 2px 18px rgba(201,168,76,0.22));
+            margin-bottom: 12px;
             display: block;
         }
-        #page-settings #set-history .ps-acc-value.success { color: #30D158; }
-        #page-settings #set-history .ps-acc-value.small {
+        .sh-pnl-row { display: flex; align-items: center; gap: 10px; }
+        .sh-pnl-chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 11px; border-radius: 8px;
             font-family: 'DM Mono', monospace;
-            font-size: 15px;
-            font-weight: 500;
-            color: rgba(255,255,255,0.55);
+            font-size: 12px; font-weight: 600; letter-spacing: -0.2px;
         }
-        #page-settings #set-history .ps-acc-value.small.success {
-            color: #30D158;
+        .sh-pnl-chip.pos { background: rgba(0,230,118,0.1); border: 1px solid rgba(0,230,118,0.2); color: #00e676; }
+        .sh-pnl-chip.neg { background: rgba(255,61,87,0.1); border: 1px solid rgba(255,61,87,0.2); color: #ff3d57; }
+        .sh-pnl-sub { font-family:'DM Mono',monospace; font-size:11px; color:rgba(255,255,255,0.22); }
+
+        /* 3-col stats */
+        .sh-stats {
+            display: grid; grid-template-columns: 1fr 1fr 1fr;
+            border-top: 1px solid rgba(201,168,76,0.1);
+            position: relative; z-index: 1;
+        }
+        .sh-stat {
+            padding: 14px 16px;
+            border-right: 1px solid rgba(201,168,76,0.07);
+        }
+        .sh-stat:last-child { border-right: none; }
+        .sh-stat-lbl {
+            font-family: 'DM Mono', monospace;
+            font-size: 8px; letter-spacing: 1.5px;
+            text-transform: uppercase; color: rgba(255,255,255,0.18); margin-bottom: 6px;
+        }
+        .sh-stat-val {
+            font-family: 'DM Mono', monospace;
+            font-size: 14px; font-weight: 600;
+            letter-spacing: -0.5px; color: rgba(255,255,255,0.7);
+        }
+        .sh-stat-val.gold { color: #C9A84C; }
+        .sh-stat-val.pos  { color: #00e676; }
+
+        /* ━━━ SUMMARY STRIP ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        #page-settings #set-history .sh-strip {
+            display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;
+            background: rgba(255,255,255,0.015);
+            border: 1px solid rgba(255,255,255,0.055);
+            border-radius: 16px; overflow: hidden;
+            margin-bottom: 12px;
+            animation: sh-slideUp 0.5s 0.12s ease both;
+        }
+        .sh-strip-item {
+            padding: 13px 12px;
+            border-right: 1px solid rgba(255,255,255,0.05);
+        }
+        .sh-strip-item:last-child { border-right: none; }
+        .sh-strip-lbl {
+            font-family: 'DM Mono', monospace;
+            font-size: 7px; letter-spacing: 1.5px;
+            text-transform: uppercase; color: rgba(255,255,255,0.17); margin-bottom: 5px;
+        }
+        .sh-strip-val {
+            font-family: 'DM Mono', monospace;
+            font-size: 12px; font-weight: 600;
+            letter-spacing: -0.3px; color: rgba(255,255,255,0.55);
+        }
+        .sh-strip-val.pos  { color: #00e676; }
+        .sh-strip-val.neg  { color: #ff3d57; }
+        .sh-strip-val.gold { color: #C9A84C; }
+        .sh-strip-sub {
+            font-family: 'DM Mono', monospace;
+            font-size: 9px; color: rgba(255,255,255,0.16); margin-top: 2px;
         }
 
-        /* ---- SALARY BUTTON ---- */
-        #page-settings #set-history .ps-btn-salary {
-            width: 100%;
-            padding: 14px 20px;
-            background: linear-gradient(135deg, #30D158 0%, #27b84a 100%);
-            border: none;
-            border-radius: 14px;
+        /* ━━━ ACTION BUTTONS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        #page-settings #set-history .sh-actions {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 10px; margin-bottom: 18px;
+            animation: sh-slideUp 0.5s 0.15s ease both;
+        }
+        .sh-btn {
+            padding: 15px 12px;
+            border-radius: 16px; border: none;
             font-family: 'DM Mono', monospace;
-            font-size: 11px;
-            font-weight: 500;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: #000;
+            font-size: 10px; font-weight: 600;
+            letter-spacing: 1px; text-transform: uppercase;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: all 0.2s;
-            box-shadow: 0 8px 24px rgba(48,209,88,0.25), inset 0 1px 0 rgba(255,255,255,0.25);
-            margin-top: 18px;
+            display: flex; align-items: center; justify-content: center; gap: 9px;
+            transition: all 0.22s cubic-bezier(0.34,1.3,0.64,1);
+            position: relative; overflow: hidden;
         }
-        #page-settings #set-history .ps-btn-salary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 32px rgba(48,209,88,0.35), inset 0 1px 0 rgba(255,255,255,0.3);
+        .sh-btn::after {
+            content:''; position:absolute; inset:0;
+            background: rgba(255,255,255,0.07); opacity:0; transition:opacity 0.18s;
         }
-        #page-settings #set-history .ps-btn-salary:active { transform: scale(0.98); }
+        .sh-btn:hover::after { opacity:1; }
+        .sh-btn:active { transform:scale(0.97); }
+        .sh-btn-primary {
+            background: linear-gradient(145deg,#1d2e1f,#111a12);
+            border: 1px solid rgba(0,230,118,0.22); color: #00e676;
+            box-shadow: 0 6px 24px rgba(0,230,118,0.07), inset 0 1px 0 rgba(0,230,118,0.08);
+        }
+        .sh-btn-primary .sh-btn-ico {
+            width: 26px; height: 26px; background: rgba(0,230,118,0.1);
+            border-radius: 8px; display:flex; align-items:center; justify-content:center; font-size:11px;
+        }
+        .sh-btn-secondary {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.42);
+        }
+        .sh-btn-secondary .sh-btn-ico {
+            width: 26px; height: 26px; background: rgba(255,255,255,0.05);
+            border-radius: 8px; display:flex; align-items:center; justify-content:center; font-size:11px;
+        }
 
-        #page-settings #set-history .ps-history-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 14px;
+        /* ━━━ FILTER TABS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        #page-settings #set-history .sh-filter-wrap {
+            margin-bottom: 16px;
+            animation: sh-slideUp 0.5s 0.18s ease both;
         }
-        #page-settings #set-history .ps-history-header .lbl-sm {
+        #page-settings #set-history .sh-filter-lbl {
             font-family: 'DM Mono', monospace;
-            font-size: 10px;
-            font-weight: 500;
-            letter-spacing: 1.5px;
-            color: rgba(255,255,255,0.35);
-            text-transform: uppercase;
+            font-size: 8px; letter-spacing: 3px;
+            text-transform: uppercase; color: rgba(255,255,255,0.14); margin-bottom: 10px;
         }
-        #page-settings #set-history .ps-tool-btn {
+        #page-settings #set-history .sh-filter-tabs {
+            display: flex; gap: 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            overflow-x: auto; scrollbar-width: none;
+        }
+        #page-settings #set-history .sh-filter-tabs::-webkit-scrollbar { display:none; }
+        #page-settings #set-history .sh-ftab {
             padding: 9px 16px;
-            background: linear-gradient(135deg, rgba(48,209,88,0.15) 0%, rgba(39,184,74,0.08) 100%);
-            border: 1px solid rgba(48,209,88,0.3);
-            border-radius: 12px;
+            background: transparent; border: none;
+            border-bottom: 2px solid transparent; margin-bottom: -1px;
             font-family: 'DM Mono', monospace;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            color: #30D158;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            transition: all 0.18s;
-            box-shadow: 0 0 16px rgba(48,209,88,0.08), inset 0 1px 0 rgba(255,255,255,0.06);
+            font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+            color: rgba(255,255,255,0.22); cursor: pointer; white-space: nowrap;
+            transition: all 0.18s; flex-shrink: 0;
         }
-        #page-settings #set-history .ps-tool-btn i {
-            font-size: 10px;
-            width: 18px;
-            height: 18px;
-            background: rgba(48,209,88,0.2);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        #page-settings #set-history .ps-tool-btn:hover {
-            background: linear-gradient(135deg, rgba(48,209,88,0.22) 0%, rgba(39,184,74,0.14) 100%);
-            border-color: rgba(48,209,88,0.5);
-            box-shadow: 0 0 22px rgba(48,209,88,0.18), inset 0 1px 0 rgba(255,255,255,0.08);
-            transform: translateY(-1px);
-        }
-        #page-settings #set-history .ps-tool-btn:active { transform: scale(0.97); }
-
-        /* ---- DUAL ACTION BUTTONS ---- */
-        #page-settings #set-history .cm-dual-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 16px;
-        }
-        #page-settings #set-history .cm-action-salary,
-        #page-settings #set-history .cm-action-add {
-            padding: 13px 10px;
-            border: none;
-            border-radius: 14px;
-            font-family: 'DM Mono', monospace;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.2s;
-        }
-        #page-settings #set-history .cm-action-salary {
-            background: linear-gradient(135deg, #30D158, #27b84a);
-            color: #000;
-            box-shadow: 0 6px 20px rgba(48,209,88,0.2), inset 0 1px 0 rgba(255,255,255,0.2);
-        }
-        #page-settings #set-history .cm-action-salary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 10px 28px rgba(48,209,88,0.3);
-        }
-        #page-settings #set-history .cm-action-add {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: rgba(255,255,255,0.7);
-        }
-        #page-settings #set-history .cm-action-add:hover {
-            background: rgba(255,255,255,0.09);
-            color: #fff;
-            border-color: rgba(255,255,255,0.18);
-        }
-        #page-settings #set-history .cm-action-salary:active,
-        #page-settings #set-history .cm-action-add:active { transform: scale(0.97); }
-
-        /* ---- FILTER CHIPS margin adjust ---- */
-        #page-settings #set-history .ps-filter-scroll {
-            margin-top: 14px;
-        }
-        #page-settings #set-history .ps-filter-scroll {
-            display: flex;
-            gap: 6px;
-            overflow-x: auto;
-            padding: 2px 0 14px;
-            scrollbar-width: none;
-            -webkit-overflow-scrolling: touch;
-        }
-        #page-settings #set-history .ps-filter-scroll::-webkit-scrollbar { display: none; }
-        #page-settings #set-history .ps-filter-chip {
-            padding: 7px 16px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.07);
-            border-radius: 999px;
-            font-family: 'DM Mono', monospace;
-            font-size: 10px;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-            color: rgba(255,255,255,0.35);
-            white-space: nowrap;
-            cursor: pointer;
-            transition: all 0.18s;
-            text-transform: uppercase;
-        }
-        #page-settings #set-history .ps-filter-chip:hover {
-            color: rgba(255,255,255,0.6);
-            border-color: rgba(255,255,255,0.14);
-        }
-        #page-settings #set-history .ps-filter-chip.active {
-            background: rgba(255,214,10,0.1);
-            border-color: rgba(255,214,10,0.35);
-            color: #FFD60A;
-            box-shadow: 0 0 14px rgba(255,214,10,0.12);
+        #page-settings #set-history .sh-ftab:hover { color: rgba(255,255,255,0.5); }
+        #page-settings #set-history .sh-ftab.active {
+            color: #C9A84C; border-bottom-color: #C9A84C;
         }
 
-        /* ---- LEDGER CARDS - PREMIUM REDESIGN ---- */
-        #page-settings #set-history #historyListFull {
-            border-radius: 18px;
-            overflow: hidden;
-            background: rgba(255,255,255,0.02);
+        /* ━━━ LEDGER LIST ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        #page-settings #set-history .sh-list-hdr {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 10px;
+            animation: sh-slideUp 0.5s 0.2s ease both;
+        }
+        .sh-list-title {
+            font-family: 'DM Mono', monospace;
+            font-size: 8px; letter-spacing: 3px;
+            text-transform: uppercase; color: rgba(255,255,255,0.14);
+        }
+        .sh-list-count {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px; color: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.06);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border-radius: 999px; padding: 2px 10px;
         }
+
+        /* Table wrapper */
+        #page-settings #set-history #historyListFull {
+            border-radius: 20px; overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.055);
+            background: rgba(255,255,255,0.015);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 20px 50px rgba(0,0,0,0.38);
+            animation: sh-slideUp 0.5s 0.22s ease both;
+        }
+
+        /* Date divider */
+        #page-settings #set-history .sh-date-div {
+            display: flex; align-items: center; gap: 10px;
+            padding: 5px 16px;
+            background: rgba(255,255,255,0.01);
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .sh-date-line { height:1px; flex:1; background:rgba(255,255,255,0.04); }
+        .sh-date-txt {
+            font-family: 'DM Mono', monospace;
+            font-size: 8px; letter-spacing: 2px;
+            text-transform: uppercase; color: rgba(255,255,255,0.14);
+            white-space: nowrap;
+        }
+
+        /* ── Data row — FLEX layout, no grid conflicts ── */
         #page-settings #set-history .ledger-card {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: stretch !important;
+            padding: 12px 14px !important;
             background: transparent !important;
             border-radius: 0 !important;
             border: none !important;
-            border-bottom: 1px solid rgba(255,255,255,0.04) !important;
-            padding: 13px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.035) !important;
             margin-bottom: 0 !important;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: background 0.15s;
-            position: relative;
-            overflow: hidden;
+            cursor: pointer;
+            transition: background 0.14s;
+            position: relative; overflow: hidden;
         }
         #page-settings #set-history .ledger-card:last-child {
             border-bottom: none !important;
         }
         #page-settings #set-history .ledger-card::before {
-            display: none !important;
+            content: '' !important;
+            position: absolute; inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.018), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.45s ease;
+            width: 100% !important; height: 100% !important;
+            border-radius: 0 !important;
+            pointer-events: none;
         }
-        #page-settings #set-history .ledger-card:active {
-            background: rgba(255,255,255,0.04) !important;
-        }
+        #page-settings #set-history .ledger-card:hover::before { transform: translateX(100%); }
+        #page-settings #set-history .ledger-card:hover { background: rgba(255,255,255,0.02) !important; }
+        #page-settings #set-history .ledger-card:active { background: rgba(255,255,255,0.035) !important; }
 
-        /* Icon dot indicator */
-        #page-settings #set-history .lc-icon {
-            width: 38px;
-            height: 38px;
-            border-radius: 12px;
+        /* Stagger animation */
+        #page-settings #set-history .ledger-card { animation: sh-rowIn 0.38s ease both; }
+        #page-settings #set-history .ledger-card:nth-child(2) { animation-delay:0.06s; }
+        #page-settings #set-history .ledger-card:nth-child(3) { animation-delay:0.12s; }
+        #page-settings #set-history .ledger-card:nth-child(4) { animation-delay:0.18s; }
+        #page-settings #set-history .ledger-card:nth-child(5) { animation-delay:0.24s; }
+        #page-settings #set-history .ledger-card:nth-child(6) { animation-delay:0.30s; }
+
+        /* ── Main row inside card (flex row) ── */
+        #page-settings #set-history .lc-main-row {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 13px;
+            gap: 10px;
+            width: 100%;
+        }
+
+        /* ── Status dot ── */
+        #page-settings #set-history .lc-dot {
+            width: 7px; height: 7px; border-radius: 50%;
             flex-shrink: 0;
-            margin-right: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
-        #page-settings #set-history .l-type-in .lc-icon {
-            background: linear-gradient(135deg, rgba(48,209,88,0.18), rgba(48,209,88,0.08));
-            color: #30D158;
-            border: 1px solid rgba(48,209,88,0.2);
-        }
-        #page-settings #set-history .l-type-out .lc-icon {
-            background: linear-gradient(135deg, rgba(255,69,58,0.18), rgba(255,69,58,0.08));
-            color: #FF453A;
-            border: 1px solid rgba(255,69,58,0.2);
-        }
-        #page-settings #set-history .l-type-salary .lc-icon,
-        #page-settings #set-history .l-type-kasa .lc-icon {
-            background: linear-gradient(135deg, rgba(59,130,246,0.18), rgba(59,130,246,0.08));
-            color: #60a5fa;
-            border: 1px solid rgba(59,130,246,0.2);
-        }
+        #page-settings #set-history .l-type-in    .lc-dot { background:#00e676; box-shadow:0 0 7px rgba(0,230,118,0.6); }
+        #page-settings #set-history .l-type-out   .lc-dot { background:#ff3d57; box-shadow:0 0 7px rgba(255,61,87,0.6); }
+        #page-settings #set-history .l-type-salary .lc-dot,
+        #page-settings #set-history .l-type-kasa  .lc-dot { background:#448aff; box-shadow:0 0 7px rgba(68,138,255,0.6); }
+        #page-settings #set-history .l-type-gold  .lc-dot { background:#C9A84C; box-shadow:0 0 7px rgba(201,168,76,0.6); }
 
-        /* Title & date */
-        #page-settings #set-history .lc-left {
-            display: flex;
-            align-items: center;
-            flex: 1;
-            min-width: 0;
-        }
+        /* ── Info block (takes all remaining space) ── */
         #page-settings #set-history .lc-info {
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
+            flex: 1; min-width: 0;
         }
         #page-settings #set-history .lc-title {
-            font-family: 'Syne', 'Inter', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            color: rgba(255,255,255,0.92);
-            display: block;
-            margin-bottom: 3px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            letter-spacing: -0.2px;
+            font-family: 'Syne', sans-serif;
+            font-size: 13px; font-weight: 700;
+            color: rgba(255,255,255,0.88); letter-spacing: -0.2px;
+            display: block; margin-bottom: 2px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         #page-settings #set-history .lc-date {
             font-family: 'DM Mono', monospace;
-            font-size: 10px;
-            color: rgba(255,255,255,0.22);
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            font-size: 10px; color: rgba(255,255,255,0.22); letter-spacing: 0.2px;
         }
-        #page-settings #set-history .lc-date::before {
-            content: '';
-            display: inline-block;
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background: currentColor;
-            opacity: 0.5;
-        }
+        #page-settings #set-history .lc-date::before { display:none !important; }
 
-        /* Amount */
-        #page-settings #set-history .lc-amount {
-            font-family: 'DM Mono', monospace;
-            font-size: 13.5px;
-            font-weight: 600;
-            letter-spacing: -0.5px;
-            white-space: nowrap;
-        }
-        #page-settings #set-history .lc-right {
+        /* ── Right side (badge + amount + delete) ── */
+        #page-settings #set-history .lc-right-col {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 7px;
             flex-shrink: 0;
-            margin-left: 10px;
         }
 
-        /* Trash icon */
-        #page-settings #set-history .lc-right button {
-            opacity: 0.14;
-            transition: opacity 0.15s;
-            padding: 4px;
+        /* ── Type badge ── */
+        #page-settings #set-history .lc-badge {
+            font-family: 'DM Mono', monospace;
+            font-size: 8px; letter-spacing: 0.8px; text-transform: uppercase;
+            padding: 3px 7px; border-radius: 5px;
+            white-space: nowrap; flex-shrink: 0;
         }
-        #page-settings #set-history .lc-right button:hover { opacity: 0.6; }
+        #page-settings #set-history .l-type-in    .lc-badge { background:rgba(0,230,118,0.08); color:rgba(0,230,118,0.65);  border:1px solid rgba(0,230,118,0.15); }
+        #page-settings #set-history .l-type-out   .lc-badge { background:rgba(255,61,87,0.08);  color:rgba(255,61,87,0.65);  border:1px solid rgba(255,61,87,0.15); }
+        #page-settings #set-history .l-type-salary .lc-badge,
+        #page-settings #set-history .l-type-kasa  .lc-badge { background:rgba(68,138,255,0.08); color:rgba(68,138,255,0.65); border:1px solid rgba(68,138,255,0.15); }
+        #page-settings #set-history .l-type-gold  .lc-badge { background:rgba(201,168,76,0.08); color:rgba(201,168,76,0.65); border:1px solid rgba(201,168,76,0.15); }
+
+        /* ── Amount ── */
+        #page-settings #set-history .lc-amount {
+            font-family: 'DM Mono', monospace !important;
+            font-size: 13px !important; font-weight: 700 !important;
+            letter-spacing: -0.5px !important;
+            text-align: right; line-height: 1;
+            white-space: nowrap; flex-shrink: 0;
+            display: block !important;
+        }
+        #page-settings #set-history .l-type-in    .lc-amount { color:#00e676 !important; }
+        #page-settings #set-history .l-type-out   .lc-amount { color:#ff3d57 !important; }
+        #page-settings #set-history .l-type-salary .lc-amount,
+        #page-settings #set-history .l-type-kasa  .lc-amount { color:#448aff !important; }
+        #page-settings #set-history .l-type-gold  .lc-amount { color:#C9A84C !important; }
+
+        /* ── Delete btn ── */
+        #page-settings #set-history .lc-del-btn {
+            width:26px; height:26px; background:transparent; border:none;
+            border-radius:7px; color:rgba(255,255,255,0.1);
+            font-size:10px; cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            transition:all 0.18s; flex-shrink:0;
+        }
+        #page-settings #set-history .lc-del-btn:hover { background:rgba(255,61,87,0.08); color:#ff3d57; }
+
+        /* ── Satım detail panel — sits BELOW main row ── */
+        #page-settings #set-history .lc-detail {
+            margin-top: 9px;
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 10px;
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+        }
+        .lc-det-lbl {
+            font-family: 'DM Mono', monospace;
+            font-size: 8px; letter-spacing: 1.2px;
+            text-transform: uppercase; color: rgba(255,255,255,0.17); margin-bottom: 3px;
+        }
+        .lc-det-val {
+            font-family: 'DM Mono', monospace;
+            font-size: 11px; font-weight: 600;
+            color: rgba(255,255,255,0.6); letter-spacing: -0.2px;
+        }
+        .lc-det-val.pos { color:#00e676; }
+        .lc-det-val.neg { color:#ff3d57; }
+
+        /* ━━━ TRASH BUTTON ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        #page-settings #set-history .ps-btn-trash {
+            width: 100%; margin-top: 14px;
+            padding: 13px; background: transparent;
+            border: 1px solid rgba(255,61,87,0.1);
+            border-radius: 14px;
+            font-family: 'DM Mono', monospace;
+            font-size: 9px; font-weight: 500;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            color: rgba(255,61,87,0.3); cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: all 0.2s;
+            animation: sh-slideUp 0.5s 0.26s ease both;
+        }
+        #page-settings #set-history .ps-btn-trash:hover {
+            color: #ff3d57; border-color: rgba(255,61,87,0.28);
+            background: rgba(255,61,87,0.03);
+        }
+
+        #page-settings #set-history {
+            padding-top: 12px !important;
+        }
 
         /* ===== CUSTOM SELECT DROPDOWN ===== */
         .custom-select-wrapper {
@@ -14973,36 +15232,6 @@ function openLabFullscreen() {
         .cs-option:active { background: rgba(201,168,76,0.12); }
         .cs-option.selected { background: rgba(201,168,76,0.08); color: #C9A84C; font-weight: 700; }
 
-        /* ---- TRASH BUTTON ---- */
-        #page-settings #set-history .ps-btn-trash {
-            width: 100%;
-            padding: 13px 20px;
-            background: transparent;
-            border: 1px solid rgba(255,69,58,0.15);
-            border-radius: 14px;
-            font-family: 'DM Mono', monospace;
-            font-size: 10px;
-            font-weight: 500;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: rgba(255,69,58,0.5);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 20px;
-            transition: all 0.18s;
-        }
-        #page-settings #set-history .ps-btn-trash:hover {
-            border-color: rgba(255,69,58,0.3);
-            color: #FF453A;
-            background: rgba(255,69,58,0.05);
-        }
-
-        #page-settings #set-history {
-            padding-top: 12px !important;
-        }
         .cash-modal-redesign {
             background: linear-gradient(160deg, #0e1825 0%, #080f1a 100%) !important;
             border: 1px solid rgba(255,255,255,0.07) !important;
@@ -16075,56 +16304,110 @@ function openLabFullscreen() {
 
             <!-- ===== KASA & GEÇMİŞ SAYFASI ===== -->
             <div id="set-history" class="settings-content" style="display:none;">
-                
-                <!-- Accounting Hero -->
-                <div class="ps-accounting-hero accounting-hero">
-                    <div class="ps-acc-grid acc-row">
-                        <div class="ps-acc-item acc-stat-box">
-                            <div class="ps-acc-label acc-lbl-sub">Toplam Özkaynak</div>
-                            <div class="ps-acc-value acc-val-lg" id="accTotalEquity">--</div>
+
+                <!-- ── HERO CARD ── -->
+                <div class="sh-hero">
+                    <div class="sh-hero-top">
+                        <div class="sh-hero-brand">
+                            <div class="sh-hero-icon"><i class="fas fa-chart-line"></i></div>
+                            <span class="sh-hero-brand-lbl">TradeVia · Muhasebe</span>
                         </div>
-                        <div class="ps-acc-item right acc-stat-box">
-                            <div class="ps-acc-label acc-lbl-sub">Net Kâr/Zarar</div>
-                            <div class="ps-acc-value acc-val-lg" id="accNetPnl">--</div>
-                        </div>
-                    </div>
-                    <div class="ps-acc-grid acc-row" style="margin-bottom:0">
-                        <div class="ps-acc-item acc-stat-box">
-                            <div class="ps-acc-label acc-lbl-sub">Yatırım Sermayesi</div>
-                            <div class="ps-acc-value small acc-val-sm" id="accCapital">--</div>
-                        </div>
-                        <div class="ps-acc-item right acc-stat-box">
-                            <div class="ps-acc-label success acc-lbl-sub" style="color:#30D158;">Çekilen Kâr (Maaş)</div>
-                            <div class="ps-acc-value small success acc-val-sm" id="accDividend" style="color:#30D158;">--</div>
+                        <div class="sh-live-pill">
+                            <span class="sh-live-dot"></span>
+                            Canlı
                         </div>
                     </div>
-                    <div class="cm-dual-actions">
-                        <button class="cm-action-salary" onclick="openSalaryModal()">
-                            <i class="fas fa-hand-holding-usd"></i>
-                            <span>Kâr Dağıtımı</span>
-                        </button>
-                        <button class="cm-action-add" onclick="openCashModal()">
-                            <i class="fas fa-plus"></i>
-                            <span>İşlem Ekle</span>
-                        </button>
+                    <div class="sh-amount-block">
+                        <div class="sh-amount-lbl">Toplam Özkaynak</div>
+                        <span class="sh-amount" id="accTotalEquity">--</span>
+                        <div class="sh-pnl-row">
+                            <span class="sh-pnl-chip pos" id="accNetPnlChip" style="display:none;">
+                                <i class="fas fa-arrow-trend-up" style="font-size:10px;"></i>
+                                <span id="accNetPnl">--</span>
+                            </span>
+                            <span class="sh-pnl-sub" id="accNetPnlSub"></span>
+                        </div>
+                    </div>
+                    <div class="sh-stats">
+                        <div class="sh-stat">
+                            <div class="sh-stat-lbl">Sermaye</div>
+                            <div class="sh-stat-val" id="accCapital">--</div>
+                        </div>
+                        <div class="sh-stat">
+                            <div class="sh-stat-lbl">Port. Değeri</div>
+                            <div class="sh-stat-val pos" id="accPortVal">--</div>
+                        </div>
+                        <div class="sh-stat">
+                            <div class="sh-stat-lbl">Maaş</div>
+                            <div class="sh-stat-val gold" id="accDividend">--</div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Filter Chips -->
-                <div class="ps-filter-scroll hist-filter-scroll">
-                    <button class="ps-filter-chip h-filter-btn active" onclick="filterHistory('all', this)">Tümü</button>
-                    <button class="ps-filter-chip h-filter-btn" onclick="filterHistory('NAKİT', this)">Kasa</button>
-                    <button class="ps-filter-chip h-filter-btn" onclick="filterHistory('ALIM', this)">Alım</button>
-                    <button class="ps-filter-chip h-filter-btn" onclick="filterHistory('SATIM', this)">Satım</button>
-                    <button class="ps-filter-chip h-filter-btn" onclick="filterHistory('MAAŞ', this)">Maaş</button>
+                <!-- ── SUMMARY STRIP ── -->
+                <div class="sh-strip">
+                    <div class="sh-strip-item">
+                        <div class="sh-strip-lbl">Alım</div>
+                        <div class="sh-strip-val neg" id="accBuyCount">--</div>
+                        <div class="sh-strip-sub" id="accBuyTotal">--</div>
+                    </div>
+                    <div class="sh-strip-item">
+                        <div class="sh-strip-lbl">Satım</div>
+                        <div class="sh-strip-val pos" id="accSellCount">--</div>
+                        <div class="sh-strip-sub" id="accSellPnl">--</div>
+                    </div>
+                    <div class="sh-strip-item">
+                        <div class="sh-strip-lbl">Kasa</div>
+                        <div class="sh-strip-val" id="accCashBal">--</div>
+                        <div class="sh-strip-sub">Net nakit</div>
+                    </div>
+                    <div class="sh-strip-item">
+                        <div class="sh-strip-lbl">Temettü</div>
+                        <div class="sh-strip-val gold" id="accDivTotal">--</div>
+                        <div class="sh-strip-sub">Bu dönem</div>
+                    </div>
                 </div>
 
-                <!-- History List -->
-                <div id="historyListFull"></div>
+                <!-- ── ACTION BUTTONS ── -->
+                <div class="sh-actions">
+                    <button class="sh-btn sh-btn-primary" onclick="openSalaryModal()">
+                        <span class="sh-btn-ico"><i class="fas fa-hand-holding-usd"></i></span>
+                        Kâr Dağıtımı
+                    </button>
+                    <button class="sh-btn sh-btn-secondary" onclick="openCashModal()">
+                        <span class="sh-btn-ico"><i class="fas fa-plus"></i></span>
+                        İşlem Ekle
+                    </button>
+                </div>
 
-                <!-- Trash Button -->
-                <button class="ps-btn-trash trash-btn" onclick="openTrashModal()">
-                    <i class="fas fa-trash-restore"></i> SİLİNEN KAYITLAR (<span id="trashCount">0</span>)
+                <!-- ── FILTER TABS ── -->
+                <div class="sh-filter-wrap">
+                    <div class="sh-filter-lbl">Filtrele</div>
+                    <div class="sh-filter-tabs">
+                        <button class="sh-ftab active" onclick="filterHistory('all', this)">Tümü</button>
+                        <button class="sh-ftab" onclick="filterHistory('NAKİT', this)">Kasa</button>
+                        <button class="sh-ftab" onclick="filterHistory('ALIM', this)">Alım</button>
+                        <button class="sh-ftab" onclick="filterHistory('SATIM', this)">Satım</button>
+                        <button class="sh-ftab" onclick="filterHistory('MAAŞ', this)">Maaş</button>
+                        <button class="sh-ftab" onclick="filterHistory('TEMETTÜ', this)">Temettü</button>
+                    </div>
+                </div>
+
+                <!-- ── LIST HEADER ── -->
+                <div class="sh-list-hdr">
+                    <span class="sh-list-title">Son İşlemler</span>
+                    <span class="sh-list-count" id="historyCountBadge">0 kayıt</span>
+                </div>
+
+                <!-- ── LEDGER TABLE ── -->
+                <div id="historyListFull">
+                    <!-- Column headers injected by JS -->
+                </div>
+
+                <!-- ── TRASH BUTTON ── -->
+                <button class="ps-btn-trash" onclick="openTrashModal()">
+                    <i class="fas fa-trash-restore"></i>
+                    Silinen Kayıtlar &nbsp;·&nbsp; <span id="trashCount">0</span> öğe
                 </button>
             </div>
 
@@ -17867,7 +18150,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.8"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -19403,83 +19686,93 @@ function renderHistory() {
     if (!l) return;
     l.innerHTML = "";
 
-    // Çöp Kutusu Sayacını Güncelle (Hata vermemesi için kontrol ekledim)
+    // Çöp kutusu sayacı
     let trashCountEl = document.getElementById('trashCount');
     let deletedHistory = JSON.parse(localStorage.getItem('tm_deleted_history')) || [];
     if(trashCountEl) trashCountEl.innerText = deletedHistory.length;
 
     let globalSym = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY') ? '₺' : '$';
     let currentUsd = (typeof usdTryRate !== 'undefined' && usdTryRate > 0) ? usdTryRate : 36.50;
-    
+
     // --- MUHASEBE HESAPLAMALARI ---
-    let totalInvested = 0; 
-    let totalRealizedProfit = 0; 
-    let totalSalaryPaid = 0; 
-    
-    // Geçmiş veriyi güvenli çek
+    let totalInvested = 0, totalRealizedProfit = 0, totalSalaryPaid = 0;
+    let buyCount = 0, buyTotal = 0, sellCount = 0, divTotal = 0;
+
     let historyData = JSON.parse(localStorage.getItem('tm_full_trade_history')) || [];
 
     historyData.forEach(t => {
-        // HATA ÖNLEYİCİ: Sayı değilse 0 kabul et (NaN Hatasını Çözer)
         let val = parseFloat(t.total) || 0;
         let pnl = parseFloat(t.pnl) || 0;
-        
-        let transCurr = t.curr || 'TRY'; // Para birimi yoksa TRY varsay
-        
-        // Kur Dönüşümü (Otomatik)
+        let transCurr = t.curr || 'TRY';
         if (appSettings.currency === 'TRY' && transCurr === 'USD') { val *= currentUsd; pnl *= currentUsd; }
         else if (appSettings.currency === 'USD' && transCurr === 'TRY') { val /= currentUsd; pnl /= currentUsd; }
 
-        if (t.type === 'YATIRMA') totalInvested += val;
-        else if (t.type === 'ÇEKME') totalInvested -= val;
-        else if (t.type === 'MAAŞ') totalSalaryPaid += val;
-        else if (t.type === 'SATIM') totalRealizedProfit += pnl;
-        else if (t.type === 'TEMETTÜ') totalRealizedProfit += val;
+        if (t.type === 'YATIRMA')  { totalInvested += val; }
+        else if (t.type === 'ÇEKME')  { totalInvested -= val; }
+        else if (t.type === 'MAAŞ')   { totalSalaryPaid += val; }
+        else if (t.type === 'SATIM')  { totalRealizedProfit += pnl; sellCount++; }
+        else if (t.type === 'ALIM')   { buyCount++; buyTotal += val; }
+        else if (t.type === 'TEMETTÜ'){ totalRealizedProfit += val; divTotal += val; }
     });
 
-    // Anlık Portföy Değeri
+    // Portföy değeri
     let currentPortfolioValue = 0;
     let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
     as.forEach(a => {
         let p = a.curr || a.buy || 0;
         let v = 0;
-        if(appSettings.currency === 'TRY') {
-             v = (a.origin === 'USD') ? (p * a.amt * currentUsd) : (p * a.amt);
-        } else {
-             v = (a.origin === 'TRY') ? ((p * a.amt) / currentUsd) : (p * a.amt);
-        }
+        if(appSettings.currency === 'TRY') v = (a.origin === 'USD') ? (p * a.amt * currentUsd) : (p * a.amt);
+        else v = (a.origin === 'TRY') ? ((p * a.amt) / currentUsd) : (p * a.amt);
         currentPortfolioValue += v;
     });
-    
+
     let cash = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
     let totalEquity = cash + currentPortfolioValue;
     let netPnL = totalEquity - totalInvested;
 
-    // --- EKRANA YAZDIR (Muhasebe Özeti) ---
-    const setTxt = (id, val, color) => {
-        let el = document.getElementById(id);
-        if(el) {
-            el.innerText = globalSym + val.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
-            if(color) el.style.color = color;
-        }
-    };
+    // --- HERO GÜNCELLE ---
+    const fmt = (v) => globalSym + v.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
+    const setEl = (id, txt) => { let el=document.getElementById(id); if(el) el.innerText=txt; };
 
-    setTxt('accTotalEquity', totalEquity);
-    setTxt('accCapital', totalInvested);
-    setTxt('accDividend', totalSalaryPaid);
-    
-    let elNet = document.getElementById('accNetPnl');
-    if(elNet) {
-        elNet.innerText = (netPnL >= 0 ? '+' : '') + globalSym + netPnL.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
-        elNet.style.color = netPnL >= 0 ? 'var(--success)' : 'var(--danger)';
+    // Büyük özkaynak rakamı
+    setEl('accTotalEquity', fmt(totalEquity));
+    setEl('accCapital', fmt(totalInvested));
+    setEl('accDividend', fmt(totalSalaryPaid));
+
+    // Portföy değeri
+    let pvEl = document.getElementById('accPortVal');
+    if(pvEl) pvEl.innerText = fmt(currentPortfolioValue);
+
+    // Net PnL chip
+    let chipEl = document.getElementById('accNetPnlChip');
+    let pnlTextEl = document.getElementById('accNetPnl');
+    let pnlSubEl = document.getElementById('accNetPnlSub');
+    if(chipEl && pnlTextEl) {
+        chipEl.style.display = 'inline-flex';
+        chipEl.className = 'sh-pnl-chip ' + (netPnL >= 0 ? 'pos' : 'neg');
+        let pnlIcon = chipEl.querySelector('i');
+        if(pnlIcon) pnlIcon.className = netPnL >= 0 ? 'fas fa-arrow-trend-up' : 'fas fa-arrow-trend-down';
+        pnlTextEl.innerText = (netPnL >= 0 ? '+' : '') + fmt(netPnL);
+    }
+    if(pnlSubEl) {
+        let pct = totalInvested > 0 ? ((netPnL / totalInvested) * 100).toFixed(1) : '0.0';
+        pnlSubEl.innerText = (netPnL >= 0 ? '+' : '') + '%' + pct + ' · Toplam';
     }
 
+    // --- SUMMARY STRIP ---
+    setEl('accBuyCount', buyCount + ' adet');
+    setEl('accBuyTotal', fmt(buyTotal) + ' harcama');
+    setEl('accSellCount', sellCount + ' adet');
+    setEl('accSellPnl', (totalRealizedProfit >= 0 ? '+' : '') + fmt(totalRealizedProfit) + ' kâr');
+    setEl('accCashBal', fmt(cash));
+    setEl('accDivTotal', fmt(divTotal));
+
+    // Salary available
     let withdrawableProfit = Math.max(0, totalRealizedProfit - totalSalaryPaid);
     let elSalAvail = document.getElementById('salaryAvailable');
-    if(elSalAvail) elSalAvail.innerText = globalSym + withdrawableProfit.toLocaleString();
+    if(elSalAvail) elSalAvail.innerText = fmt(withdrawableProfit);
 
-    // --- LİSTELEME (FİLTRELEME) ---
-    // Eğer currentHistoryFilter tanımlı değilse 'all' yap
+    // --- FİLTRELEME ---
     if(typeof currentHistoryFilter === 'undefined') currentHistoryFilter = 'all';
 
     let filteredHistory = historyData.slice().reverse().filter(t => {
@@ -19488,76 +19781,88 @@ function renderHistory() {
         return t.type === currentHistoryFilter;
     });
 
+    // Kayıt sayısı badge
+    let cntEl = document.getElementById('historyCountBadge');
+    if(cntEl) cntEl.innerText = filteredHistory.length + ' kayıt';
+
     if (filteredHistory.length === 0) {
-        l.innerHTML = "<div style='text-align:center; padding:20px; color:var(--text-sub); opacity:0.6;'>Kayıt Yok</div>";
+        l.innerHTML = `
+        <div style="text-align:center; padding:32px 20px; color:rgba(255,255,255,0.2);">
+            <i class="fas fa-inbox" style="font-size:28px; margin-bottom:10px; display:block; opacity:0.4;"></i>
+            <span style="font-family:'DM Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase;">Kayıt Yok</span>
+        </div>`;
         return;
     }
 
+    // --- TABLO BAŞLIĞI YOK — artık sadece liste ---
+    l.innerHTML = '';
+
+    let lastDate = '';
+
     filteredHistory.forEach((t) => {
         let realIndex = historyData.indexOf(t);
-        
-        // Değer hesaplama (Hata önleyici ile)
+
         let displayVal = parseFloat(t.total) || 0;
         let transCurr = t.curr || appSettings.currency;
-        
         if (appSettings.currency === 'TRY' && transCurr === 'USD') displayVal *= currentUsd;
         else if (appSettings.currency === 'USD' && transCurr === 'TRY') displayVal /= currentUsd;
 
-        let icon = 'circle'; let cls = 'l-type-neutral'; let sign = ''; let color = 'white'; let desc = t.sym;
+        let cls = 'l-type-neutral'; let sign = ''; let desc = t.sym || '';
+        let badgeText = t.type;
 
-        if (t.type === 'ALIM') { icon = 'arrow-down'; cls = 'l-type-out'; color = 'var(--danger)'; desc = `${t.sym} Alımı`; } 
-        else if (t.type === 'SATIM') { icon = 'arrow-up'; cls = 'l-type-in'; color = 'var(--success)'; sign = '+'; desc = `${t.sym} Satışı`; } 
-        else if (t.type === 'MAAŞ') { icon = 'hand-holding-usd'; cls = 'l-type-out'; color = '#10b981'; sign = '-'; desc = 'Kâr Dağıtımı'; }
-        else if (t.type === 'YATIRMA') { icon = 'plus'; cls = 'l-type-in'; color = 'var(--success)'; sign = '+'; desc = t.desc || 'Sermaye Girişi'; } 
-        else if (t.type === 'ÇEKME') { icon = 'minus'; cls = 'l-type-out'; color = 'var(--danger)'; sign = '-'; desc = t.desc || 'Sermaye Çıkışı'; }
-        else if (t.type === 'TEMETTÜ') { icon = 'gift'; cls = 'l-type-in'; color = 'var(--gold)'; sign = '+'; desc = 'Temettü / Ek Gelir'; }
+        if      (t.type === 'ALIM')    { cls = 'l-type-out';    sign = '−'; desc = `${t.sym} Alımı`;          badgeText = 'Alım'; }
+        else if (t.type === 'SATIM')   { cls = 'l-type-in';     sign = '+'; desc = `${t.sym} Satışı`;         badgeText = 'Satım'; }
+        else if (t.type === 'MAAŞ')    { cls = 'l-type-salary'; sign = '−'; desc = 'Kâr Dağıtımı';            badgeText = 'Maaş'; }
+        else if (t.type === 'YATIRMA') { cls = 'l-type-in';     sign = '+'; desc = t.desc || 'Sermaye Girişi'; badgeText = 'Kasa+'; }
+        else if (t.type === 'ÇEKME')   { cls = 'l-type-out';    sign = '−'; desc = t.desc || 'Sermaye Çıkışı'; badgeText = 'Kasa−'; }
+        else if (t.type === 'TEMETTÜ') { cls = 'l-type-gold';   sign = '+'; desc = 'Temettü / Ek Gelir';      badgeText = 'Temettü'; }
 
-        // Kartın Altındaki Detay (Varsa)
-        let detailCardHtml = "";
+        // Tarih ayırıcı
+        let dateStr = t.date || '';
+        if (dateStr !== lastDate) {
+            lastDate = dateStr;
+            l.innerHTML += `
+            <div class="sh-date-div">
+                <span class="sh-date-line"></span>
+                <span class="sh-date-txt">${dateStr}</span>
+                <span class="sh-date-line"></span>
+            </div>`;
+        }
+
+        // Satım detay paneli
+        let detailHtml = '';
         if (t.type === 'SATIM') {
-            let myAvg = parseFloat(t.avgCost) || 0;
-            let mySellP = parseFloat(t.price) || 0;
-            let myPnL = parseFloat(t.pnl) || 0;
-            let myPct = parseFloat(t.plPercent) || 0;
-            let itemSym = transCurr === 'USD' ? '$' : '₺';
-            
-            // Sadece veri varsa detayı göster
-            if(myAvg > 0) {
-                let isProfit = myPnL >= 0;
-                let profitColor = isProfit ? 'var(--success)' : 'var(--danger)';
-                let cardBg = isProfit ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)';
-
-                detailCardHtml = `
-                <div style="margin-top:10px; background:${cardBg}; border-radius:8px; padding:10px; font-size:11px;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:4px;">
-                         <span style="color:var(--text-sub)">Alış: ${itemSym}${myAvg.toFixed(2)}</span>
-                         <span style="color:var(--text-sub)">Satış: ${itemSym}${mySellP.toFixed(2)}</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; font-weight:700;">
-                        <span style="color:var(--text-sub)">SONUÇ:</span>
-                        <span style="color:${profitColor}">${myPnL>=0?'+':''}${itemSym}${myPnL.toLocaleString()} (%${myPct.toFixed(2)})</span>
-                    </div>
+            let myAvg  = parseFloat(t.avgCost) || 0;
+            let mySell = parseFloat(t.price) || 0;
+            let myPnL  = parseFloat(t.pnl) || 0;
+            let myPct  = parseFloat(t.plPercent) || 0;
+            let iSym   = transCurr === 'USD' ? '$' : '₺';
+            if (myAvg > 0) {
+                let pClass = myPnL >= 0 ? 'pos' : 'neg';
+                detailHtml = `
+                <div class="lc-detail">
+                    <div><div class="lc-det-lbl">Alış</div><div class="lc-det-val">${iSym}${myAvg.toFixed(2)}</div></div>
+                    <div><div class="lc-det-lbl">Satış</div><div class="lc-det-val">${iSym}${mySell.toFixed(2)}</div></div>
+                    <div><div class="lc-det-lbl">Sonuç</div><div class="lc-det-val ${pClass}">${myPnL>=0?'+':''}${iSym}${myPnL.toLocaleString()} (%${myPct.toFixed(2)})</div></div>
                 </div>`;
             }
         }
 
-        // HTML'i ekle
         l.innerHTML += `
-        <div class="ledger-card ${cls}" style="flex-direction:column; align-items:stretch;">
-            <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-                <div class="lc-left">
-                    <div class="lc-icon"><i class="fas fa-${icon}"></i></div>
-                    <div class="lc-info">
-                        <span class="lc-title">${desc}</span>
-                        <span class="lc-date">${t.date} • ${t.type}</span>
-                    </div>
+        <div class="ledger-card ${cls}">
+            <div class="lc-main-row">
+                <span class="lc-dot"></span>
+                <div class="lc-info">
+                    <span class="lc-title">${desc}</span>
+                    <span class="lc-date">${t.date} · ${t.type}</span>
                 </div>
-                <div class="lc-right">
-                    <span class="lc-amount" style="color:${color}">${sign}${globalSym}${displayVal.toLocaleString(undefined, {minimumFractionDigits:2})}</span>
-                    <button onclick="safeDeleteHistory(${realIndex})" style="background:none; border:none; color:var(--text-sub); margin-left:10px; cursor:pointer;"><i class="fas fa-trash"></i></button>
+                <div class="lc-right-col">
+                    <span class="lc-badge">${badgeText}</span>
+                    <span class="lc-amount">${sign}${globalSym}${displayVal.toLocaleString(undefined,{minimumFractionDigits:2})}</span>
+                    <button class="lc-del-btn" onclick="safeDeleteHistory(${realIndex})"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
-            ${detailCardHtml}
+            ${detailHtml}
         </div>`;
     });
 }
@@ -19706,7 +20011,7 @@ function logHistory(type, s, a, p, desc='', curr = null, pnl = 0, details = {}) 
     }
 
     async function addDividend(){ let raw=await tvPrompt("Temettü Ekle","","Eklenecek temettü tutarını girin"); let v=parseFloat(raw); if(v){cashBalance+=v; logHistory('TEMETTÜ','NAKİT',1,v, '', appSettings.currency); localStorage.setItem('tm_cash_balance',cashBalance); loadPF(); addNotification('success', 'Temettü Eklendi', `Kasa giriş: ${v}`); }}
-    function filterHistory(type, btn) { currentHistoryFilter = type; document.querySelectorAll('.h-filter-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderHistory(); }
+    function filterHistory(type, btn) { currentHistoryFilter = type; document.querySelectorAll('.sh-ftab').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderHistory(); }
 
     /* --- PRO ANALİZ MOTORU --- */
     function takePortfolioSnapshot() {
@@ -25960,6 +26265,15 @@ function openSubPage(pageId) {
     const detailWrapper = document.getElementById('settings-detail');
     detailWrapper.style.display = 'block';
     detailWrapper.style.animation = 'slideInRight 0.3s forwards';
+
+    // Arka plan orb'larını ekle (yoksa)
+    if (!detailWrapper.querySelector('.sd-orb1')) {
+        ['sd-orb1','sd-orb2','sd-orb3'].forEach(function(cls) {
+            var orb = document.createElement('div');
+            orb.className = cls;
+            detailWrapper.appendChild(orb);
+        });
+    }
 
     // Tüm içerikleri gizle, sadece isteneni aç
     document.querySelectorAll('.settings-content').forEach(el => el.style.display = 'none');
