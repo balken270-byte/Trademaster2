@@ -5735,6 +5735,115 @@ button, [onclick], [role="button"] {
     touch-action: manipulation !important;
 }
 
+/* ═══ PERFORMANS STAT MODAL — COMPACT CENTER ═══ */
+#statModal.modal-overlay {
+    align-items: center;
+    justify-content: center;
+    padding: 20px 16px;
+    background: rgba(0,0,0,0.72);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+.spm-sheet {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    background: linear-gradient(160deg,#111827 0%,#0d1220 100%);
+    border-radius: 24px;
+    padding: 18px 16px 20px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.09);
+    box-shadow: 0 24px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.04);
+    animation: spmPop .28s cubic-bezier(0.34,1.2,0.64,1);
+}
+@keyframes spmPop {
+    from { transform:scale(0.88); opacity:0; }
+    to   { transform:scale(1);    opacity:1; }
+}
+.spm-sheet::-webkit-scrollbar { display:none; }
+.spm-glow { position:absolute; border-radius:50%; filter:blur(60px); pointer-events:none; z-index:0; }
+.spm-glow-1 { width:180px; height:180px; background:rgba(99,102,241,0.1);  top:-70px; left:-50px; }
+.spm-glow-2 { width:160px; height:160px; background:rgba(52,211,153,0.07); bottom:-60px; right:-50px; }
+.spm-sheet > *:not(.spm-glow) { position:relative; z-index:1; }
+.spm-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.spm-header-left { display:flex; align-items:center; gap:10px; }
+.spm-header-icon {
+    width:38px; height:38px;
+    background:linear-gradient(135deg,rgba(99,102,241,0.25),rgba(99,102,241,0.07));
+    border:1px solid rgba(99,102,241,0.25); border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:16px; color:#818cf8;
+}
+.spm-title    { font-size:16px; font-weight:800; color:#f1f5f9; letter-spacing:-0.3px; }
+.spm-subtitle { font-size:10px; color:rgba(148,163,184,0.45); margin-top:1px; }
+.spm-close {
+    width:30px; height:30px;
+    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.09);
+    border-radius:10px; color:rgba(148,163,184,0.7); font-size:13px;
+    cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s;
+}
+.spm-close:active { background:rgba(255,255,255,0.14); transform:scale(0.9); }
+.spm-sep { height:1px; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.07),transparent); margin-bottom:13px; }
+.spm-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:9px; }
+.spm-card {
+    border-radius:16px; padding:11px 11px 10px;
+    position:relative; overflow:hidden;
+    border:1px solid rgba(255,255,255,0.07);
+    display:flex; flex-direction:column; gap:4px;
+}
+.spm-card-green { background:linear-gradient(145deg,rgba(52,211,153,0.09),rgba(16,185,129,0.02)); border-color:rgba(52,211,153,0.2); }
+.spm-card-red   { background:linear-gradient(145deg,rgba(239,68,68,0.09),rgba(239,68,68,0.02));   border-color:rgba(239,68,68,0.2); }
+.spm-card-blue  { background:linear-gradient(145deg,rgba(99,102,241,0.09),rgba(99,102,241,0.02)); border-color:rgba(99,102,241,0.2); }
+.spm-card-amber { background:linear-gradient(145deg,rgba(245,158,11,0.09),rgba(245,158,11,0.02)); border-color:rgba(245,158,11,0.2); }
+.spm-card-glow  { position:absolute; top:0; left:0; right:0; height:1px; }
+.spm-card-green .spm-card-glow { background:linear-gradient(90deg,transparent,rgba(52,211,153,0.5),transparent); }
+.spm-card-red   .spm-card-glow { background:linear-gradient(90deg,transparent,rgba(239,68,68,0.5),transparent); }
+.spm-card-blue  .spm-card-glow { background:linear-gradient(90deg,transparent,rgba(99,102,241,0.5),transparent); }
+.spm-card-amber .spm-card-glow { background:linear-gradient(90deg,transparent,rgba(245,158,11,0.5),transparent); }
+.spm-card-icon-wrap {
+    width:30px; height:30px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center; font-size:13px; margin-bottom:2px;
+}
+.spm-icon-green { background:rgba(52,211,153,0.14); color:#34d399; }
+.spm-icon-red   { background:rgba(239,68,68,0.14);  color:#f87171; }
+.spm-icon-blue  { background:rgba(99,102,241,0.14); color:#818cf8; }
+.spm-icon-amber { background:rgba(245,158,11,0.14); color:#fbbf24; }
+.spm-card-label { font-size:8px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; color:rgba(148,163,184,0.55); }
+.spm-card-value { font-size:19px; font-weight:900; color:#f8fafc; letter-spacing:-0.5px; line-height:1; }
+.spm-card-sub   { font-size:9px; color:rgba(148,163,184,0.4); }
+.spm-val-green  { color:#34d399 !important; }
+.spm-val-red    { color:#f87171 !important; }
+.spm-bw-row {
+    display:flex;
+    background:rgba(255,255,255,0.03);
+    border:1px solid rgba(255,255,255,0.07); border-radius:16px;
+    padding:12px 13px; margin-bottom:9px; position:relative; overflow:hidden;
+}
+.spm-bw-row::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:1px;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,0.09),transparent);
+}
+.spm-bw-half   { flex:1; min-width:0; }
+.spm-bw-divider { width:1px; flex-shrink:0; margin:0 12px; background:rgba(255,255,255,0.08); }
+.spm-bw-badge {
+    display:inline-flex; align-items:center; gap:4px;
+    font-size:8px; font-weight:800; letter-spacing:1.1px; text-transform:uppercase;
+    padding:2px 7px; border-radius:5px; margin-bottom:6px;
+}
+.spm-badge-green { background:rgba(52,211,153,0.1);  color:#34d399; border:1px solid rgba(52,211,153,0.18); }
+.spm-badge-red   { background:rgba(248,113,113,0.1); color:#f87171; border:1px solid rgba(248,113,113,0.18); }
+.spm-bw-sym { font-size:22px; font-weight:900; color:#f8fafc; letter-spacing:-0.8px; margin-bottom:2px; }
+.spm-bw-val { font-size:11px; font-weight:700; line-height:1.5; }
+.spm-section-label { display:flex; align-items:center; gap:8px; margin:10px 0 10px; }
+.spm-section-line  { flex:1; height:1px; background:linear-gradient(90deg,transparent,rgba(201,168,76,0.2),transparent); }
+.spm-section-text  { font-size:8.5px; font-weight:800; letter-spacing:2px; color:rgba(201,168,76,0.7); white-space:nowrap; }
+.spm-monthly { display:flex; align-items:flex-end; gap:5px; height:72px; }
+.spm-month-col { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; gap:4px; }
+.spm-month-bar { width:100%; min-height:3px; }
+.spm-month-bar.pos { background:linear-gradient(180deg,rgba(52,211,153,0.9),rgba(52,211,153,0.3)); border-radius:4px 4px 0 0; }
+.spm-month-bar.neg { background:linear-gradient(0deg,rgba(248,113,113,0.9),rgba(248,113,113,0.3)); border-radius:0 0 4px 4px; }
+.spm-month-lbl { font-size:8.5px; font-weight:700; color:rgba(148,163,184,0.45); white-space:nowrap; }
+
 /* Kaydırma performansı */
 .social-feed, .md-comment-feed, .market-list-container {
     -webkit-overflow-scrolling: touch !important;
@@ -6442,11 +6551,15 @@ document.addEventListener('DOMContentLoaded', function() {
             color: #FFD700 !important;
             border: 1px solid rgba(255, 215, 0, 0.3) !important;
         }
-        
-        /* Cüzdan butonuna hover efekti */
-        .btn-gold:active {
-            background: rgba(255, 215, 0, 0.2) !important;
+        .btn-gold:active { background: rgba(255, 215, 0, 0.2) !important; }
+
+        /* İstatistik butonu — Nakit/Temettü ile aynı renk */
+        .btn-stat-shortcut {
+            background: rgba(255,255,255,0.1) !important;
+            color: white !important;
+            border: 1px solid rgba(255,255,255,0.08) !important;
         }
+        .btn-stat-shortcut:active { background: rgba(255,255,255,0.16) !important; }
     </style>
 
     <div class="hero-header-row">
@@ -6465,16 +6578,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <div class="hero-actions-grid">
         
-        <button class="hero-btn action-btn" onclick="modifyCash(1)">
-            <i class="fas fa-plus"></i> Yatır
+        <button class="hero-btn action-btn" onclick="openCashModal()">
+            <i class="fas fa-wallet"></i> Nakit
         </button>
-        
-        <button class="hero-btn action-btn" onclick="modifyCash(-1)">
-            <i class="fas fa-minus"></i> Çek
-        </button>
-        
+
         <button class="hero-btn action-btn" onclick="addDividend()">
             <i class="fas fa-gift"></i> Temettü
+        </button>
+
+        <button class="hero-btn action-btn btn-stat-shortcut" onclick="openStatModal()">
+            <i class="fas fa-chart-bar"></i> İstatistik
         </button>
 
         <button class="hero-btn action-btn btn-gold" onclick="openPortfolioModal()">
@@ -16931,6 +17044,76 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
     </div>
 </div>
 
+<!-- ═══ PERFORMANS İSTATİSTİK MODAL ═══ -->
+<div id="statModal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeStatModal()">
+<div class="spm-sheet">
+    <div class="spm-glow spm-glow-1"></div>
+    <div class="spm-glow spm-glow-2"></div>
+    <div class="spm-header">
+        <div class="spm-header-left">
+            <div class="spm-header-icon"><i class="fas fa-chart-bar"></i></div>
+            <div>
+                <div class="spm-title">Performans</div>
+                <div class="spm-subtitle">İşlem İstatistikleri</div>
+            </div>
+        </div>
+        <button class="spm-close" onclick="closeStatModal()"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="spm-sep"></div>
+    <div class="spm-grid">
+        <div class="spm-card spm-card-green">
+            <div class="spm-card-glow"></div>
+            <div class="spm-card-icon-wrap spm-icon-green"><i class="fas fa-scale-balanced"></i></div>
+            <div class="spm-card-label">Profit Factor</div>
+            <div class="spm-card-value" id="msStatProfitFactor">—</div>
+            <div class="spm-card-sub" id="msStatProfitFactorSub">kazanç / kayıp</div>
+        </div>
+        <div class="spm-card spm-card-red">
+            <div class="spm-card-glow"></div>
+            <div class="spm-card-icon-wrap spm-icon-red"><i class="fas fa-arrow-trend-down"></i></div>
+            <div class="spm-card-label">Max Drawdown</div>
+            <div class="spm-card-value spm-val-red" id="msStatMaxDrawdown">—</div>
+            <div class="spm-card-sub" id="msStatMaxDrawdownSub">en derin düşüş</div>
+        </div>
+        <div class="spm-card spm-card-blue">
+            <div class="spm-card-glow"></div>
+            <div class="spm-card-icon-wrap spm-icon-blue"><i class="fas fa-arrow-trend-up"></i></div>
+            <div class="spm-card-label">Ort. Kazanç</div>
+            <div class="spm-card-value spm-val-green" id="msStatAvgWin">—</div>
+            <div class="spm-card-sub" id="msStatAvgWinSub">kazançlı satış</div>
+        </div>
+        <div class="spm-card spm-card-amber">
+            <div class="spm-card-glow"></div>
+            <div class="spm-card-icon-wrap spm-icon-amber"><i class="fas fa-arrow-trend-down"></i></div>
+            <div class="spm-card-label">Ort. Kayıp</div>
+            <div class="spm-card-value spm-val-red" id="msStatAvgLoss">—</div>
+            <div class="spm-card-sub" id="msStatAvgLossSub">zararlı satış</div>
+        </div>
+    </div>
+    <div class="spm-bw-row">
+        <div class="spm-bw-half">
+            <div class="spm-bw-badge spm-badge-green"><i class="fas fa-trophy"></i> EN İYİ</div>
+            <div class="spm-bw-sym" id="msStatBestSym">—</div>
+            <div class="spm-bw-val spm-val-green" id="msStatBestVal">—</div>
+        </div>
+        <div class="spm-bw-divider"></div>
+        <div class="spm-bw-half" style="text-align:right;">
+            <div class="spm-bw-badge spm-badge-red" style="justify-content:flex-end;"><i class="fas fa-fire-flame-curved"></i> EN KÖTÜ</div>
+            <div class="spm-bw-sym" id="msStatWorstSym">—</div>
+            <div class="spm-bw-val spm-val-red" id="msStatWorstVal">—</div>
+        </div>
+    </div>
+    <div class="spm-section-label">
+        <span class="spm-section-line"></span>
+        <span class="spm-section-text">AYLIK KÂR / ZARAR</span>
+        <span class="spm-section-line"></span>
+    </div>
+    <div id="msStatMonthlyBars" class="spm-monthly">
+        <div style="text-align:center;padding:16px;color:rgba(148,163,184,0.3);font-size:11px;width:100%;">Yükleniyor...</div>
+    </div>
+</div>
+</div>
+
 <div id="cashModal" class="modal-overlay">
     <div class="modal cash-modal-redesign">
         <!-- Header -->
@@ -16940,7 +17123,7 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
             </div>
             <div>
                 <div class="cm-title">Nakit İşlemi</div>
-                <div class="cm-subtitle">Sermaye girişi veya çıkışı ekle</div>
+                <div class="cm-subtitle">Yatır veya çek seçeneğini seç</div>
             </div>
         </div>
 
@@ -17584,7 +17767,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.3"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -19389,7 +19572,17 @@ function logHistory(type, s, a, p, desc='', curr = null, pnl = 0, details = {}) 
 
     // --- NAKİT İŞLEMLERİ ---
     function modifyCash(m) { openCashModal(); }
-    function openCashModal() { document.getElementById('cashModal').style.display = 'flex'; document.getElementById('cashAmountInput').value = ''; document.getElementById('cashDescInput').value = ''; }
+    function openCashModal(defaultType) {
+        var t = defaultType || 'in';
+        document.getElementById('cashModal').style.display = 'flex';
+        document.getElementById('cashAmountInput').value = '';
+        document.getElementById('cashDescInput').value = '';
+        document.getElementById('cashTypeVal').value = t;
+        var btnIn = document.getElementById('btnCashIn');
+        var btnOut = document.getElementById('btnCashOut');
+        if (t === 'in') { btnIn.classList.add('active'); btnOut.classList.remove('active'); }
+        else { btnOut.classList.add('active'); btnIn.classList.remove('active'); }
+    }
     function setCashType(type, btn) { document.getElementById('cashTypeVal').value = type; document.querySelectorAll('.cash-modal-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
     
     function submitCashTransaction() {
@@ -19881,19 +20074,118 @@ window.switchPerfTab = function(tab, btnEl) {
     if (btnEl) btnEl.classList.add('active');
     var wp = document.getElementById('pcbPanelWinners');
     var ap = document.getElementById('pcbPanelAllocation');
+    var badge = document.getElementById('pcbBadge');
+    if(wp) wp.classList.add('pcb-hidden');
+    if(ap) ap.classList.add('pcb-hidden');
     if (tab === 'winners') {
-        if(wp) { wp.classList.remove('pcb-hidden'); }
-        if(ap) { ap.classList.add('pcb-hidden'); }
-        var badge = document.getElementById('pcbBadge');
+        if(wp) wp.classList.remove('pcb-hidden');
         if(badge) badge.textContent = 'TOP';
     } else {
-        if(wp) { wp.classList.add('pcb-hidden'); }
-        if(ap) { ap.classList.remove('pcb-hidden'); }
-        var badge2 = document.getElementById('pcbBadge');
-        if(badge2) badge2.textContent = 'PIE';
+        if(ap) ap.classList.remove('pcb-hidden');
+        if(badge) badge.textContent = 'PIE';
         if (typeof window._lastAllocAssets !== 'undefined') renderNewAllocationChart(window._lastAllocAssets);
         else if (typeof assets !== 'undefined') renderNewAllocationChart(assets);
     }
+};
+
+/* ═══ PERFORMANS İSTATİSTİK MODAL JS ═══ */
+window.openStatModal = function() {
+    document.getElementById('statModal').style.display = 'flex';
+    renderStatModal();
+};
+window.closeStatModal = function() {
+    document.getElementById('statModal').style.display = 'none';
+};
+window.renderStatModal = function() {
+    var sym = (typeof appSettings !== 'undefined' && appSettings.currency === 'USD') ? '$' : '₺';
+    var currentUsd = (typeof usdTryRate !== 'undefined' && usdTryRate > 0) ? usdTryRate : 36.5;
+    var history = JSON.parse(localStorage.getItem('tm_full_trade_history')) || [];
+    var sales = history.filter(function(t) { return t.type === 'SATIM'; });
+
+    /* 1. PROFIT FACTOR */
+    var totalGross = 0, totalLoss = 0, wins = [], losses = [];
+    sales.forEach(function(t) {
+        var pnl = parseFloat(t.pnl) || 0;
+        var curr = t.curr || 'TRY';
+        if (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY' && curr === 'USD') pnl *= currentUsd;
+        else if (typeof appSettings !== 'undefined' && appSettings.currency === 'USD' && curr === 'TRY') pnl /= currentUsd;
+        if (pnl > 0) { totalGross += pnl; wins.push(pnl); }
+        else if (pnl < 0) { totalLoss += Math.abs(pnl); losses.push(Math.abs(pnl)); }
+    });
+    var pf = totalLoss > 0 ? (totalGross / totalLoss) : (totalGross > 0 ? 99 : 0);
+    var pfEl = document.getElementById('msStatProfitFactor');
+    var pfS  = document.getElementById('msStatProfitFactorSub');
+    if (pfEl) { pfEl.textContent = pf >= 99 ? '∞' : pf.toFixed(2); pfEl.style.color = pf >= 1.5 ? '#34d399' : pf >= 1 ? '#fbbf24' : '#f87171'; }
+    if (pfS)  pfS.textContent = sales.length > 0 ? (wins.length + ' kazanç / ' + losses.length + ' kayıp') : 'İşlem yok';
+
+    /* 2. MAX DRAWDOWN */
+    var nwH = JSON.parse(localStorage.getItem('tm_networth_history')) || [];
+    var maxDD = 0, peak = 0;
+    nwH.forEach(function(e) { var v = e.val||0; if(v>peak) peak=v; if(peak>0){var dd=(peak-v)/peak*100; if(dd>maxDD)maxDD=dd;} });
+    var ddEl = document.getElementById('msStatMaxDrawdown');
+    var ddS  = document.getElementById('msStatMaxDrawdownSub');
+    if (ddEl) { ddEl.textContent = nwH.length > 1 ? ('-%' + maxDD.toFixed(1)) : '—'; ddEl.style.color = maxDD > 20 ? '#f87171' : maxDD > 10 ? '#fbbf24' : '#34d399'; }
+    if (ddS)  ddS.textContent = nwH.length > 1 ? 'portföy tarihinden' : 'veri biriktirilecek';
+
+    /* 3. ORT. KAZANÇ / KAYIP */
+    var avgW = wins.length > 0 ? wins.reduce(function(a,b){return a+b;},0)/wins.length : 0;
+    var avgL = losses.length > 0 ? losses.reduce(function(a,b){return a+b;},0)/losses.length : 0;
+    var awEl = document.getElementById('msStatAvgWin');
+    var alEl = document.getElementById('msStatAvgLoss');
+    var awS  = document.getElementById('msStatAvgWinSub');
+    var alS  = document.getElementById('msStatAvgLossSub');
+    if (awEl) awEl.textContent = wins.length > 0 ? ('+' + sym + Math.round(avgW).toLocaleString()) : '—';
+    if (alEl) alEl.textContent = losses.length > 0 ? ('-' + sym + Math.round(avgL).toLocaleString()) : '—';
+    if (awS)  awS.textContent  = wins.length + ' kazançlı satış';
+    if (alS)  alS.textContent  = losses.length + ' zararlı satış';
+
+    /* 4. EN İYİ / EN KÖTÜ */
+    var best = null, worst = null;
+    sales.forEach(function(t) {
+        var pnl = parseFloat(t.pnl) || 0;
+        var curr = t.curr || 'TRY';
+        if (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY' && curr === 'USD') pnl *= currentUsd;
+        else if (typeof appSettings !== 'undefined' && appSettings.currency === 'USD' && curr === 'TRY') pnl /= currentUsd;
+        if (!best  || pnl > best.pnl)  best  = {sym:t.sym, pnl:pnl, pct:parseFloat(t.plPercent)||0};
+        if (!worst || pnl < worst.pnl) worst = {sym:t.sym, pnl:pnl, pct:parseFloat(t.plPercent)||0};
+    });
+    var bSym=document.getElementById('msStatBestSym'),  bVal=document.getElementById('msStatBestVal');
+    var wSym=document.getElementById('msStatWorstSym'), wVal=document.getElementById('msStatWorstVal');
+    if (bSym) bSym.textContent = best  ? best.sym  : '—';
+    if (wSym) wSym.textContent = worst ? worst.sym : '—';
+    if (bVal) bVal.textContent = best  ? ('+' + sym + Math.round(best.pnl).toLocaleString()  + (best.pct  ? '\n%' + best.pct.toFixed(1)  : '')) : '—';
+    if (wVal) wVal.textContent = worst ? (sym + Math.round(worst.pnl).toLocaleString() + (worst.pct ? '\n%' + worst.pct.toFixed(1) : '')) : '—';
+
+    /* 5. AYLIK P&L */
+    var monthMap = {};
+    sales.forEach(function(t) {
+        var pnl = parseFloat(t.pnl) || 0;
+        var curr = t.curr || 'TRY';
+        if (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY' && curr === 'USD') pnl *= currentUsd;
+        else if (typeof appSettings !== 'undefined' && appSettings.currency === 'USD' && curr === 'TRY') pnl /= currentUsd;
+        var parts = (t.date || '').split('.');
+        if (parts.length === 3) { var key = parts[1]+'.'+parts[2]; monthMap[key] = (monthMap[key]||0) + pnl; }
+    });
+    var barsEl = document.getElementById('msStatMonthlyBars');
+    if (!barsEl) return;
+    var keys = Object.keys(monthMap).sort(function(a,b) {
+        var pa=a.split('.'), pb=b.split('.');
+        return (parseInt(pa[1])*100+parseInt(pa[0])) - (parseInt(pb[1])*100+parseInt(pb[0]));
+    });
+    if (keys.length > 8) keys = keys.slice(keys.length - 8);
+    if (keys.length === 0) { barsEl.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(148,163,184,0.3);font-size:11px;width:100%;">Satış işlemi bulunamadı</div>'; return; }
+    var vals = keys.map(function(k){return monthMap[k];});
+    var maxAbs = Math.max.apply(null, vals.map(function(v){return Math.abs(v);})) || 1;
+    var mN = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+    var html = '';
+    keys.forEach(function(k,i) {
+        var v=vals[i], isPos=v>=0, lbl=mN[parseInt(k.split('.')[0])-1]||k;
+        var pct=Math.max(3,Math.round(Math.abs(v)/maxAbs*62));
+        var barStyle=isPos?('height:'+pct+'px;margin-top:'+(62-pct)+'px;'):('height:'+pct+'px;');
+        var tip=lbl+': '+(v>=0?'+':'')+sym+Math.round(v).toLocaleString();
+        html+='<div class="spm-month-col" title="'+tip+'"><div class="spm-month-bar '+(isPos?'pos':'neg')+'" style="'+barStyle+'"></div><div class="spm-month-lbl">'+lbl+'</div></div>';
+    });
+    barsEl.innerHTML = html;
 };
 
 window.switchSubTab = function(tab) {
