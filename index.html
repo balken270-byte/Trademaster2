@@ -877,7 +877,7 @@ html.ios-pwa body {
         .hero-pill.cash { background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
         .hero-actions { display: flex; gap: 8px; justify-content: center; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 15px; }
         .hero-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.08); color: white; padding: 10px 18px; border-radius: 12px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-        .asset-card { background: var(--bg-card); border-radius: 16px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); overflow: hidden; position: relative; color: white; transition: 0.3s; }
+        .asset-card { background: var(--bg-card); border-radius: 14px; margin-bottom: 7px; border: 1px solid rgba(255,255,255,0.03); overflow: hidden; position: relative; color: white; transition: 0.3s; }
         /* PRO ALTIN HERO */
         .balance-hero.pro-gold-profit { background: linear-gradient(180deg, rgba(212,160,23,0.20) 0%, var(--bg-body) 100%) !important; border-color: rgba(212,160,23,0.50) !important; box-shadow: 0 1px 0 rgba(212,160,23,0.20) inset, 0 -1px 0 rgba(0,0,0,0.5) inset, 0 14px 44px rgba(212,160,23,0.12), 0 4px 16px rgba(0,0,0,0.4) !important; }
         .balance-hero.pro-gold-profit .val-lg { background: linear-gradient(135deg,#C08010 0%,#E8B820 40%,#F5D060 60%,#C08010 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
@@ -887,17 +887,17 @@ html.ios-pwa body {
         .asset-card.pro-gold-bg .asset-logo-wrap { border-color: rgba(212,160,23,0.28) !important; }
         .asset-card.profit-bg { background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, var(--bg-card) 100%); border-color: rgba(16, 185, 129, 0.25); }
         .asset-card.loss-bg { background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, var(--bg-card) 100%); border-color: rgba(239, 68, 68, 0.25); }
-        .asset-header { display: flex; justify-content: space-between; align-items: center; padding: 16px; cursor: pointer; user-select: none; }
+        .asset-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 14px; cursor: pointer; user-select: none; }
         .asset-left { display: flex; align-items: center; }
         .asset-logo-wrap {
-            width: 43px; height: 43px; border-radius: 50%;
+            width: 36px; height: 36px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            background: #1a2035; margin-right: 12px;
+            background: #1a2035; margin-right: 10px;
             flex-shrink: 0; overflow: hidden;
             position: relative;
             border: none;
             filter:
-                drop-shadow(0 5px 10px rgba(0,0,0,0.65))
+                drop-shadow(0 4px 8px rgba(0,0,0,0.65))
                 drop-shadow(0 1px 3px rgba(0,0,0,0.4));
         }
         .asset-logo-wrap::after {
@@ -914,8 +914,8 @@ html.ios-pwa body {
         }
         .asset-logo-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; background: #1a2035; }
         .asset-avatar-text { font-size: 14px; font-weight: 800; color: var(--text-sub); }
-        .asset-name { font-size: 15px; font-weight: 800; display: block; color:white; }
-        .asset-meta { font-size: 11px; color: var(--text-sub); }
+        .asset-name { font-size: 14px; font-weight: 800; display: block; color:white; }
+        .asset-meta { font-size: 10px; color: var(--text-sub); }
         .asset-pnl { font-size: 13px; font-weight: 700; padding: 4px 8px; border-radius: 6px; display:flex; align-items:center; gap:8px;}
         .pnl-up { color: var(--success); background: rgba(16, 185, 129, 0.1); } .pnl-down { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
         .asset-body-content { padding-bottom: 5px; } 
@@ -5324,7 +5324,7 @@ button:active,
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
     /* PERFORMANS: Ekran dışındaki kartları render etme */
     content-visibility: auto;
-    contain-intrinsic-size: 0 72px;
+    contain-intrinsic-size: 0 65px;
 }
 
 /* Tıklayınca daha da derine gömülme efekti */
@@ -17584,7 +17584,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.0"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -29274,8 +29274,9 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile) {
         var el  = document.getElementById(id);
         var ico = document.getElementById('ico_' + id);
         if (!el) return;
-        var open = el.classList.contains('open');
-        el.classList.toggle('open', !open);
+        var open = el.style.maxHeight && el.style.maxHeight !== '0px';
+        el.style.maxHeight  = open ? '0px'   : el.scrollHeight + 400 + 'px';
+        el.style.opacity    = open ? '0'     : '1';
         if (ico) ico.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
     };
 
@@ -29284,131 +29285,16 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile) {
         var s = document.createElement('style');
         s.id = 'rescue-anim-style';
         s.textContent = `
-        /* ── Rescue v6 Card Styles ── */
-        .rv6-card { border-radius:20px; margin-bottom:12px; overflow:hidden; cursor:pointer;
-            border:1px solid rgba(255,255,255,.07); background:#0c0e18;
-            box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 12px 36px rgba(0,0,0,.6);
-            transition:box-shadow .2s, transform .15s; position:relative; }
-        .rv6-card:active { transform:scale(.98); }
-        .rv6-top { position:relative; padding:12px 14px 0; overflow:hidden; background:var(--rv6-top-bg); }
-        .rv6-top-glow { position:absolute; top:-80px; right:-60px; width:200px; height:200px;
-            border-radius:50%; background:radial-gradient(circle, var(--rv6-ac) 0%, transparent 68%);
-            opacity:.18; pointer-events:none; z-index:0; animation:rv6GlowBreathe 4s ease-in-out infinite; }
-        .rv6-sym-bg { position:absolute; right:-10px; bottom:20px; font-size:80px; font-weight:900;
-            line-height:1; color:rgba(255,255,255,.045); letter-spacing:-3px;
-            pointer-events:none; user-select:none; z-index:0; }
-        .rv6-r1, .rv6-r2, .rv6-chips, .rv6-spark { position:relative; z-index:1; }
-        .rv6-r1 { display:flex; align-items:center; gap:10px; }
-        .rv6-logo-wrap { position:relative; flex-shrink:0; }
-        .rv6-logo { width:46px; height:46px; border-radius:50%; overflow:hidden; display:flex;
-            align-items:center; justify-content:center; background:rgba(0,0,0,.4);
-            border:1.5px solid rgba(255,255,255,.15); font-size:13px; font-weight:900; color:#fff;
-            box-shadow:0 4px 16px rgba(0,0,0,.5); }
-        .rv6-logo img { width:100%; height:100%; object-fit:cover; display:block; }
-        .rv6-ring { position:absolute; inset:-5px; border-radius:50%;
-            background:conic-gradient(from 0deg, var(--rv6-ac) 0%, transparent 40%, transparent 60%, var(--rv6-ac) 100%);
-            opacity:.45; animation:rv6Spin 6s linear infinite;
-            mask:radial-gradient(farthest-side, transparent calc(100% - 1.5px), #fff calc(100% - 1.5px));
-            -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 1.5px), #fff calc(100% - 1.5px)); }
-        .rv6-name { flex:1; min-width:0; }
-        .rv6-sym { font-size:22px; font-weight:900; letter-spacing:-.5px; line-height:1; color:#fff; }
-        .rv6-sub { font-size:10px; color:rgba(255,255,255,.4); font-weight:500; margin-top:2px; }
-        .rv6-score-wrap { flex-shrink:0; width:50px; height:50px; position:relative;
-            display:flex; flex-direction:column; align-items:center; justify-content:center; }
-        .rv6-score-svg { position:absolute; inset:0; transform:rotate(-90deg); overflow:visible; }
-        .rv6-score-track { fill:none; stroke:rgba(255,255,255,.1); stroke-width:3; }
-        .rv6-score-arc { fill:none; stroke:var(--rv6-ac); stroke-width:3; stroke-linecap:round;
-            filter:drop-shadow(0 0 5px var(--rv6-ac));
-            transition:stroke-dashoffset .9s cubic-bezier(.4,0,.2,1) .1s; }
-        .rv6-score-num { font-size:14px; font-weight:900; color:#fff; line-height:1; }
-        .rv6-score-lbl { font-size:6px; font-weight:700; color:rgba(255,255,255,.35);
-            letter-spacing:.4px; margin-top:1px; text-transform:uppercase; }
-        .rv6-r2 { display:flex; align-items:flex-end; justify-content:space-between; margin-top:12px; }
-        .rv6-price-lbl { font-size:8px; font-weight:700; color:rgba(255,255,255,.35);
-            text-transform:uppercase; letter-spacing:.7px; margin-bottom:3px; }
-        .rv6-price-val { font-size:26px; font-weight:900; letter-spacing:-1px; line-height:1;
-            color:#fff; text-shadow:0 2px 16px rgba(0,0,0,.4); }
-        .rv6-price-chg { display:inline-flex; align-items:center; gap:4px; margin-top:4px;
-            font-size:11px; font-weight:800; padding:3px 9px; border-radius:20px; }
-        .rv6-signal-pill { display:flex; align-items:center; gap:6px; padding:8px 13px;
-            border-radius:12px; background:rgba(0,0,0,.4); border:1px solid rgba(255,255,255,.15);
-            backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
-            font-size:11px; font-weight:900; letter-spacing:.2px; color:#fff;
-            box-shadow:0 4px 20px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.12);
-            animation:rv6PillPulse var(--rv6-pd) ease-in-out infinite; white-space:nowrap; }
-        .rv6-dot { width:6px; height:6px; border-radius:50%; background:var(--rv6-ac);
-            box-shadow:0 0 8px var(--rv6-ac); animation:rv6DotPulse var(--rv6-pd) ease-in-out infinite; }
-        .rv6-chips { display:flex; flex-wrap:wrap; gap:4px; margin-top:10px; }
-        .rv6-chip { font-size:9px; font-weight:700; padding:3px 9px; border-radius:20px;
-            background:rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.1);
-            color:rgba(255,255,255,.65); backdrop-filter:blur(8px); letter-spacing:.2px; }
-        .rv6-spark { margin-top:12px; margin-left:-14px; margin-right:-14px; position:relative; }
-        .rv6-bottom { background:#080a12; }
-        .rv6-budget-row { display:flex; align-items:stretch; border-bottom:1px solid rgba(255,255,255,.05); }
-        .rv6-bc { flex:1; padding:10px 12px; border-right:1px solid rgba(255,255,255,.05); }
-        .rv6-bc:last-child { border-right:none; }
-        .rv6-bc-lbl { font-size:8px; font-weight:700; color:#2d3748; text-transform:uppercase;
-            letter-spacing:.6px; margin-bottom:4px; }
-        .rv6-bc-val { font-size:17px; font-weight:900; letter-spacing:-.4px; line-height:1.1; }
-        .rv6-bc-sub { font-size:9px; color:#2d3748; margin-top:3px; font-weight:500; }
-        .rv6-metrics { display:grid; grid-template-columns:1fr 1fr 1fr;
-            border-bottom:1px solid rgba(255,255,255,.05); }
-        .rv6-metric { padding:10px 8px; text-align:center; border-right:1px solid rgba(255,255,255,.05); }
-        .rv6-metric:last-child { border-right:none; }
-        .rv6-m-lbl { font-size:7px; font-weight:700; color:#2d3748; text-transform:uppercase;
-            letter-spacing:.6px; margin-bottom:4px; }
-        .rv6-m-val { font-size:14px; font-weight:800; line-height:1; }
-        .rv6-m-sub { font-size:8px; font-weight:600; margin-top:2px; }
-        .rv6-rsi-row { padding:12px 14px; border-bottom:1px solid rgba(255,255,255,.05); }
-        .rv6-rsi-hdr { display:flex; justify-content:space-between; margin-bottom:7px; }
-        .rv6-rsi-title { font-size:9px; font-weight:700; color:#2d3748;
-            text-transform:uppercase; letter-spacing:.5px; }
-        .rv6-rsi-val { font-size:10px; font-weight:800; }
-        .rv6-rsi-track { height:5px; border-radius:3px; background:rgba(255,255,255,.05);
-            position:relative; overflow:hidden; }
-        .rv6-rsi-fill { position:absolute; left:0; top:0; height:100%; border-radius:3px; }
-        .rv6-rsi-zones { display:flex; justify-content:space-between; margin-top:5px; }
-        .rv6-rsi-zone { font-size:8px; color:#2d3748; font-weight:600; }
-        .rv6-footer { display:flex; align-items:center; padding:10px 14px; gap:10px; }
-        .rv6-wbars { display:flex; align-items:flex-end; gap:2px; }
-        .rv6-wbar { width:2.5px; background:var(--rv6-ac); border-radius:1.5px; opacity:.75; }
-        .rv6-footer-lbl { font-size:9px; font-weight:800; letter-spacing:.3px; flex:1; }
-        .rv6-expand { display:flex; align-items:center; gap:4px; font-size:9px;
-            color:rgba(255,255,255,.35); font-weight:600; cursor:pointer; }
-        .rv6-detail { background:#060810; overflow:hidden;
-            max-height:0; opacity:0; transition:max-height .38s cubic-bezier(.4,0,.2,1), opacity .28s ease; }
-        .rv6-detail.open { max-height:600px; opacity:1; }
-        .rv6-rr-wrap { padding:14px 14px 0; border-bottom:1px solid rgba(255,255,255,.04); padding-bottom:14px; }
-        .rv6-rr-hdr { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
-        .rv6-rr-title { font-size:9px; font-weight:700; color:#2d3748;
-            text-transform:uppercase; letter-spacing:.5px; }
-        .rv6-rr-ratio { font-size:13px; font-weight:800; }
-        .rv6-rr-track { height:6px; border-radius:3px; display:flex; overflow:hidden; margin-bottom:6px; }
-        .rv6-rr-loss { background:linear-gradient(90deg,#7f1d1d,#ef4444); }
-        .rv6-rr-gain { background:linear-gradient(90deg,#064e3b,var(--rv6-ac)); }
-        .rv6-rr-labels { display:flex; justify-content:space-between; }
-        .rv6-rr-lbl { font-size:9px; font-weight:700; }
-        .rv6-stp-row { display:flex; gap:8px; padding:12px 14px; }
-        .rv6-stp-box { flex:1; padding:10px 12px; border-radius:12px; }
-        .rv6-stp-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
-        .rv6-stp-lbl { font-size:8px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; }
-        .rv6-stp-val { font-size:16px; font-weight:900; line-height:1; }
-        .rv6-stp-pct { font-size:9px; font-weight:700; margin-top:2px; }
-        .rv6-analysis { margin:0 14px 14px; padding:10px 12px; border-radius:12px;
-            background:rgba(255,255,255,.02); border-left:2px solid var(--rv6-ac); }
-        .rv6-analysis-src { display:flex; align-items:center; gap:5px; margin-bottom:5px; }
-        .rv6-analysis-src span:first-child { font-size:11px; }
-        .rv6-analysis-src span:last-child { font-size:8px; font-weight:700; color:#2d3748;
-            text-transform:uppercase; letter-spacing:.5px; }
-        .rv6-analysis-txt { font-size:11px; color:#2d3748; line-height:1.6; }
-
-        @keyframes rv6Spin { to { transform:rotate(360deg); } }
-        @keyframes rv6GlowBreathe { 0%,100%{opacity:.14;transform:scale(1)} 50%{opacity:.22;transform:scale(1.08)} }
-        @keyframes rv6PillPulse {
-            0%,100%{box-shadow:0 4px 20px rgba(0,0,0,.4), 0 0 0 0 var(--rv6-ac), inset 0 1px 0 rgba(255,255,255,.12)}
-            50%{box-shadow:0 4px 20px rgba(0,0,0,.4), 0 0 16px var(--rv6-ac-glow), inset 0 1px 0 rgba(255,255,255,.12)} }
-        @keyframes rv6DotPulse { 0%,100%{transform:scale(.8);opacity:.5} 50%{transform:scale(1.3);opacity:1} }
-        @keyframes rv6WaveBar { 0%,100%{transform:scaleY(.5)} 50%{transform:scaleY(1)} }
+        @keyframes pulse-green  { 0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,0.5)} 50%{box-shadow:0 0 0 8px rgba(16,185,129,0)} }
+        @keyframes pulse-blue   { 0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,0.5)} 50%{box-shadow:0 0 0 8px rgba(59,130,246,0)} }
+        @keyframes pulse-amber  { 0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,0.4)} 50%{box-shadow:0 0 0 7px rgba(245,158,11,0)} }
+        @keyframes pulse-red    { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)}  50%{box-shadow:0 0 0 7px rgba(239,68,68,0)} }
+        @keyframes shimmer-green{ 0%{background-position:200% center} 100%{background-position:-200% center} }
+        @keyframes wave-bar     { 0%{transform:scaleX(0.7) scaleY(0.5)} 50%{transform:scaleX(1) scaleY(1)} 100%{transform:scaleX(0.7) scaleY(0.5)} }
+        .rc-anim-strong  { animation: pulse-green 1.8s ease-in-out infinite; }
+        .rc-anim-kademeli{ animation: pulse-blue  2.2s ease-in-out infinite; }
+        .rc-anim-izle    { animation: pulse-amber 2.5s ease-in-out infinite; }
+        .rc-anim-bekle   { animation: pulse-red   2.8s ease-in-out infinite; }
         `;
         document.head.appendChild(s);
     }
@@ -29539,235 +29425,112 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile) {
             </div>`;
         }
 
-        /* — Sparkline path (downtrend or uptrend shape based on drop) — */
-        var sparkPath, sparkGradId = 'rvg'+idx;
-        if (drop > 10) {
-            sparkPath = 'M0,8 C20,10 40,14 70,18 C100,22 130,20 160,24 C190,28 215,26 240,30 C265,34 285,32 310,36 C330,39 355,38 375,40';
-        } else if (recov) {
-            sparkPath = 'M0,40 C20,38 40,36 70,32 C100,28 130,30 160,26 C190,22 215,24 240,20 C265,16 285,18 310,14 C330,11 355,12 375,10';
-        } else {
-            sparkPath = 'M0,24 C20,22 40,26 70,22 C100,18 130,22 160,20 C190,18 215,22 240,20 C265,18 285,22 310,20 C330,18 355,20 375,18';
-        }
-        var sparkEndY = drop>10?40:recov?10:18;
-        var wbarsHtml = '';
-        var wbarHeights = score>=68?[9,7,12,9,11,8,13,10,9,11,8,12,9,11]:
-                          score>=47?[8,6,10,8,9,7,11,9,8,10,7,9,8,10]:
-                          score>=32?[7,6,9,7,8,6,9,7,8,9,7,8,7,9]:
-                                    [10,7,6,9,5,8,7,9,8,6,7,9,8,7];
-        wbarHeights.forEach(function(h,bi){
-            var d=(bi*0.08).toFixed(2);
-            wbarsHtml+=`<div class="rv6-wbar" style="height:${h}px;animation:rv6WaveBar 1.4s ease-in-out ${d}s infinite;"></div>`;
-        });
+        html += `
+<div style="border-radius:16px;margin-bottom:10px;position:relative;box-shadow:0 0 28px ${ac}1a,-3px 0 18px ${ac}25,0 4px 24px rgba(0,0,0,0.4);">
+  <!-- Glow halkası — karta bindirme, taşabilir -->
+  <div style="position:absolute;inset:0;border-radius:16px;background:linear-gradient(135deg,${ac}12 0%,transparent 50%);pointer-events:none;z-index:0;"></div>
+  <div style="position:absolute;left:-1px;top:8%;bottom:8%;width:3px;background:linear-gradient(180deg,transparent,${ac},transparent);border-radius:2px;z-index:2;filter:blur(1px);opacity:0.9;"></div>
+  <!-- İç clip wrapper -->
+  <div style="border-radius:16px;overflow:hidden;background:linear-gradient(135deg,${ac}0f 0%,#0d1117 40%);border:1px solid ${ac}25;position:relative;z-index:1;">
 
-        /* — top gradient by score — */
-        var topBg = score>=68
-            ? 'linear-gradient(145deg,#021a0e 0%,#011008 45%,#060810 100%)'
-            : score>=47 ? 'linear-gradient(145deg,#03122a 0%,#020c1e 45%,#060810 100%)'
-            : score>=32 ? 'linear-gradient(145deg,#1a1000 0%,#100a00 45%,#060810 100%)'
-            : 'linear-gradient(145deg,#1a0404 0%,#100303 45%,#060810 100%)';
-        var acGlow = score>=68?'rgba(16,185,129,.3)':score>=47?'rgba(59,130,246,.3)':score>=32?'rgba(245,158,11,.3)':'rgba(239,68,68,.3)';
-        var pd = score>=68?'1.8s':score>=47?'2.2s':score>=32?'2.5s':'2.8s';
+    <!-- KARTI TIKLA — HEADER -->
+    <div onclick="_rtoggle('${bodyId}')"
+         style="display:flex;align-items:center;gap:11px;padding:13px 14px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;position:relative;">
 
-        /* — score arc dashoffset (circumference ~= 2*PI*22 = 138.2) — */
-        var circ = 138.2;
-        var arcOffset = (circ * (1 - score/100)).toFixed(1);
+        <!-- Sol yumuşak glow içeride -->
+        <div style="position:absolute;left:0;top:0;bottom:0;width:40px;background:linear-gradient(90deg,${ac}22 0%,transparent 100%);pointer-events:none;z-index:0;border-radius:16px 0 0 16px;"></div>
 
-        /* — rsi bar width label — */
-        var rsiBarW = Math.min(100, rsi).toFixed(0);
+        <!-- Logo -->
+        <div style="width:44px;height:44px;border-radius:50%;background:${ac}15;border:1.5px solid ${ac}30;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;margin-left:4px;">
+            ${logo}
+        </div>
 
-        /* — stop/hedef — */
-        var stopPct = '-%11,5'; var tpPct = '+%15,0';
-        var detailHtml = '';
-        if (p.allocation > 0 && newAvg > 0) {
-            var lossRatio = 11.5; var gainRatio = 15;
-            var lossW = Math.round(lossRatio/(lossRatio+gainRatio)*100);
-            var gainW = 100-lossW;
-            var rrRatio = (gainRatio/lossRatio).toFixed(2);
-            detailHtml = `
-            <div class="rv6-rr-wrap" style="--rv6-ac:${ac};">
-                <div class="rv6-rr-hdr">
-                    <span class="rv6-rr-title">Risk / Ödül Oranı</span>
-                    <span class="rv6-rr-ratio" style="color:${ac};">1 : ${rrRatio}</span>
-                </div>
-                <div class="rv6-rr-track">
-                    <div class="rv6-rr-loss" style="width:${lossW}%;"></div>
-                    <div class="rv6-rr-gain" style="width:${gainW}%;background:linear-gradient(90deg,${ac}40,${ac});"></div>
-                </div>
-                <div class="rv6-rr-labels">
-                    <span class="rv6-rr-lbl" style="color:#ef4444;">Risk -%${lossRatio.toFixed(1)}</span>
-                    <span class="rv6-rr-lbl" style="color:${ac};">Ödül +%${gainRatio.toFixed(1)}</span>
+        <!-- İsim + etiketler — tek satır düzeni -->
+        <div style="flex:1;min-width:0;">
+            <div style="font-size:15px;font-weight:800;color:#f1f5f9;letter-spacing:-0.2px;line-height:1.2;">${sym}</div>
+            <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-top:5px;">
+                <span style="font-size:9px;font-weight:700;color:${trendUp?'#10b981':'#ef4444'};background:${trendUp?'#10b98115':'#ef444415'};padding:2px 7px;border-radius:20px;white-space:nowrap;">
+                    ${trendUp?'↗ Yükseliş':'↘ Düşüş'}
+                </span>
+                ${drop>0?`<span style="font-size:9px;font-weight:700;color:${dC};background:${dC}15;padding:2px 7px;border-radius:20px;white-space:nowrap;">▼ %${drop}</span>`:''}
+                ${days>0?`<span style="font-size:9px;font-weight:600;color:${days>60?'#ef4444':days>30?'#f97316':'#94a3b8'};background:rgba(255,255,255,0.05);padding:2px 7px;border-radius:20px;white-space:nowrap;">⏳ ${days}g zararda</span>`:''}
+                ${recov?`<span style="font-size:9px;font-weight:700;color:#10b981;background:#10b98115;padding:2px 7px;border-radius:20px;white-space:nowrap;">↗ Toparlanıyor</span>`:''}
+                ${!recov&&mom<-5?`<span style="font-size:9px;font-weight:700;color:#ef4444;background:#ef444415;padding:2px 7px;border-radius:20px;white-space:nowrap;">↘ Düşüyor</span>`:''}
+            </div>
+        </div>
+
+        <!-- Sağ: Etiket + Chevron -->
+        <div style="display:flex;align-items:center;gap:7px;flex-shrink:0;">
+            <!-- Etiket pill (pulse animasyonlu) -->
+            <div class="${animClass}" style="background:${chipGrad};color:#fff;padding:5px 11px;border-radius:20px;font-size:9px;font-weight:800;letter-spacing:0.4px;white-space:nowrap;">
+                ${p.label}
+            </div>
+            <i id="ico_${bodyId}" class="fas fa-chevron-down"
+               style="color:#475569;font-size:11px;transition:transform 0.3s ease;transform:rotate(${initRot});"></i>
+        </div>
+    </div>
+
+    <!-- ANIMASYONLU DURUM BARLAR (kapalıyken görünür — header altında) -->
+    <div style="display:flex;align-items:flex-end;gap:2px;padding:0 14px 10px 18px;margin-top:-2px;">
+        ${barHtml}
+        <span style="font-size:8px;font-weight:700;color:${animColor};margin-left:7px;letter-spacing:0.3px;opacity:0.8;">${animLabel}</span>
+    </div>
+
+    <!-- AÇILIR DETAY -->
+    <div id="${bodyId}"
+         style="max-height:${initMH};opacity:${initOp};overflow:hidden;transition:max-height 0.38s cubic-bezier(0.4,0,0.2,1),opacity 0.28s ease;">
+
+        <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.07) 40%,rgba(255,255,255,0.07) 60%,transparent);"></div>
+
+        <!-- 3 SÜTUN METRİK -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;">
+            <div style="padding:12px 10px;text-align:center;border-right:1px solid rgba(255,255,255,0.04);">
+                <div style="font-size:8px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Önerilen Bütçe</div>
+                <div style="font-size:14px;font-weight:800;color:${p.allocation>0?'#10b981':'#334155'};">${bSym}${p.allocation.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+                ${isUsd&&p.allocation>0?`<div style="font-size:8px;color:#1e293b;margin-top:1px;">≈ $${(p.allocation/liveUsdRate).toFixed(0)}</div>`:''}
+            </div>
+            <div style="padding:12px 10px;text-align:center;border-right:1px solid rgba(255,255,255,0.04);">
+                <div style="font-size:8px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Yeni Ortalama</div>
+                <div style="font-size:${newAvg>=1000?'11':'14'}px;font-weight:800;color:#e2e8f0;">${pSym}${fp(newAvg)}</div>
+            </div>
+            <div style="padding:12px 10px;text-align:center;">
+                <div style="font-size:8px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">RSI / Skor</div>
+                <div style="font-size:14px;font-weight:800;">
+                    <span style="color:${rsiC};">${rsi.toFixed(1)}</span>
+                    <span style="color:#1e293b;font-size:10px;margin:0 1px;">/</span>
+                    <span style="color:${scC};">${score}</span>
                 </div>
             </div>
-            <div class="rv6-stp-row">
-                <div class="rv6-stp-box" style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.16);">
-                    <div class="rv6-stp-top">
-                        <div class="rv6-stp-lbl" style="color:#f87171;">🛡 Stop Loss</div>
-                        <i class="fas fa-shield-halved" style="color:#ef4444;font-size:14px;"></i>
-                    </div>
-                    <div class="rv6-stp-val" style="color:#ef4444;">${pSym}${fp(stopLoss)}</div>
-                    <div class="rv6-stp-pct" style="color:#f87171;">-%${lossRatio.toFixed(1)}</div>
-                </div>
-                <div class="rv6-stp-box" style="background:${ac}12;border:1px solid ${ac}28;">
-                    <div class="rv6-stp-top">
-                        <div class="rv6-stp-lbl" style="color:${ac};">🎯 Hedef</div>
-                        <i class="fas fa-bullseye" style="color:${ac};font-size:14px;"></i>
-                    </div>
-                    <div class="rv6-stp-val" style="color:${ac};">${pSym}${fp(takeProfit)}</div>
-                    <div class="rv6-stp-pct" style="color:${ac};">+%${gainRatio.toFixed(1)}</div>
-                </div>
-            </div>`;
-        }
-
-        html += `
-<div class="rv6-card" onclick="_rtoggle('${bodyId}')" style="--rv6-ac:${ac};--rv6-ac-glow:${acGlow};--rv6-pd:${pd};">
-  <!-- ÜST PANEL -->
-  <div class="rv6-top" style="--rv6-top-bg:${topBg};--rv6-ac:${ac};">
-    <div class="rv6-top-glow" style="--rv6-ac:${ac};"></div>
-    <div class="rv6-sym-bg">${sym}</div>
-
-    <!-- Satır 1: Logo + İsim + Skor -->
-    <div class="rv6-r1">
-      <div class="rv6-logo-wrap">
-        <div class="rv6-ring" style="--rv6-ac:${ac};"></div>
-        <div class="rv6-logo">${logo}</div>
-      </div>
-      <div class="rv6-name">
-        <div class="rv6-sym">${sym}</div>
-        <div class="rv6-sub">${p.fullName||sym} · ${isCrypto?'Kripto':'Hisse'}</div>
-      </div>
-      <div class="rv6-score-wrap">
-        <svg class="rv6-score-svg" viewBox="0 0 50 50">
-          <circle class="rv6-score-track" cx="25" cy="25" r="22"/>
-          <circle class="rv6-score-arc" cx="25" cy="25" r="22" stroke-dasharray="${circ}" stroke-dashoffset="${arcOffset}" style="stroke:${ac};"/>
-        </svg>
-        <div class="rv6-score-num" style="text-shadow:0 0 12px ${ac};">${score}</div>
-        <div class="rv6-score-lbl">skor</div>
-      </div>
-    </div>
-
-    <!-- Satır 2: Fiyat + Sinyal -->
-    <div class="rv6-r2">
-      <div>
-        <div class="rv6-price-lbl">Güncel Fiyat</div>
-        <div class="rv6-price-val">${pSym}${fp(curP)}</div>
-        <div class="rv6-price-chg" style="background:${drop>0?'rgba(239,68,68,.18)':'rgba(16,185,129,.18)'};color:${drop>0?'#fca5a5':'#6ee7b7'};">
-          <i class="fas fa-arrow-${drop>0?'down':'up'}" style="font-size:8px;"></i> %${drop} · ${days}g
         </div>
-      </div>
-      <div>
-        <div class="rv6-signal-pill" style="--rv6-ac:${ac};--rv6-ac-glow:${acGlow};--rv6-pd:${pd};">
-          <div class="rv6-dot" style="--rv6-ac:${ac};--rv6-pd:${pd};"></div>
-          ${animLabel}
+
+        <!-- RSI BAR -->
+        <div style="padding:2px 14px 12px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                <span style="font-size:8px;color:#1e293b;font-weight:600;">RSI Seviyesi</span>
+                <span style="font-size:8px;font-weight:700;color:${rsiC};">${rsiL}</span>
+            </div>
+            <div style="height:3px;border-radius:2px;background:rgba(255,255,255,0.05);position:relative;overflow:hidden;">
+                <div style="position:absolute;left:0;top:0;height:100%;width:${Math.min(100,rsi)}%;background:${rsiC};border-radius:2px;"></div>
+                <div style="position:absolute;top:0;left:30%;height:100%;width:1px;background:rgba(16,185,129,0.3);"></div>
+                <div style="position:absolute;top:0;left:70%;height:100%;width:1px;background:rgba(239,68,68,0.3);"></div>
+            </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Chips -->
-    <div class="rv6-chips">
-      ${recov?`<span class="rv6-chip" style="color:#6ee7b7;border-color:rgba(110,231,183,.2);">↗ Toparlanıyor</span>`:''}
-      ${!recov&&mom<-5?`<span class="rv6-chip" style="color:#fca5a5;border-color:rgba(252,165,165,.2);">↘ Düşüyor</span>`:''}
-      <span class="rv6-chip" style="color:${rsiC};border-color:${rsiC}30;">RSI ${rsi.toFixed(1)}</span>
-      <span class="rv6-chip" style="color:${rsiC};border-color:${rsiC}20;">${rsiL}</span>
-      <span class="rv6-chip">${srcI} ${srcN}</span>
-    </div>
-
-    <!-- Sparkline -->
-    <div class="rv6-spark">
-      <svg width="100%" height="44" viewBox="0 0 375 44" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="${sparkGradId}" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="${ac}" stop-opacity=".25"/>
-            <stop offset="100%" stop-color="${ac}" stop-opacity="0"/>
-          </linearGradient>
-        </defs>
-        <path d="${sparkPath} L375,44 L0,44Z" fill="url(#${sparkGradId})"/>
-        <path d="${sparkPath}" fill="none" stroke="${ac}" stroke-width="1.6" stroke-linecap="round"/>
-        <circle cx="375" cy="${sparkEndY}" r="2.5" fill="${ac}"/>
-        <circle cx="375" cy="${sparkEndY}" r="6" fill="${ac}" opacity=".2">
-          <animate attributeName="r" values="2.5;8;2.5" dur="2s" repeatCount="indefinite"/>
-          <animate attributeName="opacity" values=".3;0;.3" dur="2s" repeatCount="indefinite"/>
-        </circle>
-      </svg>
-    </div>
-  </div><!-- /rv6-top -->
-
-  <!-- ALT PANEL -->
-  <div class="rv6-bottom">
-    <!-- Bütçe + Ortalama -->
-    <div class="rv6-budget-row">
-      <div class="rv6-bc">
-        <div class="rv6-bc-lbl">Önerilen Bütçe</div>
-        <div class="rv6-bc-val" style="color:${p.allocation>0?ac:'#374151'};">${bSym}${p.allocation.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
-        <div class="rv6-bc-sub">${p.allocation>0?'Nakit payı ayrıldı':'Bütçe ayrılmadı'}</div>
-      </div>
-      <div class="rv6-bc">
-        <div class="rv6-bc-lbl">Yeni Ortalama</div>
-        <div class="rv6-bc-val" style="color:#f1f5f9;">${pSym}${fp(newAvg)}</div>
-        <div class="rv6-bc-sub">Önceki ${pSym}${fp(buyN)}</div>
-      </div>
-    </div>
-
-    <!-- 3 Metrik -->
-    <div class="rv6-metrics">
-      <div class="rv6-metric">
-        <div class="rv6-m-lbl">RSI</div>
-        <div class="rv6-m-val" style="color:${rsiC};">${rsi.toFixed(1)}</div>
-        <div class="rv6-m-sub" style="color:${rsiC};">${rsiL}</div>
-      </div>
-      <div class="rv6-metric">
-        <div class="rv6-m-lbl">Stop Loss</div>
-        <div class="rv6-m-val" style="color:#ef4444;">${pSym}${fp(stopLoss)}</div>
-        <div class="rv6-m-sub" style="color:#f87171;">-%11,5</div>
-      </div>
-      <div class="rv6-metric">
-        <div class="rv6-m-lbl">Hedef</div>
-        <div class="rv6-m-val" style="color:${ac};">${pSym}${fp(takeProfit)}</div>
-        <div class="rv6-m-sub" style="color:${ac};">+%15,0</div>
-      </div>
-    </div>
-
-    <!-- RSI Bar -->
-    <div class="rv6-rsi-row">
-      <div class="rv6-rsi-hdr">
-        <span class="rv6-rsi-title">RSI Seviyesi</span>
-        <span class="rv6-rsi-val" style="color:${rsiC};">${rsi.toFixed(1)} — ${rsiL}</span>
-      </div>
-      <div class="rv6-rsi-track">
-        <div class="rv6-rsi-fill" style="width:${rsiBarW}%;background:linear-gradient(90deg,${rsiC}60,${rsiC});box-shadow:0 0 8px ${rsiC}60;"></div>
-      </div>
-      <div class="rv6-rsi-zones">
-        <span class="rv6-rsi-zone">◀ 0</span>
-        <span class="rv6-rsi-zone">30</span>
-        <span class="rv6-rsi-zone">50</span>
-        <span class="rv6-rsi-zone">70</span>
-        <span class="rv6-rsi-zone">100 ▶</span>
-      </div>
-    </div>
-
-    <!-- Footer -->
-    <div class="rv6-footer" style="--rv6-ac:${ac};">
-      <div class="rv6-wbars">${wbarsHtml}</div>
-      <span class="rv6-footer-lbl" style="color:${ac};">${animLabel}</span>
-      <div class="rv6-expand">
-        <span>Detay</span>
-        <i id="ico_${bodyId}" class="fas fa-chevron-down" style="font-size:10px;transition:transform .3s;transform:rotate(${initRot});"></i>
-      </div>
-    </div>
-
-    <!-- Açılır Detay -->
-    <div id="${bodyId}" class="rv6-detail${isFirst?' open':''}" style="--rv6-ac:${ac};">
-      ${detailHtml}
-      <div class="rv6-analysis" style="--rv6-ac:${ac};">
-        <div class="rv6-analysis-src">
-          <span>${srcI}</span>
-          <span>${srcN} · Veri Kaynağı</span>
+        <!-- ANALİZ METNİ -->
+        <div style="margin:0 14px 12px;padding:10px 12px;background:rgba(255,255,255,0.02);border-radius:10px;border-left:2px solid ${ac}50;">
+            <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;">
+                <span style="font-size:9px;">${srcI}</span>
+                <span style="font-size:8px;font-weight:700;color:#1e293b;text-transform:uppercase;letter-spacing:0.5px;">${srcN}</span>
+            </div>
+            <div style="font-size:11px;color:#475569;line-height:1.6;">${(p.metrics.desc||'').replace(/\[.*?\]\s*/,'')}</div>
         </div>
-        <div class="rv6-analysis-txt">${(p.metrics.desc||'').replace(/\[.*?\]\s*/,'')}</div>
-      </div>
-    </div>
 
-  </div><!-- /rv6-bottom -->
-</div><!-- /rv6-card -->`;
+        <!-- STOP / TP — çizgi üstünde, kutu yok -->
+        ${stpHtml}
+
+    </div><!-- /detay -->
+  </div><!-- /inner clip -->
+</div><!-- /kart -->`;
     });
 
     container.innerHTML = html;
