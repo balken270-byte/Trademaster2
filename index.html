@@ -15232,236 +15232,133 @@ function openLabFullscreen() {
         .cs-option:active { background: rgba(201,168,76,0.12); }
         .cs-option.selected { background: rgba(201,168,76,0.08); color: #C9A84C; font-weight: 700; }
 
+        /* ── CASH MODAL MINIMAL ── */
         .cash-modal-redesign {
-            background: linear-gradient(160deg, #0e1825 0%, #080f1a 100%) !important;
-            border: 1px solid rgba(255,255,255,0.07) !important;
+            background: #090c15 !important;
+            border: 1px solid rgba(255,255,255,.08) !important;
             border-radius: 24px !important;
-            padding: 24px 20px 20px !important;
-            box-shadow: 0 30px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+            padding: 0 !important;
+            box-shadow: 0 30px 80px rgba(0,0,0,.8) !important;
+            overflow: hidden !important;
         }
+        .cm-top {
+            padding: 16px 18px 14px;
+            background: linear-gradient(145deg, #071a10 0%, #05120a 60%, #060c14 100%);
+            position: relative; overflow: hidden;
+            transition: background .3s;
+            border-bottom: 1px solid rgba(255,255,255,.05);
+        }
+        .cm-top.mode-wit { background: linear-gradient(145deg, #1a0707 0%, #120404 60%, #060c14 100%); }
+        .cm-top::before {
+            content: ''; position: absolute; top: -50px; right: -40px;
+            width: 140px; height: 140px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(16,185,129,.18) 0%, transparent 70%);
+            pointer-events: none; transition: background .3s;
+        }
+        .cm-top.mode-wit::before { background: radial-gradient(circle, rgba(239,68,68,.18) 0%, transparent 70%); }
+        .cm-top-row { display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 1; }
+        .cm-top-left {}
+        .cm-heading { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -.3px; line-height: 1.1; }
+        .cm-subheading { font-size: 10px; color: rgba(255,255,255,.28); font-family: 'DM Mono', monospace; margin-top: 2px; }
+        .cm-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.2);
+            border-radius: 20px; padding: 4px 10px;
+            transition: background .3s, border-color .3s;
+        }
+        .mode-wit .cm-badge { background: rgba(239,68,68,.1); border-color: rgba(239,68,68,.2); }
+        .cm-badge-dot {
+            width: 5px; height: 5px; border-radius: 50%;
+            background: #10b981; box-shadow: 0 0 6px #10b981;
+            animation: cmDotPulse 2s ease-in-out infinite;
+            transition: background .3s, box-shadow .3s;
+        }
+        .mode-wit .cm-badge-dot { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
+        @keyframes cmDotPulse { 0%,100%{opacity:.5;} 50%{opacity:1;} }
+        .cm-badge-txt { font-size: 8px; font-weight: 700; color: #10b981; letter-spacing: .8px; text-transform: uppercase; font-family: 'DM Mono', monospace; transition: color .3s; }
+        .mode-wit .cm-badge-txt { color: #ef4444; }
 
-        /* Header */
-        .cm-header {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-bottom: 22px;
-        }
-        .cm-icon-wrap {
-            width: 44px;
-            height: 44px;
-            border-radius: 14px;
-            background: rgba(48,209,88,0.1);
-            border: 1px solid rgba(48,209,88,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #30D158;
-            font-size: 16px;
-            flex-shrink: 0;
-        }
-        .cm-title {
-            font-size: 17px;
-            font-weight: 700;
-            color: #fff;
-            line-height: 1.2;
-        }
-        .cm-subtitle {
-            font-size: 11px;
-            color: rgba(255,255,255,0.32);
-            margin-top: 2px;
-            font-family: 'DM Mono', monospace;
-        }
+        .cm-body { background: #090c15; padding: 16px 18px 18px; }
 
-        /* Type Toggle */
+        /* mini info note */
+        .cm-note {
+            display: flex; align-items: flex-start; gap: 8px;
+            padding: 9px 12px; margin-bottom: 14px;
+            background: rgba(16,185,129,.05);
+            border: 1px solid rgba(16,185,129,.12);
+            border-radius: 10px;
+        }
+        .cm-note i { color: #10b981; font-size: 10px; margin-top: 2px; flex-shrink: 0; }
+        .cm-note-txt { font-size: 10.5px; color: rgba(255,255,255,.38); line-height: 1.5; }
+        .cm-note-txt b { color: rgba(16,185,129,.8); font-weight: 600; }
+
+        /* type toggle */
         .cm-type-toggle {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 20px;
+            display: grid; grid-template-columns: 1fr 1fr;
+            background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07);
+            border-radius: 14px; padding: 4px; gap: 0; margin-bottom: 14px;
         }
         .cm-type-btn {
-            padding: 14px 12px;
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.07);
-            background: rgba(255,255,255,0.03);
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s;
-            position: relative;
-            overflow: hidden;
+            border-radius: 10px; border: 1.5px solid transparent;
+            background: transparent; cursor: pointer;
+            padding: 11px 8px 9px;
+            display: flex; flex-direction: column; align-items: center; gap: 5px;
+            transition: all .2s; position: relative; overflow: hidden;
         }
         .cm-type-btn::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            transition: opacity 0.2s;
+            content: ''; position: absolute; inset: 0; border-radius: 10px; opacity: 0; transition: opacity .2s;
         }
-        .cm-type-btn.deposit::before {
-            background: radial-gradient(ellipse at 50% 0%, rgba(48,209,88,0.15) 0%, transparent 70%);
-        }
-        .cm-type-btn.withdraw::before {
-            background: radial-gradient(ellipse at 50% 0%, rgba(255,69,58,0.15) 0%, transparent 70%);
-        }
-        .cm-type-btn.active::before { opacity: 1; }
-        .cm-type-btn.deposit.active {
-            border-color: rgba(48,209,88,0.35);
-            background: rgba(48,209,88,0.06);
-        }
-        .cm-type-btn.withdraw.active {
-            border-color: rgba(255,69,58,0.35);
-            background: rgba(255,69,58,0.06);
-        }
+        .cm-type-btn.deposit::before  { background: radial-gradient(ellipse at 50% 0%, rgba(16,185,129,.2), transparent 65%); }
+        .cm-type-btn.withdraw::before { background: radial-gradient(ellipse at 50% 0%, rgba(239,68,68,.2), transparent 65%); }
+        .cm-type-btn.deposit.active  { background: rgba(16,185,129,.07); border-color: rgba(16,185,129,.3); }
+        .cm-type-btn.deposit.active::before  { opacity: 1; }
+        .cm-type-btn.withdraw.active { background: rgba(239,68,68,.07); border-color: rgba(239,68,68,.3); }
+        .cm-type-btn.withdraw.active::before { opacity: 1; }
         .cm-type-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            transition: all 0.2s;
+            width: 34px; height: 34px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; position: relative; z-index: 1; transition: all .2s;
         }
-        .deposit .cm-type-icon { background: rgba(48,209,88,0.1); color: rgba(48,209,88,0.5); }
-        .deposit.active .cm-type-icon { background: rgba(48,209,88,0.18); color: #30D158; }
-        .withdraw .cm-type-icon { background: rgba(255,69,58,0.1); color: rgba(255,69,58,0.5); }
-        .withdraw.active .cm-type-icon { background: rgba(255,69,58,0.18); color: #FF453A; }
-        .cm-type-label {
-            font-size: 12px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            color: rgba(255,255,255,0.35);
-            transition: color 0.2s;
-            font-family: 'DM Mono', monospace;
-        }
-        .deposit.active .cm-type-label { color: #30D158; }
-        .withdraw.active .cm-type-label { color: #FF453A; }
-        .cm-type-desc {
-            font-size: 10px;
-            color: rgba(255,255,255,0.22);
-            font-family: 'DM Mono', monospace;
-        }
+        .cm-type-btn.deposit  .cm-type-icon { background: rgba(16,185,129,.1); color: rgba(16,185,129,.4); }
+        .cm-type-btn.deposit.active  .cm-type-icon { background: rgba(16,185,129,.2); color: #10b981; box-shadow: 0 0 16px rgba(16,185,129,.3); }
+        .cm-type-btn.withdraw .cm-type-icon { background: rgba(239,68,68,.1); color: rgba(239,68,68,.4); }
+        .cm-type-btn.withdraw.active .cm-type-icon { background: rgba(239,68,68,.2); color: #ef4444; box-shadow: 0 0 16px rgba(239,68,68,.3); }
+        .cm-type-label { font-size: 11px; font-weight: 800; letter-spacing: .8px; font-family: 'DM Mono', monospace; color: rgba(255,255,255,.28); position: relative; z-index: 1; transition: color .2s; }
+        .cm-type-btn.deposit.active  .cm-type-label { color: #10b981; }
+        .cm-type-btn.withdraw.active .cm-type-label { color: #ef4444; }
+        .cm-type-desc { font-size: 9px; color: rgba(255,255,255,.18); font-family: 'DM Mono', monospace; position: relative; z-index: 1; transition: color .2s; }
+        .cm-type-btn.deposit.active  .cm-type-desc { color: rgba(16,185,129,.5); }
+        .cm-type-btn.withdraw.active .cm-type-desc { color: rgba(239,68,68,.5); }
 
-        /* Fields */
-        .cm-field { margin-bottom: 14px; }
-        .cm-label {
-            display: block;
-            font-size: 10px;
-            font-weight: 600;
-            color: rgba(255,255,255,0.35);
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            font-family: 'DM Mono', monospace;
-            margin-bottom: 8px;
+        /* amount */
+        .cm-amount-block {
+            background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+            border-radius: 14px; margin-bottom: 10px; overflow: hidden;
+            transition: border-color .2s, box-shadow .2s;
         }
-        .cm-optional {
-            color: rgba(255,255,255,0.18);
-            font-weight: 400;
-            text-transform: none;
-            letter-spacing: 0;
-            font-size: 9px;
-        }
-        .cm-input-wrap {
-            display: flex;
-            align-items: center;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.09);
-            border-radius: 14px;
-            overflow: hidden;
-            transition: border-color 0.18s;
-        }
-        .cm-input-wrap:focus-within {
-            border-color: rgba(48,209,88,0.35);
-            box-shadow: 0 0 0 3px rgba(48,209,88,0.06);
-        }
-        .cm-currency-badge {
-            padding: 0 14px;
-            font-size: 16px;
-            font-weight: 700;
-            color: rgba(255,255,255,0.35);
-            border-right: 1px solid rgba(255,255,255,0.07);
-            height: 100%;
-            display: flex;
-            align-items: center;
-            font-family: 'DM Mono', monospace;
-        }
-        .cm-input {
-            flex: 1;
-            background: transparent !important;
-            border: none !important;
-            outline: none !important;
-            color: #fff !important;
-            font-size: 20px !important;
-            font-weight: 600 !important;
-            padding: 14px 16px !important;
-            font-family: 'DM Mono', monospace !important;
-            width: 100%;
-        }
-        .cm-input::placeholder { color: rgba(255,255,255,0.2) !important; font-size: 18px !important; }
-        .cm-input-full {
-            display: block;
-            width: 100%;
-            background: rgba(255,255,255,0.05) !important;
-            border: 1px solid rgba(255,255,255,0.09) !important;
-            border-radius: 14px !important;
-            outline: none !important;
-            color: rgba(255,255,255,0.8) !important;
-            font-size: 14px !important;
-            font-weight: 400 !important;
-            padding: 13px 16px !important;
-            font-family: inherit !important;
-            transition: border-color 0.18s, box-shadow 0.18s;
-            box-sizing: border-box;
-        }
-        .cm-input-full:focus {
-            border-color: rgba(48,209,88,0.35) !important;
-            box-shadow: 0 0 0 3px rgba(48,209,88,0.06) !important;
-        }
-        .cm-input-full::placeholder { color: rgba(255,255,255,0.2) !important; }
+        .cm-amount-block:focus-within { border-color: rgba(16,185,129,.3); box-shadow: 0 0 0 3px rgba(16,185,129,.06); }
+        .cm-amount-row { display: flex; align-items: center; padding: 0 14px; border-bottom: 1px solid rgba(255,255,255,.05); }
+        .cm-currency-badge { font-size: 16px; font-weight: 700; color: rgba(255,255,255,.22); font-family: 'DM Mono', monospace; padding-right: 12px; border-right: 1px solid rgba(255,255,255,.07); height: 52px; display: flex; align-items: center; }
+        .cm-input { flex: 1 !important; background: transparent !important; border: none !important; outline: none !important; color: #fff !important; font-size: 24px !important; font-weight: 800 !important; padding: 12px !important; font-family: 'DM Mono', monospace !important; width: 100%; }
+        .cm-input::placeholder { color: rgba(255,255,255,.15) !important; font-size: 20px !important; }
+        .cm-quick-row { display: flex; }
+        .cm-quick { flex: 1; padding: 7px 4px; background: transparent; border: none; border-right: 1px solid rgba(255,255,255,.05); cursor: pointer; font-size: 9px; font-weight: 700; color: rgba(255,255,255,.25); font-family: 'DM Mono', monospace; transition: all .15s; text-align: center; }
+        .cm-quick:last-child { border-right: none; }
+        .cm-quick:active { background: rgba(16,185,129,.1); color: #10b981; }
 
-        /* Buttons */
-        .cm-btn-confirm {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #30D158, #27b84a);
-            border: none;
-            border-radius: 14px;
-            font-family: 'DM Mono', monospace;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: #000;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-bottom: 10px;
-            margin-top: 6px;
-            transition: all 0.2s;
-            box-shadow: 0 8px 24px rgba(48,209,88,0.25), inset 0 1px 0 rgba(255,255,255,0.25);
-        }
-        .cm-btn-confirm:hover { transform: translateY(-1px); box-shadow: 0 12px 32px rgba(48,209,88,0.35); }
-        .cm-btn-confirm:active { transform: scale(0.98); }
-        .cm-btn-cancel {
-            width: 100%;
-            padding: 13px;
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 14px;
-            font-family: inherit;
-            font-size: 13px;
-            font-weight: 500;
-            color: rgba(255,255,255,0.35);
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .cm-btn-cancel:hover { color: rgba(255,255,255,0.6); border-color: rgba(255,255,255,0.15); }
+        /* desc */
+        .cm-desc-row { display: flex; align-items: center; gap: 9px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); border-radius: 12px; padding: 0 13px; margin-bottom: 14px; transition: border-color .2s; }
+        .cm-desc-row:focus-within { border-color: rgba(16,185,129,.2); }
+        .cm-desc-row i { color: rgba(255,255,255,.16); font-size: 11px; flex-shrink: 0; }
+        .cm-input-full { flex: 1 !important; background: transparent !important; border: none !important; outline: none !important; color: rgba(255,255,255,.65) !important; font-size: 13px !important; padding: 12px 0 !important; font-family: inherit !important; width: 100%; }
+        .cm-input-full::placeholder { color: rgba(255,255,255,.18) !important; }
+
+        /* buttons */
+        .cm-btn-confirm { width: 100%; padding: 14px; background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 12px; font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #000; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; margin-bottom: 8px; box-shadow: 0 8px 24px rgba(16,185,129,.25); transition: all .3s; }
+        .cm-btn-confirm.wit-mode { background: linear-gradient(135deg, #ef4444, #b91c1c); box-shadow: 0 8px 24px rgba(239,68,68,.25); color: #fff; }
+        .cm-btn-confirm:active { transform: scale(.98); }
+        .cm-btn-cancel { width: 100%; padding: 12px; background: transparent; border: 1px solid rgba(255,255,255,.07); border-radius: 12px; font-size: 12px; font-weight: 500; color: rgba(255,255,255,.25); cursor: pointer; transition: all .15s; }
+        .cm-btn-cancel:active { color: rgba(255,255,255,.5); }
     </style>
 
     <div class="app-settings-container ps-container">
@@ -17499,55 +17396,76 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
 
 <div id="cashModal" class="modal-overlay">
     <div class="modal cash-modal-redesign">
-        <!-- Header -->
-        <div class="cm-header">
-            <div class="cm-icon-wrap">
-                <i class="fas fa-wallet"></i>
-            </div>
-            <div>
-                <div class="cm-title">Nakit İşlemi</div>
-                <div class="cm-subtitle">Yatır veya çek seçeneğini seç</div>
-            </div>
-        </div>
 
-        <input type="hidden" id="cashTypeVal" value="in">
-
-        <!-- Type Toggle -->
-        <div class="cm-type-toggle">
-            <div id="btnCashIn" class="cm-type-btn deposit active" onclick="setCashType('in', this)">
-                <div class="cm-type-icon"><i class="fas fa-arrow-down"></i></div>
-                <span class="cm-type-label">YATIR</span>
-                <span class="cm-type-desc">Sermaye Ekle</span>
-            </div>
-            <div id="btnCashOut" class="cm-type-btn withdraw" onclick="setCashType('out', this)">
-                <div class="cm-type-icon"><i class="fas fa-arrow-up"></i></div>
-                <span class="cm-type-label">ÇEK</span>
-                <span class="cm-type-desc">Sermaye Çek</span>
+        <!-- TOP PANEL -->
+        <div class="cm-top" id="cmTop">
+            <div class="cm-top-row">
+                <div class="cm-top-left">
+                    <div class="cm-heading">Nakit İşlemi</div>
+                    <div class="cm-subheading">Portföy sermayeni yönet</div>
+                </div>
+                <div class="cm-badge">
+                    <div class="cm-badge-dot"></div>
+                    <span class="cm-badge-txt">Sermaye</span>
+                </div>
             </div>
         </div>
 
-        <!-- Amount -->
-        <div class="cm-field">
-            <label class="cm-label">Miktar</label>
-            <div class="cm-input-wrap">
-                <span class="cm-currency-badge" id="cmCurrencyBadge">₺</span>
-                <input type="number" id="cashAmountInput" class="cm-input" placeholder="0,00" inputmode="decimal">
+        <!-- BODY -->
+        <div class="cm-body">
+
+            <!-- INFO NOTE -->
+            <div class="cm-note">
+                <i class="fas fa-circle-info"></i>
+                <span class="cm-note-txt">Gerçek bütçenizi sanal bakiye olarak girin — <b>AI önerileri daha isabetli olur.</b></span>
             </div>
-        </div>
 
-        <!-- Description -->
-        <div class="cm-field">
-            <label class="cm-label">Açıklama <span class="cm-optional">opsiyonel</span></label>
-            <input type="text" id="cashDescInput" class="cm-input cm-input-full" placeholder="Örn: Banka transferi">
-        </div>
+            <input type="hidden" id="cashTypeVal" value="in">
 
-        <!-- Actions -->
-        <button class="cm-btn-confirm" onclick="submitCashTransaction()">
-            <i class="fas fa-check"></i> İŞLEMİ ONAYLA
-        </button>
-        <button class="cm-btn-cancel" onclick="document.getElementById('cashModal').style.display='none'">
-            İptal
-        </button>
+            <!-- TYPE TOGGLE -->
+            <div class="cm-type-toggle">
+                <div id="btnCashIn" class="cm-type-btn deposit active" onclick="setCashType('in', this)">
+                    <div class="cm-type-icon"><i class="fas fa-arrow-down"></i></div>
+                    <span class="cm-type-label">YATIR</span>
+                    <span class="cm-type-desc">Sermaye Ekle</span>
+                </div>
+                <div id="btnCashOut" class="cm-type-btn withdraw" onclick="setCashType('out', this)">
+                    <div class="cm-type-icon"><i class="fas fa-arrow-up"></i></div>
+                    <span class="cm-type-label">ÇEK</span>
+                    <span class="cm-type-desc">Sermaye Çek</span>
+                </div>
+            </div>
+
+            <!-- AMOUNT -->
+            <div class="cm-amount-block">
+                <div class="cm-amount-row">
+                    <span class="cm-currency-badge" id="cmCurrencyBadge">₺</span>
+                    <input type="number" id="cashAmountInput" class="cm-input" placeholder="0,00" inputmode="decimal">
+                </div>
+                <div class="cm-quick-row">
+                    <button class="cm-quick" onclick="cmAddAmount(1000)">+1K</button>
+                    <button class="cm-quick" onclick="cmAddAmount(5000)">+5K</button>
+                    <button class="cm-quick" onclick="cmAddAmount(10000)">+10K</button>
+                    <button class="cm-quick" onclick="cmAddAmount(25000)">+25K</button>
+                    <button class="cm-quick" onclick="cmAddAmount(50000)">+50K</button>
+                </div>
+            </div>
+
+            <!-- DESCRIPTION -->
+            <div class="cm-desc-row">
+                <i class="fas fa-pen-to-square"></i>
+                <input type="text" id="cashDescInput" class="cm-input-full" placeholder="Açıklama (opsiyonel)">
+            </div>
+
+            <!-- ACTIONS -->
+            <button class="cm-btn-confirm" id="cmConfirmBtn" onclick="submitCashTransaction()">
+                <i class="fas fa-check"></i> YATIRMA İŞLEMİNİ ONAYLA
+            </button>
+            <button class="cm-btn-cancel" onclick="document.getElementById('cashModal').style.display='none'">
+                İptal
+            </button>
+
+        </div>
     </div>
 </div>
 
@@ -18150,7 +18068,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.3"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -19983,12 +19901,37 @@ function logHistory(type, s, a, p, desc='', curr = null, pnl = 0, details = {}) 
         document.getElementById('cashAmountInput').value = '';
         document.getElementById('cashDescInput').value = '';
         document.getElementById('cashTypeVal').value = t;
-        var btnIn = document.getElementById('btnCashIn');
+        var btnIn  = document.getElementById('btnCashIn');
         var btnOut = document.getElementById('btnCashOut');
         if (t === 'in') { btnIn.classList.add('active'); btnOut.classList.remove('active'); }
-        else { btnOut.classList.add('active'); btnIn.classList.remove('active'); }
+        else            { btnOut.classList.add('active'); btnIn.classList.remove('active'); }
+        // top panel + buton rengini sıfırla
+        setCashType(t, t === 'in' ? btnIn : btnOut);
     }
-    function setCashType(type, btn) { document.getElementById('cashTypeVal').value = type; document.querySelectorAll('.cash-modal-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
+    function setCashType(type, btn) {
+        document.getElementById('cashTypeVal').value = type;
+        var dep = document.getElementById('btnCashIn');
+        var wit = document.getElementById('btnCashOut');
+        var top = document.getElementById('cmTop');
+        var confirmBtn = document.getElementById('cmConfirmBtn');
+        dep.classList.remove('active');
+        wit.classList.remove('active');
+        btn.classList.add('active');
+        if (type === 'out') {
+            top.classList.add('mode-wit');
+            confirmBtn.classList.add('wit-mode');
+            confirmBtn.innerHTML = '<i class="fas fa-check"></i> ÇEKME İŞLEMİNİ ONAYLA';
+        } else {
+            top.classList.remove('mode-wit');
+            confirmBtn.classList.remove('wit-mode');
+            confirmBtn.innerHTML = '<i class="fas fa-check"></i> YATIRMA İŞLEMİNİ ONAYLA';
+        }
+    }
+    function cmAddAmount(n) {
+        var inp = document.getElementById('cashAmountInput');
+        var cur = parseFloat(inp.value) || 0;
+        inp.value = cur + n;
+    }
     
     function submitCashTransaction() {
         let type = document.getElementById('cashTypeVal').value; let amt = parseFloat(document.getElementById('cashAmountInput').value); let desc = document.getElementById('cashDescInput').value.trim();
