@@ -3,770 +3,1720 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Derin Yatırım Analizi Rehberi — TradeVia</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<title>Kapsamlı Yatırım Analizi Rehberi — Akademik Seviye</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=JetBrains+Mono:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --gold: #C9A84C;
-    --gold-light: #E8C97A;
-    --gold-dim: #7A6230;
-    --bg: #0A0A0C;
-    --bg2: #111116;
-    --bg3: #18181F;
-    --surface: #1E1E28;
-    --border: rgba(201,168,76,0.15);
-    --text: #E8E4D8;
-    --text-muted: #7A7870;
-    --red: #C94C4C;
-    --green: #4CAF7A;
-    --blue: #4C84C9;
-    --purple: #9C6FD6;
-  }
+:root {
+  --gold: #B8963E;
+  --gold-light: #D4AF6A;
+  --gold-pale: #EDD898;
+  --gold-dim: #6B5520;
+  --crimson: #8B1A1A;
+  --crimson-light: #C43B3B;
+  --emerald: #1A4D3A;
+  --emerald-light: #3DAA78;
+  --sapphire: #1A2F5C;
+  --sapphire-light: #4A7FC1;
+  --bg: #070709;
+  --bg2: #0D0D11;
+  --bg3: #121218;
+  --surface: #18181F;
+  --surface2: #1E1E28;
+  --border: rgba(184,150,62,0.12);
+  --border-bright: rgba(184,150,62,0.28);
+  --text: #E6E0D0;
+  --text-muted: #6A6660;
+  --text-dim: #9A958A;
+  --red: #C94C4C;
+  --green: #4CAF7A;
+  --blue: #5A8FD4;
+  --amber: #E8A020;
+}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-weight: 300;
-    line-height: 1.7;
-    overflow-x: hidden;
-  }
+html { scroll-behavior: smooth; }
 
-  /* PROGRESS BAR */
-  .progress-bar {
-    position: fixed; top: 0; left: 0; height: 2px;
-    background: linear-gradient(to right, var(--gold-dim), var(--gold-light));
-    transition: width 0.1s; z-index: 200; width: 0%;
-  }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  line-height: 1.75;
+  overflow-x: hidden;
+}
 
-  /* BACK BUTTON */
-  .back-btn {
-    position: fixed;
-    top: 16px;
-    left: 16px;
-    z-index: 150;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(14,14,18,0.85);
-    border: 1px solid var(--border);
-    color: var(--gold);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    padding: 9px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    transition: all 0.2s;
-    text-decoration: none;
-  }
-  .back-btn:hover {
-    background: rgba(201,168,76,0.08);
-    border-color: var(--gold);
-    transform: translateX(-2px);
-  }
-  .back-btn i { font-size: 12px; }
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--gold-dim); }
 
-  /* NAV TOC */
-  .toc {
-    position: fixed;
-    right: 24px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    z-index: 100;
-  }
-  .toc-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--gold-dim);
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-  }
-  .toc-dot.active { background: var(--gold); transform: scale(1.5); }
-  .toc-dot:hover { background: var(--gold-light); }
-  .toc-dot::after {
-    content: attr(data-label);
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 1.5px;
-    color: var(--gold);
-    white-space: nowrap;
-    opacity: 0;
-    transition: opacity 0.2s;
-    background: rgba(10,10,12,0.9);
-    padding: 3px 8px;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-  }
-  .toc-dot:hover::after { opacity: 1; }
+/* ── PROGRESS ── */
+#progress {
+  position: fixed; top: 0; left: 0; height: 1px;
+  background: linear-gradient(90deg, var(--gold-dim), var(--gold-pale));
+  z-index: 1000; transition: width 0.1s;
+}
 
-  @media (max-width: 768px) { .toc { display: none; } }
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 900;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px; height: 56px;
+  background: rgba(7,7,9,0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
 
-  /* HERO */
-  .hero {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    position: relative;
-    padding: 80px 20px 60px;
-    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,168,76,0.08) 0%, transparent 70%);
-  }
-  .hero::before {
-    content: '';
-    position: absolute; inset: 0;
-    background:
-      repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(201,168,76,0.03) 60px),
-      repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(201,168,76,0.03) 60px);
-    pointer-events: none;
-  }
-  .badge {
-    display: inline-block;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
-    color: var(--gold); border: 1px solid var(--gold-dim);
-    padding: 6px 16px; margin-bottom: 32px;
-    opacity: 0; animation: fadeUp 0.8s 0.2s forwards;
-  }
-  .hero h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(2.4rem, 6vw, 5.5rem);
-    font-weight: 900; line-height: 1.05;
-    letter-spacing: -0.02em; margin-bottom: 24px;
-    opacity: 0; animation: fadeUp 0.8s 0.4s forwards;
-  }
-  .hero h1 span {
-    background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-dim));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  }
-  .hero-sub {
-    font-size: 1.05rem; color: var(--text-muted); max-width: 560px;
-    opacity: 0; animation: fadeUp 0.8s 0.6s forwards; letter-spacing: 0.01em;
-  }
-  .hero-stats {
-    display: flex; gap: 40px; margin-top: 48px;
-    opacity: 0; animation: fadeUp 0.8s 0.8s forwards;
-  }
-  .hero-stat { text-align: center; }
-  .hero-stat-num {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 1.6rem; font-weight: 500; color: var(--gold);
-  }
-  .hero-stat-label { font-size: 0.72rem; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
-  .scroll-hint {
-    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
-    display: flex; flex-direction: column; align-items: center; gap: 8px;
-    opacity: 0; animation: fadeUp 0.8s 1.2s forwards;
-  }
-  .scroll-hint span { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 3px; color: var(--text-muted); text-transform: uppercase; }
-  .scroll-line { width: 1px; height: 48px; background: linear-gradient(to bottom, var(--gold), transparent); animation: pulse 2s ease-in-out infinite; }
+.nav-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem; font-weight: 600; letter-spacing: 0.05em;
+  color: var(--gold-light);
+}
 
-  /* SECTIONS */
-  .section { max-width: 1100px; margin: 0 auto; padding: 80px 24px; }
-  .section-label {
-    font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 4px;
-    text-transform: uppercase; color: var(--gold-dim); margin-bottom: 16px;
-    display: flex; align-items: center; gap: 12px;
-  }
-  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-  .section-title { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 700; margin-bottom: 16px; line-height: 1.2; }
-  .section-title em { font-style: normal; color: var(--gold); }
-  .section-desc { color: var(--text-muted); font-size: 1rem; max-width: 600px; margin-bottom: 48px; }
+.nav-links {
+  display: flex; gap: 4px;
+  list-style: none;
+}
 
-  /* PHASE CARDS */
-  .phases { display: grid; gap: 2px; margin-bottom: 60px; }
-  .phase { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--gold-dim); overflow: hidden; cursor: pointer; transition: border-color 0.3s; }
-  .phase:hover { border-left-color: var(--gold); }
-  .phase.active { border-left-color: var(--gold-light); }
-  .phase-header { display: flex; align-items: center; gap: 20px; padding: 24px 28px; }
-  .phase-num { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 900; color: var(--gold-dim); min-width: 48px; transition: color 0.3s; }
-  .phase:hover .phase-num, .phase.active .phase-num { color: var(--gold); }
-  .phase-title { font-size: 1rem; font-weight: 500; flex: 1; }
-  .phase-icon { font-size: 1.3rem; opacity: 0.7; }
-  .phase-chevron { width: 18px; height: 18px; border-right: 1.5px solid var(--gold-dim); border-bottom: 1.5px solid var(--gold-dim); transform: rotate(45deg); transition: transform 0.3s, border-color 0.3s; margin-right: 4px; }
-  .phase.active .phase-chevron { transform: rotate(-135deg); border-color: var(--gold); }
-  .phase-body { max-height: 0; overflow: hidden; transition: max-height 0.5s cubic-bezier(0.4,0,0.2,1); }
-  .phase.active .phase-body { max-height: 900px; }
-  .phase-content { padding: 0 28px 28px 96px; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
-  @media (max-width: 600px) { .phase-content { padding: 0 16px 20px 16px; grid-template-columns: 1fr; } }
-  .item { background: var(--bg3); border: 1px solid rgba(255,255,255,0.04); padding: 14px 16px; transition: border-color 0.2s; }
-  .item:hover { border-color: var(--border); }
-  .item-title { font-size: 0.8rem; font-weight: 500; color: var(--gold-light); margin-bottom: 5px; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.3px; }
-  .item-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+.nav-links a {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text-muted); text-decoration: none;
+  padding: 6px 12px; border: 1px solid transparent;
+  transition: all 0.2s;
+}
 
-  /* METRICS */
-  .divider { border: none; border-top: 1px solid var(--border); margin: 60px 0; }
-  .metrics-section { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 80px 0; }
-  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-top: 48px; }
-  .metric-card { background: var(--bg2); padding: 24px 20px; transition: background 0.2s; }
-  .metric-card:hover { background: var(--surface); }
-  .metric-abbr { font-family: 'IBM Plex Mono', monospace; font-size: 1.2rem; font-weight: 500; color: var(--gold); margin-bottom: 6px; }
-  .metric-name { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 0.3px; }
-  .metric-desc { font-size: 0.76rem; color: var(--text); opacity: 0.7; line-height: 1.5; }
-  .metric-signal { display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; padding: 3px 8px; margin-top: 10px; }
-  .signal-buy { background: rgba(76,175,122,0.1); color: var(--green); border: 1px solid rgba(76,175,122,0.2); }
-  .signal-caution { background: rgba(201,168,76,0.1); color: var(--gold); border: 1px solid rgba(201,168,76,0.2); }
-  .signal-sell { background: rgba(201,76,76,0.1); color: var(--red); border: 1px solid rgba(201,76,76,0.2); }
+.nav-links a:hover {
+  color: var(--gold-light); border-color: var(--border);
+}
 
-  /* CHECKLIST */
-  .checklist-section { max-width: 1100px; margin: 0 auto; padding: 80px 24px; }
-  .checklist { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-top: 48px; }
-  .check-group { background: var(--surface); border: 1px solid var(--border); padding: 24px; }
-  .check-group-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
-  .check-item { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.03); cursor: pointer; user-select: none; }
-  .check-item:last-child { border-bottom: none; }
-  .check-box { width: 15px; height: 15px; border: 1px solid var(--gold-dim); flex-shrink: 0; margin-top: 3px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-  .check-item.checked .check-box { background: var(--gold); border-color: var(--gold); }
-  .check-item.checked .check-box::after { content: '✓'; font-size: 9px; color: var(--bg); font-weight: 700; }
-  .check-item.checked .check-label { text-decoration: line-through; color: var(--text-muted); }
-  .check-label { font-size: 0.8rem; line-height: 1.5; transition: color 0.2s; }
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  text-align: center;
+  padding: 80px 24px 60px;
+  position: relative;
+  overflow: hidden;
+}
 
-  /* DECISION FLOW */
-  .decision { max-width: 1100px; margin: 0 auto; padding: 80px 24px; }
-  .decision-flow { display: flex; flex-direction: column; gap: 2px; margin-top: 48px; }
-  .flow-step { display: grid; grid-template-columns: 70px 1fr auto; align-items: center; gap: 20px; background: var(--surface); border: 1px solid var(--border); padding: 22px 24px; transition: border-color 0.2s; }
-  @media (max-width: 600px) { .flow-step { grid-template-columns: 40px 1fr; } .flow-tag { display: none; } }
-  .flow-step:hover { border-color: var(--gold-dim); }
-  .flow-num { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 900; color: var(--bg3); -webkit-text-stroke: 1px var(--gold-dim); text-align: center; }
-  .flow-content h3 { font-size: 0.92rem; font-weight: 500; margin-bottom: 4px; }
-  .flow-content p { font-size: 0.78rem; color: var(--text-muted); }
-  .flow-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border: 1px solid; white-space: nowrap; }
-  .tag-q { color: var(--blue); border-color: rgba(76,132,201,0.3); background: rgba(76,132,201,0.05); }
-  .tag-f { color: var(--green); border-color: rgba(76,175,122,0.3); background: rgba(76,175,122,0.05); }
-  .tag-t { color: var(--gold); border-color: rgba(201,168,76,0.3); background: rgba(201,168,76,0.05); }
-  .tag-r { color: var(--red); border-color: rgba(201,76,76,0.3); background: rgba(201,76,76,0.05); }
-  .tag-p { color: #C94CC9; border-color: rgba(201,76,201,0.3); background: rgba(201,76,201,0.05); }
-  .tag-exit { color: var(--purple); border-color: rgba(156,111,214,0.3); background: rgba(156,111,214,0.05); }
-  .tag-psy { color: #4CC9C9; border-color: rgba(76,201,201,0.3); background: rgba(76,201,201,0.05); }
+.hero-bg {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% -10%, rgba(184,150,62,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 80% 80%, rgba(139,26,26,0.04) 0%, transparent 50%),
+    radial-gradient(ellipse 30% 30% at 20% 70%, rgba(26,47,92,0.05) 0%, transparent 50%);
+}
 
-  /* EXIT STRATEGY */
-  .exit-section { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 80px 0; }
-  .exit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1px; background: var(--border); margin-top: 48px; }
-  .exit-card { background: var(--bg2); padding: 28px 24px; transition: background 0.2s; border-left: 3px solid transparent; }
-  .exit-card:hover { background: var(--surface); }
-  .exit-card.sell { border-left-color: var(--red); }
-  .exit-card.hold { border-left-color: var(--green); }
-  .exit-card.watch { border-left-color: var(--gold); }
-  .exit-icon { font-size: 1.4rem; margin-bottom: 12px; }
-  .exit-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; font-weight: 500; margin-bottom: 8px; letter-spacing: 0.5px; }
-  .exit-card.sell .exit-title { color: var(--red); }
-  .exit-card.hold .exit-title { color: var(--green); }
-  .exit-card.watch .exit-title { color: var(--gold); }
-  .exit-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
-  .exit-rule { display: flex; gap: 8px; align-items: flex-start; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.76rem; }
-  .exit-rule:last-child { border-bottom: none; padding-bottom: 0; }
-  .exit-rule-dot { width: 5px; height: 5px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
-  .exit-card.sell .exit-rule-dot { background: var(--red); }
-  .exit-card.hold .exit-rule-dot { background: var(--green); }
-  .exit-card.watch .exit-rule-dot { background: var(--gold); }
+.hero-grid {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 79px, rgba(184,150,62,0.025) 80px),
+    repeating-linear-gradient(90deg, transparent, transparent 79px, rgba(184,150,62,0.025) 80px);
+}
 
-  /* PSYCHOLOGY */
-  .psy-section { max-width: 1100px; margin: 0 auto; padding: 80px 24px; }
-  .psy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-top: 48px; }
-  .psy-card { background: var(--surface); border: 1px solid var(--border); padding: 24px; transition: all 0.2s; position: relative; overflow: hidden; }
-  .psy-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(to right, var(--red), transparent); }
-  .psy-card:hover { border-color: rgba(201,76,76,0.3); transform: translateY(-2px); }
-  .psy-name { font-size: 0.95rem; font-weight: 500; margin-bottom: 6px; color: var(--text); }
-  .psy-en { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: var(--red); letter-spacing: 0.5px; margin-bottom: 10px; }
-  .psy-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px; }
-  .psy-fix { font-size: 0.76rem; color: var(--gold); padding: 8px 12px; background: rgba(201,168,76,0.06); border-left: 2px solid var(--gold-dim); }
+.hero-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: 4px; text-transform: uppercase;
+  color: var(--gold-dim); border: 1px solid var(--gold-dim);
+  padding: 6px 18px; margin-bottom: 40px;
+  opacity: 0; animation: rise 1s 0.3s forwards;
+  position: relative;
+}
 
-  /* BIST SPECIAL */
-  .bist-section { background: rgba(201,168,76,0.03); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 80px 0; }
-  .bist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-top: 48px; }
-  .bist-card { background: var(--bg3); border: 1px solid var(--border); border-left: 2px solid var(--gold-dim); padding: 20px 18px; transition: all 0.2s; }
-  .bist-card:hover { border-left-color: var(--gold); background: var(--surface); }
-  .bist-card-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--gold-light); font-weight: 500; margin-bottom: 6px; }
-  .bist-card-desc { font-size: 0.76rem; color: var(--text-muted); line-height: 1.5; }
-  .bist-tag { display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; padding: 2px 7px; margin-top: 8px; background: rgba(201,168,76,0.08); color: var(--gold-dim); border: 1px solid rgba(201,168,76,0.15); }
+.hero h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(3rem, 8vw, 7rem);
+  font-weight: 300; line-height: 1.0; letter-spacing: -0.02em;
+  margin-bottom: 8px;
+  opacity: 0; animation: rise 1s 0.5s forwards;
+}
 
-  /* PORTFOLIO */
-  .portfolio-section { max-width: 1100px; margin: 0 auto; padding: 80px 24px; }
-  .portfolio-table { width: 100%; border-collapse: collapse; margin-top: 48px; font-size: 0.82rem; }
-  .portfolio-table th { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-dim); padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
-  .portfolio-table td { padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--text-muted); vertical-align: top; line-height: 1.5; }
-  .portfolio-table tr:hover td { background: var(--surface); color: var(--text); }
-  .ptag { display: inline-block; padding: 2px 8px; font-size: 0.7rem; border-radius: 2px; }
-  .ptag-cons { background: rgba(76,175,122,0.1); color: var(--green); }
-  .ptag-agg { background: rgba(201,76,76,0.1); color: var(--red); }
-  .ptag-bal { background: rgba(201,168,76,0.1); color: var(--gold); }
-  .portfolio-tip { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--gold-dim); padding: 20px 24px; margin-top: 16px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; }
-  .portfolio-tip strong { color: var(--gold); font-weight: 500; }
+.hero h1 strong {
+  font-weight: 700; font-style: italic;
+  background: linear-gradient(135deg, var(--gold-pale), var(--gold), var(--gold-dim));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
 
-  /* ANIMATIONS */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
-  .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
-  .reveal.visible { opacity: 1; transform: none; }
+.hero-sub-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.5rem, 3vw, 2.4rem);
+  font-weight: 300; color: var(--text-dim);
+  margin-bottom: 40px;
+  opacity: 0; animation: rise 1s 0.7s forwards;
+}
 
-  /* FOOTER */
-  footer { border-top: 1px solid var(--border); padding: 40px 24px; text-align: center; }
-  footer p { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--text-muted); text-transform: uppercase; }
+.hero-desc {
+  font-size: 0.95rem; color: var(--text-muted); max-width: 560px;
+  letter-spacing: 0.01em; line-height: 1.8;
+  opacity: 0; animation: rise 1s 0.9s forwards;
+  margin-bottom: 48px;
+}
+
+.hero-stats {
+  display: flex; gap: 48px; justify-content: center; flex-wrap: wrap;
+  opacity: 0; animation: rise 1s 1.1s forwards;
+  margin-bottom: 48px;
+}
+
+.hero-stat {
+  text-align: center;
+}
+
+.hero-stat-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.2rem; font-weight: 700; color: var(--gold-light);
+  line-height: 1;
+}
+
+.hero-stat-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px; letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--text-muted); margin-top: 4px;
+}
+
+.scroll-cue {
+  position: absolute; bottom: 36px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  opacity: 0; animation: rise 1s 1.4s forwards;
+}
+
+.scroll-cue span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.scroll-line {
+  width: 1px; height: 52px;
+  background: linear-gradient(to bottom, var(--gold), transparent);
+  animation: breathe 2s ease-in-out infinite;
+}
+
+/* ── SECTION SYSTEM ── */
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 28px; }
+
+section { padding: 120px 0; }
+
+.s-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px; letter-spacing: 4px; text-transform: uppercase;
+  color: var(--gold-dim); display: flex; align-items: center; gap: 16px;
+  margin-bottom: 20px;
+}
+
+.s-label::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+
+.s-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2rem, 4.5vw, 3.4rem);
+  font-weight: 600; line-height: 1.15; margin-bottom: 12px;
+}
+
+.s-title em { font-style: italic; color: var(--gold-light); }
+
+.s-desc {
+  font-size: 0.9rem; color: var(--text-dim); max-width: 620px;
+  line-height: 1.8; margin-bottom: 64px;
+}
+
+/* ── REVEAL ── */
+.rv { opacity: 0; transform: translateY(28px); transition: opacity 0.8s ease, transform 0.8s ease; }
+.rv.on { opacity: 1; transform: none; }
+
+/* ── PHASE ACCORDION ── */
+.phase-list { display: flex; flex-direction: column; gap: 3px; }
+
+.phase {
+  background: var(--surface); border: 1px solid var(--border);
+  border-left: 2px solid var(--gold-dim); cursor: pointer;
+  transition: border-color 0.3s;
+}
+
+.phase:hover { border-left-color: var(--gold); }
+.phase.open { border-left-color: var(--gold-light); }
+
+.phase-head {
+  display: grid; grid-template-columns: 64px 1fr 36px 32px;
+  align-items: center; gap: 20px; padding: 24px 28px;
+}
+
+.ph-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.8rem; font-weight: 700; color: var(--gold-dim);
+  transition: color 0.3s;
+}
+
+.phase:hover .ph-num, .phase.open .ph-num { color: var(--gold-light); }
+
+.ph-title { font-size: 0.95rem; font-weight: 400; letter-spacing: 0.01em; }
+
+.ph-icon { font-size: 1.2rem; opacity: 0.6; justify-self: center; }
+
+.ph-arrow {
+  width: 16px; height: 16px;
+  border-right: 1.5px solid var(--gold-dim); border-bottom: 1.5px solid var(--gold-dim);
+  transform: rotate(45deg); justify-self: center;
+  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1), border-color 0.3s;
+}
+
+.phase.open .ph-arrow { transform: rotate(-135deg); border-color: var(--gold); }
+
+.phase-body { max-height: 0; overflow: hidden; transition: max-height 0.55s cubic-bezier(0.4,0,0.2,1); }
+.phase.open .phase-body { max-height: 1200px; }
+
+.ph-content {
+  padding: 4px 28px 28px 92px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+.pi {
+  background: var(--bg3); border: 1px solid rgba(255,255,255,0.04);
+  padding: 16px; transition: border-color 0.2s;
+}
+
+.pi:hover { border-color: var(--border); }
+
+.pi-title {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+  color: var(--gold-light); letter-spacing: 0.5px; margin-bottom: 6px;
+}
+
+.pi-text { font-size: 0.77rem; color: var(--text-muted); line-height: 1.55; }
+
+/* ── METRICS BAND ── */
+.metrics-band {
+  background: var(--bg2);
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+}
+
+.metrics-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 1px; background: var(--border); border: 1px solid var(--border);
+  margin-top: 56px;
+}
+
+.mc {
+  background: var(--bg2); padding: 26px 22px; transition: background 0.2s;
+}
+
+.mc:hover { background: var(--surface); }
+
+.mc-abbr {
+  font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; font-weight: 700;
+  color: var(--gold); margin-bottom: 4px;
+}
+
+.mc-name { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 8px; }
+
+.mc-desc { font-size: 0.75rem; color: var(--text); opacity: 0.65; line-height: 1.5; margin-bottom: 10px; }
+
+.mc-sig {
+  font-family: 'JetBrains Mono', monospace; font-size: 8px;
+  letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 7px;
+  display: inline-block;
+}
+
+.sig-g { background: rgba(76,175,122,0.1); color: var(--green); border: 1px solid rgba(76,175,122,0.2); }
+.sig-a { background: rgba(232,160,32,0.1); color: var(--amber); border: 1px solid rgba(232,160,32,0.2); }
+.sig-r { background: rgba(201,76,76,0.1); color: var(--red); border: 1px solid rgba(201,76,76,0.2); }
+
+/* ── RISK MATRIX ── */
+.risk-section { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+.risk-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 3px;
+  margin-top: 56px;
+}
+
+.risk-card {
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 32px; position: relative; overflow: hidden;
+  transition: border-color 0.3s;
+}
+
+.risk-card:hover { border-color: var(--border-bright); }
+
+.risk-color-bar {
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+}
+
+.risk-card.sys .risk-color-bar { background: linear-gradient(90deg, var(--crimson), transparent); }
+.risk-card.liq .risk-color-bar { background: linear-gradient(90deg, var(--amber), transparent); }
+.risk-card.con .risk-color-bar { background: linear-gradient(90deg, var(--blue), transparent); }
+.risk-card.beh .risk-color-bar { background: linear-gradient(90deg, var(--emerald-light), transparent); }
+.risk-card.pol .risk-color-bar { background: linear-gradient(90deg, #9B59B6, transparent); }
+.risk-card.cur .risk-color-bar { background: linear-gradient(90deg, var(--gold), transparent); }
+
+.risk-icon { font-size: 1.8rem; margin-bottom: 16px; }
+
+.risk-title {
+  font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 600;
+  margin-bottom: 8px; color: var(--text);
+}
+
+.risk-subtitle {
+  font-family: 'JetBrains Mono', monospace; font-size: 8px;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.risk-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.65; margin-bottom: 16px; }
+
+.risk-examples {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px;
+}
+
+.risk-ex {
+  font-family: 'JetBrains Mono', monospace; font-size: 8px;
+  padding: 3px 8px; border: 1px solid var(--border);
+  color: var(--text-dim); letter-spacing: 1px;
+}
+
+.risk-mitigation {
+  font-size: 0.75rem; color: var(--text-dim);
+  border-left: 2px solid var(--gold-dim); padding-left: 10px;
+  margin-top: 8px;
+}
+
+/* ── HISTORICAL CRISES ── */
+.crisis-timeline { margin-top: 64px; position: relative; }
+
+.crisis-line {
+  position: absolute; left: 28px; top: 0; bottom: 0;
+  width: 1px; background: linear-gradient(to bottom, var(--gold-dim), transparent);
+}
+
+.crisis-item {
+  display: grid; grid-template-columns: 56px 1fr;
+  gap: 24px; margin-bottom: 40px; position: relative;
+}
+
+.crisis-dot {
+  width: 14px; height: 14px;
+  border: 1px solid var(--gold-dim); background: var(--bg);
+  border-radius: 50%; position: absolute; left: 22px; top: 6px;
+  transition: border-color 0.3s, background 0.3s;
+}
+
+.crisis-item:hover .crisis-dot { border-color: var(--gold); background: var(--gold-dim); }
+
+.crisis-year {
+  font-family: 'Cormorant Garamond', serif; font-size: 1rem; font-weight: 700;
+  color: var(--gold-dim); padding-top: 2px; text-align: right;
+}
+
+.crisis-content {
+  background: var(--surface); border: 1px solid var(--border); padding: 20px 24px;
+  transition: border-color 0.3s;
+}
+
+.crisis-item:hover .crisis-content { border-color: var(--border-bright); }
+
+.crisis-name {
+  font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 600;
+  color: var(--text); margin-bottom: 4px;
+}
+
+.crisis-drop {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+  color: var(--red); margin-bottom: 8px;
+}
+
+.crisis-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 10px; }
+
+.crisis-lesson {
+  font-size: 0.75rem; color: var(--gold-light); font-style: italic;
+  border-top: 1px solid var(--border); padding-top: 8px;
+}
+
+/* ── BEHAVIORAL FINANCE ── */
+.bias-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px; margin-top: 56px;
+}
+
+.bias-card {
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 24px; transition: all 0.3s;
+  position: relative; overflow: hidden;
+}
+
+.bias-card::before {
+  content: ''; position: absolute;
+  bottom: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+  opacity: 0; transition: opacity 0.3s;
+}
+
+.bias-card:hover::before { opacity: 1; }
+.bias-card:hover { border-color: var(--border-bright); transform: translateY(-2px); }
+
+.bias-icon { font-size: 1.6rem; margin-bottom: 12px; }
+
+.bias-name {
+  font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.bias-en {
+  font-family: 'JetBrains Mono', monospace; font-size: 8px;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--gold-dim);
+  margin-bottom: 10px;
+}
+
+.bias-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 12px; }
+
+.bias-example {
+  font-size: 0.75rem; color: var(--text-dim); background: var(--bg3);
+  border-left: 2px solid var(--gold-dim); padding: 8px 10px;
+  line-height: 1.5;
+}
+
+/* ── PORTFOLIO THEORY ── */
+.portfolio-section { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+.portfolio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-top: 56px; }
+
+.pt-card {
+  background: var(--surface); border: 1px solid var(--border); padding: 32px;
+  transition: border-color 0.3s;
+}
+
+.pt-card:hover { border-color: var(--border-bright); }
+
+.pt-num {
+  font-family: 'Cormorant Garamond', serif; font-size: 3rem; font-weight: 700;
+  color: var(--bg3); -webkit-text-stroke: 1px var(--gold-dim);
+  line-height: 1; margin-bottom: 12px;
+}
+
+.pt-title {
+  font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.pt-formula {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+  color: var(--gold-light); background: var(--bg3);
+  padding: 10px 14px; margin-bottom: 12px; border: 1px solid var(--border);
+  letter-spacing: 0.5px;
+}
+
+.pt-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.65; }
+
+/* ── CHECKLIST ── */
+.cl-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px; margin-top: 56px;
+}
+
+.cl-group {
+  background: var(--surface); border: 1px solid var(--border); padding: 26px;
+}
+
+.cl-group-title {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--gold);
+  margin-bottom: 16px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.cl-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.025);
+  cursor: pointer; user-select: none; transition: opacity 0.2s;
+}
+
+.cl-item:last-child { border-bottom: none; }
+
+.cl-box {
+  width: 15px; height: 15px; border: 1px solid var(--gold-dim);
+  flex-shrink: 0; margin-top: 3px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+
+.cl-item.done .cl-box { background: var(--gold); border-color: var(--gold); }
+.cl-item.done .cl-box::after { content: '✓'; font-size: 9px; color: var(--bg); font-weight: 700; }
+.cl-item.done .cl-text { text-decoration: line-through; color: var(--text-muted); }
+.cl-text { font-size: 0.8rem; line-height: 1.5; transition: color 0.2s; }
+
+/* ── DECISION FLOW ── */
+.flow {
+  display: flex; flex-direction: column; gap: 3px; margin-top: 56px;
+}
+
+.flow-step {
+  display: grid; grid-template-columns: 80px 1fr 120px;
+  align-items: center; gap: 24px;
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 24px 28px; transition: border-color 0.2s;
+}
+
+.flow-step:hover { border-color: var(--gold-dim); }
+
+.f-num {
+  font-family: 'Cormorant Garamond', serif; font-size: 2.8rem; font-weight: 700;
+  color: var(--bg3); -webkit-text-stroke: 1px var(--gold-dim);
+  text-align: center; line-height: 1;
+}
+
+.f-title { font-size: 0.92rem; font-weight: 400; margin-bottom: 4px; }
+.f-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.55; }
+
+.f-tag {
+  font-family: 'JetBrains Mono', monospace; font-size: 8px;
+  letter-spacing: 2px; text-transform: uppercase;
+  padding: 5px 10px; border: 1px solid; text-align: center;
+}
+
+.tq { color: var(--blue); border-color: rgba(90,143,212,0.3); background: rgba(90,143,212,0.05); }
+.tf { color: var(--green); border-color: rgba(76,175,122,0.3); background: rgba(76,175,122,0.05); }
+.tv { color: var(--gold); border-color: rgba(184,150,62,0.3); background: rgba(184,150,62,0.05); }
+.tr { color: var(--red); border-color: rgba(201,76,76,0.3); background: rgba(201,76,76,0.05); }
+.tp { color: #C86DD3; border-color: rgba(200,109,211,0.3); background: rgba(200,109,211,0.05); }
+.tm { color: var(--amber); border-color: rgba(232,160,32,0.3); background: rgba(232,160,32,0.05); }
+
+/* ── VALUATION MODELS ── */
+.val-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; margin-top: 56px; }
+
+.val-card {
+  background: var(--surface); border: 1px solid var(--border); padding: 28px;
+  transition: all 0.3s; position: relative;
+}
+
+.val-card:hover { border-color: var(--border-bright); transform: translateY(-3px); }
+
+.val-rank {
+  font-family: 'JetBrains Mono', monospace; font-size: 8px;
+  letter-spacing: 3px; text-transform: uppercase; color: var(--gold-dim);
+  margin-bottom: 14px;
+}
+
+.val-name {
+  font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.val-formula {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.68rem;
+  color: var(--gold-light); background: var(--bg3);
+  padding: 8px 10px; margin: 10px 0; border: 1px solid var(--border);
+  letter-spacing: 0.3px; word-break: break-all;
+}
+
+.val-desc { font-size: 0.77rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 10px; }
+
+.val-pros, .val-cons { font-size: 0.72rem; line-height: 1.5; }
+.val-pros { color: var(--green); }
+.val-cons { color: var(--red); }
+
+/* ── MACROECONOMIC INDICATORS ── */
+.macro-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px; margin-top: 56px;
+}
+
+.macro-card {
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 24px; transition: all 0.3s;
+}
+
+.macro-card:hover { border-color: var(--border-bright); }
+
+.macro-icon { font-size: 1.5rem; margin-bottom: 10px; }
+.macro-title {
+  font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; font-weight: 600;
+  margin-bottom: 4px;
+}
+.macro-source {
+  font-family: 'JetBrains Mono', monospace; font-size: 8px;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--gold-dim);
+  margin-bottom: 10px;
+}
+.macro-desc { font-size: 0.77rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 10px; }
+.macro-effect { font-size: 0.73rem; color: var(--text-dim); line-height: 1.5; }
+.macro-arrow { color: var(--green); }
+.macro-arrow-r { color: var(--red); }
+
+/* ── QUOTE ── */
+.quote-block {
+  border-left: 2px solid var(--gold-dim); padding: 24px 32px;
+  margin: 64px 0; background: var(--surface); border-right: 1px solid var(--border);
+  position: relative;
+}
+
+.quote-mark {
+  font-family: 'Cormorant Garamond', serif; font-size: 5rem; font-weight: 700;
+  color: var(--gold-dim); position: absolute; top: -12px; left: 16px;
+  line-height: 1; opacity: 0.4;
+}
+
+.quote-text {
+  font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-style: italic;
+  font-weight: 300; line-height: 1.6; color: var(--text); margin-bottom: 12px;
+}
+
+.quote-author {
+  font-family: 'JetBrains Mono', monospace; font-size: 8px;
+  letter-spacing: 3px; text-transform: uppercase; color: var(--gold-dim);
+}
+
+/* ── POSITION SIZING ── */
+.sizing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-top: 56px; }
+
+.sz-card {
+  background: var(--surface); border: 1px solid var(--border); padding: 28px;
+  transition: border-color 0.3s;
+}
+
+.sz-card:hover { border-color: var(--border-bright); }
+
+.sz-title {
+  font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.sz-formula {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+  color: var(--gold-light); background: var(--bg3);
+  padding: 12px 14px; margin: 12px 0; border: 1px solid var(--border);
+  letter-spacing: 0.5px;
+}
+
+.sz-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.65; }
+
+/* ── SECTOR ROTATION ── */
+.cycle-wrap {
+  display: flex; gap: 4px; flex-wrap: wrap; margin-top: 56px;
+}
+
+.cycle-phase {
+  flex: 1; min-width: 140px; background: var(--surface);
+  border: 1px solid var(--border); padding: 20px 16px;
+  text-align: center; transition: all 0.3s;
+}
+
+.cycle-phase:hover { border-color: var(--border-bright); transform: translateY(-3px); }
+
+.cycle-label {
+  font-family: 'JetBrains Mono', monospace; font-size: 7px;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 8px;
+}
+
+.cycle-name {
+  font-family: 'Cormorant Garamond', serif; font-size: 1rem; font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.cycle-sectors { font-size: 0.72rem; color: var(--text-dim); line-height: 1.7; }
+.cycle-sectors strong { color: var(--gold-light); font-weight: 400; }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border); padding: 60px 24px;
+  text-align: center;
+}
+
+.footer-logo {
+  font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 600;
+  color: var(--gold-light); margin-bottom: 12px;
+}
+
+.footer-disc {
+  font-family: 'JetBrains Mono', monospace; font-size: 8px;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted);
+  max-width: 600px; margin: 0 auto; line-height: 2;
+}
+
+/* ── KEYFRAMES ── */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  nav .nav-links { display: none; }
+  .risk-grid, .portfolio-grid, .sizing-grid, .val-grid { grid-template-columns: 1fr; }
+  .flow-step { grid-template-columns: 60px 1fr; }
+  .f-tag { display: none; }
+  .ph-content { padding-left: 28px; }
+  .hero-stats { gap: 28px; }
+}
 </style>
 </head>
 <body>
 
-<div class="progress-bar" id="progressBar"></div>
+<div id="progress"></div>
 
-<!-- BACK BUTTON -->
-<a class="back-btn" onclick="history.length > 1 ? history.back() : window.close()" href="javascript:void(0)">
-  <i class="fas fa-chevron-left"></i> Geri Dön
-</a>
-
-<!-- TOC DOTS -->
-<div class="toc">
-  <div class="toc-dot active" data-label="GİRİŞ" onclick="scrollToSection('hero')"></div>
-  <div class="toc-dot" data-label="ANALİZ AŞAMALARI" onclick="scrollToSection('sec-phases')"></div>
-  <div class="toc-dot" data-label="KRİTİK METRİKLER" onclick="scrollToSection('sec-metrics')"></div>
-  <div class="toc-dot" data-label="CHECKLIST" onclick="scrollToSection('sec-checklist')"></div>
-  <div class="toc-dot" data-label="KARAR AKIŞI" onclick="scrollToSection('sec-decision')"></div>
-  <div class="toc-dot" data-label="ÇIKIŞ STRATEJİSİ" onclick="scrollToSection('sec-exit')"></div>
-  <div class="toc-dot" data-label="PSİKOLOJİ" onclick="scrollToSection('sec-psy')"></div>
-  <div class="toc-dot" data-label="BIST ÖZEL" onclick="scrollToSection('sec-bist')"></div>
-  <div class="toc-dot" data-label="PORTFÖY" onclick="scrollToSection('sec-portfolio')"></div>
-</div>
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Yatırım Analizi</div>
+  <ul class="nav-links">
+    <li><a href="#analiz">Analiz</a></li>
+    <li><a href="#metrikler">Metrikler</a></li>
+    <li><a href="#riskler">Riskler</a></li>
+    <li><a href="#krizler">Tarih</a></li>
+    <li><a href="#davranis">Psikoloji</a></li>
+    <li><a href="#portfoy">Portföy</a></li>
+    <li><a href="#degerleme">Değerleme</a></li>
+    <li><a href="#makro">Makro</a></li>
+    <li><a href="#kontrol">Kontrol</a></li>
+  </ul>
+</nav>
 
 <!-- HERO -->
-<section class="hero" id="hero">
-  <div class="badge">Yatırım Analizi · Kapsamlı Rehber</div>
-  <h1>Bir Varlığı Satın Almadan<br>Önce <span>Ne Yapmalısın?</span></h1>
-  <p class="hero-sub">Profesyonel yatırımcıların kullandığı derin analiz metodolojisi — veri toplama, filtreleme, karar verme ve çıkış çerçevesi.</p>
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-tag">Akademik Yatırım Analizi · Kapsamlı Rehber</div>
+  <h1>Derin <strong>Yatırım</strong><br>Analizi</h1>
+  <p class="hero-sub-title">Karar Verme Çerçevesi & Metodoloji</p>
+  <p class="hero-desc">
+    Değer yatırımından davranışsal finansal tuzaklara, tarihsel krizlerden portföy teorisine —
+    profesyonel analistlerin kullandığı metodolojinin bütünleşik bir haritası.
+  </p>
   <div class="hero-stats">
-    <div class="hero-stat"><div class="hero-stat-num">5</div><div class="hero-stat-label">Analiz Katmanı</div></div>
-    <div class="hero-stat"><div class="hero-stat-num">8</div><div class="hero-stat-label">Kritik Metrik</div></div>
-    <div class="hero-stat"><div class="hero-stat-num">18</div><div class="hero-stat-label">Kontrol Maddesi</div></div>
-    <div class="hero-stat"><div class="hero-stat-num">7</div><div class="hero-stat-label">Bölüm</div></div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">12</div>
+      <div class="hero-stat-label">Analiz Katmanı</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">9</div>
+      <div class="hero-stat-label">Risk Türü</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">18</div>
+      <div class="hero-stat-label">Bilişsel Önyargı</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">7</div>
+      <div class="hero-stat-label">Tarihsel Kriz Dersi</div>
+    </div>
   </div>
-  <div class="scroll-hint">
+  <div class="scroll-cue">
     <span>Aşağı kaydır</span>
     <div class="scroll-line"></div>
   </div>
 </section>
 
-<!-- 01 — ANALİZ AŞAMALARI -->
-<section class="section" id="sec-phases">
-  <div class="section-label reveal">01 — Analiz Aşamaları</div>
-  <h2 class="section-title reveal">Derin Analizin <em>5 Katmanı</em></h2>
-  <p class="section-desc reveal">Her aşama bir öncekinin üzerine inşa edilir. Sırayı atlamak, kör noktalar yaratır.</p>
+<!-- ── 01 ANALİZ AŞAMALARI ── -->
+<section id="analiz">
+  <div class="wrap">
+    <div class="s-label rv">01 — Analiz Metodolojisi</div>
+    <h2 class="s-title rv">Derin Analizin <em>7 Katmanı</em></h2>
+    <p class="s-desc rv">Her aşama bir öncekinin üzerine inşa edilir. Sırayı atlamak kör noktalar yaratır — ve kör noktalara piyasa en hızlı öder.</p>
 
-  <div class="phases reveal" id="phases">
-    <div class="phase" onclick="toggle(this)">
-      <div class="phase-header">
-        <div class="phase-num">01</div>
-        <div><div class="phase-title">Makro & Sektör Analizi</div></div>
-        <div class="phase-icon">🌍</div>
-        <div class="phase-chevron"></div>
-      </div>
-      <div class="phase-body">
-        <div class="phase-content">
-          <div class="item"><div class="item-title">Faiz Ortamı</div><div class="item-desc">Merkez bankası politikaları, faiz beklentileri. Yüksek faiz = büyüme hisselerine baskı.</div></div>
-          <div class="item"><div class="item-title">Enflasyon Verileri</div><div class="item-desc">CPI, ÜFE takibi. Emtia ve enerji şirketleri enflasyondan faydalanır.</div></div>
-          <div class="item"><div class="item-title">Sektör Döngüsü</div><div class="item-desc">Ekonominin hangi evresinde? Genişleme / daralma / toparlanma ayrımı.</div></div>
-          <div class="item"><div class="item-title">Düzenleyici Risk</div><div class="item-desc">Sektörü etkileyen yasa değişiklikleri, vergi politikaları, lisans riskleri.</div></div>
-          <div class="item"><div class="item-title">Küresel Bağlantı</div><div class="item-desc">Şirketin ihracat/ithalat bağımlılığı, döviz kuru hassasiyeti.</div></div>
+    <div class="phase-list rv" id="phases">
+
+      <div class="phase" onclick="togglePhase(this)">
+        <div class="phase-head">
+          <div class="ph-num">01</div>
+          <div class="ph-title">Makro & Sektör Çerçevesi</div>
+          <div class="ph-icon">🌍</div>
+          <div class="ph-arrow"></div>
+        </div>
+        <div class="phase-body">
+          <div class="ph-content">
+            <div class="pi"><div class="pi-title">Faiz & Para Politikası</div><div class="pi-text">Merkez bankası faiz döngüsü nerede? Faiz artışı → büyüme hisseleri sıkışır, temettü hisseleri çekici olur. Fed, ECB ve TCMB politikalarını ayrı ayrı incele.</div></div>
+            <div class="pi"><div class="pi-title">Enflasyon Ortamı</div><div class="pi-text">CPI ve ÜFE trendi. Emtia, enerji ve gayrimenkul şirketleri enflasyondan faydalanır. Yüksek enflasyon → marjlar baskı altında, ancak fiyatlama gücü olan şirketler dayanır.</div></div>
+            <div class="pi"><div class="pi-title">Ekonomik Döngü Evresi</div><div class="pi-text">Genişleme / zirve / daralma / toparlanma. Her evrede farklı sektörler öne çıkar. Leading göstergeler (ISM, PMI) ve lagging göstergeler (işsizlik) ayrımı kritik.</div></div>
+            <div class="pi"><div class="pi-title">Getiri Eğrisi</div><div class="pi-text">Ters getiri eğrisi (2y > 10y) tarihsel olarak 6–18 ay içinde resesyon sinyali verdi. 1980, 2000, 2007 ve 2019 örnekleri bu örüntüyü doğrular.</div></div>
+            <div class="pi"><div class="pi-title">Sektör Büyüme Dinamiği</div><div class="pi-text">TAM (Total Addressable Market). Sektör büyüme hızı GDP'nin kaç katı? Yapısal büyüme (AI, enerji dönüşümü) mi, döngüsel büyüme mi?</div></div>
+            <div class="pi"><div class="pi-title">Jeopolitik & Düzenleyici Risk</div><div class="pi-text">Tarife riskler, yaptırımlar, lisans değişiklikleri. Çin-ABD teknoloji savaşı semiconductor sektörünü nasıl etkiledi? Enerji sektöründe karbon vergisi.</div></div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="phase" onclick="toggle(this)">
-      <div class="phase-header">
-        <div class="phase-num">02</div>
-        <div><div class="phase-title">Nitel (Temel) Analiz</div></div>
-        <div class="phase-icon">🔎</div>
-        <div class="phase-chevron"></div>
-      </div>
-      <div class="phase-body">
-        <div class="phase-content">
-          <div class="item"><div class="item-title">İş Modeli</div><div class="item-desc">Para nereden geliyor? Tekrarlayan gelir mi, tek seferlik mi? SaaS vs. ürün satışı.</div></div>
-          <div class="item"><div class="item-title">Rekabet Avantajı (Moat)</div><div class="item-desc">Marka, patent, network etkisi, maliyet avantajı, switching cost.</div></div>
-          <div class="item"><div class="item-title">Yönetim Kalitesi</div><div class="item-desc">CEO geçmişi, içeriden alım-satım kayıtları, sermaye tahsis kararları.</div></div>
-          <div class="item"><div class="item-title">Rekabet Ortamı</div><div class="item-desc">Pazar payı trendi, yeni girenler, ikame ürün tehdidi (Porter's 5 Forces).</div></div>
-          <div class="item"><div class="item-title">Müşteri Yapısı</div><div class="item-desc">Müşteri konsantrasyonu — tek müşteriye bağımlılık ciddi risk yaratır.</div></div>
+      <div class="phase" onclick="togglePhase(this)">
+        <div class="phase-head">
+          <div class="ph-num">02</div>
+          <div class="ph-title">İş Modeli & Rekabet Avantajı (Moat)</div>
+          <div class="ph-icon">🏰</div>
+          <div class="ph-arrow"></div>
+        </div>
+        <div class="phase-body">
+          <div class="ph-content">
+            <div class="pi"><div class="pi-title">Gelir Modeli Haritası</div><div class="pi-text">Recurring revenue mu, tek seferlik mi? SaaS → yüksek LTV, düşük CAC hedefi. Ürün satışı → stok ve tedarik riski. Hizmet → ölçeklenmesi zor ama istikrarlı.</div></div>
+            <div class="pi"><div class="pi-title">Ağ Etkisi (Network Effect)</div><div class="pi-text">Kullanıcı sayısı arttıkça ürün daha değerli oluyor mu? Visa, Meta, LinkedIn güçlü ağ etkisi örnekleri. Bu avantaj çoğaltılamaz.</div></div>
+            <div class="pi"><div class="pi-title">Geçiş Maliyeti (Switching Cost)</div><div class="pi-text">Müşteri rakibe geçmek istediğinde ne kadar veri, süreç ve para kaybeder? SAP, Salesforce, Adobe — geçiş maliyeti yüksek = fiyat gücü yüksek.</div></div>
+            <div class="pi"><div class="pi-title">Maliyet Avantajı</div><div class="pi-text">Ölçek ekonomisi, süreç avantajı, hammadde erişimi. Amazon'un dağıtım altyapısı rakiplerin karşılayamayacağı maliyet tabanı oluşturdu.</div></div>
+            <div class="pi"><div class="pi-title">Soyut Varlıklar (Intangibles)</div><div class="pi-text">Marka gücü, patent, lisans. Coca-Cola'nın markalı değeri bilanço dışı kalmaya devam eder ama en gerçek rekabet kozudur.</div></div>
+            <div class="pi"><div class="pi-title">Porter's 5 Forces</div><div class="pi-text">Yeni girenlerin tehdidi / alıcı gücü / satıcı gücü / ikame ürün riski / sektör içi rekabet. 5 kuvvetin tümü şirketi etkiler.</div></div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="phase" onclick="toggle(this)">
-      <div class="phase-header">
-        <div class="phase-num">03</div>
-        <div><div class="phase-title">Finansal (Kantitatif) Analiz</div></div>
-        <div class="phase-icon">📊</div>
-        <div class="phase-chevron"></div>
-      </div>
-      <div class="phase-body">
-        <div class="phase-content">
-          <div class="item"><div class="item-title">Gelir Tablosu</div><div class="item-desc">Gelir büyümesi, brüt marj, EBITDA marjı. 3-5 yıllık trend analizi.</div></div>
-          <div class="item"><div class="item-title">Bilanço</div><div class="item-desc">Borç/özkaynak oranı, nakit pozisyonu, varlık kalitesi, goodwill oranı.</div></div>
-          <div class="item"><div class="item-title">Nakit Akışı</div><div class="item-desc">Serbest nakit akışı (FCF) en kritik göstergedir. Kâr yanıltabilir, nakit yanıltmaz.</div></div>
-          <div class="item"><div class="item-title">Sermaye Verimliliği</div><div class="item-desc">ROE, ROCE, ROIC — yatırılan sermayenin ne kadar verimli kullanıldığı.</div></div>
-          <div class="item"><div class="item-title">Kaldıraç Analizi</div><div class="item-desc">Net borç / EBITDA oranı. 3x üzeri yüksek risk sinyali.</div></div>
+      <div class="phase" onclick="togglePhase(this)">
+        <div class="phase-head">
+          <div class="ph-num">03</div>
+          <div class="ph-title">Yönetim Kalitesi & Kurumsal Yönetim</div>
+          <div class="ph-icon">👔</div>
+          <div class="ph-arrow"></div>
+        </div>
+        <div class="phase-body">
+          <div class="ph-content">
+            <div class="pi"><div class="pi-title">Sermaye Tahsisi Geçmişi</div><div class="pi-text">CEO geçmiş dönemlerde sermayeyi nasıl kullandı? Organik büyüme, M&A, temettü veya geri alım kararları. Warren Buffett için Berkshire'daki 50 yıllık sermaye tahsis rekoru bir vaka çalışmasıdır.</div></div>
+            <div class="pi"><div class="pi-title">İçeriden Alım/Satım Kayıtları</div><div class="pi-text">Yönetim kendi parasıyla hisseyi alıyor mu? SEC Form 4 verileri en güçlü sinyallerden biri. Toplu satış, beklentiler hakkında iç bilgi işareti olabilir.</div></div>
+            <div class="pi"><div class="pi-title">Yönetim Beyanları vs. Gerçekleşmeler</div><div class="pi-text">Önceki guidance'lara ne kadar uydular? "Over-promise, under-deliver" yönetimler değerleme primini kaybeder. 3–5 yıl geriye bak.</div></div>
+            <div class="pi"><div class="pi-title">Teşvik Yapısı</div><div class="pi-text">CEO ve C-suite'in maaş yapısı nedir? Hisse bazlı teşvik mi, kısa vadeli bonus mu? İkincisi yöneticilerin uzun vadeli hissedarlarla çıkar çatışmasına yol açabilir.</div></div>
+            <div class="pi"><div class="pi-title">Bağımsız Denetim & Kurumsal Yönetim</div><div class="pi-text">Yönetim kurulunun bağımsızlığı. İlişkili taraf işlemleri. Denetim firması büyüklüğü. Enron skandalı kurumsal yönetim boşluğunun nasıl değer imha ettiğini gösteren en dramatik örnektir.</div></div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="phase" onclick="toggle(this)">
-      <div class="phase-header">
-        <div class="phase-num">04</div>
-        <div><div class="phase-title">Değerleme</div></div>
-        <div class="phase-icon">💎</div>
-        <div class="phase-chevron"></div>
-      </div>
-      <div class="phase-body">
-        <div class="phase-content">
-          <div class="item"><div class="item-title">DCF Analizi</div><div class="item-desc">Gelecek nakit akışlarının bugünkü değeri. Varsayımlara çok duyarlı — duyarlılık analizi zorunlu.</div></div>
-          <div class="item"><div class="item-title">Çarpan Analizi</div><div class="item-desc">F/K, FD/EBITDA, F/S, F/DD. Sektör ortalamalarıyla ve tarihsel ortalamayla kıyasla.</div></div>
-          <div class="item"><div class="item-title">Karşılaştırmalı Analiz</div><div class="item-desc">Rakiplerle yan yana değerleme. Prim veya iskonto gerekçelendirilebilir mi?</div></div>
-          <div class="item"><div class="item-title">Sum-of-the-Parts</div><div class="item-desc">Bölünebilir iş birimlerini ayrı ayrı değerle. Holding iskontosu fırsatı olabilir.</div></div>
-          <div class="item"><div class="item-title">Güvenlik Marjı</div><div class="item-desc">Hesaplanan değerin altında en az %20-30 iskonto olmadan alım yapmama kuralı.</div></div>
+      <div class="phase" onclick="togglePhase(this)">
+        <div class="phase-head">
+          <div class="ph-num">04</div>
+          <div class="ph-title">Finansal (Kantitatif) Analiz</div>
+          <div class="ph-icon">📊</div>
+          <div class="ph-arrow"></div>
+        </div>
+        <div class="phase-body">
+          <div class="ph-content">
+            <div class="pi"><div class="pi-title">Gelir Tablosu Trendi</div><div class="pi-text">5 yıllık CAGR hesabı. Gelir büyümesi, brüt marj genişlemesi veya daralması. Tek seferlik kalemler operasyonel performansı gizler — adjusted EBITDA'ya dikkat.</div></div>
+            <div class="pi"><div class="pi-title">Bilanço Sağlığı</div><div class="pi-text">Net borç / özkaynak oranı, current ratio, quick ratio. Borç vadelenme takvimi kritik — 2023 Silicon Valley Bank iflası kısa vadeli borç & uzun vadeli varlık uyumsuzluğunun öğretici dersidir.</div></div>
+            <div class="pi"><div class="pi-title">Serbest Nakit Akışı (FCF)</div><div class="pi-text">FCF = Operating Cash Flow − Capex. En yanıltmaz metrik. "Muhasebe kârı fikir, nakit gerçek" — şirket büyük kâr açıklayabilir ama negatif FCF üretebilir.</div></div>
+            <div class="pi"><div class="pi-title">Sermaye Verimliliği</div><div class="pi-text">ROIC vs. WACC. ROIC > WACC → şirket değer yaratıyor. ROIC < WACC → sermaye imha ediliyor. ROE yüksek görünse de kaldıraç kaynaklıysa aldatıcıdır.</div></div>
+            <div class="pi"><div class="pi-title">Çalışma Sermayesi Dinamiği</div><div class="pi-text">Alacak, stok ve borç döngüleri. CCC (Cash Conversion Cycle) ne kadar kısa? Negatif CCC (Amazon gibi) çalışma sermayesi avantajıdır.</div></div>
+            <div class="pi"><div class="pi-title">Muhasebe Kalitesi</div><div class="pi-text">Agresif gelir tanıma, capitalize edilen giderler, goodwill birikimi. Beneish M-Skoru finansal manipülasyon olasılığını ölçen kantitatif bir araçtır.</div></div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="phase" onclick="toggle(this)">
-      <div class="phase-header">
-        <div class="phase-num">05</div>
-        <div><div class="phase-title">Teknik & Piyasa Analizi</div></div>
-        <div class="phase-icon">📈</div>
-        <div class="phase-chevron"></div>
-      </div>
-      <div class="phase-body">
-        <div class="phase-content">
-          <div class="item"><div class="item-title">Trend Analizi</div><div class="item-desc">Ana trendin yönü. Temel analiz "ne alacağını", teknik analiz "ne zaman alacağını" söyler.</div></div>
-          <div class="item"><div class="item-title">Destek/Direnç</div><div class="item-desc">Önemli fiyat seviyeleri. Alım için destek bölgesi, stop için kırılma seviyesi.</div></div>
-          <div class="item"><div class="item-title">Hacim Analizi</div><div class="item-desc">Kırılımların hacimle desteklenmesi gerekir. Hacimsiz hareket güvenilir değil.</div></div>
-          <div class="item"><div class="item-title">Göreli Güç</div><div class="item-desc">Hisse endekse kıyasla outperform mı ediyor? Momentum pozitif mi?</div></div>
-          <div class="item"><div class="item-title">Pozisyon Zamanlaması</div><div class="item-desc">Ortalama maliyetlendirme (DCA) veya tek seferlik giriş stratejisi seçimi.</div></div>
+      <div class="phase" onclick="togglePhase(this)">
+        <div class="phase-head">
+          <div class="ph-num">05</div>
+          <div class="ph-title">Değerleme Analizi</div>
+          <div class="ph-icon">💎</div>
+          <div class="ph-arrow"></div>
+        </div>
+        <div class="phase-body">
+          <div class="ph-content">
+            <div class="pi"><div class="pi-title">DCF (İndirgenmiş Nakit Akışı)</div><div class="pi-text">Gelecek FCF projeksiyonu + terminal değer. WACC ile indirgenmiş bugünkü değer. Ufak varsayım değişimleri sonucu dramatik etkiler — duyarlılık analizi zorunlu.</div></div>
+            <div class="pi"><div class="pi-title">Çarpan Analizi</div><div class="pi-text">EV/EBITDA, P/E, P/S, P/B, EV/FCF. Sektör medyanı ve tarihsel medyana göre iskonto/prim. Tek çarpan yetmez — birden fazla kullan.</div></div>
+            <div class="pi"><div class="pi-title">Sum-of-the-Parts (SOTP)</div><div class="pi-text">Konglomerat veya holding yapıları için her segmenti ayrı değerle. Holding iskontosu fırsatı olabilir veya tuzağa dönüşebilir.</div></div>
+            <div class="pi"><div class="pi-title">Güvenlik Marjı</div><div class="pi-text">Graham'ın altın kuralı: hesaplanan içsel değerin en az %20–30 altında fiyat olmadan alma. Marj; hata payı, tahmin hatası ve kötü şansı absorbe eder.</div></div>
+            <div class="pi"><div class="pi-title">Senaryo Analizi</div><div class="pi-text">Boğa / baz / ayı senaryosu için ayrı değerleme. Her senaryoya olasılık ata: Ağırlıklı ortalama değer daha gerçekçi bir hedef fiyat üretir.</div></div>
+          </div>
         </div>
       </div>
+
+      <div class="phase" onclick="togglePhase(this)">
+        <div class="phase-head">
+          <div class="ph-num">06</div>
+          <div class="ph-title">Risk Analizi & Stres Testi</div>
+          <div class="ph-icon">⚡</div>
+          <div class="ph-arrow"></div>
+        </div>
+        <div class="phase-body">
+          <div class="ph-content">
+            <div class="pi"><div class="pi-title">Tez Yıkıcı Senaryolar</div><div class="pi-text">Tezi geçersiz kılacak 3 senaryo yaz. "Temel müşteri ayrılırsa?", "Rakip fiyatı yüzde elli düşürürse?", "Mevzuat şirketi zorlarsa?" Bu soruların cevabı net değilse pozisyon alma.</div></div>
+            <div class="pi"><div class="pi-title">Maksimum Kayıp Analizi</div><div class="pi-text">Yatırımın sıfıra gitmesi durumunda portföye etkisi nedir? Kelly Kriteri bu maksimum çekme riskini matematiksel olarak minimize eder.</div></div>
+            <div class="pi"><div class="pi-title">Korelasyon Riski</div><div class="pi-text">Portföydeki varlıklar arasındaki korelasyon. 2008 krizinde neredeyse tüm varlık sınıflarının eş zamanlı düşmesi, "çeşitlendirme sizi kurtarır" inancını sarstı.</div></div>
+            <div class="pi"><div class="pi-title">Likidite Riski</div><div class="pi-text">Panik döneminde pozisyondan çıkılabilir mi? Küçük piyasa değerli hisseler, opsiyon pozisyonları veya kaldıraçlı yapılar likidite tuzağı yaratabilir.</div></div>
+            <div class="pi"><div class="pi-title">Siyah Kuğu Hazırlığı</div><div class="pi-text">Nassim Taleb: öngörülemeyen ama büyük etki yaratan olaylar. COVID-19, 11 Eylül, Lehman — bunlar modelin dışında ama portföyün içindedir. Konveksite (asimetrik getiri) aramak cevaptır.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase" onclick="togglePhase(this)">
+        <div class="phase-head">
+          <div class="ph-num">07</div>
+          <div class="ph-title">Teknik Analiz & Giriş Zamanlaması</div>
+          <div class="ph-icon">📈</div>
+          <div class="ph-arrow"></div>
+        </div>
+        <div class="phase-body">
+          <div class="ph-content">
+            <div class="pi"><div class="pi-title">Trend Yapısı</div><div class="pi-text">Temel analiz "ne alınır" der, teknik analiz "ne zaman alınır". Ana trendin yönü, yüksek dip & yüksek tepe yapısı. Hisseler mükemmel şirket olsa da trendden bağımsız çalışmaz.</div></div>
+            <div class="pi"><div class="pi-title">Destek / Direnç Seviyeleri</div><div class="pi-text">Geçmişte dönüş yaratan kritik fiyat bölgeleri. Destek bölgesi = risk/ödül oranı en iyi giriş noktası. Direnç kırılımı güçlü momentum sinyali verir.</div></div>
+            <div class="pi"><div class="pi-title">Hacim Analizi</div><div class="pi-text">Kırılımlar hacimle desteklenmeli. Hacimsiz yükseliş "weak hands" pozisyonudur. OBV (On-Balance Volume) fiyat öncüsü olarak çalışır.</div></div>
+            <div class="pi"><div class="pi-title">Göreli Güç (RSI & RS Rating)</div><div class="pi-text">Hisse endekse kıyasla outperform mu ediyor? William O'Neil'in CANSLIM sisteminde RS Rating üst %20'de olan hisseler anlamlı biçimde daha iyi performans sergiledi.</div></div>
+            <div class="pi"><div class="pi-title">Giriş Stratejisi</div><div class="pi-text">DCA (Dollar Cost Averaging) belirsizliği azaltır. Tek seferlik giriş momentum dönemlerinde üstün performans gösterebilir. Pozisyon boyutunu giriş noktasına göre ayarla.</div></div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
 
-<!-- 02 — KRİTİK METRİKLER -->
-<section class="metrics-section" id="sec-metrics">
-  <div class="section" style="padding-top:0; padding-bottom:0;">
-    <div class="section-label reveal">02 — Kritik Göstergeler</div>
-    <h2 class="section-title reveal">Hangi <em>Metriklere</em> Bakmalısın?</h2>
-    <p class="section-desc reveal">Her metrik tek başına anlamsızdır — kombinasyon içinde değerlendir.</p>
-    <div class="metrics-grid reveal">
-      <div class="metric-card"><div class="metric-abbr">F/K</div><div class="metric-name">Fiyat / Kazanç</div><div class="metric-desc">Yatırımcının 1₺ kâr için kaç ₺ ödediği. Sektör ortalamasıyla karşılaştır.</div><div class="metric-signal signal-buy">< Ort. → İskontolu</div></div>
-      <div class="metric-card"><div class="metric-abbr">FCF</div><div class="metric-name">Serbest Nakit Akışı</div><div class="metric-desc">FAVÖK'ten Capex çıkarıldıktan sonra kalan gerçek nakit. En güvenilir metrik.</div><div class="metric-signal signal-buy">Pozitif & büyüyen</div></div>
-      <div class="metric-card"><div class="metric-abbr">ROIC</div><div class="metric-name">Yatırılan Sermaye Getirisi</div><div class="metric-desc">Şirket sermayesini ne kadar verimli kullanıyor? WACC'ın üzerinde olmalı.</div><div class="metric-signal signal-buy">> WACC → Değer yaratır</div></div>
-      <div class="metric-card"><div class="metric-abbr">ND/EBITDA</div><div class="metric-name">Net Borç / EBITDA</div><div class="metric-desc">Borcunu kaç yılda ödeyebileceği. Sermaye yoğun dışı sektörlerde 2x altı ideal.</div><div class="metric-signal signal-caution">2x–3x → İzle</div></div>
-      <div class="metric-card"><div class="metric-abbr">GPM</div><div class="metric-name">Brüt Kâr Marjı</div><div class="metric-desc">Fiyatlama gücünün en saf göstergesi. Trend önemli — genişliyor mu, daralıyor mu?</div><div class="metric-signal signal-buy">Genişleyen trend</div></div>
-      <div class="metric-card"><div class="metric-abbr">P/B</div><div class="metric-name">Piyasa / Defter Değeri</div><div class="metric-desc">Bankacılık sektörü için kritik. 1x altı teorik olarak varlık değerinin altında fiyat.</div><div class="metric-signal signal-caution">Sektöre göre değişir</div></div>
-      <div class="metric-card"><div class="metric-abbr">Insider</div><div class="metric-name">İçeriden Alım/Satım</div><div class="metric-desc">Yöneticilerin kendi hisselerini alması güçlü pozitif sinyal. Toplu satış uyarıdır.</div><div class="metric-signal signal-buy">Net alım → Güçlü sinyal</div></div>
-      <div class="metric-card"><div class="metric-abbr">Short %</div><div class="metric-name">Açığa Satış Oranı</div><div class="metric-desc">Float'ın %15 üzerindeyse kurumsal karamsarlık işareti. Short squeeze riski de var.</div><div class="metric-signal signal-caution">> %15 → Dikkat</div></div>
+<!-- ── 02 KRİTİK METRİKLER ── -->
+<section id="metrikler" class="metrics-band">
+  <div class="wrap">
+    <div class="s-label rv">02 — Finansal Göstergeler</div>
+    <h2 class="s-title rv">Hangi <em>Metriklere</em> Bakmalısın?</h2>
+    <p class="s-desc rv">Her metrik tek başına anlamsızdır — kombinasyon içinde değerlendir ve sektör kontekstiyle kıyasla.</p>
+    <div class="metrics-grid rv">
+      <div class="mc"><div class="mc-abbr">FCF</div><div class="mc-name">Serbest Nakit Akışı</div><div class="mc-desc">Kâr yanıltabilir; nakit yanıltmaz. Capex sonrası operasyonel nakit. En güvenilir karlılık göstergesi.</div><div class="mc-sig sig-g">Pozitif & büyüyen →</div></div>
+      <div class="mc"><div class="mc-abbr">ROIC</div><div class="mc-name">Yatırılan Sermaye Getirisi</div><div class="mc-desc">Şirket sermayesini ne kadar verimli kullanıyor? WACC'ın üzerinde olması değer yaratım koşuludur.</div><div class="mc-sig sig-g">> WACC →</div></div>
+      <div class="mc"><div class="mc-abbr">EV/EBITDA</div><div class="mc-name">Kurumsal Değer / EBITDA</div><div class="mc-desc">Sermaye yapısından bağımsız değerleme. P/E'den daha güvenilir — kaldıraç etkisini elimine eder.</div><div class="mc-sig sig-a">Sektör medyanına göre</div></div>
+      <div class="mc"><div class="mc-abbr">ND/EBITDA</div><div class="mc-name">Net Borç / EBITDA</div><div class="mc-desc">Borç ödeme kapasitesi. Sektöre göre değişir; enerji sektöründe 3x kabul edilebilirken teknolojide 1x bile yüksek olabilir.</div><div class="mc-sig sig-a">< 2x ideal</div></div>
+      <div class="mc"><div class="mc-abbr">Gross Margin</div><div class="mc-name">Brüt Kâr Marjı</div><div class="mc-desc">Fiyatlama gücünün ham göstergesi. Genişleyen trend = moat varlığı. Daralan trend = rekabet baskısı uyarısı.</div><div class="mc-sig sig-g">Genişleyen trend</div></div>
+      <div class="mc"><div class="mc-abbr">P/E (F/K)</div><div class="mc-name">Fiyat / Kazanç</div><div class="mc-desc">En bilinen ama en yanıltıcı metrik. Büyüme hızını, borcu ve muhasebe kararlarını yansıtmaz. Forward P/E daha anlamlı.</div><div class="mc-sig sig-a">PEG ile birlikte bak</div></div>
+      <div class="mc"><div class="mc-abbr">PEG</div><div class="mc-name">F/K / Büyüme Oranı</div><div class="mc-desc">Peter Lynch'in çarpanı. PEG < 1 teorik olarak büyümeye göre ucuz. Büyüme kalitesini de sorgulamak gerekir.</div><div class="mc-sig sig-g">< 1 iskontolu</div></div>
+      <div class="mc"><div class="mc-abbr">P/B</div><div class="mc-name">Piyasa / Defter Değeri</div><div class="mc-desc">Bankacılık ve sigorta sektörü için kritik. 1x altı teorik defter iskonto — ama varlık kalitesi kritik.</div><div class="mc-sig sig-a">Sektöre göre değişir</div></div>
+      <div class="mc"><div class="mc-abbr">Insider</div><div class="mc-name">İçeriden Alım/Satım</div><div class="mc-desc">Yöneticiler kendi parasıyla ne yapıyor? Net alım → güçlü pozitif sinyal. Toplu satış → dikkat.</div><div class="mc-sig sig-g">Net alım →</div></div>
+      <div class="mc"><div class="mc-abbr">Short %</div><div class="mc-name">Açığa Satış Oranı</div><div class="mc-desc">Float'ın %15 üzerindeyse kurumsal bear konsensüsü. Short squeeze potansiyeli hem fırsat hem tuzaktır.</div><div class="mc-sig sig-r">> %15 dikkat</div></div>
+      <div class="mc"><div class="mc-abbr">DPS/EPS</div><div class="mc-name">Temettü Ödeme Oranı</div><div class="mc-desc">%30–60 aralığı genellikle sürdürülebilir. %80+ büyüme yatırımı yapılamıyor işareti. Temettü kesintisi dramatik değer düşüşü tetikler.</div><div class="mc-sig sig-a">%30–60 ideal</div></div>
+      <div class="mc"><div class="mc-abbr">CCC</div><div class="mc-name">Nakit Dönüşüm Döngüsü</div><div class="mc-desc">Hammadde → satış → tahsilat süresi. Kısa veya negatif CCC = nakit avantajı. Amazon negatif CCC ile büyüdü.</div><div class="mc-sig sig-g">Negatif → avantaj</div></div>
     </div>
   </div>
 </section>
 
-<!-- 03 — CHECKLIST -->
-<section class="checklist-section" id="sec-checklist">
-  <div class="section-label reveal">03 — Alım Öncesi Kontrol</div>
-  <h2 class="section-title reveal">Due Diligence <em>Checklist</em></h2>
-  <p class="section-desc reveal">Tüm kutular işaretlenmeden pozisyon açma. Her kutuya tıklayarak ilerleyebilirsin.</p>
-  <div class="checklist reveal">
-    <div class="check-group">
-      <div class="check-group-title">Temel Analiz</div>
-      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">İş modelini ve gelir kaynaklarını anladım</div></div>
-      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Son 5 yıllık finansalları inceledim</div></div>
-      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Rakiplerle karşılaştırmalı analiz yaptım</div></div>
-      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Yönetim geçmişini araştırdım</div></div>
-      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Rekabet avantajını (moat) tanımladım</div></div>
-    </div>
-    <div class="check-group">
-      <div class="check-group-title">Finansal Göstergeler</div>
-      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">FCF pozitif ve büyüyor</div></div>
-      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Borç yükü yönetilebilir seviyede</div></div>
-      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Marjlar genişliyor veya korunuyor</div></div>
-      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">ROIC sermaye maliyetinin üzerinde</div></div>
-    </div>
-    <div class="check-group">
-      <div class="check-group-title">Değerleme & Risk</div>
-      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">DCF veya çarpan analiziyle değerleme yaptım</div></div>
-      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">En az %20 güvenlik marjı var</div></div>
-      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Stop-loss seviyemi belirledim</div></div>
-      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Portföyde maksimum ağırlığı belirledim</div></div>
-      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Negatif senaryoyu yazılı hale getirdim</div></div>
-    </div>
-    <div class="check-group">
-      <div class="check-group-title">Makro & Zamanlama</div>
-      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Makro ortam yatırıma uygun</div></div>
-      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Teknik analiz giriş noktasını destekliyor</div></div>
-      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Yakın vadeli katalitik olay var mı?</div></div>
-      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Sektörel döngü konumunu değerlendirdim</div></div>
+<!-- ── 03 RİSK SINIFLANDIRMASI ── -->
+<section id="riskler" class="risk-section">
+  <div class="wrap">
+    <div class="s-label rv">03 — Risk Matrisi</div>
+    <h2 class="s-title rv">Yatırım <em>Risklerini</em> Sınıflandır</h2>
+    <p class="s-desc rv">Riskler ölçülemez değil, sınıflandırılamamış olduğunda tehlikelidir. Her risk türü farklı önlem gerektirir.</p>
+    <div class="risk-grid rv">
+
+      <div class="risk-card sys">
+        <div class="risk-color-bar"></div>
+        <div class="risk-icon">🌊</div>
+        <div class="risk-subtitle">Sistematik Risk</div>
+        <div class="risk-title">Piyasa Riski</div>
+        <div class="risk-desc">Tüm varlık sınıflarını aynı anda etkileyen, çeşitlendirmeyle ortadan kaldırılamayan risk. Piyasa genel olarak düştüğünde iyi şirket hissesi de düşer. Beta bu riski ölçer.</div>
+        <div class="risk-examples">
+          <span class="risk-ex">2008 Krizisi</span>
+          <span class="risk-ex">COVID-19 2020</span>
+          <span class="risk-ex">Dot-com 2000</span>
+        </div>
+        <div class="risk-mitigation">Azaltma: Nakit tamponu, düşük korelasyonlu varlıklar, put opsiyonları, altın gibi güvenli liman varlıkları.</div>
+      </div>
+
+      <div class="risk-card liq">
+        <div class="risk-color-bar"></div>
+        <div class="risk-icon">💧</div>
+        <div class="risk-subtitle">Likidite Riski</div>
+        <div class="risk-title">Piyasadan Çıkış Riski</div>
+        <div class="risk-desc">Satmak istediğinizde yeterli alıcı olmadığı veya büyük spread ile satmak zorunda kaldığınız risk. Küçük piyasa değerli hisseler ve opsiyon pozisyonlarında kritiktir.</div>
+        <div class="risk-examples">
+          <span class="risk-ex">Küçük Cap</span>
+          <span class="risk-ex">OTC Piyasalar</span>
+          <span class="risk-ex">Opsiyon Spread</span>
+        </div>
+        <div class="risk-mitigation">Azaltma: Ortalama günlük hacmin en fazla %10'unu geçen pozisyonlar alma. Giriş kadar çıkış planı yap.</div>
+      </div>
+
+      <div class="risk-card con">
+        <div class="risk-color-bar"></div>
+        <div class="risk-icon">🎯</div>
+        <div class="risk-subtitle">İdiosenkratik Risk</div>
+        <div class="risk-title">Şirkete Özgü Risk</div>
+        <div class="risk-desc">Tek bir şirkete veya sektöre özgü, çeşitlendirmeyle azaltılabilir risk. Yönetim skandalı, patent kaybı, büyük müşteri kaybı veya ürün geri çağırma buna girer.</div>
+        <div class="risk-examples">
+          <span class="risk-ex">CEO Skandalı</span>
+          <span class="risk-ex">Patent Davası</span>
+          <span class="risk-ex">Ürün Hatası</span>
+        </div>
+        <div class="risk-mitigation">Azaltma: Çeşitlendirme (10–20 pozisyon). Tek hisseye portföyün %5'inden fazlasını verme (yüksek güven hariç).</div>
+      </div>
+
+      <div class="risk-card beh">
+        <div class="risk-color-bar"></div>
+        <div class="risk-icon">🧠</div>
+        <div class="risk-subtitle">Davranışsal Risk</div>
+        <div class="risk-title">Yatırımcının Kendisi</div>
+        <div class="risk-desc">Araştırmalar gösteriyor ki ortalama yatırımcı, piyasa getirisinin yılda 1.5–2% altında performans gösterir. Temel neden duygusal kararlar: panik satışı, FOMO alımı, kayıptan kaçınma önyargısı.</div>
+        <div class="risk-examples">
+          <span class="risk-ex">Panik Satışı</span>
+          <span class="risk-ex">FOMO Alımı</span>
+          <span class="risk-ex">Aşırı Güven</span>
+        </div>
+        <div class="risk-mitigation">Azaltma: Yatırım günlüğü, sistematik kural tabanlı yaklaşım, pre-mortem analizi, yatırım tezi yazma zorunluluğu.</div>
+      </div>
+
+      <div class="risk-card pol">
+        <div class="risk-color-bar"></div>
+        <div class="risk-icon">🏛️</div>
+        <div class="risk-subtitle">Politik & Düzenleyici Risk</div>
+        <div class="risk-title">Dışsal Müdahale Riski</div>
+        <div class="risk-desc">Hükümet politikaları, yeni regülasyonlar, vergi değişiklikleri veya millileştirme tehlikesi. Gelişen piyasalarda özellikle önemli. Enerji ve telekom sektörü tarihsel olarak en fazla etkilendi.</div>
+        <div class="risk-examples">
+          <span class="risk-ex">Çin Tech 2021</span>
+          <span class="risk-ex">Karbon Vergisi</span>
+          <span class="risk-ex">Antitröst</span>
+        </div>
+        <div class="risk-mitigation">Azaltma: Coğrafi çeşitlendirme. Düzenleyici bağımlılığı yüksek sektörler için portföy ağırlığını sınırla.</div>
+      </div>
+
+      <div class="risk-card cur">
+        <div class="risk-color-bar"></div>
+        <div class="risk-icon">💱</div>
+        <div class="risk-subtitle">Kur & Enflasyon Riski</div>
+        <div class="risk-title">Satın Alma Gücü Riski</div>
+        <div class="risk-desc">İthalat bağımlısı şirketlerde kur değer kaybı maliyet artışı demek. Türkiye gibi yüksek enflasyonlu ortamlarda nominal getiri ile reel getiri arasındaki uçurum kritiktir.</div>
+        <div class="risk-examples">
+          <span class="risk-ex">TL Değer Kaybı</span>
+          <span class="risk-ex">Import Bağımlılık</span>
+          <span class="risk-ex">Reel Faiz</span>
+        </div>
+        <div class="risk-mitigation">Azaltma: Dolar gelirli şirketler, döviz hedge stratejileri, TIPS veya emtia varlıkları ile korunma.</div>
+      </div>
+
     </div>
   </div>
 </section>
 
-<!-- 04 — KARAR AKIŞI -->
-<section class="decision" id="sec-decision">
-  <div class="section-label reveal">04 — Karar Çerçevesi</div>
-  <h2 class="section-title reveal">Alım Kararı <em>Akış Şeması</em></h2>
-  <p class="section-desc reveal">Duygusal kararları ortadan kaldıran sistematik süreç.</p>
-  <div class="decision-flow reveal">
-    <div class="flow-step"><div class="flow-num">1</div><div class="flow-content"><h3>Fikri Anlıyorum — "Neden Bu Varlık?"</h3><p>İş modelini, gelir kaynağını ve büyüme hikayesini kendi cümlelerinle açıklayamıyorsan alma.</p></div><div class="flow-tag tag-q">Nitel</div></div>
-    <div class="flow-step"><div class="flow-num">2</div><div class="flow-content"><h3>Finansalları Doğrula</h3><p>FCF, marjlar, borç yükü kontrol listesinden geçiyor mu? Herhangi bir kırmızı bayrak var mı?</p></div><div class="flow-tag tag-f">Finansal</div></div>
-    <div class="flow-step"><div class="flow-num">3</div><div class="flow-content"><h3>Değerleme — Adil Fiyat Nedir?</h3><p>Hesapladığın değer ile piyasa fiyatı arasında yeterli güvenlik marjı var mı? Boğa/baz/ayı senaryo yaz.</p></div><div class="flow-tag tag-t">Değerleme</div></div>
-    <div class="flow-step"><div class="flow-num">4</div><div class="flow-content"><h3>Risk Tanımla — "Neyi Yanlış Bilebilirim?"</h3><p>Tezi çürütecek 3 senaryo yaz. Bu senaryolar gerçekleşirse kayıp ne olur? Kaldırabilir misin?</p></div><div class="flow-tag tag-r">Risk</div></div>
-    <div class="flow-step"><div class="flow-num">5</div><div class="flow-content"><h3>Pozisyon Büyüklüğü & Giriş Planı</h3><p>Kelly Kriteri veya sabit risk modeli ile boyutlandır. Stop seviyeni, çıkış senaryolarını yaz. Sonra al.</p></div><div class="flow-tag tag-p">Pozisyon</div></div>
-  </div>
-</section>
+<!-- ── 04 TARİHSEL KRİZLER ── -->
+<section id="krizler">
+  <div class="wrap">
+    <div class="s-label rv">04 — Tarihin Aynası</div>
+    <h2 class="s-title rv">Büyük Çöküşlerin <em>Dersleri</em></h2>
+    <p class="s-desc rv">Piyasalar gelecekte de krizler yaşayacak. Geçmiş krizleri incelemek, bir sonrakine hazırlanmanın en sistematik yoludur.</p>
 
-<!-- 05 — ÇIKIŞ STRATEJİSİ -->
-<section class="exit-section" id="sec-exit">
-  <div class="section" style="padding-top:0; padding-bottom:0;">
-    <div class="section-label reveal">05 — Çıkış Stratejisi</div>
-    <h2 class="section-title reveal">Ne Zaman <em>Satmalısın?</em></h2>
-    <p class="section-desc reveal">Almak kadar önemli: yanlış zamanda satmak da, doğru zamanda satmamak da kayıptır.</p>
-    <div class="exit-grid reveal">
-      <div class="exit-card sell">
-        <div class="exit-icon">🔴</div>
-        <div class="exit-title">Hemen Sat — Tez Bozuldu</div>
-        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Almak için belirlediğin ana tez geçersizleşti</div></div>
-        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Yönetim büyük hata yaptı veya güven kırıldı</div></div>
-        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Rakip oyun değiştiren bir ürün çıkardı</div></div>
-        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Borç/kaldıraç kontrolden çıktı</div></div>
-        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Stop-loss seviyesi kırıldı, planı uygula</div></div>
-      </div>
-      <div class="exit-card watch">
-        <div class="exit-icon">🟡</div>
-        <div class="exit-title">İzle & Kısmi Sat — Değerleme Gerildi</div>
-        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Fiyat hedef değere ulaştı, güvenlik marjı kalmadı</div></div>
-        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Çok daha iyi fiyatlanmış alternatif fırsat çıktı</div></div>
-        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Portföydeki ağırlık risk limitini aştı</div></div>
-        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Büyüme yavaşladı, çarpanlar aşırı genişledi</div></div>
-        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Kısa vadeli katalist fiyatlandı, uzun vade belirsiz</div></div>
-      </div>
-      <div class="exit-card hold">
-        <div class="exit-icon">🟢</div>
-        <div class="exit-title">Tut — Tez Hâlâ Sağlam</div>
-        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Yatırım tezi değişmedi, piyasa geçici panikçi</div></div>
-        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Fiyat düştü ama temel değer daha da iyileşti</div></div>
-        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Rekabet avantajı güçlenmeye devam ediyor</div></div>
-        <div class="exit-rule"><div class="exit-rule-dot"></div><div>FCF büyümesi beklentilerin üzerinde</div></div>
-        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Güvenlik marjı hâlâ yeterli, sabır gerekli</div></div>
-      </div>
+    <div class="quote-block rv">
+      <div class="quote-mark">"</div>
+      <p class="quote-text">Tarih tekerrür etmez, ama kafiye yapar. Piyasalar her nesil aynı önyargılarla farklı kılıklarda aynı hatayı tekrar eder.</p>
+      <div class="quote-author">— Mark Twain · Yatırım Psikolojisi Üzerine</div>
     </div>
-    <div class="portfolio-tip" style="margin-top:16px; max-width:1100px;">
-      <strong>Altın Kural:</strong> Satış kararlarını alım öncesinde yazılı olarak belirle. "X fiyatına ulaşırsa sat", "tez Y olursa sat" gibi önceden tanımlanmış kurallar, duygusal kararları engeller. Kural yoksa satış da yoktur — bu en yaygın hatadır.
-    </div>
-  </div>
-</section>
 
-<!-- 06 — PSİKOLOJİ & HATALAR -->
-<section class="psy-section" id="sec-psy">
-  <div class="section-label reveal">06 — Yatırımcı Psikolojisi</div>
-  <h2 class="section-title reveal">En Pahalı <em>Hatalar</em></h2>
-  <p class="section-desc reveal">Piyasayı değil, kendini yönetemeyen kaybeder. Bu önyargıları tanımak, onları aşmanın ilk adımıdır.</p>
-  <div class="psy-grid reveal">
-    <div class="psy-card">
-      <div class="psy-name">Kayıptan Kaçınma</div>
-      <div class="psy-en">Loss Aversion</div>
-      <div class="psy-desc">Kaybetmenin acısı, kazanmanın sevincinden 2x daha güçlü hissedilir. Bu yüzden zararlar çok uzun tutulur, kârlar çok erken kesilir.</div>
-      <div class="psy-fix">Çözüm: Stop-loss seviyelerini önceden belirle ve değiştirme. "Zarar gerçekleşmeden kayıp değil" düşüncesi yanlış.</div>
-    </div>
-    <div class="psy-card">
-      <div class="psy-name">Teyit Önyargısı</div>
-      <div class="psy-en">Confirmation Bias</div>
-      <div class="psy-desc">Aldıktan sonra yalnızca pozitif haberlere dikkat edilir, negatif sinyaller görmezden gelinir. Tez'e değil gerçeğe bak.</div>
-      <div class="psy-fix">Çözüm: Her ayın başında "tezim neden yanlış olabilir?" diye aktif olarak sorgula.</div>
-    </div>
-    <div class="psy-card">
-      <div class="psy-name">Çapalama</div>
-      <div class="psy-en">Anchoring Bias</div>
-      <div class="psy-desc">Alış fiyatı, hedef fiyat veya 52 hafta zirvesi gibi sayılara mantıksız anlam yüklenir. Piyasa senin maliyet fiyatını bilmez.</div>
-      <div class="psy-fix">Çözüm: Kararları "bugün bu fiyattan alır mıydım?" sorusuyla değerlendir.</div>
-    </div>
-    <div class="psy-card">
-      <div class="psy-name">Sürü Psikolojisi</div>
-      <div class="psy-en">Herding / FOMO</div>
-      <div class="psy-desc">Herkes alıyorken almak, herkes satarken satmak. Tam tersine, piyasanın aşırılıklarından faydalanmak gerekir.</div>
-      <div class="psy-fix">Çözüm: "Neden herkes alıyor?" sorusunu sor. Eğer cevap temel değilse, uzak dur.</div>
-    </div>
-    <div class="psy-card">
-      <div class="psy-name">Aşırı Güven</div>
-      <div class="psy-en">Overconfidence</div>
-      <div class="psy-desc">Birkaç kazançlı işlem sonrası beceri olduğu sanılır. Portföy konsantrasyonu tehlikeli seviyelere yükselir.</div>
-      <div class="psy-fix">Çözüm: Her pozisyon için maksimum ağırlık belirle. Hiçbir hisse portföyün %15'ini geçmesin.</div>
-    </div>
-    <div class="psy-card">
-      <div class="psy-name">Son Bilgi Önyargısı</div>
-      <div class="psy-en">Recency Bias</div>
-      <div class="psy-desc">Son 6-12 ayın performansı geleceği belirleyeceği sanılır. Boğa piyasasında her şey dahidir, ayı piyasasında herkes acemidir.</div>
-      <div class="psy-fix">Çözüm: En az 5 yıllık tarihsel veriyle değerlendir. Kısa dönem gürültüsünü filtrele.</div>
+    <div class="crisis-timeline rv">
+      <div class="crisis-line"></div>
+
+      <div class="crisis-item">
+        <div class="crisis-dot"></div>
+        <div class="crisis-year">1929</div>
+        <div class="crisis-content">
+          <div class="crisis-name">Büyük Buhran — Wall Street Çöküşü</div>
+          <div class="crisis-drop">S&P: −89% · Toparlanma: 25 yıl</div>
+          <div class="crisis-desc">Marjin borçla şişirilmiş varlık balonunun patlaması. Banka iflasları zincirleme yayıldı, deflasyon sarmalına girildi. Hoover hükümetinin daraltıcı politikaları krizi derinleştirdi.</div>
+          <div class="crisis-lesson">📌 Ders: Kaldıraç en iyi dönemlerde en tehlikeli görünür. Deflasyon + bankacılık krizi kombinasyonu en yıkıcı makroekonomik senaryodur.</div>
+        </div>
+      </div>
+
+      <div class="crisis-item">
+        <div class="crisis-dot"></div>
+        <div class="crisis-year">1987</div>
+        <div class="crisis-content">
+          <div class="crisis-name">Kara Pazartesi — Tek Günde %22 Düşüş</div>
+          <div class="crisis-drop">Dow Jones: −22.6% · Tek Gün</div>
+          <div class="crisis-desc">Portföy sigortası stratejilerinin (portfolio insurance) algoritmik satış dalgası yarattığı ilk flaş çöküş. Hiçbir ekonomik tetikleyici olmaksızın gerçekleşti; piyasanın kendi dinamikleri çöküşü yarattı.</div>
+          <div class="crisis-lesson">📌 Ders: Herkesin aynı çıkış kapısını kullandığı bir stratejiye sahip olduğunda, o strateji kendini imha eder. Likidite sistematik riski azaltmaz.</div>
+        </div>
+      </div>
+
+      <div class="crisis-item">
+        <div class="crisis-dot"></div>
+        <div class="crisis-year">2000</div>
+        <div class="crisis-content">
+          <div class="crisis-name">Dot-com Balonu</div>
+          <div class="crisis-drop">Nasdaq: −78% · Toparlanma: 15 yıl</div>
+          <div class="crisis-desc">İnternet şirketlerine "bu sefer farklı" mantığıyla yapılan balonlaşmış değerlemeler. Geliri olmayan şirketler milyar dolar değerlendi. P/S oranı 100x'i aştı. Kar değil "göz küresi" metriği kullanıldı.</div>
+          <div class="crisis-lesson">📌 Ders: Yeni teknoloji gerçek değer yaratabilir; ancak bu, herhangi bir fiyattan alma gerektiği anlamına gelmez. Çarpanlar nihayetinde kazançlara döner.</div>
+        </div>
+      </div>
+
+      <div class="crisis-item">
+        <div class="crisis-dot"></div>
+        <div class="crisis-year">2008</div>
+        <div class="crisis-content">
+          <div class="crisis-name">Küresel Finansal Kriz — Lehman Çöküşü</div>
+          <div class="crisis-drop">S&P 500: −57% · Toparlanma: 4 yıl</div>
+          <div class="crisis-desc">Yapılandırılmış konut kredisi ürünleri (MBS, CDO) üzerine kurulu kaldıraçlı finansal sistem. AAA derecelendirmeleri çöp varlıkları gizledi. Karşı taraf riski tüm sistemi birbirine bağladı.</div>
+          <div class="crisis-lesson">📌 Ders: Kaldıraç görünmez riskleri biriktirir. Korelasyonlar kriz döneminde 1'e yaklaşır — çeşitlendirme tam olarak ihtiyaç duyulduğu anda çalışmayı bırakır.</div>
+        </div>
+      </div>
+
+      <div class="crisis-item">
+        <div class="crisis-dot"></div>
+        <div class="crisis-year">2011</div>
+        <div class="crisis-content">
+          <div class="crisis-name">Avrupa Borç Krizi</div>
+          <div class="crisis-drop">PIIGS Tahvilleri: Yüzlerce baz puan yükseldi</div>
+          <div class="crisis-desc">Yunanistan, İrlanda, Portekiz, İspanya ve İtalya'nın sürdürülemez kamu borç seviyeleri. Euro bölgesinin tasarım kusurları — ortak para birimi, farklı mali politikalar — kırılganlığı ortaya çıkardı.</div>
+          <div class="crisis-lesson">📌 Ders: Egemen borç "risksiz" değildir. Kur bağlılığı veya ortak para birimi gerçek riskleri gizler; kriz anında bu kırılganlıklar şiddetle gün yüzüne çıkar.</div>
+        </div>
+      </div>
+
+      <div class="crisis-item">
+        <div class="crisis-dot"></div>
+        <div class="crisis-year">2020</div>
+        <div class="crisis-content">
+          <div class="crisis-name">COVID-19 Piyasa Çöküşü</div>
+          <div class="crisis-drop">S&P 500: −34% · Toparlanma: 5 ay</div>
+          <div class="crisis-desc">Tarihte en hızlı bear market girişi ve çıkışı. Fed'in QE programları ve federal hükümetlerin mali teşvikleri nadir bir V-dip toparlanmasına yol açtı. Sektörel ayrışma dramatikti: seyahat −70%, e-ticaret +50%.</div>
+          <div class="crisis-lesson">📌 Ders: Siyah kuğular öngörülemez ama portföyü onlara hazırlamak mümkündür. Panik anındaki satış, kalıcı sermaye kaybına yol açar. En büyük kazanç fırsatları maksimum korkudan doğar.</div>
+        </div>
+      </div>
+
+      <div class="crisis-item">
+        <div class="crisis-dot"></div>
+        <div class="crisis-year">2022</div>
+        <div class="crisis-content">
+          <div class="crisis-name">Faiz Şoku & Büyüme Hissesi Çöküşü</div>
+          <div class="crisis-drop">Nasdaq: −35% · ARK Innovation: −75%</div>
+          <div class="crisis-desc">Pandemi döneminde sıfıra yakın faizle şişen büyüme hissesi değerlemelerinin, Fed'in hızlı faiz artışıyla yeniden fiyatlanması. DCF modelindeki iskonto oranı küçük artışı, uzak vadeli nakit akışlarının bugünkü değerini dramatik düşürür.</div>
+          <div class="crisis-lesson">📌 Ders: Yüksek büyüme hisselerinin değerlemesi faiz oranına karşı son derece duyarlıdır. "Discounted at zero" varlıklar yükselen faiz ortamında en kırılgandır.</div>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
 
-<!-- 07 — BIST ÖZEL -->
-<section class="bist-section" id="sec-bist">
-  <div class="section" style="padding-top:0; padding-bottom:0;">
-    <div class="section-label reveal">07 — Türk Piyasasına Özel</div>
-    <h2 class="section-title reveal">BIST'te <em>Dikkat Edilmesi Gerekenler</em></h2>
-    <p class="section-desc reveal">Global metodoloji geçerlidir, ancak Türkiye'ye özgü dinamikler göz ardı edilmemelidir.</p>
-    <div class="bist-grid reveal">
-      <div class="bist-card">
-        <div class="bist-card-title">Enflasyon Muhasebesi (TMS 29)</div>
-        <div class="bist-card-desc">Yüksek enflasyon döneminde finansallar çarpıtılabilir. Nominal kâr ile reel kâr arasındaki farkı sor.</div>
-        <div class="bist-tag">Finansal Risk</div>
+<!-- ── 05 DAVRANIŞSAL FİNANS ── -->
+<section id="davranis">
+  <div class="wrap">
+    <div class="s-label rv">05 — Davranışsal Finans</div>
+    <h2 class="s-title rv">En Büyük Düşmanın <em>Kendinsin</em></h2>
+    <p class="s-desc rv">Nobel ödüllü Daniel Kahneman ve Amos Tversky'nin araştırmaları, insan beyninin finansal karar verme için tasarlanmadığını kanıtladı. Bu önyargıları tanıman onları yenmeni sağlamaz — ama sistematik koruma yaratır.</p>
+
+    <div class="bias-grid rv">
+
+      <div class="bias-card">
+        <div class="bias-icon">🔒</div>
+        <div class="bias-name">Kayıptan Kaçınma</div>
+        <div class="bias-en">Loss Aversion</div>
+        <div class="bias-desc">Kahneman ve Tversky: 100₺ kazanmak için hissedilen mutluluk, 100₺ kaybetmek için hissedilen acının yaklaşık yarısı kadar. Bu asimetri, kayıpları realize etmekten kaçınmayı ve kazanan pozisyonları erken satmayı tetikler.</div>
+        <div class="bias-example">💡 Örnek: "Zarar gerçekleşmeden kayıp değil" düşüncesiyle düşen hissede kalmaya devam etmek.</div>
       </div>
-      <div class="bist-card">
-        <div class="bist-card-title">Döviz Kuru Hassasiyeti</div>
-        <div class="bist-card-desc">Döviz borcu vs. TL geliri dengesini incele. Kur devalüasyonu ihracatçıyı güçlendirirken ithalatçıyı zayıflatır.</div>
-        <div class="bist-tag">Kur Riski</div>
+
+      <div class="bias-card">
+        <div class="bias-icon">⚓</div>
+        <div class="bias-name">Çıpalama Etkisi</div>
+        <div class="bias-en">Anchoring Bias</div>
+        <div class="bias-desc">İlk gördüğümüz fiyat — alış maliyeti veya 52 haftalık zirve — sonraki değerlendirmelerimiz için referans noktası (çıpa) olur. Bu çıpa ileriye dönük tarafsız değerlendirmeyi engeller.</div>
+        <div class="bias-example">💡 Örnek: "Bu hisse 100₺'den 50₺'ye düştü, artık ucuz" — ucuzluk alış maliyetiyle değil, içsel değerle ölçülür.</div>
       </div>
-      <div class="bist-card">
-        <div class="bist-card-title">Halka Arz Primleri</div>
-        <div class="bist-card-desc">Birincil piyasa fiyatı çoğu zaman gerçek değerin çok üzerindedir. İkincil piyasada normalleşmeyi bekle.</div>
-        <div class="bist-tag">IPO Riski</div>
+
+      <div class="bias-card">
+        <div class="bias-icon">🪞</div>
+        <div class="bias-name">Teyit Önyargısı</div>
+        <div class="bias-en">Confirmation Bias</div>
+        <div class="bias-desc">Yatırım tezini destekleyen bilgileri aktif olarak arar, çürüten bilgileri görmezden gelirsin. Bu, olumsuz gelişmelere rağmen pozisyonu korumana ve stop-loss uygulamana engel olur.</div>
+        <div class="bias-example">💡 Örnek: Portföydeki şirketle ilgili olumsuz analist raporunu "rakipler sponsorlu" diyerek reddetmek.</div>
       </div>
-      <div class="bist-card">
-        <div class="bist-card-title">Hakim Ortak Riski</div>
-        <div class="bist-card-desc">Aile şirketlerinde azınlık hissedar koruması zayıf olabilir. Sermaye artırımı, kaynaklı işlemler riski yüksek.</div>
-        <div class="bist-tag">Yönetişim</div>
+
+      <div class="bias-card">
+        <div class="bias-icon">👥</div>
+        <div class="bias-name">Sürü Davranışı</div>
+        <div class="bias-en">Herding Behavior</div>
+        <div class="bias-desc">Kalabalığın yaptığına uymak — balonları ve çökmeleri besleyen ana mekanizma. "Herkes alıyorsa iyi bir şey olmalı" ve "herkes satıyorsa bir şeyler biliyorlar" düşüncesi. Sürü davranışı gerçekleştiğinde değer yatırımcısının fırsatı doğar.</div>
+        <div class="bias-example">💡 Örnek: 2021'de herkesin konuştuğu için kripto veya meme hisselerine girmek.</div>
       </div>
-      <div class="bist-card">
-        <div class="bist-card-title">Yüksek Faiz Ortamı</div>
-        <div class="bist-card-desc">Mevduat alternatifi güçlü olunca hisse değerlemelerine baskı artar. Risk primini her değerlemede güncelle.</div>
-        <div class="bist-tag">Makro</div>
+
+      <div class="bias-card">
+        <div class="bias-icon">🏆</div>
+        <div class="bias-name">Aşırı Güven</div>
+        <div class="bias-en">Overconfidence</div>
+        <div class="bias-desc">Araştırmalar analistlerin %80'inin kendini ortalamanın üzerinde gördüğünü gösteriyor. Portföy çeşitlendirmeden kaçınmak, stop-loss kullanmamak ve aşırı işlem yapmak bu önyargının sonuçlarıdır.</div>
+        <div class="bias-example">💡 Örnek: "Bu şirketi herkes analizden daha iyi anlıyorum" düşüncesiyle konsantre pozisyon tutmak.</div>
       </div>
-      <div class="bist-card">
-        <div class="bist-card-title">Likidite Riski</div>
-        <div class="bist-card-desc">Küçük/orta ölçekli hisselerde ince işlem hacmi, yüksek spread ve manipülasyon riski taşır. Hacme bak.</div>
-        <div class="bist-tag">Piyasa Yapısı</div>
+
+      <div class="bias-card">
+        <div class="bias-icon">🎯</div>
+        <div class="bias-name">Temsil Sezgisi</div>
+        <div class="bias-en">Representativeness Heuristic</div>
+        <div class="bias-desc">İyi şirket = iyi yatırım yanılgısı. Mükemmel bir şirket yanlış fiyatta alınırsa zayıf getiri üretir. Apple 2000 yılında harika bir şirket, ancak aynı zamanda kötü bir yatırımdı.</div>
+        <div class="bias-example">💡 Örnek: Warren Buffett'ın portföyünde olduğu için bir hissenin otomatik olarak cazip olduğunu düşünmek.</div>
       </div>
-      <div class="bist-card">
-        <div class="bist-card-title">KAP Takibi</div>
-        <div class="bist-card-desc">Özel durum açıklamaları, iç tasarruf işlemleri ve yönetim değişikliklerini düzenli takip et.</div>
-        <div class="bist-tag">Bilgi Akışı</div>
+
+      <div class="bias-card">
+        <div class="bias-icon">📅</div>
+        <div class="bias-name">Son Dönem Etkisi</div>
+        <div class="bias-en">Recency Bias</div>
+        <div class="bias-desc">Son dönem gelişmelerinin gereğinden fazla ağırlık alması. Yıllarca yükselen piyasada risk yoktur varsayımı veya kısa vadeli düşüşün uzun vadeli trend olduğu korkusu.</div>
+        <div class="bias-example">💡 Örnek: 2021'de "faiz asla yükselmez" veya 2022'de "enflasyon hiç düşmez" varsayımı.</div>
       </div>
-      <div class="bist-card">
-        <div class="bist-card-title">Temettü Politikası</div>
-        <div class="bist-card-desc">BIST'te temettü getirisi değerleme için önemli. Sürdürülebilir mi? Borçlanarak temettü dağıtılıyor mu?</div>
-        <div class="bist-tag">Gelir</div>
+
+      <div class="bias-card">
+        <div class="bias-icon">🎁</div>
+        <div class="bias-name">Tasarruf Etkisi</div>
+        <div class="bias-en">Endowment Effect</div>
+        <div class="bias-desc">Sahip olduğumuz varlıklara sahip olmadıklarımızdan daha yüksek değer biçeriz. Portföydeki hisseyi eğer sahip olmasaydık o fiyattan alır mıydık? sorusu bu önyargıyı sorgular.</div>
+        <div class="bias-example">💡 Örnek: "Şirketi iyi biliyorum ve uzun süre tutuyorum" gerekçesiyle aşırı değerlenmiş hisseyi satmamak.</div>
+      </div>
+
+      <div class="bias-card">
+        <div class="bias-icon">😰</div>
+        <div class="bias-name">FOMO (Kaçırma Korkusu)</div>
+        <div class="bias-en">Fear of Missing Out</div>
+        <div class="bias-desc">Etrafındaki herkesin para kazandığı anlatısının baskısıyla analiz yapmadan pozisyon almak. Balonların en güçlü yakıtı bu korkudur. Maksimum FOMO genellikle maksimum risk noktasıyla çakışır.</div>
+        <div class="bias-example">💡 Örnek: 2021 Q4'te herkes kripto ve NFT'den bahsederken geç girmek.</div>
+      </div>
+
+    </div>
+
+    <div class="quote-block rv">
+      <div class="quote-mark">"</div>
+      <p class="quote-text">Yatırımcının en büyük problemi ve hatta en büyük düşmanı büyük olasılıkla kendisidir.</p>
+      <div class="quote-author">— Benjamin Graham · Akıllı Yatırımcı (1949)</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── 06 PORTFÖY TEORİSİ ── -->
+<section id="portfoy" class="portfolio-section">
+  <div class="wrap">
+    <div class="s-label rv">06 — Modern Portföy Teorisi</div>
+    <h2 class="s-title rv">Portföy <em>İnşası</em> & Risk Yönetimi</h2>
+    <p class="s-desc rv">Harry Markowitz'in 1952'de Nobel ödülü kazanan çalışması: tek hisseyi değil, hisselerin birlikte davranışını optimize et.</p>
+
+    <div class="portfolio-grid rv">
+
+      <div class="pt-card">
+        <div class="pt-num">01</div>
+        <div class="pt-title">Etkin Sınır (Efficient Frontier)</div>
+        <div class="pt-formula">E(Rp) = Σ wi × E(Ri) | Minimize σp = √(Σ Σ wi wj σij)</div>
+        <div class="pt-desc">Verili bir risk seviyesi için maksimum beklenen getiriyi sunan portföy kombinasyonları. Bu sınırın altındaki her portföy, daha az risk veya daha yüksek getiriyle iyileştirilebilir. Etkin sınır üzerindeki seçim yatırımcının risk toleransına göre yapılır.</div>
+      </div>
+
+      <div class="pt-card">
+        <div class="pt-num">02</div>
+        <div class="pt-title">Korelasyon ve Çeşitlendirme</div>
+        <div class="pt-formula">σp² = Σ Σ wi wj σi σj ρij | ρ ∈ [-1, +1]</div>
+        <div class="pt-desc">Korelasyon katsayısı (ρ) -1 ile +1 arasında değer alır. -1: tam ters hareket (mükemmel hedge), +1: tam aynı hareket (çeşitlendirme sağlamaz). Gerçek çeşitlendirme varlık sınıfı sayısından değil, düşük korelasyondan gelir.</div>
+      </div>
+
+      <div class="pt-card">
+        <div class="pt-num">03</div>
+        <div class="pt-title">Sharpe Oranı</div>
+        <div class="pt-formula">Sharpe = (Rp - Rf) / σp</div>
+        <div class="pt-desc">Risk başına getiriyi ölçer. Risksiz getirinin (Rf) üzerindeki portföy getirisi, portföy standart sapmasına bölünür. Sharpe > 1 genellikle iyi kabul edilir. Portföyleri karşılaştırmak için en yaygın kullanılan araç. Sorta Oranı (sadece negatif oynaklık) daha gelişmiş alternatiftir.</div>
+      </div>
+
+      <div class="pt-card">
+        <div class="pt-num">04</div>
+        <div class="pt-title">Kelly Kriteri — Pozisyon Büyüklüğü</div>
+        <div class="pt-formula">f* = (bp - q) / b | b=odds, p=win prob, q=1-p</div>
+        <div class="pt-desc">Her yatırıma portföyün ne kadarının tahsis edileceğini matematiksel olarak belirler. Tam Kelly genellikle aşırı risklidir — pratik uygulamada Half-Kelly (f*/2) önerilir. Bu formül, beklenen değeri pozitif olan fırsatlarda bile fazla bahis yapmanın bileşik getiriyi imha ettiğini gösterir.</div>
+      </div>
+
+      <div class="pt-card">
+        <div class="pt-num">05</div>
+        <div class="pt-title">CAPM — Sermaye Varlıkları Fiyatlama Modeli</div>
+        <div class="pt-formula">E(Ri) = Rf + βi × (E(Rm) - Rf)</div>
+        <div class="pt-desc">Bir varlığın beklenen getirisini sistematik riskiyle (beta) ilişkilendirir. Beta > 1: piyasadan daha oynak. Beta < 1: daha istikrarlı. Beta < 0: ters hareket (altın gibi). CAPM'in pratik sınırlılığı: tarihsel beta geleceği garanti etmez ve alpha (sistematik dışı getiri) bu modelde yakalanmaz.</div>
+      </div>
+
+      <div class="pt-card">
+        <div class="pt-num">06</div>
+        <div class="pt-title">Risk Parité & Maksimum Çeşitlendirme</div>
+        <div class="pt-formula">wi = (1/σi) / Σ(1/σj) | Eşit Risk Katkısı</div>
+        <div class="pt-desc">Geleneksel 60/40 portföyü servet ağırlıklı ama risk ağırlıklı değildir (hisse senedi portföy riskinin %90'ını oluşturabilir). Risk Parité yaklaşımı her varlık sınıfının risk katkısını eşitler. Bridgewater'ın All Weather fonu bu prensibe dayanır.</div>
+      </div>
+
+    </div>
+
+    <!-- SECTOR ROTATION -->
+    <div class="s-label rv" style="margin-top: 80px;">Sektör Rotasyonu</div>
+    <h3 class="s-title rv" style="font-size: 1.8rem;">Ekonomik Döngü & <em>Sektör Performansı</em></h3>
+    <p class="s-desc rv">Hangi sektörlerin ne zaman öne çıktığını anlamak, piyasa rüzgarıyla kürek çekmeni sağlar.</p>
+
+    <div class="cycle-wrap rv">
+      <div class="cycle-phase">
+        <div class="cycle-label">Evre 1</div>
+        <div class="cycle-name">Toparlanma</div>
+        <div class="cycle-sectors"><strong>↑ Finans</strong><br><strong>↑ Tüketim Döngüsel</strong><br>Sanayi<br>Teknoloji</div>
+      </div>
+      <div class="cycle-phase">
+        <div class="cycle-label">Evre 2</div>
+        <div class="cycle-name">Genişleme</div>
+        <div class="cycle-sectors"><strong>↑ Teknoloji</strong><br><strong>↑ Sanayi</strong><br>Hammadde<br>Enerji</div>
+      </div>
+      <div class="cycle-phase">
+        <div class="cycle-label">Evre 3</div>
+        <div class="cycle-name">Yavaşlama</div>
+        <div class="cycle-sectors"><strong>↑ Enerji</strong><br><strong>↑ Hammadde</strong><br>Sağlık<br>Tüketim Savunma</div>
+      </div>
+      <div class="cycle-phase">
+        <div class="cycle-label">Evre 4</div>
+        <div class="cycle-name">Daralma</div>
+        <div class="cycle-sectors"><strong>↑ Sağlık</strong><br><strong>↑ Tüketim Savunma</strong><br>Kamu Hizmetleri<br>Nakit</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 08 — PORTFÖY YÖNETİMİ -->
-<section class="portfolio-section" id="sec-portfolio">
-  <div class="section-label reveal">08 — Portföy Yönetimi</div>
-  <h2 class="section-title reveal">Nasıl <em>Çeşitlendirirsin?</em></h2>
-  <p class="section-desc reveal">Tek doğru hisseyi bulmak değil, doğru kombinasyonu oluşturmak kazandırır.</p>
-  <table class="portfolio-table reveal">
-    <thead>
-      <tr>
-        <th>Profil</th>
-        <th>Hisse Sayısı</th>
-        <th>Maks. Tek Hisse</th>
-        <th>Sektör Dağılımı</th>
-        <th>Nakit Tamponu</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="ptag ptag-cons">Muhafazakâr</span></td>
-        <td>15–25 hisse</td>
-        <td>%5–7</td>
-        <td>Min. 5 sektör</td>
-        <td>%15–20</td>
-      </tr>
-      <tr>
-        <td><span class="ptag ptag-bal">Dengeli</span></td>
-        <td>10–15 hisse</td>
-        <td>%8–12</td>
-        <td>Min. 4 sektör</td>
-        <td>%10–15</td>
-      </tr>
-      <tr>
-        <td><span class="ptag ptag-agg">Agresif</span></td>
-        <td>5–10 hisse</td>
-        <td>%15–20</td>
-        <td>Min. 3 sektör</td>
-        <td>%5–10</td>
-      </tr>
-    </tbody>
-  </table>
-  <div class="portfolio-tip reveal">
-    <strong>Korelasyon Kuralı:</strong> Çeşitlendirme yalnızca hisse sayısıyla olmaz — birbirine paralel hareket eden hisseler gerçek çeşitlendirme sağlamaz. Farklı sektörler, farklı ekonomik döngü hassasiyetleri ve farklı döviz yönelimleri olan şirketleri bir araya getir.
-  </div>
-  <div class="portfolio-tip reveal" style="margin-top:10px; border-left-color: var(--gold);">
-    <strong>Nakit da Bir Pozisyondur:</strong> Nakit tutmak "kaçırma" değildir. Piyasa aşırı değerliyken nakit biriktirmek, fırsatlarda güçlü hareket etmeyi sağlar. %100 yatırımlı kalmak zorunluluk değildir.
+<!-- ── 07 DEĞERLEME MODELLERİ ── -->
+<section id="degerleme">
+  <div class="wrap">
+    <div class="s-label rv">07 — Değerleme Metodolojisi</div>
+    <h2 class="s-title rv">İçsel Değeri <em>Nasıl Hesaplarsın?</em></h2>
+    <p class="s-desc rv">Her değerleme modeli bir varsayım setidir. Tek modele güvenme — çoklu metodun kesişim noktası daha sağlam bir tahmin verir.</p>
+    <div class="val-grid rv">
+
+      <div class="val-card">
+        <div class="val-rank">MODEL 01 · EN KAPSAMLI</div>
+        <div class="val-name">DCF — İndirgenmiş Nakit Akışı</div>
+        <div class="val-formula">V = Σ FCFt / (1+WACC)^t + TV / (1+WACC)^n</div>
+        <div class="val-desc">Şirketin gelecekte üreteceği nakit akışlarının bugünkü değeri. Terminal değer (TV), toplam değerin %60–80'ini oluşturabilir — bu nedenle terminal büyüme oranına son derece duyarlıdır.</div>
+        <div class="val-pros">✓ Temel finansal teoriye dayanır · İşletmenin gerçek değerini ölçer</div>
+        <div class="val-cons">✗ Çıktı, giriş varsayımlarına son derece hassas · "Garbage in, garbage out"</div>
+      </div>
+
+      <div class="val-card">
+        <div class="val-rank">MODEL 02 · EN YAYGIN</div>
+        <div class="val-name">Çarpan Analizi (EV/EBITDA, P/E)</div>
+        <div class="val-formula">EV = EBITDA × Sektör Çarpanı | P = EPS × Hedef F/K</div>
+        <div class="val-desc">Benzer şirketlere kıyasla göreli değerleme. Hızlı uygulanabilir ve piyasa algısını yansıtır. Sektör medyanı ve tarihsel ortalama ile karşılaştırmak şarttır.</div>
+        <div class="val-pros">✓ Hızlı · Piyasa konsensüsü yansıtır · Kolayca karşılaştırılabilir</div>
+        <div class="val-cons">✗ Tüm piyasa yanlış fiyatlandığında "ucuz" bulmak yanıltır</div>
+      </div>
+
+      <div class="val-card">
+        <div class="val-rank">MODEL 03 · KARMA YAPI</div>
+        <div class="val-name">Sum-of-the-Parts (SOTP)</div>
+        <div class="val-formula">V_total = Σ V_segment_i − Net Debt + Holdings</div>
+        <div class="val-desc">Holding şirketleri ve çok segmentli yapılar için. Her iş birimine ayrı çarpan veya DCF uygula. Konglomeratlarda holding iskontosu fırsatı veya tuzağı olabilir.</div>
+        <div class="val-pros">✓ Karmaşık yapıları doğru değerler · Gizli değerleri ortaya çıkarır</div>
+        <div class="val-cons">✗ Segment başına ayrı veri gerektirir · Segment sinerjileri gözden kaçabilir</div>
+      </div>
+
+      <div class="val-card">
+        <div class="val-rank">MODEL 04 · BÜYÜME OPTİMİZE</div>
+        <div class="val-name">PEG — Büyüme Ayarlı Değerleme</div>
+        <div class="val-formula">PEG = P/E ÷ Yıllık Büyüme Oranı (%)</div>
+        <div class="val-desc">Peter Lynch tarafından popülerleştirilen. PEG < 1 büyümeye göre ucuz. Hızlı büyüyen şirketleri değerlerken yüksek P/E'yi meşrulaştırmak için kullanılır.</div>
+        <div class="val-pros">✓ Büyümeyi entegre eder · Peter Lynch başarısı kanıtlanmış</div>
+        <div class="val-cons">✗ Büyüme tahminlerine bağımlı · Düşük büyüme şirketleri için uygunsuz</div>
+      </div>
+
+      <div class="val-card">
+        <div class="val-rank">MODEL 05 · DEFTER TABANLI</div>
+        <div class="val-name">Graham Formülü</div>
+        <div class="val-formula">V = EPS × (8.5 + 2g) × 4.4 / Y</div>
+        <div class="val-desc">Benjamin Graham'ın basit değerleme formülü. 8.5 sıfır büyümeli şirket F/K'sı, g yıllık büyüme beklentisi, Y ise mevcut AAA tahvil faizi. Güvenlik marjı ilkesini uygular.</div>
+        <div class="val-pros">✓ Sade ve güçlü kavramsal temel · Spekülatif unsurları dışlar</div>
+        <div class="val-cons">✗ Yüksek büyüme teknoloji şirketlerine uygulanamaz</div>
+      </div>
+
+      <div class="val-card">
+        <div class="val-rank">MODEL 06 · SENARYO TABANLI</div>
+        <div class="val-name">Monte Carlo Simülasyonu</div>
+        <div class="val-formula">V_sim = Σ P(s) × V(s) | s ∈ {10.000 senaryo}</div>
+        <div class="val-desc">DCF girdilerini rastgele değişkenler olarak modelleyerek binlerce senaryo çalıştırır. Sonuç tek bir değer değil, olasılık dağılımıdır. Belirsizliği kabul eden dürüst bir yaklaşım.</div>
+        <div class="val-pros">✓ Belirsizliği doğru modeller · Olasılık dağılımı verir</div>
+        <div class="val-cons">✗ Karmaşık · Girdi dağılımları doğru belirlenmelidir</div>
+      </div>
+
+    </div>
   </div>
 </section>
 
+<!-- ── 08 MAKRO GÖSTERGELER ── -->
+<section id="makro">
+  <div class="wrap">
+    <div class="s-label rv">08 — Makroekonomik Çerçeve</div>
+    <h2 class="s-title rv">Piyasayı Şekillendiren <em>Makro Güçler</em></h2>
+    <p class="s-desc rv">Mikro analiz ne alacağını söyler; makro analiz hangi ortamda alacağını ve ne kadar risk alacağını belirler.</p>
+    <div class="macro-grid rv">
+
+      <div class="macro-card">
+        <div class="macro-icon">🏦</div>
+        <div class="macro-title">Merkez Bankası Politikası</div>
+        <div class="macro-source">FED · ECB · TCMB</div>
+        <div class="macro-desc">Faiz kararları, bilanço büyüklüğü (QE/QT), forward guidance. "Don't fight the Fed" — merkez bankası yönüne karşı pozisyon almak tarihsel olarak riskli.</div>
+        <div class="macro-effect"><span class="macro-arrow">↑</span> Faiz → Büyüme hissesi baskı, temettü/tahvil cazip<br><span class="macro-arrow-r">↓</span> Faiz → Büyüme varlıkları expand, likit bollaşır</div>
+      </div>
+
+      <div class="macro-card">
+        <div class="macro-icon">📉</div>
+        <div class="macro-title">Getiri Eğrisi</div>
+        <div class="macro-source">2Y vs 10Y Spread</div>
+        <div class="macro-desc">10 yıllık – 2 yıllık spread. Negatif (ters) eğri 1980'den bu yana her resesyondan 6-18 ay önce gerçekleşti. Öncü ekonomik gösterge olarak güçlü tarihsel kayıtlara sahip.</div>
+        <div class="macro-effect"><span class="macro-arrow">↑</span> Normal eğri → Bankalar kârlı, ekonomi genişleme<br><span class="macro-arrow-r">↓</span> Ters eğri → Resesyon sinyali, defansif pozisyon</div>
+      </div>
+
+      <div class="macro-card">
+        <div class="macro-icon">📊</div>
+        <div class="macro-title">PMI & ISM Endeksleri</div>
+        <div class="macro-source">Manufacturing · Services</div>
+        <div class="macro-desc">50 üzeri genişleme, altı daralma. İmalat PMI gerçek ekonomiyi, hizmet PMI tüketim talepini yansıtır. Piyasalar PMI'ya çok hızlı tepki verir — öncü göstergedir.</div>
+        <div class="macro-effect"><span class="macro-arrow">↑</span> PMI > 55 → Döngüsel hisseler öne çıkar<br><span class="macro-arrow-r">↓</span> PMI < 45 → Defansif rotasyon başlar</div>
+      </div>
+
+      <div class="macro-card">
+        <div class="macro-icon">💼</div>
+        <div class="macro-title">İstihdam Verileri</div>
+        <div class="macro-source">NFP · İşsizlik Oranı</div>
+        <div class="macro-desc">ABD'de aylık Tarım Dışı İstihdam (NFP) en yakından izlenen veridir. Tam istihdam Fed'in enflasyona karşı hareketini tetikler. Lagging göstergedir — resesyon başladıktan sonra bozulur.</div>
+        <div class="macro-effect"><span class="macro-arrow">↑</span> Güçlü istihdam → Tüketim güçlü, ama faiz baskısı<br><span class="macro-arrow-r">↓</span> Zayıf istihdam → Faiz düşüş beklentisi artar</div>
+      </div>
+
+      <div class="macro-card">
+        <div class="macro-icon">🛢️</div>
+        <div class="macro-title">Emtia Fiyatları</div>
+        <div class="macro-source">WTI · Brent · Altın · Bakır</div>
+        <div class="macro-desc">Bakır "Dr. Copper" — global büyüme barometresi. Altın enflasyon ve belirsizlik kalkanı. Petrol enerji maliyeti ve jeopolitik risk göstergesi. Emtia döngüleri hisse döngülerinden farklı yönde hareket edebilir.</div>
+        <div class="macro-effect"><span class="macro-arrow">↑</span> Emtia yükselişi → Enflasyon, enerji/madencilik sektörü<br><span class="macro-arrow-r">↓</span> Altın yükselişi → Belirsizlik artışı, risk-off</div>
+      </div>
+
+      <div class="macro-card">
+        <div class="macro-icon">💵</div>
+        <div class="macro-title">Dolar Endeksi (DXY)</div>
+        <div class="macro-source">USD Relative Strength</div>
+        <div class="macro-desc">Güçlü dolar gelişen piyasalara baskı yapar, dolar borçlularının yükünü artırır ve emtia fiyatlarını baskılar. 2022'de DXY 20 yıl zirvesine çıktığında EM piyasaları sert geriledi.</div>
+        <div class="macro-effect"><span class="macro-arrow">↑</span> DXY güçlü → EM kırılgan, emtia zayıf<br><span class="macro-arrow-r">↓</span> DXY zayıf → EM güçlü, emtia destekli</div>
+      </div>
+
+      <div class="macro-card">
+        <div class="macro-icon">🌡️</div>
+        <div class="macro-title">Enflasyon (CPI & ÜFE)</div>
+        <div class="macro-source">Core CPI · PCE Deflator</div>
+        <div class="macro-desc">Fed'in tercih ettiği gösterge PCE'dir, CPI daha yakından izlenir. ÜFE üretici fiyat baskısını önceden haber verir. Yapışkan enflasyon faiz baskısını uzatır.</div>
+        <div class="macro-effect"><span class="macro-arrow">↑</span> Enflasyon → Emtia/gayrimenkul/TIPS faydalanır<br><span class="macro-arrow-r">↓</span> Deflasyon → Nakit ve tahvil güvenli liman</div>
+      </div>
+
+      <div class="macro-card">
+        <div class="macro-icon">📈</div>
+        <div class="macro-title">CAPE Oranı (Shiller P/E)</div>
+        <div class="macro-source">Cyclically Adjusted P/E</div>
+        <div class="macro-desc">Robert Shiller Nobel ödüllü ölçüm. 10 yıllık enflasyon düzeltmeli ortalama kazançla değerleme. Tarihsel ortalama ~16x; 30x üzeri değerlemeler genellikle uzun vadeli zayıf getirileri önceler.</div>
+        <div class="macro-effect"><span class="macro-arrow">↑</span> CAPE yüksek → Uzun vadeli getiri beklentisi düşük<br><span class="macro-arrow-r">↓</span> CAPE düşük → Uzun vadeli getiri beklentisi yüksek</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── 09 POZİSYON BOYUTLANDIRMA ── -->
+<section>
+  <div class="wrap">
+    <div class="s-label rv">09 — Pozisyon Yönetimi</div>
+    <h2 class="s-title rv">Ne Kadar Alınır? <em>Boyutlandırma</em> Sanatı</h2>
+    <p class="s-desc rv">Doğru şirketi yanlış büyüklükte almak bile portföyü mahvedebilir. Pozisyon boyutlandırma, risk yönetiminin matematiksel kalbidir.</p>
+    <div class="sizing-grid rv">
+
+      <div class="sz-card">
+        <div class="sz-title">Kelly Kriteri</div>
+        <div class="sz-formula">f* = (p × b - q) / b<br>f* = Optimal bahis oranı<br>p = Kazanma olasılığı<br>b = Kaybetme/kazanma oranı<br>q = 1 - p</div>
+        <div class="sz-desc">Uzun vadeli bileşik büyümeyi matematiksel olarak maksimize eder. Tam Kelly genellikle çok yüksek riski ima eder — pratik uygulamada f*/2 veya f*/4 (Fractional Kelly) tercih edilir. Formül, kazanan bir kenarda bile fazla bahsin bileşik getiriyi imha ettiğini kanıtlar.</div>
+      </div>
+
+      <div class="sz-card">
+        <div class="sz-title">Sabit Risk Modeli (%1–2 Kuralı)</div>
+        <div class="sz-formula">Pozisyon = Portföy × Risk %<br>          ÷ (Giriş - Stop Loss)<br><br>Örnek: 100.000₺ × %1 = 1000₺ risk<br>Stop: %5 → Pozisyon: 20.000₺</div>
+        <div class="sz-desc">Her işlemde portföyün sabit bir yüzdesini (genellikle %1–2) riske at. 20 ardışık kayıp bile hesabı silmez. En basit ve en yaygın kullanılan risk yönetim sistemi. Sürdürülebilirlik açısından Kelly'den daha tutucudur.</div>
+      </div>
+
+      <div class="sz-card">
+        <div class="sz-title">Konsantrasyon vs. Çeşitlendirme</div>
+        <div class="sz-formula">Buffett: "Çeşitlendirme bilgisizliğe karşı korunmadır"<br>Lynch: "Bakla bohçası"<br>Graham: "20–30 hisse yeterli"</div>
+        <div class="sz-desc">Teori: 20 hisse sistematik riski büyük ölçüde azaltır. Uygulama: Yüksek güven pozisyonlarında %10–15 konsantrasyon verilebilir. Ancak bu, derinlemesine analiz gerektiren bir yaklaşımdır. Yeni başlayanlar için maksimum tek hisse ağırlığı %5 önerilir.</div>
+      </div>
+
+      <div class="sz-card">
+        <div class="sz-title">Piramidin Üzerine Ekleme (Pyramiding)</div>
+        <div class="sz-formula">Giriş: %50 tam pozisyon<br>Doğrulama sonrası: +%30<br>Güçlü momentum: +%20<br>Stop: Giriş fiyatı altında</div>
+        <div class="sz-desc">Pozisyona kademeli giriş stratejisi. İlk girişte yarısını al, tez doğrulandıkça ekle. Bu yaklaşım, zamanlamayı mükemmelleştirmeye olan ihtiyacı azaltır ve başarısız pozisyonlarda hasarı sınırlar. DCA bu prensibin özel bir versiyonudur.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── 10 KONTROL LİSTESİ ── -->
+<section id="kontrol">
+  <div class="wrap">
+    <div class="s-label rv">10 — Due Diligence</div>
+    <h2 class="s-title rv">Alım Öncesi <em>Kapsamlı Kontrol</em></h2>
+    <p class="s-desc rv">Tüm kutular işaretlenmeden pozisyon açmama disiplini, duygusal kararların en iyi panzehiridir. Her kutuya tıklayarak ilerleyin.</p>
+    <div class="cl-grid rv">
+
+      <div class="cl-group">
+        <div class="cl-group-title">Temel Analiz</div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">İş modelini ve tüm gelir kaynaklarını net anlıyorum</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Rekabet avantajını (moat) somut olarak tanımladım</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Son 5 yıllık tüm finansal raporları inceledim</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">En az 3 ana rakiple karşılaştırmalı analiz yaptım</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Yönetimin geçmiş kararlarını ve güvenilirliğini araştırdım</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Müşteri konsantrasyon riskini değerlendirdim</div></div>
+      </div>
+
+      <div class="cl-group">
+        <div class="cl-group-title">Finansal Göstergeler</div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">FCF pozitif ve büyüyen bir trend içinde</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">ROIC sistematik olarak WACC'ın üzerinde</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Net Borç/EBITDA sektör için kabul edilebilir seviyede</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Brüt marjlar genişliyor ya da savunuluyor</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Muhasebe kalitesini sorguladım (agresif gelir tanıma?)</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Borç vade takvimini ve refinansman riskini inceledim</div></div>
+      </div>
+
+      <div class="cl-group">
+        <div class="cl-group-title">Değerleme & Güvenlik Marjı</div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">DCF analizi tamamlandı ve duyarlılık testi yapıldı</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Çarpan analizi sektör ve tarihsel ortalama ile kıyaslandı</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">En az %20 güvenlik marjı mevcut</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Boğa / baz / ayı senaryo değerlemesi yapıldı</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Hedef fiyatım ve çıkış planım yazılı halde</div></div>
+      </div>
+
+      <div class="cl-group">
+        <div class="cl-group-title">Risk & Psikoloji</div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Tezi çürütecek 3 senaryo yazılı olarak tanımladım</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Stop-loss seviyemi net olarak belirledim</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Portföyde maksimum ağırlık sınırımı belirledi</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">FOMO veya başka duygusal etken var mı? Sorgulayın.</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Bu yatırımı 5 yıl tutabilir miyim? Evet diyorum.</div></div>
+      </div>
+
+      <div class="cl-group">
+        <div class="cl-group-title">Makro & Zamanlama</div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Makro ortam yatırımı destekliyor veya en azından engellemiyor</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Sektör döngüsü içinde konumunu değerlendirdim</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Teknik analiz giriş noktasını destekliyor</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Yakın vadeli önemli katalitik olay var mı? İnceledim.</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Düzenleyici veya jeopolitik riski değerlendirdim</div></div>
+      </div>
+
+      <div class="cl-group">
+        <div class="cl-group-title">Karar & Belgeleme</div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Yatırım tezimi tek paragrafta özetleyebiliyorum</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Pozisyon boyutlandırmamı hesapladım (Kelly/sabit risk)</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Tez değiştiğinde ne yapacağımı yazıya döktüm</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Yatırım günlüğüme bu analizi ekledim</div></div>
+        <div class="cl-item" onclick="toggle(this)"><div class="cl-box"></div><div class="cl-text">Tüm kontroller tamamlandı — alım kararı verildi.</div></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── 11 KARAR AKIŞ ŞEMASI ── -->
+<section>
+  <div class="wrap">
+    <div class="s-label rv">11 — Karar Çerçevesi</div>
+    <h2 class="s-title rv">Sistematik <em>Alım Kararı</em></h2>
+    <p class="s-desc rv">Duygusal kararları ortadan kaldıran, her seferinde aynı disiplini uygulayan çerçeve. Sonuçları değil süreci kontrol edersin.</p>
+    <div class="flow rv">
+
+      <div class="flow-step">
+        <div class="f-num">1</div>
+        <div>
+          <div class="f-title">Yatırım Tezini Tek Paragrafta Yaz</div>
+          <div class="f-desc">İş modeli, büyüme katalizörü ve rekabet avantajını kendi cümlelerinle açıklayamıyorsan analiz tamamlanmamıştır. "Bu şirketi neden alıyorum?" sorusunun net cevabı olmalı.</div>
+        </div>
+        <div class="f-tag tq">Nitel</div>
+      </div>
+
+      <div class="flow-step">
+        <div class="f-num">2</div>
+        <div>
+          <div class="f-title">Finansal Kontrol Listesini Çalıştır</div>
+          <div class="f-desc">FCF, ROIC, borç yükü, marj trendi. Herhangi bir kırmızı bayrak var mı? Tek bir kritik metrik yetersizse tezi yeniden değerlendir. Savunma avukatı gibi sorgula.</div>
+        </div>
+        <div class="f-tag tf">Finansal</div>
+      </div>
+
+      <div class="flow-step">
+        <div class="f-num">3</div>
+        <div>
+          <div class="f-title">Değerleme — Güvenlik Marjı Var mı?</div>
+          <div class="f-desc">DCF ve çarpan analizi tamamlandı mı? Mevcut fiyat içsel değerin en az %20 altında mı? Senaryo analizi yapıldı mı? Marj yoksa bekle veya geç.</div>
+        </div>
+        <div class="f-tag tv">Değerleme</div>
+      </div>
+
+      <div class="flow-step">
+        <div class="f-num">4</div>
+        <div>
+          <div class="f-title">Pre-Mortem — "Neyi Yanlış Bilebilirim?"</div>
+          <div class="f-desc">3 yıl sonra bu yatırım başarısız olsaydı, en olası 3 neden ne olurdu? Bu senaryoların her birinde kayıp kabul edilebilir mi? Cevabın evet ise devam et.</div>
+        </div>
+        <div class="f-tag tr">Risk</div>
+      </div>
+
+      <div class="flow-step">
+        <div class="f-num">5</div>
+        <div>
+          <div class="f-title">Makro & Zamanlama Kontrolü</div>
+          <div class="f-desc">Genel makro ortam bu yatırımı destekliyor mu? Sektörel döngü uygun mu? Teknik analiz giriş noktasını onaylıyor mu? Olumsuz faktörler varsa boyutu küçült.</div>
+        </div>
+        <div class="f-tag tm">Makro</div>
+      </div>
+
+      <div class="flow-step">
+        <div class="f-num">6</div>
+        <div>
+          <div class="f-title">Pozisyon Boyutu, Stop & Plan — Al</div>
+          <div class="f-desc">Kelly veya sabit risk modeli ile boyutu hesapla. Stop-loss seviyeni yaz. Tez değiştiğinde çıkış koşullarını belirle. Yatırım günlüğüne ekle. Ardından al.</div>
+        </div>
+        <div class="f-tag tp">Pozisyon</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FINAL QUOTE -->
+<section style="padding: 0 0 80px 0;">
+  <div class="wrap">
+    <div class="quote-block rv">
+      <div class="quote-mark">"</div>
+      <p class="quote-text">Fiyat, ödediğiniz şeydir. Değer, aldığınız şeydir. Bir şey herkese ucuz göründüğünde — çok dikkatli ol.</p>
+      <div class="quote-author">— Warren Buffett</div>
+    </div>
+    <div class="quote-block rv">
+      <div class="quote-mark">"</div>
+      <p class="quote-text">Getiri, varlık sınıfından değil, fiyattan gelir. En iyi şirketi yanlış fiyatta almak, en kötü yatırımdır.</p>
+      <div class="quote-author">— Howard Marks · Oaktree Capital</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
 <footer>
-  <p>TradeVia · Yatırım Analizi Rehberi · Yatırım tavsiyesi değildir</p>
+  <div class="footer-logo">Yatırım Analizi Rehberi</div>
+  <p class="footer-disc">
+    Akademik amaçlı hazırlanmıştır · Yatırım tavsiyesi değildir · Geçmiş performans gelecek getiriyi garanti etmez<br>
+    Benjamin Graham · Warren Buffett · Howard Marks · Daniel Kahneman · Harry Markowitz · Nassim Taleb ilke ve çalışmalarından yararlanılmıştır
+  </p>
 </footer>
 
 <script>
-  // Phase toggle
-  function toggle(el) {
-    const wasActive = el.classList.contains('active');
-    document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
-    if (!wasActive) el.classList.add('active');
-  }
-  document.querySelector('.phase').classList.add('active');
+// Progress Bar
+window.addEventListener('scroll', () => {
+  const d = document.documentElement;
+  const p = (d.scrollTop || document.body.scrollTop) / (d.scrollHeight - d.clientHeight) * 100;
+  document.getElementById('progress').style.width = p + '%';
+});
 
-  // Scroll reveal
-  const reveals = document.querySelectorAll('.reveal');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((e, i) => {
-      if (e.isIntersecting) {
-        setTimeout(() => e.target.classList.add('visible'), i * 60);
-        observer.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.06 });
-  reveals.forEach(r => observer.observe(r));
+// Phase Accordion
+function togglePhase(el) {
+  const isOpen = el.classList.contains('open');
+  document.querySelectorAll('.phase').forEach(p => p.classList.remove('open'));
+  if (!isOpen) el.classList.add('open');
+}
 
-  // Progress bar
-  window.addEventListener('scroll', () => {
-    const scrollTop = window.scrollY;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const progress = (scrollTop / docHeight) * 100;
-    document.getElementById('progressBar').style.width = progress + '%';
+// Open first phase by default
+document.querySelector('.phase')?.classList.add('open');
+
+// Checklist toggle
+function toggle(el) {
+  el.classList.toggle('done');
+}
+
+// Scroll Reveal
+const io = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('on'), i * 60);
+      io.unobserve(e.target);
+    }
   });
+}, { threshold: 0.06 });
 
-  // TOC active state
-  const sections = ['hero','sec-phases','sec-metrics','sec-checklist','sec-decision','sec-exit','sec-psy','sec-bist','sec-portfolio'];
-  const dots = document.querySelectorAll('.toc-dot');
-  window.addEventListener('scroll', () => {
-    let current = 0;
-    sections.forEach((id, i) => {
-      const el = document.getElementById(id);
-      if (el && window.scrollY >= el.offsetTop - 200) current = i;
-    });
-    dots.forEach((d, i) => d.classList.toggle('active', i === current));
-  });
-
-  // Scroll to section
-  function scrollToSection(id) {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  }
+document.querySelectorAll('.rv').forEach(el => io.observe(el));
 </script>
 </body>
 </html>
