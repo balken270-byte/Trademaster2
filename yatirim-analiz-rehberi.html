@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Derin Yatırım Analizi Rehberi</title>
+<title>Derin Yatırım Analizi Rehberi — TradeVia</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
   :root {
     --gold: #C9A84C;
@@ -20,6 +21,7 @@
     --red: #C94C4C;
     --green: #4CAF7A;
     --blue: #4C84C9;
+    --purple: #9C6FD6;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -33,6 +35,87 @@
     overflow-x: hidden;
   }
 
+  /* PROGRESS BAR */
+  .progress-bar {
+    position: fixed; top: 0; left: 0; height: 2px;
+    background: linear-gradient(to right, var(--gold-dim), var(--gold-light));
+    transition: width 0.1s; z-index: 200; width: 0%;
+  }
+
+  /* BACK BUTTON */
+  .back-btn {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 150;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(14,14,18,0.85);
+    border: 1px solid var(--border);
+    color: var(--gold);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 9px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .back-btn:hover {
+    background: rgba(201,168,76,0.08);
+    border-color: var(--gold);
+    transform: translateX(-2px);
+  }
+  .back-btn i { font-size: 12px; }
+
+  /* NAV TOC */
+  .toc {
+    position: fixed;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 100;
+  }
+  .toc-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gold-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .toc-dot.active { background: var(--gold); transform: scale(1.5); }
+  .toc-dot:hover { background: var(--gold-light); }
+  .toc-dot::after {
+    content: attr(data-label);
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: var(--gold);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s;
+    background: rgba(10,10,12,0.9);
+    padding: 3px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+  .toc-dot:hover::after { opacity: 1; }
+
+  @media (max-width: 768px) { .toc { display: none; } }
+
   /* HERO */
   .hero {
     min-height: 100vh;
@@ -42,524 +125,254 @@
     align-items: center;
     text-align: center;
     position: relative;
-    padding: 60px 20px;
+    padding: 80px 20px 60px;
     background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,168,76,0.08) 0%, transparent 70%);
   }
-
   .hero::before {
     content: '';
-    position: absolute;
-    inset: 0;
-    background: 
+    position: absolute; inset: 0;
+    background:
       repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(201,168,76,0.03) 60px),
       repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(201,168,76,0.03) 60px);
     pointer-events: none;
   }
-
   .badge {
     display: inline-block;
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--gold);
-    border: 1px solid var(--gold-dim);
-    padding: 6px 16px;
-    margin-bottom: 32px;
-    opacity: 0;
-    animation: fadeUp 0.8s 0.2s forwards;
+    font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--gold); border: 1px solid var(--gold-dim);
+    padding: 6px 16px; margin-bottom: 32px;
+    opacity: 0; animation: fadeUp 0.8s 0.2s forwards;
   }
-
   .hero h1 {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(2.8rem, 7vw, 6rem);
-    font-weight: 900;
-    line-height: 1.05;
-    letter-spacing: -0.02em;
-    margin-bottom: 24px;
-    opacity: 0;
-    animation: fadeUp 0.8s 0.4s forwards;
+    font-size: clamp(2.4rem, 6vw, 5.5rem);
+    font-weight: 900; line-height: 1.05;
+    letter-spacing: -0.02em; margin-bottom: 24px;
+    opacity: 0; animation: fadeUp 0.8s 0.4s forwards;
   }
-
   .hero h1 span {
     background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-dim));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   }
-
   .hero-sub {
-    font-size: 1.1rem;
-    color: var(--text-muted);
-    max-width: 580px;
-    opacity: 0;
-    animation: fadeUp 0.8s 0.6s forwards;
-    letter-spacing: 0.01em;
+    font-size: 1.05rem; color: var(--text-muted); max-width: 560px;
+    opacity: 0; animation: fadeUp 0.8s 0.6s forwards; letter-spacing: 0.01em;
   }
-
-  .scroll-hint {
-    position: absolute;
-    bottom: 40px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    opacity: 0;
-    animation: fadeUp 0.8s 1.2s forwards;
+  .hero-stats {
+    display: flex; gap: 40px; margin-top: 48px;
+    opacity: 0; animation: fadeUp 0.8s 0.8s forwards;
   }
-
-  .scroll-hint span {
+  .hero-stat { text-align: center; }
+  .hero-stat-num {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 3px;
-    color: var(--text-muted);
-    text-transform: uppercase;
+    font-size: 1.6rem; font-weight: 500; color: var(--gold);
   }
-
-  .scroll-line {
-    width: 1px;
-    height: 48px;
-    background: linear-gradient(to bottom, var(--gold), transparent);
-    animation: pulse 2s ease-in-out infinite;
+  .hero-stat-label { font-size: 0.72rem; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+  .scroll-hint {
+    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    opacity: 0; animation: fadeUp 0.8s 1.2s forwards;
   }
+  .scroll-hint span { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 3px; color: var(--text-muted); text-transform: uppercase; }
+  .scroll-line { width: 1px; height: 48px; background: linear-gradient(to bottom, var(--gold), transparent); animation: pulse 2s ease-in-out infinite; }
 
   /* SECTIONS */
-  .section {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 100px 24px;
-  }
-
+  .section { max-width: 1100px; margin: 0 auto; padding: 80px 24px; }
   .section-label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    color: var(--gold-dim);
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 4px;
+    text-transform: uppercase; color: var(--gold-dim); margin-bottom: 16px;
+    display: flex; align-items: center; gap: 12px;
   }
-
-  .section-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-
-  .section-title {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(1.8rem, 4vw, 3rem);
-    font-weight: 700;
-    margin-bottom: 16px;
-    line-height: 1.2;
-  }
-
-  .section-title em {
-    font-style: normal;
-    color: var(--gold);
-  }
-
-  .section-desc {
-    color: var(--text-muted);
-    font-size: 1rem;
-    max-width: 600px;
-    margin-bottom: 56px;
-  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .section-title { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 700; margin-bottom: 16px; line-height: 1.2; }
+  .section-title em { font-style: normal; color: var(--gold); }
+  .section-desc { color: var(--text-muted); font-size: 1rem; max-width: 600px; margin-bottom: 48px; }
 
   /* PHASE CARDS */
-  .phases {
-    display: grid;
-    gap: 2px;
-    margin-bottom: 80px;
-  }
-
-  .phase {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--gold-dim);
-    overflow: hidden;
-    cursor: pointer;
-    transition: border-color 0.3s;
-  }
-
+  .phases { display: grid; gap: 2px; margin-bottom: 60px; }
+  .phase { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--gold-dim); overflow: hidden; cursor: pointer; transition: border-color 0.3s; }
   .phase:hover { border-left-color: var(--gold); }
   .phase.active { border-left-color: var(--gold-light); }
-
-  .phase-header {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    padding: 28px 32px;
-  }
-
-  .phase-num {
-    font-family: 'Playfair Display', serif;
-    font-size: 2rem;
-    font-weight: 900;
-    color: var(--gold-dim);
-    min-width: 48px;
-    transition: color 0.3s;
-  }
-
-  .phase:hover .phase-num,
-  .phase.active .phase-num { color: var(--gold); }
-
-  .phase-title {
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 1.05rem;
-    font-weight: 500;
-    flex: 1;
-    letter-spacing: 0.01em;
-  }
-
-  .phase-icon {
-    font-size: 1.4rem;
-    opacity: 0.7;
-  }
-
-  .phase-chevron {
-    width: 20px;
-    height: 20px;
-    border-right: 1.5px solid var(--gold-dim);
-    border-bottom: 1.5px solid var(--gold-dim);
-    transform: rotate(45deg);
-    transition: transform 0.3s, border-color 0.3s;
-    margin-right: 4px;
-  }
-
-  .phase.active .phase-chevron {
-    transform: rotate(-135deg);
-    border-color: var(--gold);
-  }
-
-  .phase-body {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.5s cubic-bezier(0.4,0,0.2,1);
-  }
-
-  .phase.active .phase-body { max-height: 800px; }
-
-  .phase-content {
-    padding: 0 32px 32px 100px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 12px;
-  }
-
-  .item {
-    background: var(--bg3);
-    border: 1px solid rgba(255,255,255,0.04);
-    padding: 16px 18px;
-    transition: border-color 0.2s;
-  }
-
+  .phase-header { display: flex; align-items: center; gap: 20px; padding: 24px 28px; }
+  .phase-num { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 900; color: var(--gold-dim); min-width: 48px; transition: color 0.3s; }
+  .phase:hover .phase-num, .phase.active .phase-num { color: var(--gold); }
+  .phase-title { font-size: 1rem; font-weight: 500; flex: 1; }
+  .phase-icon { font-size: 1.3rem; opacity: 0.7; }
+  .phase-chevron { width: 18px; height: 18px; border-right: 1.5px solid var(--gold-dim); border-bottom: 1.5px solid var(--gold-dim); transform: rotate(45deg); transition: transform 0.3s, border-color 0.3s; margin-right: 4px; }
+  .phase.active .phase-chevron { transform: rotate(-135deg); border-color: var(--gold); }
+  .phase-body { max-height: 0; overflow: hidden; transition: max-height 0.5s cubic-bezier(0.4,0,0.2,1); }
+  .phase.active .phase-body { max-height: 900px; }
+  .phase-content { padding: 0 28px 28px 96px; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  @media (max-width: 600px) { .phase-content { padding: 0 16px 20px 16px; grid-template-columns: 1fr; } }
+  .item { background: var(--bg3); border: 1px solid rgba(255,255,255,0.04); padding: 14px 16px; transition: border-color 0.2s; }
   .item:hover { border-color: var(--border); }
+  .item-title { font-size: 0.8rem; font-weight: 500; color: var(--gold-light); margin-bottom: 5px; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.3px; }
+  .item-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
 
-  .item-title {
-    font-size: 0.82rem;
-    font-weight: 500;
-    color: var(--gold-light);
-    margin-bottom: 6px;
-    font-family: 'IBM Plex Mono', monospace;
-    letter-spacing: 0.5px;
-  }
-
-  .item-desc {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    line-height: 1.5;
-  }
-
-  /* METRICS GRID */
-  .divider {
-    border: none;
-    border-top: 1px solid var(--border);
-    margin: 80px 0;
-  }
-
-  .metrics-section {
-    background: var(--bg2);
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    padding: 80px 0;
-  }
-
-  .metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-    margin-top: 48px;
-  }
-
-  .metric-card {
-    background: var(--bg2);
-    padding: 28px 24px;
-    transition: background 0.2s;
-  }
-
+  /* METRICS */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 60px 0; }
+  .metrics-section { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 80px 0; }
+  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-top: 48px; }
+  .metric-card { background: var(--bg2); padding: 24px 20px; transition: background 0.2s; }
   .metric-card:hover { background: var(--surface); }
-
-  .metric-abbr {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 1.3rem;
-    font-weight: 500;
-    color: var(--gold);
-    margin-bottom: 8px;
-  }
-
-  .metric-name {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    margin-bottom: 10px;
-    letter-spacing: 0.3px;
-  }
-
-  .metric-desc {
-    font-size: 0.78rem;
-    color: var(--text);
-    opacity: 0.7;
-    line-height: 1.5;
-  }
-
-  .metric-signal {
-    display: inline-block;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 3px 8px;
-    margin-top: 10px;
-  }
-
+  .metric-abbr { font-family: 'IBM Plex Mono', monospace; font-size: 1.2rem; font-weight: 500; color: var(--gold); margin-bottom: 6px; }
+  .metric-name { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 0.3px; }
+  .metric-desc { font-size: 0.76rem; color: var(--text); opacity: 0.7; line-height: 1.5; }
+  .metric-signal { display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; padding: 3px 8px; margin-top: 10px; }
   .signal-buy { background: rgba(76,175,122,0.1); color: var(--green); border: 1px solid rgba(76,175,122,0.2); }
   .signal-caution { background: rgba(201,168,76,0.1); color: var(--gold); border: 1px solid rgba(201,168,76,0.2); }
   .signal-sell { background: rgba(201,76,76,0.1); color: var(--red); border: 1px solid rgba(201,76,76,0.2); }
 
   /* CHECKLIST */
   .checklist-section { max-width: 1100px; margin: 0 auto; padding: 80px 24px; }
-
-  .checklist {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 16px;
-    margin-top: 48px;
-  }
-
-  .check-group {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 28px;
-  }
-
-  .check-group-title {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 2px;
-    color: var(--gold);
-    text-transform: uppercase;
-    margin-bottom: 20px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .check-item {
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
-    cursor: pointer;
-    user-select: none;
-  }
-
+  .checklist { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-top: 48px; }
+  .check-group { background: var(--surface); border: 1px solid var(--border); padding: 24px; }
+  .check-group-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+  .check-item { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.03); cursor: pointer; user-select: none; }
   .check-item:last-child { border-bottom: none; }
+  .check-box { width: 15px; height: 15px; border: 1px solid var(--gold-dim); flex-shrink: 0; margin-top: 3px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .check-item.checked .check-box { background: var(--gold); border-color: var(--gold); }
+  .check-item.checked .check-box::after { content: '✓'; font-size: 9px; color: var(--bg); font-weight: 700; }
+  .check-item.checked .check-label { text-decoration: line-through; color: var(--text-muted); }
+  .check-label { font-size: 0.8rem; line-height: 1.5; transition: color 0.2s; }
 
-  .check-box {
-    width: 16px;
-    height: 16px;
-    border: 1px solid var(--gold-dim);
-    flex-shrink: 0;
-    margin-top: 3px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-  }
-
-  .check-item.checked .check-box {
-    background: var(--gold);
-    border-color: var(--gold);
-  }
-
-  .check-item.checked .check-box::after {
-    content: '✓';
-    font-size: 10px;
-    color: var(--bg);
-    font-weight: 700;
-  }
-
-  .check-item.checked .check-label {
-    text-decoration: line-through;
-    color: var(--text-muted);
-  }
-
-  .check-label {
-    font-size: 0.82rem;
-    line-height: 1.5;
-    transition: color 0.2s;
-  }
-
-  /* DECISION FRAMEWORK */
-  .decision {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 80px 24px;
-  }
-
-  .decision-flow {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    margin-top: 48px;
-    position: relative;
-  }
-
-  .flow-step {
-    display: grid;
-    grid-template-columns: 80px 1fr auto;
-    align-items: center;
-    gap: 24px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 24px 28px;
-    transition: border-color 0.2s;
-  }
-
+  /* DECISION FLOW */
+  .decision { max-width: 1100px; margin: 0 auto; padding: 80px 24px; }
+  .decision-flow { display: flex; flex-direction: column; gap: 2px; margin-top: 48px; }
+  .flow-step { display: grid; grid-template-columns: 70px 1fr auto; align-items: center; gap: 20px; background: var(--surface); border: 1px solid var(--border); padding: 22px 24px; transition: border-color 0.2s; }
+  @media (max-width: 600px) { .flow-step { grid-template-columns: 40px 1fr; } .flow-tag { display: none; } }
   .flow-step:hover { border-color: var(--gold-dim); }
-
-  .flow-num {
-    font-family: 'Playfair Display', serif;
-    font-size: 2.5rem;
-    font-weight: 900;
-    color: var(--bg3);
-    -webkit-text-stroke: 1px var(--gold-dim);
-    text-align: center;
-  }
-
-  .flow-content h3 {
-    font-size: 0.95rem;
-    font-weight: 500;
-    margin-bottom: 4px;
-    color: var(--text);
-  }
-
-  .flow-content p {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-  }
-
-  .flow-tag {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 4px 10px;
-    border: 1px solid;
-    white-space: nowrap;
-  }
-
+  .flow-num { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 900; color: var(--bg3); -webkit-text-stroke: 1px var(--gold-dim); text-align: center; }
+  .flow-content h3 { font-size: 0.92rem; font-weight: 500; margin-bottom: 4px; }
+  .flow-content p { font-size: 0.78rem; color: var(--text-muted); }
+  .flow-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border: 1px solid; white-space: nowrap; }
   .tag-q { color: var(--blue); border-color: rgba(76,132,201,0.3); background: rgba(76,132,201,0.05); }
   .tag-f { color: var(--green); border-color: rgba(76,175,122,0.3); background: rgba(76,175,122,0.05); }
   .tag-t { color: var(--gold); border-color: rgba(201,168,76,0.3); background: rgba(201,168,76,0.05); }
   .tag-r { color: var(--red); border-color: rgba(201,76,76,0.3); background: rgba(201,76,76,0.05); }
   .tag-p { color: #C94CC9; border-color: rgba(201,76,201,0.3); background: rgba(201,76,201,0.05); }
+  .tag-exit { color: var(--purple); border-color: rgba(156,111,214,0.3); background: rgba(156,111,214,0.05); }
+  .tag-psy { color: #4CC9C9; border-color: rgba(76,201,201,0.3); background: rgba(76,201,201,0.05); }
 
-  /* FOOTER */
-  footer {
-    border-top: 1px solid var(--border);
-    padding: 40px 24px;
-    text-align: center;
-  }
+  /* EXIT STRATEGY */
+  .exit-section { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 80px 0; }
+  .exit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1px; background: var(--border); margin-top: 48px; }
+  .exit-card { background: var(--bg2); padding: 28px 24px; transition: background 0.2s; border-left: 3px solid transparent; }
+  .exit-card:hover { background: var(--surface); }
+  .exit-card.sell { border-left-color: var(--red); }
+  .exit-card.hold { border-left-color: var(--green); }
+  .exit-card.watch { border-left-color: var(--gold); }
+  .exit-icon { font-size: 1.4rem; margin-bottom: 12px; }
+  .exit-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; font-weight: 500; margin-bottom: 8px; letter-spacing: 0.5px; }
+  .exit-card.sell .exit-title { color: var(--red); }
+  .exit-card.hold .exit-title { color: var(--green); }
+  .exit-card.watch .exit-title { color: var(--gold); }
+  .exit-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+  .exit-rule { display: flex; gap: 8px; align-items: flex-start; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.76rem; }
+  .exit-rule:last-child { border-bottom: none; padding-bottom: 0; }
+  .exit-rule-dot { width: 5px; height: 5px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+  .exit-card.sell .exit-rule-dot { background: var(--red); }
+  .exit-card.hold .exit-rule-dot { background: var(--green); }
+  .exit-card.watch .exit-rule-dot { background: var(--gold); }
 
-  footer p {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-  }
+  /* PSYCHOLOGY */
+  .psy-section { max-width: 1100px; margin: 0 auto; padding: 80px 24px; }
+  .psy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-top: 48px; }
+  .psy-card { background: var(--surface); border: 1px solid var(--border); padding: 24px; transition: all 0.2s; position: relative; overflow: hidden; }
+  .psy-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(to right, var(--red), transparent); }
+  .psy-card:hover { border-color: rgba(201,76,76,0.3); transform: translateY(-2px); }
+  .psy-name { font-size: 0.95rem; font-weight: 500; margin-bottom: 6px; color: var(--text); }
+  .psy-en { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: var(--red); letter-spacing: 0.5px; margin-bottom: 10px; }
+  .psy-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px; }
+  .psy-fix { font-size: 0.76rem; color: var(--gold); padding: 8px 12px; background: rgba(201,168,76,0.06); border-left: 2px solid var(--gold-dim); }
+
+  /* BIST SPECIAL */
+  .bist-section { background: rgba(201,168,76,0.03); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 80px 0; }
+  .bist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-top: 48px; }
+  .bist-card { background: var(--bg3); border: 1px solid var(--border); border-left: 2px solid var(--gold-dim); padding: 20px 18px; transition: all 0.2s; }
+  .bist-card:hover { border-left-color: var(--gold); background: var(--surface); }
+  .bist-card-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--gold-light); font-weight: 500; margin-bottom: 6px; }
+  .bist-card-desc { font-size: 0.76rem; color: var(--text-muted); line-height: 1.5; }
+  .bist-tag { display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; padding: 2px 7px; margin-top: 8px; background: rgba(201,168,76,0.08); color: var(--gold-dim); border: 1px solid rgba(201,168,76,0.15); }
+
+  /* PORTFOLIO */
+  .portfolio-section { max-width: 1100px; margin: 0 auto; padding: 80px 24px; }
+  .portfolio-table { width: 100%; border-collapse: collapse; margin-top: 48px; font-size: 0.82rem; }
+  .portfolio-table th { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-dim); padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+  .portfolio-table td { padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--text-muted); vertical-align: top; line-height: 1.5; }
+  .portfolio-table tr:hover td { background: var(--surface); color: var(--text); }
+  .ptag { display: inline-block; padding: 2px 8px; font-size: 0.7rem; border-radius: 2px; }
+  .ptag-cons { background: rgba(76,175,122,0.1); color: var(--green); }
+  .ptag-agg { background: rgba(201,76,76,0.1); color: var(--red); }
+  .ptag-bal { background: rgba(201,168,76,0.1); color: var(--gold); }
+  .portfolio-tip { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--gold-dim); padding: 20px 24px; margin-top: 16px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; }
+  .portfolio-tip strong { color: var(--gold); font-weight: 500; }
 
   /* ANIMATIONS */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(20px); }
     to   { opacity: 1; transform: translateY(0); }
   }
+  @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
 
-  @keyframes pulse {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 1; }
-  }
-
-  .reveal {
-    opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 0.7s ease, transform 0.7s ease;
-  }
-
-  .reveal.visible {
-    opacity: 1;
-    transform: none;
-  }
-
-  /* PROGRESS BAR */
-  .progress-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 2px;
-    background: linear-gradient(to right, var(--gold-dim), var(--gold-light));
-    transition: width 0.1s;
-    z-index: 100;
-  }
+  /* FOOTER */
+  footer { border-top: 1px solid var(--border); padding: 40px 24px; text-align: center; }
+  footer p { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--text-muted); text-transform: uppercase; }
 </style>
 </head>
 <body>
 
 <div class="progress-bar" id="progressBar"></div>
 
+<!-- BACK BUTTON -->
+<a class="back-btn" onclick="history.length > 1 ? history.back() : window.close()" href="javascript:void(0)">
+  <i class="fas fa-chevron-left"></i> Geri Dön
+</a>
+
+<!-- TOC DOTS -->
+<div class="toc">
+  <div class="toc-dot active" data-label="GİRİŞ" onclick="scrollToSection('hero')"></div>
+  <div class="toc-dot" data-label="ANALİZ AŞAMALARI" onclick="scrollToSection('sec-phases')"></div>
+  <div class="toc-dot" data-label="KRİTİK METRİKLER" onclick="scrollToSection('sec-metrics')"></div>
+  <div class="toc-dot" data-label="CHECKLIST" onclick="scrollToSection('sec-checklist')"></div>
+  <div class="toc-dot" data-label="KARAR AKIŞI" onclick="scrollToSection('sec-decision')"></div>
+  <div class="toc-dot" data-label="ÇIKIŞ STRATEJİSİ" onclick="scrollToSection('sec-exit')"></div>
+  <div class="toc-dot" data-label="PSİKOLOJİ" onclick="scrollToSection('sec-psy')"></div>
+  <div class="toc-dot" data-label="BIST ÖZEL" onclick="scrollToSection('sec-bist')"></div>
+  <div class="toc-dot" data-label="PORTFÖY" onclick="scrollToSection('sec-portfolio')"></div>
+</div>
+
 <!-- HERO -->
-<section class="hero">
+<section class="hero" id="hero">
   <div class="badge">Yatırım Analizi · Kapsamlı Rehber</div>
   <h1>Bir Varlığı Satın Almadan<br>Önce <span>Ne Yapmalısın?</span></h1>
-  <p class="hero-sub">Profesyonel yatırımcıların kullandığı derin analiz metodolojisi — veri toplama, filtreleme ve karar verme çerçevesi.</p>
+  <p class="hero-sub">Profesyonel yatırımcıların kullandığı derin analiz metodolojisi — veri toplama, filtreleme, karar verme ve çıkış çerçevesi.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="hero-stat-num">5</div><div class="hero-stat-label">Analiz Katmanı</div></div>
+    <div class="hero-stat"><div class="hero-stat-num">8</div><div class="hero-stat-label">Kritik Metrik</div></div>
+    <div class="hero-stat"><div class="hero-stat-num">18</div><div class="hero-stat-label">Kontrol Maddesi</div></div>
+    <div class="hero-stat"><div class="hero-stat-num">7</div><div class="hero-stat-label">Bölüm</div></div>
+  </div>
   <div class="scroll-hint">
     <span>Aşağı kaydır</span>
     <div class="scroll-line"></div>
   </div>
 </section>
 
-<!-- PHASE SECTION -->
-<section class="section">
+<!-- 01 — ANALİZ AŞAMALARI -->
+<section class="section" id="sec-phases">
   <div class="section-label reveal">01 — Analiz Aşamaları</div>
   <h2 class="section-title reveal">Derin Analizin <em>5 Katmanı</em></h2>
   <p class="section-desc reveal">Her aşama bir öncekinin üzerine inşa edilir. Sırayı atlamak, kör noktalar yaratır.</p>
 
   <div class="phases reveal" id="phases">
-
     <div class="phase" onclick="toggle(this)">
       <div class="phase-header">
         <div class="phase-num">01</div>
-        <div>
-          <div class="phase-title">Makro & Sektör Analizi</div>
-        </div>
+        <div><div class="phase-title">Makro & Sektör Analizi</div></div>
         <div class="phase-icon">🌍</div>
         <div class="phase-chevron"></div>
       </div>
@@ -577,9 +390,7 @@
     <div class="phase" onclick="toggle(this)">
       <div class="phase-header">
         <div class="phase-num">02</div>
-        <div>
-          <div class="phase-title">Nitel (Temel) Analiz</div>
-        </div>
+        <div><div class="phase-title">Nitel (Temel) Analiz</div></div>
         <div class="phase-icon">🔎</div>
         <div class="phase-chevron"></div>
       </div>
@@ -597,9 +408,7 @@
     <div class="phase" onclick="toggle(this)">
       <div class="phase-header">
         <div class="phase-num">03</div>
-        <div>
-          <div class="phase-title">Finansal (Kantitatif) Analiz</div>
-        </div>
+        <div><div class="phase-title">Finansal (Kantitatif) Analiz</div></div>
         <div class="phase-icon">📊</div>
         <div class="phase-chevron"></div>
       </div>
@@ -617,9 +426,7 @@
     <div class="phase" onclick="toggle(this)">
       <div class="phase-header">
         <div class="phase-num">04</div>
-        <div>
-          <div class="phase-title">Değerleme</div>
-        </div>
+        <div><div class="phase-title">Değerleme</div></div>
         <div class="phase-icon">💎</div>
         <div class="phase-chevron"></div>
       </div>
@@ -637,9 +444,7 @@
     <div class="phase" onclick="toggle(this)">
       <div class="phase-header">
         <div class="phase-num">05</div>
-        <div>
-          <div class="phase-title">Teknik & Piyasa Analizi</div>
-        </div>
+        <div><div class="phase-title">Teknik & Piyasa Analizi</div></div>
         <div class="phase-icon">📈</div>
         <div class="phase-chevron"></div>
       </div>
@@ -653,75 +458,33 @@
         </div>
       </div>
     </div>
-
   </div>
 </section>
 
-<!-- KEY METRICS -->
-<section class="metrics-section">
-  <div class="section" style="padding-top: 0; padding-bottom: 0;">
+<!-- 02 — KRİTİK METRİKLER -->
+<section class="metrics-section" id="sec-metrics">
+  <div class="section" style="padding-top:0; padding-bottom:0;">
     <div class="section-label reveal">02 — Kritik Göstergeler</div>
     <h2 class="section-title reveal">Hangi <em>Metriklere</em> Bakmalısın?</h2>
     <p class="section-desc reveal">Her metrik tek başına anlamsızdır — kombinasyon içinde değerlendir.</p>
     <div class="metrics-grid reveal">
-      <div class="metric-card">
-        <div class="metric-abbr">F/K</div>
-        <div class="metric-name">Fiyat / Kazanç</div>
-        <div class="metric-desc">Yatırımcının 1₺ kâr için kaç ₺ ödediği. Sektör ortalamsıyla karşılaştır.</div>
-        <div class="metric-signal signal-buy">< Ort. → İskontolu</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-abbr">FCF</div>
-        <div class="metric-name">Serbest Nakit Akışı</div>
-        <div class="metric-desc">FAVÖK'ten Capex çıkarıldıktan sonra kalan gerçek nakit. En güvenilir metrik.</div>
-        <div class="metric-signal signal-buy">Pozitif & büyüyen</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-abbr">ROIC</div>
-        <div class="metric-name">Yatırılan Sermaye Getirisi</div>
-        <div class="metric-desc">Şirket sermayesini ne kadar verimli kullanıyor? WACC'ın üzerinde olmalı.</div>
-        <div class="metric-signal signal-buy">> WACC → Değer yaratır</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-abbr">ND/EBITDA</div>
-        <div class="metric-name">Net Borç / EBITDA</div>
-        <div class="metric-desc">Borcunu kaç yılda ödeyebileceği. Sermaye yoğun dışı sektörlerde 2x altı ideal.</div>
-        <div class="metric-signal signal-caution">2x–3x → İzle</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-abbr">GPM</div>
-        <div class="metric-name">Brüt Kâr Marjı</div>
-        <div class="metric-desc">Fiyatlama gücünün en saf göstergesi. Trend önemli — genişliyor mu, daralıyor mu?</div>
-        <div class="metric-signal signal-buy">Genişleyen trend</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-abbr">P/B</div>
-        <div class="metric-name">Piyasa / Defter Değeri</div>
-        <div class="metric-desc">Bankacılık sektörü için kritik. 1x altı teorik olarak varlık değerinin altında fiyat.</div>
-        <div class="metric-signal signal-caution">Sektöre göre değişir</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-abbr">Insider</div>
-        <div class="metric-name">İçeriden Alım/Satım</div>
-        <div class="metric-desc">Yöneticilerin kendi hisselerini alması güçlü pozitif sinyal. Toplu satış uyarıdır.</div>
-        <div class="metric-signal signal-buy">Net alım → Güçlü sinyal</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-abbr">Short %</div>
-        <div class="metric-name">Açığa Satış Oranı</div>
-        <div class="metric-desc">Float'ın %15 üzerindeyse kurumsal karamsarlık işareti. Short squeeze riski de var.</div>
-        <div class="metric-signal signal-caution">> %15 → Dikkat</div>
-      </div>
+      <div class="metric-card"><div class="metric-abbr">F/K</div><div class="metric-name">Fiyat / Kazanç</div><div class="metric-desc">Yatırımcının 1₺ kâr için kaç ₺ ödediği. Sektör ortalamasıyla karşılaştır.</div><div class="metric-signal signal-buy">< Ort. → İskontolu</div></div>
+      <div class="metric-card"><div class="metric-abbr">FCF</div><div class="metric-name">Serbest Nakit Akışı</div><div class="metric-desc">FAVÖK'ten Capex çıkarıldıktan sonra kalan gerçek nakit. En güvenilir metrik.</div><div class="metric-signal signal-buy">Pozitif & büyüyen</div></div>
+      <div class="metric-card"><div class="metric-abbr">ROIC</div><div class="metric-name">Yatırılan Sermaye Getirisi</div><div class="metric-desc">Şirket sermayesini ne kadar verimli kullanıyor? WACC'ın üzerinde olmalı.</div><div class="metric-signal signal-buy">> WACC → Değer yaratır</div></div>
+      <div class="metric-card"><div class="metric-abbr">ND/EBITDA</div><div class="metric-name">Net Borç / EBITDA</div><div class="metric-desc">Borcunu kaç yılda ödeyebileceği. Sermaye yoğun dışı sektörlerde 2x altı ideal.</div><div class="metric-signal signal-caution">2x–3x → İzle</div></div>
+      <div class="metric-card"><div class="metric-abbr">GPM</div><div class="metric-name">Brüt Kâr Marjı</div><div class="metric-desc">Fiyatlama gücünün en saf göstergesi. Trend önemli — genişliyor mu, daralıyor mu?</div><div class="metric-signal signal-buy">Genişleyen trend</div></div>
+      <div class="metric-card"><div class="metric-abbr">P/B</div><div class="metric-name">Piyasa / Defter Değeri</div><div class="metric-desc">Bankacılık sektörü için kritik. 1x altı teorik olarak varlık değerinin altında fiyat.</div><div class="metric-signal signal-caution">Sektöre göre değişir</div></div>
+      <div class="metric-card"><div class="metric-abbr">Insider</div><div class="metric-name">İçeriden Alım/Satım</div><div class="metric-desc">Yöneticilerin kendi hisselerini alması güçlü pozitif sinyal. Toplu satış uyarıdır.</div><div class="metric-signal signal-buy">Net alım → Güçlü sinyal</div></div>
+      <div class="metric-card"><div class="metric-abbr">Short %</div><div class="metric-name">Açığa Satış Oranı</div><div class="metric-desc">Float'ın %15 üzerindeyse kurumsal karamsarlık işareti. Short squeeze riski de var.</div><div class="metric-signal signal-caution">> %15 → Dikkat</div></div>
     </div>
   </div>
 </section>
 
-<!-- CHECKLIST -->
-<section class="checklist-section">
+<!-- 03 — CHECKLIST -->
+<section class="checklist-section" id="sec-checklist">
   <div class="section-label reveal">03 — Alım Öncesi Kontrol</div>
   <h2 class="section-title reveal">Due Diligence <em>Checklist</em></h2>
   <p class="section-desc reveal">Tüm kutular işaretlenmeden pozisyon açma. Her kutuya tıklayarak ilerleyebilirsin.</p>
-
   <div class="checklist reveal">
     <div class="check-group">
       <div class="check-group-title">Temel Analiz</div>
@@ -756,53 +519,201 @@
   </div>
 </section>
 
-<!-- DECISION FLOW -->
-<section class="decision">
+<!-- 04 — KARAR AKIŞI -->
+<section class="decision" id="sec-decision">
   <div class="section-label reveal">04 — Karar Çerçevesi</div>
   <h2 class="section-title reveal">Alım Kararı <em>Akış Şeması</em></h2>
   <p class="section-desc reveal">Duygusal kararları ortadan kaldıran sistematik süreç.</p>
-
   <div class="decision-flow reveal">
-    <div class="flow-step">
-      <div class="flow-num">1</div>
-      <div class="flow-content">
-        <h3>Fikri Anlıyorum — "Neden Bu Varlık?"</h3>
-        <p>İş modelini, gelir kaynağını ve büyüme hikayesini kendi cümlelerinle açıklayamıyorsan alma.</p>
+    <div class="flow-step"><div class="flow-num">1</div><div class="flow-content"><h3>Fikri Anlıyorum — "Neden Bu Varlık?"</h3><p>İş modelini, gelir kaynağını ve büyüme hikayesini kendi cümlelerinle açıklayamıyorsan alma.</p></div><div class="flow-tag tag-q">Nitel</div></div>
+    <div class="flow-step"><div class="flow-num">2</div><div class="flow-content"><h3>Finansalları Doğrula</h3><p>FCF, marjlar, borç yükü kontrol listesinden geçiyor mu? Herhangi bir kırmızı bayrak var mı?</p></div><div class="flow-tag tag-f">Finansal</div></div>
+    <div class="flow-step"><div class="flow-num">3</div><div class="flow-content"><h3>Değerleme — Adil Fiyat Nedir?</h3><p>Hesapladığın değer ile piyasa fiyatı arasında yeterli güvenlik marjı var mı? Boğa/baz/ayı senaryo yaz.</p></div><div class="flow-tag tag-t">Değerleme</div></div>
+    <div class="flow-step"><div class="flow-num">4</div><div class="flow-content"><h3>Risk Tanımla — "Neyi Yanlış Bilebilirim?"</h3><p>Tezi çürütecek 3 senaryo yaz. Bu senaryolar gerçekleşirse kayıp ne olur? Kaldırabilir misin?</p></div><div class="flow-tag tag-r">Risk</div></div>
+    <div class="flow-step"><div class="flow-num">5</div><div class="flow-content"><h3>Pozisyon Büyüklüğü & Giriş Planı</h3><p>Kelly Kriteri veya sabit risk modeli ile boyutlandır. Stop seviyeni, çıkış senaryolarını yaz. Sonra al.</p></div><div class="flow-tag tag-p">Pozisyon</div></div>
+  </div>
+</section>
+
+<!-- 05 — ÇIKIŞ STRATEJİSİ -->
+<section class="exit-section" id="sec-exit">
+  <div class="section" style="padding-top:0; padding-bottom:0;">
+    <div class="section-label reveal">05 — Çıkış Stratejisi</div>
+    <h2 class="section-title reveal">Ne Zaman <em>Satmalısın?</em></h2>
+    <p class="section-desc reveal">Almak kadar önemli: yanlış zamanda satmak da, doğru zamanda satmamak da kayıptır.</p>
+    <div class="exit-grid reveal">
+      <div class="exit-card sell">
+        <div class="exit-icon">🔴</div>
+        <div class="exit-title">Hemen Sat — Tez Bozuldu</div>
+        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Almak için belirlediğin ana tez geçersizleşti</div></div>
+        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Yönetim büyük hata yaptı veya güven kırıldı</div></div>
+        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Rakip oyun değiştiren bir ürün çıkardı</div></div>
+        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Borç/kaldıraç kontrolden çıktı</div></div>
+        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Stop-loss seviyesi kırıldı, planı uygula</div></div>
       </div>
-      <div class="flow-tag tag-q">Nitel</div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-num">2</div>
-      <div class="flow-content">
-        <h3>Finansalları Doğrula</h3>
-        <p>FCF, marjlar, borç yükü kontrol listesinden geçiyor mu? Herhangi bir kırmızı bayrak var mı?</p>
+      <div class="exit-card watch">
+        <div class="exit-icon">🟡</div>
+        <div class="exit-title">İzle & Kısmi Sat — Değerleme Gerildi</div>
+        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Fiyat hedef değere ulaştı, güvenlik marjı kalmadı</div></div>
+        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Çok daha iyi fiyatlanmış alternatif fırsat çıktı</div></div>
+        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Portföydeki ağırlık risk limitini aştı</div></div>
+        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Büyüme yavaşladı, çarpanlar aşırı genişledi</div></div>
+        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Kısa vadeli katalist fiyatlandı, uzun vade belirsiz</div></div>
       </div>
-      <div class="flow-tag tag-f">Finansal</div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-num">3</div>
-      <div class="flow-content">
-        <h3>Değerleme — Adil Fiyat Nedir?</h3>
-        <p>Hesapladığın değer ile piyasa fiyatı arasında yeterli güvenlik marjı var mı? Boğa/baz/ayı senaryo yaz.</p>
+      <div class="exit-card hold">
+        <div class="exit-icon">🟢</div>
+        <div class="exit-title">Tut — Tez Hâlâ Sağlam</div>
+        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Yatırım tezi değişmedi, piyasa geçici panikçi</div></div>
+        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Fiyat düştü ama temel değer daha da iyileşti</div></div>
+        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Rekabet avantajı güçlenmeye devam ediyor</div></div>
+        <div class="exit-rule"><div class="exit-rule-dot"></div><div>FCF büyümesi beklentilerin üzerinde</div></div>
+        <div class="exit-rule"><div class="exit-rule-dot"></div><div>Güvenlik marjı hâlâ yeterli, sabır gerekli</div></div>
       </div>
-      <div class="flow-tag tag-t">Teknik</div>
     </div>
-    <div class="flow-step">
-      <div class="flow-num">4</div>
-      <div class="flow-content">
-        <h3>Risk Tanımla — "Neyi Yanlış Bilebilirim?"</h3>
-        <p>Tezi çürütecek 3 senaryo yaz. Bu senaryolar gerçekleşirse kayıp ne olur? Kaldırabilir misin?</p>
+    <div class="portfolio-tip" style="margin-top:16px; max-width:1100px;">
+      <strong>Altın Kural:</strong> Satış kararlarını alım öncesinde yazılı olarak belirle. "X fiyatına ulaşırsa sat", "tez Y olursa sat" gibi önceden tanımlanmış kurallar, duygusal kararları engeller. Kural yoksa satış da yoktur — bu en yaygın hatadır.
+    </div>
+  </div>
+</section>
+
+<!-- 06 — PSİKOLOJİ & HATALAR -->
+<section class="psy-section" id="sec-psy">
+  <div class="section-label reveal">06 — Yatırımcı Psikolojisi</div>
+  <h2 class="section-title reveal">En Pahalı <em>Hatalar</em></h2>
+  <p class="section-desc reveal">Piyasayı değil, kendini yönetemeyen kaybeder. Bu önyargıları tanımak, onları aşmanın ilk adımıdır.</p>
+  <div class="psy-grid reveal">
+    <div class="psy-card">
+      <div class="psy-name">Kayıptan Kaçınma</div>
+      <div class="psy-en">Loss Aversion</div>
+      <div class="psy-desc">Kaybetmenin acısı, kazanmanın sevincinden 2x daha güçlü hissedilir. Bu yüzden zararlar çok uzun tutulur, kârlar çok erken kesilir.</div>
+      <div class="psy-fix">Çözüm: Stop-loss seviyelerini önceden belirle ve değiştirme. "Zarar gerçekleşmeden kayıp değil" düşüncesi yanlış.</div>
+    </div>
+    <div class="psy-card">
+      <div class="psy-name">Teyit Önyargısı</div>
+      <div class="psy-en">Confirmation Bias</div>
+      <div class="psy-desc">Aldıktan sonra yalnızca pozitif haberlere dikkat edilir, negatif sinyaller görmezden gelinir. Tez'e değil gerçeğe bak.</div>
+      <div class="psy-fix">Çözüm: Her ayın başında "tezim neden yanlış olabilir?" diye aktif olarak sorgula.</div>
+    </div>
+    <div class="psy-card">
+      <div class="psy-name">Çapalama</div>
+      <div class="psy-en">Anchoring Bias</div>
+      <div class="psy-desc">Alış fiyatı, hedef fiyat veya 52 hafta zirvesi gibi sayılara mantıksız anlam yüklenir. Piyasa senin maliyet fiyatını bilmez.</div>
+      <div class="psy-fix">Çözüm: Kararları "bugün bu fiyattan alır mıydım?" sorusuyla değerlendir.</div>
+    </div>
+    <div class="psy-card">
+      <div class="psy-name">Sürü Psikolojisi</div>
+      <div class="psy-en">Herding / FOMO</div>
+      <div class="psy-desc">Herkes alıyorken almak, herkes satarken satmak. Tam tersine, piyasanın aşırılıklarından faydalanmak gerekir.</div>
+      <div class="psy-fix">Çözüm: "Neden herkes alıyor?" sorusunu sor. Eğer cevap temel değilse, uzak dur.</div>
+    </div>
+    <div class="psy-card">
+      <div class="psy-name">Aşırı Güven</div>
+      <div class="psy-en">Overconfidence</div>
+      <div class="psy-desc">Birkaç kazançlı işlem sonrası beceri olduğu sanılır. Portföy konsantrasyonu tehlikeli seviyelere yükselir.</div>
+      <div class="psy-fix">Çözüm: Her pozisyon için maksimum ağırlık belirle. Hiçbir hisse portföyün %15'ini geçmesin.</div>
+    </div>
+    <div class="psy-card">
+      <div class="psy-name">Son Bilgi Önyargısı</div>
+      <div class="psy-en">Recency Bias</div>
+      <div class="psy-desc">Son 6-12 ayın performansı geleceği belirleyeceği sanılır. Boğa piyasasında her şey dahidir, ayı piyasasında herkes acemidir.</div>
+      <div class="psy-fix">Çözüm: En az 5 yıllık tarihsel veriyle değerlendir. Kısa dönem gürültüsünü filtrele.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 — BIST ÖZEL -->
+<section class="bist-section" id="sec-bist">
+  <div class="section" style="padding-top:0; padding-bottom:0;">
+    <div class="section-label reveal">07 — Türk Piyasasına Özel</div>
+    <h2 class="section-title reveal">BIST'te <em>Dikkat Edilmesi Gerekenler</em></h2>
+    <p class="section-desc reveal">Global metodoloji geçerlidir, ancak Türkiye'ye özgü dinamikler göz ardı edilmemelidir.</p>
+    <div class="bist-grid reveal">
+      <div class="bist-card">
+        <div class="bist-card-title">Enflasyon Muhasebesi (TMS 29)</div>
+        <div class="bist-card-desc">Yüksek enflasyon döneminde finansallar çarpıtılabilir. Nominal kâr ile reel kâr arasındaki farkı sor.</div>
+        <div class="bist-tag">Finansal Risk</div>
       </div>
-      <div class="flow-tag tag-r">Risk</div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-num">5</div>
-      <div class="flow-content">
-        <h3>Pozisyon Büyüklüğü & Giriş Planı</h3>
-        <p>Kelly Kriteri veya sabit risk modeli ile boyutlandır. Stop seviyeni, çıkış senaryolarını yaz. Sonra al.</p>
+      <div class="bist-card">
+        <div class="bist-card-title">Döviz Kuru Hassasiyeti</div>
+        <div class="bist-card-desc">Döviz borcu vs. TL geliri dengesini incele. Kur devalüasyonu ihracatçıyı güçlendirirken ithalatçıyı zayıflatır.</div>
+        <div class="bist-tag">Kur Riski</div>
       </div>
-      <div class="flow-tag tag-p">Pozisyon</div>
+      <div class="bist-card">
+        <div class="bist-card-title">Halka Arz Primleri</div>
+        <div class="bist-card-desc">Birincil piyasa fiyatı çoğu zaman gerçek değerin çok üzerindedir. İkincil piyasada normalleşmeyi bekle.</div>
+        <div class="bist-tag">IPO Riski</div>
+      </div>
+      <div class="bist-card">
+        <div class="bist-card-title">Hakim Ortak Riski</div>
+        <div class="bist-card-desc">Aile şirketlerinde azınlık hissedar koruması zayıf olabilir. Sermaye artırımı, kaynaklı işlemler riski yüksek.</div>
+        <div class="bist-tag">Yönetişim</div>
+      </div>
+      <div class="bist-card">
+        <div class="bist-card-title">Yüksek Faiz Ortamı</div>
+        <div class="bist-card-desc">Mevduat alternatifi güçlü olunca hisse değerlemelerine baskı artar. Risk primini her değerlemede güncelle.</div>
+        <div class="bist-tag">Makro</div>
+      </div>
+      <div class="bist-card">
+        <div class="bist-card-title">Likidite Riski</div>
+        <div class="bist-card-desc">Küçük/orta ölçekli hisselerde ince işlem hacmi, yüksek spread ve manipülasyon riski taşır. Hacme bak.</div>
+        <div class="bist-tag">Piyasa Yapısı</div>
+      </div>
+      <div class="bist-card">
+        <div class="bist-card-title">KAP Takibi</div>
+        <div class="bist-card-desc">Özel durum açıklamaları, iç tasarruf işlemleri ve yönetim değişikliklerini düzenli takip et.</div>
+        <div class="bist-tag">Bilgi Akışı</div>
+      </div>
+      <div class="bist-card">
+        <div class="bist-card-title">Temettü Politikası</div>
+        <div class="bist-card-desc">BIST'te temettü getirisi değerleme için önemli. Sürdürülebilir mi? Borçlanarak temettü dağıtılıyor mu?</div>
+        <div class="bist-tag">Gelir</div>
+      </div>
     </div>
+  </div>
+</section>
+
+<!-- 08 — PORTFÖY YÖNETİMİ -->
+<section class="portfolio-section" id="sec-portfolio">
+  <div class="section-label reveal">08 — Portföy Yönetimi</div>
+  <h2 class="section-title reveal">Nasıl <em>Çeşitlendirirsin?</em></h2>
+  <p class="section-desc reveal">Tek doğru hisseyi bulmak değil, doğru kombinasyonu oluşturmak kazandırır.</p>
+  <table class="portfolio-table reveal">
+    <thead>
+      <tr>
+        <th>Profil</th>
+        <th>Hisse Sayısı</th>
+        <th>Maks. Tek Hisse</th>
+        <th>Sektör Dağılımı</th>
+        <th>Nakit Tamponu</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="ptag ptag-cons">Muhafazakâr</span></td>
+        <td>15–25 hisse</td>
+        <td>%5–7</td>
+        <td>Min. 5 sektör</td>
+        <td>%15–20</td>
+      </tr>
+      <tr>
+        <td><span class="ptag ptag-bal">Dengeli</span></td>
+        <td>10–15 hisse</td>
+        <td>%8–12</td>
+        <td>Min. 4 sektör</td>
+        <td>%10–15</td>
+      </tr>
+      <tr>
+        <td><span class="ptag ptag-agg">Agresif</span></td>
+        <td>5–10 hisse</td>
+        <td>%15–20</td>
+        <td>Min. 3 sektör</td>
+        <td>%5–10</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="portfolio-tip reveal">
+    <strong>Korelasyon Kuralı:</strong> Çeşitlendirme yalnızca hisse sayısıyla olmaz — birbirine paralel hareket eden hisseler gerçek çeşitlendirme sağlamaz. Farklı sektörler, farklı ekonomik döngü hassasiyetleri ve farklı döviz yönelimleri olan şirketleri bir araya getir.
+  </div>
+  <div class="portfolio-tip reveal" style="margin-top:10px; border-left-color: var(--gold);">
+    <strong>Nakit da Bir Pozisyondur:</strong> Nakit tutmak "kaçırma" değildir. Piyasa aşırı değerliyken nakit biriktirmek, fırsatlarda güçlü hareket etmeyi sağlar. %100 yatırımlı kalmak zorunluluk değildir.
   </div>
 </section>
 
@@ -817,8 +728,6 @@
     document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
     if (!wasActive) el.classList.add('active');
   }
-
-  // Open first by default
   document.querySelector('.phase').classList.add('active');
 
   // Scroll reveal
@@ -826,11 +735,11 @@
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((e, i) => {
       if (e.isIntersecting) {
-        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        setTimeout(() => e.target.classList.add('visible'), i * 60);
         observer.unobserve(e.target);
       }
     });
-  }, { threshold: 0.08 });
+  }, { threshold: 0.06 });
   reveals.forEach(r => observer.observe(r));
 
   // Progress bar
@@ -840,6 +749,24 @@
     const progress = (scrollTop / docHeight) * 100;
     document.getElementById('progressBar').style.width = progress + '%';
   });
+
+  // TOC active state
+  const sections = ['hero','sec-phases','sec-metrics','sec-checklist','sec-decision','sec-exit','sec-psy','sec-bist','sec-portfolio'];
+  const dots = document.querySelectorAll('.toc-dot');
+  window.addEventListener('scroll', () => {
+    let current = 0;
+    sections.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (el && window.scrollY >= el.offsetTop - 200) current = i;
+    });
+    dots.forEach((d, i) => d.classList.toggle('active', i === current));
+  });
+
+  // Scroll to section
+  function scrollToSection(id) {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }
 </script>
 </body>
 </html>
