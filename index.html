@@ -18076,7 +18076,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.3"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -19307,9 +19307,18 @@ async function loadPF(refreshData = false) {
             try {
                 let savedSource = (a.source || "").toUpperCase();
                 let strictOrder = null;
-                if (savedSource.includes('MASSIVE')) strictOrder = 'MASSIVE';
-                else if (savedSource.includes('BINANCE') || savedSource.includes('CG') || a.name.includes('USDT') || a.name.includes('BTC')) strictOrder = 'CRYPTO';
+                // Önce kayıtlı category'ye bak (en güvenilir)
+                if (a.category === 'kripto') strictOrder = 'CRYPTO';
+                else if (a.category === 'borsa') strictOrder = 'BORSA';
+                // Sonra source ve name prefix kontrolü
+                else if (savedSource.includes('MASSIVE')) strictOrder = 'MASSIVE';
+                else if (savedSource.includes('BINANCE') || savedSource.includes('CG') || a.name.toUpperCase().includes('BINANCE:') || a.name.includes('USDT')) strictOrder = 'CRYPTO';
                 else if (savedSource.includes('YAHOO') || savedSource.includes('BIST') || a.name.includes('.IS')) strictOrder = 'BORSA';
+                // Eğer hâlâ bilinmiyorsa CoinGecko'ya sor
+                else {
+                    var _c = window._cryptoIdCache ? window._cryptoIdCache[a.name.toUpperCase().replace('BINANCE:','').replace('USDT','').replace('.IS','').trim()] : null;
+                    if (_c) strictOrder = _c.type === 'CRYPTO' ? 'CRYPTO' : 'BORSA';
+                }
 
                 let live = await getPrice(a.name, strictOrder);
                 if (live && live.price > 0) {
@@ -29918,7 +29927,7 @@ async function runDeepDiveAnalysis() {
 
         updateLog((i + 1) + '/' + losers.length + ' — ' + rawSym + ' analiz ediliyor...');
 
-        var result  = await fetchCandleHistory(rawSym, asset.name);
+        var result  = await fetchCandleHistory(rawSym, asset.name, asset);
         var candles = result ? result.candles : null;
         var source  = result ? result.source  : 'yok';
 
@@ -30437,11 +30446,7 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile) {
     }
 
     var liveUsdRate = (typeof usdTryRate !== 'undefined' && usdTryRate > 0) ? usdTryRate : 36.5;
-    var knownCryptos = ['BTC','ETH','XRP','SOL','BNB','ADA','DOT','AVAX','MATIC','LINK','UNI','ATOM','LTC',
-        'DOGE','SHIB','TRX','XLM','ALGO','NEAR','FTM','SAND','MANA','AXS','GALA','CHZ','ENJ','THETA','VET',
-        'XTZ','EOS','HBAR','FLOW','IOTA','NEO','DASH','ZEC','XMR','BCH','ETC','MKR','COMP','AAVE','SUSHI',
-        'YFI','CRV','SNX','BAT','ZRX','GRT','LRC','IMX','APE','GMT','OP','ARB','SUI','SEI','TIA','INJ',
-        'PYTH','JUP','PEPE','WIF','BONK','TON','BGB','HUNT','RENDER','TAO','FET','FLOKI','NOT'];
+    // knownCryptos artık kullanılmıyor — dinamik _cryptoIdCache ile tespit yapılıyor
 
     /* ── Global toggle ── */
     window._rtoggle = function(id) {
@@ -30653,11 +30658,7 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile) {
     }
 
     var liveUsdRate = (typeof usdTryRate !== 'undefined' && usdTryRate > 0) ? usdTryRate : 36.5;
-    var knownCryptos = ['BTC','ETH','XRP','SOL','BNB','ADA','DOT','AVAX','MATIC','LINK','UNI','ATOM','LTC',
-        'DOGE','SHIB','TRX','XLM','ALGO','NEAR','FTM','SAND','MANA','AXS','GALA','CHZ','ENJ','THETA','VET',
-        'XTZ','EOS','HBAR','FLOW','IOTA','NEO','DASH','ZEC','XMR','BCH','ETC','MKR','COMP','AAVE','SUSHI',
-        'YFI','CRV','SNX','BAT','ZRX','GRT','LRC','IMX','APE','GMT','OP','ARB','SUI','SEI','TIA','INJ',
-        'PYTH','JUP','PEPE','WIF','BONK','TON','BGB','HUNT','RENDER','TAO','FET','FLOKI','NOT'];
+    // knownCryptos artık kullanılmıyor — dinamik _cryptoIdCache ile tespit yapılıyor
 
     window._rtoggle = function(id) {
         var el=document.getElementById(id),ico=document.getElementById('ico_'+id);
@@ -30797,7 +30798,15 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile) {
     plan.forEach(function(p, idx) {
         var upper   = (p.name||'').toUpperCase().replace('BINANCE:','').replace('BIST:','').replace('.IS','').replace('USDT','').trim();
         var sym     = (p.cleanSym || upper || '?').toUpperCase();
-        var isCrypto= knownCryptos.indexOf(sym) !== -1 || (p.name||'').toUpperCase().includes('BINANCE:') || (p.name||'').toUpperCase().endsWith('USDT');
+        // Dinamik tespit: önbellek, kategori, kaynak ve name prefix sırasıyla kontrol
+        var _cached = window._cryptoIdCache ? window._cryptoIdCache[sym] : null;
+        var isCrypto= (_cached && _cached.type === 'CRYPTO') ||
+                      (p.category === 'kripto') ||
+                      (p.source||'').toUpperCase().includes('BINANCE') ||
+                      (p.source||'').toUpperCase() === 'CG' ||
+                      (p.source||'').toUpperCase().includes('COINGECKO') ||
+                      (p.name||'').toUpperCase().includes('BINANCE:') ||
+                      (p.name||'').toUpperCase().endsWith('USDT');
         var isUsd   = isCrypto || (p.origin==='USD');
         var isTRY   = p.origin==='TRY' || !p.origin;
         var pSym    = isUsd ? '$' : '₺';
@@ -30939,7 +30948,11 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile) {
         var _mnStyle = 'display:block;margin:8px 12px 0;padding:7px 10px;background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.18);border-radius:9px;font-size:10px;font-weight:400;color:rgba(100,160,255,.75);line-height:1.5;box-sizing:border-box;';
         var _mnBold  = 'font-size:10px;font-weight:700;color:rgba(120,180,255,.9);';
         var macroNote = '';
-        var assetKind = isCrypto?'Kripto':(p.origin==='TRY'||(p.name||'').toUpperCase().includes('BIST:')||(p.name||'').includes('.IS'))?'BIST Hisse':'ABD Hisse';
+        var assetKind = isCrypto ? 'Kripto'
+                      : (_cached && _cached.type === 'BIST') ? 'BIST Hisse'
+                      : (p.category === 'borsa' && (p.origin==='TRY' || (p.name||'').toUpperCase().includes('BIST:') || (p.name||'').includes('.IS'))) ? 'BIST Hisse'
+                      : (p.origin==='TRY' || (p.name||'').toUpperCase().includes('BIST:') || (p.name||'').includes('.IS')) ? 'BIST Hisse'
+                      : 'ABD Hisse';
         if (isCrypto) {
             macroNote = '<div style="' + _mnStyle + '"><span style="' + _mnBold + '">🌍 Kripto:</span> BTC dominansı, piyasa döngüsü ve tokenomics bu analizde yer almaz. Küçük cap altcoinlerde teknik analiz yanıltıcı olabilir.</div>';
         } else if (assetKind==='BIST Hisse') {
@@ -31134,19 +31147,142 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile) {
 //  HİSSE: BIST (Yahoo) | ABD (Polygon → Yahoo)
 //  Dönüş: { candles: [...], source: 'cryptocompare' } veya null
 // ============================================================
-async function fetchCandleHistory(symbol, originalName) {
+// ── Global kripto kimlik önbelleği (oturum boyunca tekrar sorgulamayı önler) ──
+window._cryptoIdCache = window._cryptoIdCache || {};
+
+// ── Dinamik kripto tespiti: CoinGecko'ya sorar, sonucu önbelleğe alır ──
+async function _detectAssetType(cleanSym, originalName, assetObj) {
+    // 1. Portföydeki kayıtlı bilgilere bak (en güvenilir kaynak)
+    if (assetObj) {
+        var cat = (assetObj.category || '').toLowerCase();
+        var src = (assetObj.source   || '').toUpperCase();
+
+        // Source kontrolü (category'den önce — daha spesifik)
+        if (src.includes('BINANCE') || src === 'CG' || src.includes('COINGECKO') || src.includes('GECKO')) {
+            return { type: 'CRYPTO', cgId: null };
+        }
+        if (src.includes('POLYGON') || src.includes('MASSIVE')) {
+            return { type: 'US', cgId: null };
+        }
+        if (src.includes('BIST')) {
+            return { type: 'BIST', cgId: null };
+        }
+        if (src.includes('YAHOO')) {
+            var hasIS = (originalName || '').includes('.IS') || (originalName || '').toUpperCase().includes('BIST:');
+            return { type: hasIS ? 'BIST' : 'US', cgId: null };
+        }
+
+        // Category kontrolü
+        if (cat === 'kripto') return { type: 'CRYPTO', cgId: null };
+        if (cat === 'borsa') {
+            var isBistAsset = (originalName && (originalName.includes('.IS') || originalName.toUpperCase().includes('BIST:')));
+            return { type: isBistAsset ? 'BIST' : 'US', cgId: null };
+        }
+    }
+
+    // 2. originalName prefix kontrolü
+    if (originalName) {
+        var on = originalName.toUpperCase();
+        if (on.includes('BINANCE:') || on.endsWith('USDT')) return { type: 'CRYPTO', cgId: null };
+        if (on.includes('BIST:') || on.includes('.IS'))     return { type: 'BIST',   cgId: null };
+    }
+
+    // 3. Önbellekte var mı?
+    if (window._cryptoIdCache[cleanSym] !== undefined) {
+        return window._cryptoIdCache[cleanSym];
+    }
+
+    // 4. Polygon (MASSIVE) ile ABD hisse testi — CoinGecko'dan ÖNCE
+    //    Çünkü AAPL, TSLA gibi semboller CoinGecko'da da çıkıyor
+    try {
+        var pKey = (typeof polyApiKey !== 'undefined' && polyApiKey) ? polyApiKey : '';
+        if (pKey) {
+            var pTestUrl = 'https://api.polygon.io/v2/aggs/ticker/' + cleanSym +
+                           '/prev?adjusted=true&apiKey=' + pKey;
+            var pTest = await fetch(pTestUrl);
+            if (pTest.ok) {
+                var pTestData = await pTest.json();
+                if (pTestData.resultsCount > 0 || (pTestData.results && pTestData.results.length > 0)) {
+                    var result = { type: 'US', cgId: null };
+                    window._cryptoIdCache[cleanSym] = result;
+                    return result;
+                }
+            }
+        }
+    } catch(e) {}
+
+    // 5. CoinGecko'ya sor
+    try {
+        var cgKey = (typeof coingeckoApiKey !== 'undefined' && coingeckoApiKey) ? '&x_cg_demo_api_key=' + coingeckoApiKey : '';
+        var searchUrl = 'https://api.coingecko.com/api/v3/search?query=' + encodeURIComponent(cleanSym) + cgKey;
+        var r = await fetch(searchUrl);
+        if (r.ok) {
+            var data = await r.json();
+            if (data.coins && data.coins.length > 0) {
+                var exact = data.coins.find(function(c){ return c.symbol.toUpperCase() === cleanSym; });
+                var best  = exact || data.coins.sort(function(a,b){ return (a.market_cap_rank||99999)-(b.market_cap_rank||99999); })[0];
+                if (best) {
+                    var result = { type: 'CRYPTO', cgId: best.id };
+                    window._cryptoIdCache[cleanSym] = result;
+                    return result;
+                }
+            }
+        }
+    } catch(e) { console.warn('CoinGecko tespit hatası:', e); }
+
+    // 6. Yahoo Finance ile BIST testi
+    try {
+        var bistUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(
+            'https://query1.finance.yahoo.com/v8/finance/chart/' + cleanSym + '.IS?interval=1d&range=5d'
+        );
+        var rb = await fetch(bistUrl);
+        if (rb.ok) {
+            var db = await rb.json();
+            if (db.chart && db.chart.result && db.chart.result[0] &&
+                db.chart.result[0].meta && db.chart.result[0].meta.regularMarketPrice > 0) {
+                var result = { type: 'BIST', cgId: null };
+                window._cryptoIdCache[cleanSym] = result;
+                return result;
+            }
+        }
+    } catch(e) {}
+
+    // 7. Yahoo Finance ile ABD hisse testi
+    try {
+        var usUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(
+            'https://query1.finance.yahoo.com/v8/finance/chart/' + cleanSym + '?interval=1d&range=5d'
+        );
+        var ru = await fetch(usUrl);
+        if (ru.ok) {
+            var du = await ru.json();
+            if (du.chart && du.chart.result && du.chart.result[0] &&
+                du.chart.result[0].meta && du.chart.result[0].meta.regularMarketPrice > 0) {
+                var curr = (du.chart.result[0].meta.currency || '');
+                var result = { type: curr === 'TRY' ? 'BIST' : 'US', cgId: null };
+                window._cryptoIdCache[cleanSym] = result;
+                return result;
+            }
+        }
+    } catch(e) {}
+
+    // 8. Hiçbir şey bulunamadı — kripto varsay
+    var fallback = { type: 'CRYPTO', cgId: null };
+    window._cryptoIdCache[cleanSym] = fallback;
+    return fallback;
+}
+
+async function fetchCandleHistory(symbol, originalName, assetObj) {
     var cleanSym = symbol.toUpperCase()
         .replace('BINANCE:', '').replace('USDT', '')
         .replace('.IS', '').trim();
 
-    var isBIST    = !!(originalName && (
-        originalName.includes('.IS') ||
-        originalName.toUpperCase().includes('BIST:')
-    ));
+    // ── Akıllı otomatik varlık türü tespiti ──
+    var detected  = await _detectAssetType(cleanSym, originalName, assetObj);
+    var assetType = detected.type;   // 'CRYPTO' | 'BIST' | 'US'
+    var cgId      = detected.cgId;   // CoinGecko ID (zaten bulunduysa)
 
-    // Kripto sembol listesi — bunlar US hissesi sanılmasın
-    var KNOWN_CRYPTOS = /^(BTC|ETH|XRP|SOL|BNB|ADA|DOT|AVAX|MATIC|LINK|DOGE|SHIB|PEPE|TON|ARB|OP|SUI|APT|INJ|TIA|WIF|BONK|NEAR|FTM|ATOM|LTC|BCH|ETC|XLM|TRX|ALGO|VET|HBAR|FLOW|THETA|NEO|DASH|ZEC|XMR|GRT|BAT|MKR|COMP|AAVE|SNX|CRV|YFI|UNI|SUSHI|APE|GMT|GALA|SAND|MANA|AXS|CHZ|ENJ|IMX|LRC|ZRX|PYTH|JUP|SEI|FLOKI|FET|RENDER|TAO|1000PEPE|1000BONK|1000SHIB|NOT|DOGS|HMSTR|CATI)$/;
-    var isUSStock = !isBIST && cleanSym.length >= 1 && cleanSym.length <= 5 && !KNOWN_CRYPTOS.test(cleanSym);
+    var isBIST    = assetType === 'BIST';
+    var isUSStock = assetType === 'US';
 
     // ── BIST HİSSELERİ ──────────────────────────────────────
     if (isBIST) {
@@ -31263,48 +31399,53 @@ async function fetchCandleHistory(symbol, originalName) {
         } catch(e) { console.warn('CryptoCompare hatası (' + ccSym + '):', e); }
     }
 
-    // 2. CoinGecko (İKİNCİL)
+    // 2. CoinGecko (İKİNCİL) — cgId zaten _detectAssetType'tan geliyorsa tekrar arama yok
     try {
-        var cgKey = (typeof coingeckoApiKey !== 'undefined' && coingeckoApiKey) ? coingeckoApiKey : '';
-        if (cgKey) {
-            var searchRes = await fetch('https://api.coingecko.com/api/v3/search?query=' +
-                                        cleanSym + '&x_cg_demo_api_key=' + cgKey);
-            if (searchRes.ok) {
-                var searchData = await searchRes.json();
-                if (searchData.coins && searchData.coins.length > 0) {
-                    var coin = searchData.coins.find(function(c){
-                        return c.symbol.toUpperCase() === cleanSym;
-                    }) || searchData.coins[0];
-                    if (coin && coin.id) {
-                        // Rate-limit: arama + OHLC = 2 istek, bekle
-                        await new Promise(function(res){ setTimeout(res, 400); });
-                        var ohlcRes = await fetch(
-                            'https://api.coingecko.com/api/v3/coins/' + coin.id +
-                            '/ohlc?vs_currency=usd&days=90&x_cg_demo_api_key=' + cgKey);
-                        if (ohlcRes.ok) {
-                            var ohlcData = await ohlcRes.json();
-                            if (ohlcData && ohlcData.length > 10) {
-                                // Hacim için ek istek (rate-limit bekle)
-                                await new Promise(function(res){ setTimeout(res, 400); });
-                                var volumes = [];
-                                try {
-                                    var volRes = await fetch(
-                                        'https://api.coingecko.com/api/v3/coins/' + coin.id +
-                                        '/market_chart?vs_currency=usd&days=90&interval=daily&x_cg_demo_api_key=' + cgKey);
-                                    if (volRes.ok) {
-                                        var volData = await volRes.json();
-                                        volumes = (volData.total_volumes || []).map(function(v){ return v[1]; });
-                                    }
-                                } catch(ve) {}
-                                return {
-                                    candles: ohlcData.map(function(d, i){
-                                        return { open:d[1], high:d[2], low:d[3],
-                                                 close:d[4], volume:volumes[i]||0 };
-                                    }),
-                                    source: 'coingecko'
-                                };
+        var cgKey2 = (typeof coingeckoApiKey !== 'undefined' && coingeckoApiKey) ? coingeckoApiKey : '';
+        if (cgKey2) {
+            // Tespit aşamasında bulunan ID'yi kullan, yoksa tekrar ara
+            var resolvedCgId = cgId;
+            if (!resolvedCgId) {
+                var searchRes2 = await fetch('https://api.coingecko.com/api/v3/search?query=' +
+                                            encodeURIComponent(cleanSym) + '&x_cg_demo_api_key=' + cgKey2);
+                if (searchRes2.ok) {
+                    var searchData2 = await searchRes2.json();
+                    if (searchData2.coins && searchData2.coins.length > 0) {
+                        // Önce tam sembol eşleşmesi, yoksa en yüksek market cap rank'lısı
+                        var exactCoin = searchData2.coins.find(function(c){ return c.symbol.toUpperCase() === cleanSym; });
+                        var bestCoin  = exactCoin || searchData2.coins.sort(function(a,b){
+                            return (a.market_cap_rank||99999) - (b.market_cap_rank||99999);
+                        })[0];
+                        if (bestCoin) resolvedCgId = bestCoin.id;
+                    }
+                }
+            }
+            if (resolvedCgId) {
+                await new Promise(function(res){ setTimeout(res, 300); });
+                var ohlcRes = await fetch(
+                    'https://api.coingecko.com/api/v3/coins/' + resolvedCgId +
+                    '/ohlc?vs_currency=usd&days=90&x_cg_demo_api_key=' + cgKey2);
+                if (ohlcRes.ok) {
+                    var ohlcData = await ohlcRes.json();
+                    if (ohlcData && ohlcData.length > 10) {
+                        await new Promise(function(res){ setTimeout(res, 300); });
+                        var volumes = [];
+                        try {
+                            var volRes = await fetch(
+                                'https://api.coingecko.com/api/v3/coins/' + resolvedCgId +
+                                '/market_chart?vs_currency=usd&days=90&interval=daily&x_cg_demo_api_key=' + cgKey2);
+                            if (volRes.ok) {
+                                var volData = await volRes.json();
+                                volumes = (volData.total_volumes || []).map(function(v){ return v[1]; });
                             }
-                        }
+                        } catch(ve) {}
+                        return {
+                            candles: ohlcData.map(function(d, i){
+                                return { open:d[1], high:d[2], low:d[3],
+                                         close:d[4], volume:volumes[i]||0 };
+                            }),
+                            source: 'coingecko'
+                        };
                     }
                 }
             }
