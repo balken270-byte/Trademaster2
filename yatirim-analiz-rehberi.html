@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Derin Yatırım Analizi Rehberi</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8C97A;
+    --gold-dim: #7A6230;
+    --bg: #0A0A0C;
+    --bg2: #111116;
+    --bg3: #18181F;
+    --surface: #1E1E28;
+    --border: rgba(201,168,76,0.15);
+    --text: #E8E4D8;
+    --text-muted: #7A7870;
+    --red: #C94C4C;
+    --green: #4CAF7A;
+    --blue: #4C84C9;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    padding: 60px 20px;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,168,76,0.08) 0%, transparent 70%);
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+      repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(201,168,76,0.03) 60px),
+      repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(201,168,76,0.03) 60px);
+    pointer-events: none;
+  }
+
+  .badge {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid var(--gold-dim);
+    padding: 6px 16px;
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.2s forwards;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.8rem, 7vw, 6rem);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.4s forwards;
+  }
+
+  .hero h1 span {
+    background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-dim));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    max-width: 580px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.6s forwards;
+    letter-spacing: 0.01em;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    animation: fadeUp 0.8s 1.2s forwards;
+  }
+
+  .scroll-hint span {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 48px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  /* SECTIONS */
+  .section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 100px 24px;
+  }
+
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 700;
+    margin-bottom: 16px;
+    line-height: 1.2;
+  }
+
+  .section-title em {
+    font-style: normal;
+    color: var(--gold);
+  }
+
+  .section-desc {
+    color: var(--text-muted);
+    font-size: 1rem;
+    max-width: 600px;
+    margin-bottom: 56px;
+  }
+
+  /* PHASE CARDS */
+  .phases {
+    display: grid;
+    gap: 2px;
+    margin-bottom: 80px;
+  }
+
+  .phase {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--gold-dim);
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.3s;
+  }
+
+  .phase:hover { border-left-color: var(--gold); }
+  .phase.active { border-left-color: var(--gold-light); }
+
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 28px 32px;
+  }
+
+  .phase-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--gold-dim);
+    min-width: 48px;
+    transition: color 0.3s;
+  }
+
+  .phase:hover .phase-num,
+  .phase.active .phase-num { color: var(--gold); }
+
+  .phase-title {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 500;
+    flex: 1;
+    letter-spacing: 0.01em;
+  }
+
+  .phase-icon {
+    font-size: 1.4rem;
+    opacity: 0.7;
+  }
+
+  .phase-chevron {
+    width: 20px;
+    height: 20px;
+    border-right: 1.5px solid var(--gold-dim);
+    border-bottom: 1.5px solid var(--gold-dim);
+    transform: rotate(45deg);
+    transition: transform 0.3s, border-color 0.3s;
+    margin-right: 4px;
+  }
+
+  .phase.active .phase-chevron {
+    transform: rotate(-135deg);
+    border-color: var(--gold);
+  }
+
+  .phase-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .phase.active .phase-body { max-height: 800px; }
+
+  .phase-content {
+    padding: 0 32px 32px 100px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+  }
+
+  .item {
+    background: var(--bg3);
+    border: 1px solid rgba(255,255,255,0.04);
+    padding: 16px 18px;
+    transition: border-color 0.2s;
+  }
+
+  .item:hover { border-color: var(--border); }
+
+  .item-title {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--gold-light);
+    margin-bottom: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 0.5px;
+  }
+
+  .item-desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* METRICS GRID */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 80px 0;
+  }
+
+  .metrics-section {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 80px 0;
+  }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 48px;
+  }
+
+  .metric-card {
+    background: var(--bg2);
+    padding: 28px 24px;
+    transition: background 0.2s;
+  }
+
+  .metric-card:hover { background: var(--surface); }
+
+  .metric-abbr {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  .metric-name {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    letter-spacing: 0.3px;
+  }
+
+  .metric-desc {
+    font-size: 0.78rem;
+    color: var(--text);
+    opacity: 0.7;
+    line-height: 1.5;
+  }
+
+  .metric-signal {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    margin-top: 10px;
+  }
+
+  .signal-buy { background: rgba(76,175,122,0.1); color: var(--green); border: 1px solid rgba(76,175,122,0.2); }
+  .signal-caution { background: rgba(201,168,76,0.1); color: var(--gold); border: 1px solid rgba(201,168,76,0.2); }
+  .signal-sell { background: rgba(201,76,76,0.1); color: var(--red); border: 1px solid rgba(201,76,76,0.2); }
+
+  /* CHECKLIST */
+  .checklist-section { max-width: 1100px; margin: 0 auto; padding: 80px 24px; }
+
+  .checklist {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin-top: 48px;
+  }
+
+  .check-group {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 28px;
+  }
+
+  .check-group-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .check-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .check-item:last-child { border-bottom: none; }
+
+  .check-box {
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--gold-dim);
+    flex-shrink: 0;
+    margin-top: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .check-item.checked .check-box {
+    background: var(--gold);
+    border-color: var(--gold);
+  }
+
+  .check-item.checked .check-box::after {
+    content: '✓';
+    font-size: 10px;
+    color: var(--bg);
+    font-weight: 700;
+  }
+
+  .check-item.checked .check-label {
+    text-decoration: line-through;
+    color: var(--text-muted);
+  }
+
+  .check-label {
+    font-size: 0.82rem;
+    line-height: 1.5;
+    transition: color 0.2s;
+  }
+
+  /* DECISION FRAMEWORK */
+  .decision {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 80px 24px;
+  }
+
+  .decision-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 48px;
+    position: relative;
+  }
+
+  .flow-step {
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    align-items: center;
+    gap: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 24px 28px;
+    transition: border-color 0.2s;
+  }
+
+  .flow-step:hover { border-color: var(--gold-dim); }
+
+  .flow-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--bg3);
+    -webkit-text-stroke: 1px var(--gold-dim);
+    text-align: center;
+  }
+
+  .flow-content h3 {
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+
+  .flow-content p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .flow-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+
+  .tag-q { color: var(--blue); border-color: rgba(76,132,201,0.3); background: rgba(76,132,201,0.05); }
+  .tag-f { color: var(--green); border-color: rgba(76,175,122,0.3); background: rgba(76,175,122,0.05); }
+  .tag-t { color: var(--gold); border-color: rgba(201,168,76,0.3); background: rgba(201,168,76,0.05); }
+  .tag-r { color: var(--red); border-color: rgba(201,76,76,0.3); background: rgba(201,76,76,0.05); }
+  .tag-p { color: #C94CC9; border-color: rgba(201,76,201,0.3); background: rgba(201,76,201,0.05); }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 24px;
+    text-align: center;
+  }
+
+  footer p {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* PROGRESS BAR */
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 2px;
+    background: linear-gradient(to right, var(--gold-dim), var(--gold-light));
+    transition: width 0.1s;
+    z-index: 100;
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="badge">Yatırım Analizi · Kapsamlı Rehber</div>
+  <h1>Bir Varlığı Satın Almadan<br>Önce <span>Ne Yapmalısın?</span></h1>
+  <p class="hero-sub">Profesyonel yatırımcıların kullandığı derin analiz metodolojisi — veri toplama, filtreleme ve karar verme çerçevesi.</p>
+  <div class="scroll-hint">
+    <span>Aşağı kaydır</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- PHASE SECTION -->
+<section class="section">
+  <div class="section-label reveal">01 — Analiz Aşamaları</div>
+  <h2 class="section-title reveal">Derin Analizin <em>5 Katmanı</em></h2>
+  <p class="section-desc reveal">Her aşama bir öncekinin üzerine inşa edilir. Sırayı atlamak, kör noktalar yaratır.</p>
+
+  <div class="phases reveal" id="phases">
+
+    <div class="phase" onclick="toggle(this)">
+      <div class="phase-header">
+        <div class="phase-num">01</div>
+        <div>
+          <div class="phase-title">Makro & Sektör Analizi</div>
+        </div>
+        <div class="phase-icon">🌍</div>
+        <div class="phase-chevron"></div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-content">
+          <div class="item"><div class="item-title">Faiz Ortamı</div><div class="item-desc">Merkez bankası politikaları, faiz beklentileri. Yüksek faiz = büyüme hisselerine baskı.</div></div>
+          <div class="item"><div class="item-title">Enflasyon Verileri</div><div class="item-desc">CPI, ÜFE takibi. Emtia ve enerji şirketleri enflasyondan faydalanır.</div></div>
+          <div class="item"><div class="item-title">Sektör Döngüsü</div><div class="item-desc">Ekonominin hangi evresinde? Genişleme / daralma / toparlanma ayrımı.</div></div>
+          <div class="item"><div class="item-title">Düzenleyici Risk</div><div class="item-desc">Sektörü etkileyen yasa değişiklikleri, vergi politikaları, lisans riskleri.</div></div>
+          <div class="item"><div class="item-title">Küresel Bağlantı</div><div class="item-desc">Şirketin ihracat/ithalat bağımlılığı, döviz kuru hassasiyeti.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase" onclick="toggle(this)">
+      <div class="phase-header">
+        <div class="phase-num">02</div>
+        <div>
+          <div class="phase-title">Nitel (Temel) Analiz</div>
+        </div>
+        <div class="phase-icon">🔎</div>
+        <div class="phase-chevron"></div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-content">
+          <div class="item"><div class="item-title">İş Modeli</div><div class="item-desc">Para nereden geliyor? Tekrarlayan gelir mi, tek seferlik mi? SaaS vs. ürün satışı.</div></div>
+          <div class="item"><div class="item-title">Rekabet Avantajı (Moat)</div><div class="item-desc">Marka, patent, network etkisi, maliyet avantajı, switching cost.</div></div>
+          <div class="item"><div class="item-title">Yönetim Kalitesi</div><div class="item-desc">CEO geçmişi, içeriden alım-satım kayıtları, sermaye tahsis kararları.</div></div>
+          <div class="item"><div class="item-title">Rekabet Ortamı</div><div class="item-desc">Pazar payı trendi, yeni girenler, ikame ürün tehdidi (Porter's 5 Forces).</div></div>
+          <div class="item"><div class="item-title">Müşteri Yapısı</div><div class="item-desc">Müşteri konsantrasyonu — tek müşteriye bağımlılık ciddi risk yaratır.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase" onclick="toggle(this)">
+      <div class="phase-header">
+        <div class="phase-num">03</div>
+        <div>
+          <div class="phase-title">Finansal (Kantitatif) Analiz</div>
+        </div>
+        <div class="phase-icon">📊</div>
+        <div class="phase-chevron"></div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-content">
+          <div class="item"><div class="item-title">Gelir Tablosu</div><div class="item-desc">Gelir büyümesi, brüt marj, EBITDA marjı. 3-5 yıllık trend analizi.</div></div>
+          <div class="item"><div class="item-title">Bilanço</div><div class="item-desc">Borç/özkaynak oranı, nakit pozisyonu, varlık kalitesi, goodwill oranı.</div></div>
+          <div class="item"><div class="item-title">Nakit Akışı</div><div class="item-desc">Serbest nakit akışı (FCF) en kritik göstergedir. Kâr yanıltabilir, nakit yanıltmaz.</div></div>
+          <div class="item"><div class="item-title">Sermaye Verimliliği</div><div class="item-desc">ROE, ROCE, ROIC — yatırılan sermayenin ne kadar verimli kullanıldığı.</div></div>
+          <div class="item"><div class="item-title">Kaldıraç Analizi</div><div class="item-desc">Net borç / EBITDA oranı. 3x üzeri yüksek risk sinyali.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase" onclick="toggle(this)">
+      <div class="phase-header">
+        <div class="phase-num">04</div>
+        <div>
+          <div class="phase-title">Değerleme</div>
+        </div>
+        <div class="phase-icon">💎</div>
+        <div class="phase-chevron"></div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-content">
+          <div class="item"><div class="item-title">DCF Analizi</div><div class="item-desc">Gelecek nakit akışlarının bugünkü değeri. Varsayımlara çok duyarlı — duyarlılık analizi zorunlu.</div></div>
+          <div class="item"><div class="item-title">Çarpan Analizi</div><div class="item-desc">F/K, FD/EBITDA, F/S, F/DD. Sektör ortalamalarıyla ve tarihsel ortalamayla kıyasla.</div></div>
+          <div class="item"><div class="item-title">Karşılaştırmalı Analiz</div><div class="item-desc">Rakiplerle yan yana değerleme. Prim veya iskonto gerekçelendirilebilir mi?</div></div>
+          <div class="item"><div class="item-title">Sum-of-the-Parts</div><div class="item-desc">Bölünebilir iş birimlerini ayrı ayrı değerle. Holding iskontosu fırsatı olabilir.</div></div>
+          <div class="item"><div class="item-title">Güvenlik Marjı</div><div class="item-desc">Hesaplanan değerin altında en az %20-30 iskonto olmadan alım yapmama kuralı.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase" onclick="toggle(this)">
+      <div class="phase-header">
+        <div class="phase-num">05</div>
+        <div>
+          <div class="phase-title">Teknik & Piyasa Analizi</div>
+        </div>
+        <div class="phase-icon">📈</div>
+        <div class="phase-chevron"></div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-content">
+          <div class="item"><div class="item-title">Trend Analizi</div><div class="item-desc">Ana trendin yönü. Temel analiz "ne alacağını", teknik analiz "ne zaman alacağını" söyler.</div></div>
+          <div class="item"><div class="item-title">Destek/Direnç</div><div class="item-desc">Önemli fiyat seviyeleri. Alım için destek bölgesi, stop için kırılma seviyesi.</div></div>
+          <div class="item"><div class="item-title">Hacim Analizi</div><div class="item-desc">Kırılımların hacimle desteklenmesi gerekir. Hacimsiz hareket güvenilir değil.</div></div>
+          <div class="item"><div class="item-title">Göreli Güç</div><div class="item-desc">Hisse endekse kıyasla outperform mı ediyor? Momentum pozitif mi?</div></div>
+          <div class="item"><div class="item-title">Pozisyon Zamanlaması</div><div class="item-desc">Ortalama maliyetlendirme (DCA) veya tek seferlik giriş stratejisi seçimi.</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- KEY METRICS -->
+<section class="metrics-section">
+  <div class="section" style="padding-top: 0; padding-bottom: 0;">
+    <div class="section-label reveal">02 — Kritik Göstergeler</div>
+    <h2 class="section-title reveal">Hangi <em>Metriklere</em> Bakmalısın?</h2>
+    <p class="section-desc reveal">Her metrik tek başına anlamsızdır — kombinasyon içinde değerlendir.</p>
+    <div class="metrics-grid reveal">
+      <div class="metric-card">
+        <div class="metric-abbr">F/K</div>
+        <div class="metric-name">Fiyat / Kazanç</div>
+        <div class="metric-desc">Yatırımcının 1₺ kâr için kaç ₺ ödediği. Sektör ortalamsıyla karşılaştır.</div>
+        <div class="metric-signal signal-buy">< Ort. → İskontolu</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-abbr">FCF</div>
+        <div class="metric-name">Serbest Nakit Akışı</div>
+        <div class="metric-desc">FAVÖK'ten Capex çıkarıldıktan sonra kalan gerçek nakit. En güvenilir metrik.</div>
+        <div class="metric-signal signal-buy">Pozitif & büyüyen</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-abbr">ROIC</div>
+        <div class="metric-name">Yatırılan Sermaye Getirisi</div>
+        <div class="metric-desc">Şirket sermayesini ne kadar verimli kullanıyor? WACC'ın üzerinde olmalı.</div>
+        <div class="metric-signal signal-buy">> WACC → Değer yaratır</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-abbr">ND/EBITDA</div>
+        <div class="metric-name">Net Borç / EBITDA</div>
+        <div class="metric-desc">Borcunu kaç yılda ödeyebileceği. Sermaye yoğun dışı sektörlerde 2x altı ideal.</div>
+        <div class="metric-signal signal-caution">2x–3x → İzle</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-abbr">GPM</div>
+        <div class="metric-name">Brüt Kâr Marjı</div>
+        <div class="metric-desc">Fiyatlama gücünün en saf göstergesi. Trend önemli — genişliyor mu, daralıyor mu?</div>
+        <div class="metric-signal signal-buy">Genişleyen trend</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-abbr">P/B</div>
+        <div class="metric-name">Piyasa / Defter Değeri</div>
+        <div class="metric-desc">Bankacılık sektörü için kritik. 1x altı teorik olarak varlık değerinin altında fiyat.</div>
+        <div class="metric-signal signal-caution">Sektöre göre değişir</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-abbr">Insider</div>
+        <div class="metric-name">İçeriden Alım/Satım</div>
+        <div class="metric-desc">Yöneticilerin kendi hisselerini alması güçlü pozitif sinyal. Toplu satış uyarıdır.</div>
+        <div class="metric-signal signal-buy">Net alım → Güçlü sinyal</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-abbr">Short %</div>
+        <div class="metric-name">Açığa Satış Oranı</div>
+        <div class="metric-desc">Float'ın %15 üzerindeyse kurumsal karamsarlık işareti. Short squeeze riski de var.</div>
+        <div class="metric-signal signal-caution">> %15 → Dikkat</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CHECKLIST -->
+<section class="checklist-section">
+  <div class="section-label reveal">03 — Alım Öncesi Kontrol</div>
+  <h2 class="section-title reveal">Due Diligence <em>Checklist</em></h2>
+  <p class="section-desc reveal">Tüm kutular işaretlenmeden pozisyon açma. Her kutuya tıklayarak ilerleyebilirsin.</p>
+
+  <div class="checklist reveal">
+    <div class="check-group">
+      <div class="check-group-title">Temel Analiz</div>
+      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">İş modelini ve gelir kaynaklarını anladım</div></div>
+      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Son 5 yıllık finansalları inceledim</div></div>
+      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Rakiplerle karşılaştırmalı analiz yaptım</div></div>
+      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Yönetim geçmişini araştırdım</div></div>
+      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Rekabet avantajını (moat) tanımladım</div></div>
+    </div>
+    <div class="check-group">
+      <div class="check-group-title">Finansal Göstergeler</div>
+      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">FCF pozitif ve büyüyor</div></div>
+      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Borç yükü yönetilebilir seviyede</div></div>
+      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Marjlar genişliyor veya korunuyor</div></div>
+      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">ROIC sermaye maliyetinin üzerinde</div></div>
+    </div>
+    <div class="check-group">
+      <div class="check-group-title">Değerleme & Risk</div>
+      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">DCF veya çarpan analiziyle değerleme yaptım</div></div>
+      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">En az %20 güvenlik marjı var</div></div>
+      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Stop-loss seviyemi belirledim</div></div>
+      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Portföyde maksimum ağırlığı belirledim</div></div>
+      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Negatif senaryoyu yazılı hale getirdim</div></div>
+    </div>
+    <div class="check-group">
+      <div class="check-group-title">Makro & Zamanlama</div>
+      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Makro ortam yatırıma uygun</div></div>
+      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Teknik analiz giriş noktasını destekliyor</div></div>
+      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Yakın vadeli katalitik olay var mı?</div></div>
+      <div class="check-item" onclick="this.classList.toggle('checked')"><div class="check-box"></div><div class="check-label">Sektörel döngü konumunu değerlendirdim</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- DECISION FLOW -->
+<section class="decision">
+  <div class="section-label reveal">04 — Karar Çerçevesi</div>
+  <h2 class="section-title reveal">Alım Kararı <em>Akış Şeması</em></h2>
+  <p class="section-desc reveal">Duygusal kararları ortadan kaldıran sistematik süreç.</p>
+
+  <div class="decision-flow reveal">
+    <div class="flow-step">
+      <div class="flow-num">1</div>
+      <div class="flow-content">
+        <h3>Fikri Anlıyorum — "Neden Bu Varlık?"</h3>
+        <p>İş modelini, gelir kaynağını ve büyüme hikayesini kendi cümlelerinle açıklayamıyorsan alma.</p>
+      </div>
+      <div class="flow-tag tag-q">Nitel</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">2</div>
+      <div class="flow-content">
+        <h3>Finansalları Doğrula</h3>
+        <p>FCF, marjlar, borç yükü kontrol listesinden geçiyor mu? Herhangi bir kırmızı bayrak var mı?</p>
+      </div>
+      <div class="flow-tag tag-f">Finansal</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">3</div>
+      <div class="flow-content">
+        <h3>Değerleme — Adil Fiyat Nedir?</h3>
+        <p>Hesapladığın değer ile piyasa fiyatı arasında yeterli güvenlik marjı var mı? Boğa/baz/ayı senaryo yaz.</p>
+      </div>
+      <div class="flow-tag tag-t">Teknik</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">4</div>
+      <div class="flow-content">
+        <h3>Risk Tanımla — "Neyi Yanlış Bilebilirim?"</h3>
+        <p>Tezi çürütecek 3 senaryo yaz. Bu senaryolar gerçekleşirse kayıp ne olur? Kaldırabilir misin?</p>
+      </div>
+      <div class="flow-tag tag-r">Risk</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">5</div>
+      <div class="flow-content">
+        <h3>Pozisyon Büyüklüğü & Giriş Planı</h3>
+        <p>Kelly Kriteri veya sabit risk modeli ile boyutlandır. Stop seviyeni, çıkış senaryolarını yaz. Sonra al.</p>
+      </div>
+      <div class="flow-tag tag-p">Pozisyon</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>TradeVia · Yatırım Analizi Rehberi · Yatırım tavsiyesi değildir</p>
+</footer>
+
+<script>
+  // Phase toggle
+  function toggle(el) {
+    const wasActive = el.classList.contains('active');
+    document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+    if (!wasActive) el.classList.add('active');
+  }
+
+  // Open first by default
+  document.querySelector('.phase').classList.add('active');
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08 });
+  reveals.forEach(r => observer.observe(r));
+
+  // Progress bar
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = (scrollTop / docHeight) * 100;
+    document.getElementById('progressBar').style.width = progress + '%';
+  });
+</script>
+</body>
+</html>
