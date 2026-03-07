@@ -187,9 +187,20 @@ var LangSystem = {
     },
 
     startTranslation: function() {
-        this.translateNode(document.body);
         var self = this;
-        this.observer = new MutationObserver(function(mutations) {
+
+        // Büyük sayfalarda tüm DOM yerine sadece görünür alanı çevir
+        var allNodes = document.body.querySelectorAll('*');
+        var isLargePage = allNodes.length > 500;
+
+        if (isLargePage) {
+            // Lazy translation: IntersectionObserver ile sadece görünür elementleri çevir
+            self._lazyTranslate();
+        } else {
+            self.translateNode(document.body);
+        }
+
+        self.observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
                 mutation.addedNodes.forEach(function(node) {
                     self.translateNode(node);
@@ -201,7 +212,40 @@ var LangSystem = {
                 }
             });
         });
-        this.observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+        self.observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    },
+
+    _lazyTranslate: function() {
+        var self = this;
+        // Önce sadece viewport içindeki elementleri çevir
+        var elements = document.body.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, td, th, span, div, button, a, label');
+
+        if ('IntersectionObserver' in window) {
+            var io = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        self.translateNode(entry.target);
+                        io.unobserve(entry.target);
+                    }
+                });
+            }, { rootMargin: '200px' }); // 200px önceden çevir
+
+            elements.forEach(function(el) { io.observe(el); });
+        } else {
+            // IntersectionObserver yoksa küçük parçalar halinde çevir (UI donmasın)
+            var i = 0;
+            var chunk = 30;
+            function translateChunk() {
+                var end = Math.min(i + chunk, elements.length);
+                for (; i < end; i++) {
+                    self.translateNode(elements[i]);
+                }
+                if (i < elements.length) {
+                    setTimeout(translateChunk, 50);
+                }
+            }
+            translateChunk();
+        }
     },
 
     isIgnored: function(node) {
@@ -218,12 +262,6 @@ var LangSystem = {
         while (parent) {
             if (parent.id === 'commChatMessages') return true;
             parent = parent.parentNode;
-        }
-        // data-en olan span: zaten Ingilizce iceriyor, dokunma
-        // data-tr olan span: css ile gizlenecek, LangSystem karistirmasin
-        var checkNode = node.nodeType === 3 ? node.parentNode : node;
-        if (checkNode && checkNode.hasAttribute) {
-            if (checkNode.hasAttribute('data-en') || checkNode.hasAttribute('data-tr')) return true;
         }
         return false;
     },
