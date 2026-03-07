@@ -219,12 +219,6 @@ var LangSystem = {
             if (parent.id === 'commChatMessages') return true;
             parent = parent.parentNode;
         }
-        // data-en olan span: zaten Ingilizce iceriyor, dokunma
-        // data-tr olan span: css ile gizlenecek, LangSystem karistirmasin
-        var checkNode = node.nodeType === 3 ? node.parentNode : node;
-        if (checkNode && checkNode.hasAttribute) {
-            if (checkNode.hasAttribute('data-en') || checkNode.hasAttribute('data-tr')) return true;
-        }
         return false;
     },
 
@@ -433,48 +427,51 @@ var LangSystem = {
 
         function fetchFromGoogle(fbDocId, retryCount) {
             retryCount = retryCount || 0;
-            // İki farklı Google endpoint dene
             var endpoints = [
                 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=' + fromLang + '&tl=' + toLang + '&dt=t&q=' + encodeURIComponent(text),
                 'https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=' + fromLang + '&tl=' + toLang + '&q=' + encodeURIComponent(text)
             ];
             var url = endpoints[retryCount % 2];
+            console.log('[LangSystem] Google Translate isteği:', url.substring(0, 80));
 
             fetch(url)
                 .then(function(res) {
+                    console.log('[LangSystem] HTTP yanıt:', res.status);
                     if (res.status === 429 && retryCount < 2) {
-                        // Rate limit — 1 saniye bekle, tekrar dene
                         setTimeout(function() { fetchFromGoogle(fbDocId, retryCount + 1); }, 1000);
                         return null;
                     }
                     return res.json();
                 })
                 .then(function(data) {
-                    if (!data) return; // retry bekleniyor
+                    if (!data) return;
                     var result = text;
                     if (data && data[0]) {
-                        // Standart format
                         if (Array.isArray(data[0]) && data[0][0] && Array.isArray(data[0][0])) {
                             result = data[0].filter(function(p) { return p && p[0]; }).map(function(p) { return p[0]; }).join('');
                         } else if (typeof data[0] === 'string') {
                             result = data[0];
                         }
                     }
+                    console.log('[LangSystem] Çeviri:', text.substring(0,30), '→', result.substring(0,30));
 
                     // Firebase'e kaydet
                     var db = getFirestore();
+                    console.log('[LangSystem] Firebase db:', db ? 'VAR' : 'YOK', '| fbDocId:', fbDocId ? 'VAR' : 'YOK');
                     if (result && result !== text && db && fbDocId) {
                         try {
                             var ts = firebase.firestore.FieldValue.serverTimestamp();
                             db.collection('translations').doc(fbDocId)
                               .set({ translation: result, from: fromLang, to: toLang, hits: 1, updatedAt: ts }, { merge: true })
-                              .catch(function() {});
-                        } catch(e) {}
+                              .then(function() { console.log('[LangSystem] Firebasee yazildi:', fbDocId.substring(0,40)); })
+                              .catch(function(err) { console.error('[LangSystem] Firebase yazma HATA:', err.message); });
+                        } catch(e) { console.error('[LangSystem] Firebase try/catch:', e.message); }
                     }
 
                     deliver(result);
                 })
-                .catch(function() {
+                .catch(function(err) {
+                    console.error('[LangSystem] Fetch HATA:', err.message);
                     if (retryCount < 1) {
                         setTimeout(function() { fetchFromGoogle(fbDocId, retryCount + 1); }, 800);
                     } else {
