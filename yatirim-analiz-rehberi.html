@@ -59,7 +59,7 @@
 html { scroll-behavior: smooth; font-size: 16px; max-width: 100vw; overflow-x: hidden; }
 
 body {
-  background: #2C2416;
+  background: #0A0806;
   color: var(--ink);
   font-family: 'EB Garamond', Georgia, serif;
   font-size: 1rem;
@@ -78,20 +78,54 @@ body {
 /* ═══════════════════════════════════════════
    LANGUAGE TOGGLE
 ═══════════════════════════════════════════ */
+/* ─── TOP BAR ────────────────────────────────────────────── */
+/* Geri: sol üst  |  Dil: sağ üst  */
+#back-btn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 9998;
+  width: 38px; height: 38px;
+  background: rgba(10,8,6,0.9);
+  border: 1px solid rgba(154,123,58,0.28);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.6);
+  color: rgba(154,123,58,0.75);
+  text-decoration: none;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+#back-btn:hover {
+  color: var(--gold-pale);
+  border-color: rgba(154,123,58,0.55);
+  background: rgba(154,123,58,0.1);
+}
+#back-btn svg {
+  width: 13px; height: 13px;
+  fill: none; stroke: currentColor;
+  stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+}
+
+/* Dil toggle: sağ üst, top-bar yok artık */
 #lang-toggle {
   position: fixed;
   top: 14px;
-  right: 20px;
+  right: 16px;
   z-index: 9998;
   display: flex;
   align-items: center;
-  background: rgba(12,10,6,0.92);
-  border: 1px solid rgba(154,123,58,0.3);
+  background: rgba(10,8,6,0.9);
+  border: 1px solid rgba(154,123,58,0.28);
   border-radius: 20px;
   overflow: hidden;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 2px 16px rgba(0,0,0,0.5);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.6);
 }
+
+/* top-bar artık kullanılmıyor */
+#top-bar { display: contents; }
 
 .lang-btn {
   padding: 7px 16px;
@@ -260,9 +294,64 @@ span[data-tr], span[data-en] { display: inline !important; }
 #book-main {
   margin-left: var(--sidebar-w);
   flex: 1;
-  min-height: 100vh;
-  background: var(--cover-bg);
+  height: 100vh;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  display: flex;
+  flex-direction: row;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  background: #0A0806;
   position: relative;
+}
+
+/* Her sayfa yatay snap */
+#book-main > .book-page,
+#book-main > .chapter-cover,
+#book-main > #cover,
+#book-main > .page-wrap {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+  width: min(var(--page-width), 100vw);
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Scroll göstergesi gizle */
+#book-main::-webkit-scrollbar { display: none; }
+#book-main { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Yatay ok navigasyon */
+#nav-prev, #nav-next {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 900;
+  width: 40px; height: 40px;
+  background: rgba(10,8,6,0.85);
+  border: 1px solid rgba(154,123,58,0.25);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s;
+  color: rgba(154,123,58,0.7);
+}
+#nav-prev { left: calc(var(--sidebar-w) + 12px); }
+#nav-next { right: 12px; }
+#nav-prev:hover, #nav-next:hover {
+  background: rgba(154,123,58,0.15);
+  border-color: rgba(154,123,58,0.5);
+  color: var(--gold-pale);
+}
+#nav-prev svg, #nav-next svg {
+  width: 14px; height: 14px;
+  fill: none; stroke: currentColor;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+@media (max-width: 900px) {
+  #nav-prev { left: 8px; }
 }
 
 /* ═══════════════════════════════════════════
@@ -270,18 +359,20 @@ span[data-tr], span[data-en] { display: inline !important; }
 ═══════════════════════════════════════════ */
 #cover {
   min-height: 100vh;
-  background: var(--cover-bg);
-  display: grid;
-  grid-template-rows: auto 1fr auto auto auto;
-  align-items: start;
+  background: #080604;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
   position: relative;
   overflow: hidden;
-  max-width: var(--page-width);
-  margin: 0 auto;
+  width: min(var(--page-width), 100vw);
+  flex-shrink: 0;
+  scroll-snap-align: start;
   box-shadow:
-    -1px 0 0 rgba(0,0,0,0.4),
-    1px 0 0 rgba(0,0,0,0.4),
-    0 0 80px rgba(0,0,0,0.7);
+    -1px 0 0 rgba(0,0,0,0.5),
+    1px 0 0 rgba(0,0,0,0.5),
+    0 0 100px rgba(0,0,0,0.8);
 }
 
 /* Linen texture overlay */
@@ -344,9 +435,9 @@ span[data-tr], span[data-en] { display: inline !important; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 40px 40px;
+  padding: 60px 40px;
   text-align: center;
-  min-height: 60vh;
+  flex: 1;
 }
 
 /* Large decorative border frame */
@@ -614,9 +705,9 @@ span[data-tr], span[data-en] { display: inline !important; }
 ═══════════════════════════════════════════ */
 .book-page {
   background: var(--paper);
-  min-height: 100vh;
+  min-height: auto;
   position: relative;
-  padding: 80px var(--page-gutter) 80px;
+  padding: 56px var(--page-gutter) 56px;
   max-width: var(--page-width);
   margin: 0 auto;
   box-shadow:
@@ -686,11 +777,11 @@ span[data-tr], span[data-en] { display: inline !important; }
 ═══════════════════════════════════════════ */
 .chapter-cover {
   background: linear-gradient(160deg, var(--cover-bg) 0%, var(--cover-mid) 100%);
-  min-height: 100vh;
+  min-height: auto;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 80px;
+  padding: 52px 80px 48px;
   position: relative;
   overflow: hidden;
   max-width: var(--page-width);
@@ -1661,22 +1752,29 @@ p.body-text:first-of-type::first-letter {
 #menu-toggle {
   display: none;
   position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 900;
-  width: 48px; height: 48px;
-  background: var(--gold);
+  bottom: 20px;
+  right: 16px;
+  z-index: 850;
+  width: 44px; height: 44px;
+  background: rgba(154,123,58,0.9);
   border: none;
+  border-radius: 12px;
   cursor: pointer;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  transition: background 0.2s;
 }
-
+#menu-toggle:hover {
+  background: var(--gold);
+}
 .menu-bar {
-  width: 20px; height: 1.5px;
-  background: var(--paper);
+  width: 18px; height: 1.5px;
+  background: #0A0806;
+  border-radius: 2px;
 }
 
 /* ═══════════════════════════════════════════
@@ -1753,7 +1851,7 @@ p.body-text:first-of-type::first-letter {
   :root {
     --sidebar-w: 0px;
     --page-width: 100vw;
-    --page-gutter: 24px;
+    --page-gutter: 20px;
   }
 
   #sidebar {
@@ -1767,18 +1865,26 @@ p.body-text:first-of-type::first-letter {
 
   #book-main {
     margin-left: 0;
-    width: 100%;
-    max-width: 100vw;
-    overflow-x: hidden;
+    width: 100vw;
+  }
+
+  #book-main > .book-page,
+  #book-main > .chapter-cover,
+  #book-main > #cover,
+  #book-main > .page-wrap {
+    width: 100vw;
   }
 
   .chapter-cover {
-    padding: 60px 24px;
+    padding: 40px 20px 36px;
   }
 
   #menu-toggle {
     display: flex;
   }
+
+  #nav-prev { left: 6px; }
+  #nav-next { right: 6px; }
 
   .risk-grid,
   .two-col-grid {
@@ -1796,11 +1902,7 @@ p.body-text:first-of-type::first-letter {
   .flow-tag { display: none; }
 
   .book-page {
-    padding: 64px 24px 64px;
-  }
-
-  .chapter-cover {
-    padding: 48px 24px;
+    padding: 52px 20px 52px;
   }
 }
 
@@ -1810,8 +1912,9 @@ p.body-text:first-of-type::first-letter {
   .cover-stat:nth-child(2) { border-right: none; }
   .cover-stat:nth-child(1),
   .cover-stat:nth-child(2) { border-bottom: 1px solid rgba(154,123,58,0.1); }
-  .cover-title { font-size: 3.8rem; }
-  .cover-title-italic { font-size: 3.2rem; }
+  .cover-title { font-size: 3.2rem; }
+  .cover-title-italic { font-size: 2.8rem; }
+  #nav-prev, #nav-next { width: 32px; height: 32px; }
 }
 </style>
 </head>
@@ -1822,10 +1925,15 @@ p.body-text:first-of-type::first-letter {
 <!-- ═══════════════════════════════════════
      SIDEBAR
 ═══════════════════════════════════════ -->
-<!-- LANGUAGE TOGGLE -->
-<div id="lang-toggle">
-  <button class="lang-btn active" onclick="setLang('tr')" id="btn-tr">TR</button>
-  <button class="lang-btn" onclick="setLang('en')" id="btn-en">EN</button>
+<!-- TOP BAR: Geri + Dil -->
+<div id="top-bar">
+  <a id="back-btn" href="javascript:history.back()" title="Geri Dön">
+    <svg viewBox="0 0 12 12"><polyline points="8,2 4,6 8,10"/></svg>
+  </a>
+  <div id="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('tr')" id="btn-tr">TR</button>
+    <button class="lang-btn" onclick="setLang('en')" id="btn-en">EN</button>
+  </div>
 </div>
 
 <nav id="sidebar">
@@ -2072,124 +2180,92 @@ p.body-text:first-of-type::first-letter {
 <!-- ═══════════════════════════════════════
      BOOK MAIN
 ═══════════════════════════════════════ -->
+<!-- Yatay Navigasyon Okları -->
+<button id="nav-prev" onclick="navigatePage(-1)" aria-label="Önceki">
+  <svg viewBox="0 0 14 14"><polyline points="9,2 5,7 9,12"/></svg>
+</button>
+<button id="nav-next" onclick="navigatePage(1)" aria-label="Sonraki">
+  <svg viewBox="0 0 14 14"><polyline points="5,2 9,7 5,12"/></svg>
+</button>
 <main id="book-main">
 
-  <!-- COVER -->
+  <!-- COVER — Minimal Premium -->
   <section id="cover">
     <div class="cover-glow"></div>
-    <div class="cover-frame"></div>
+
+    <!-- İnce üst çizgi -->
+    <div style="position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent, rgba(154,123,58,0.4), transparent); z-index:3;"></div>
+
+    <!-- Köşe süsleri — sadece 2 köşe, minimal -->
     <div class="cover-corner tl"></div>
-    <div class="cover-corner tr"></div>
-    <div class="cover-corner bl"></div>
     <div class="cover-corner br"></div>
 
-    <!-- Top publisher band -->
-    <div class="cover-top-band">
-      <span class="cover-publisher"><span data-tr>TradeVia · Finans Külliyatı</span><span data-en>TradeVia · Finance Library</span></span>
-      <span class="cover-edition"><span data-tr>Genişletilmiş Baskı · 2026</span><span data-en>Expanded Edition · 2026</span></span>
-    </div>
+    <div class="cover-body" style="gap:0;">
 
-    <!-- Main cover body -->
-    <div class="cover-body">
-
-      <!-- TradeVia logo mark -->
-      <div class="cover-tradavia">
-        <div class="cover-tradavia-wordmark">TradeVia</div>
-        <div class="cover-tradavia-dot-row">
-          <div class="cover-tradavia-dot active"></div>
-          <div class="cover-tradavia-dot active"></div>
-          <div class="cover-tradavia-dot active"></div>
-          <div class="cover-tradavia-dot"></div>
-          <div class="cover-tradavia-dot"></div>
-          <div class="cover-tradavia-dot active"></div>
-          <div class="cover-tradavia-dot active"></div>
-          <div class="cover-tradavia-dot"></div>
-          <div class="cover-tradavia-dot active"></div>
-        </div>
+      <!-- Marka etiketi -->
+      <div style="font-family:'Inconsolata',monospace; font-size:0.58rem; letter-spacing:0.45em; color:rgba(154,123,58,0.45); text-transform:uppercase; margin-bottom:48px; opacity:0; animation:coverFadeUp 0.8s 0.1s forwards;">
+        TRADEVIA
       </div>
 
-      <!-- Top ornamental rule -->
-      <div class="cover-rule-top">
-        <div class="cover-rule-line"></div>
-        <span class="cover-rule-center">✦</span>
-        <div class="cover-rule-line"></div>
-      </div>
+      <!-- İnce yatay çizgi -->
+      <div style="width:48px; height:1px; background:rgba(154,123,58,0.35); margin:0 auto 32px; opacity:0; animation:coverFadeUp 0.8s 0.25s forwards;"></div>
 
-      <!-- Series label -->
-      <div class="cover-series-label"><span data-tr>Yatırım Analizi Dizisi · Tam Sürüm</span><span data-en>Investment Analysis Series · Complete Edition</span></div>
-
-      <!-- Main title -->
-      <div class="cover-title-wrap">
-        <h1 class="cover-title">
+      <!-- Ana başlık -->
+      <div class="cover-title-wrap" style="margin-bottom:0;">
+        <h1 class="cover-title" style="line-height:0.95;">
           <span data-tr>Yatırım<span class="cover-title-italic">Analizi</span></span>
           <span data-en>Investment<span class="cover-title-italic">Analysis</span></span>
         </h1>
       </div>
 
-      <!-- Subtitle -->
-      <div class="cover-subtitle-block">
-        <p class="cover-subtitle"><span data-tr>Yeni Başlayandan Uzmana — Eksiksiz Bir Eğitim</span><span data-en>From Beginner to Expert — A Complete Education</span></p>
+      <!-- Alt başlık -->
+      <div style="margin-top:24px; margin-bottom:40px; opacity:0; animation:coverFadeUp 0.9s 0.6s forwards;">
+        <p class="cover-subtitle">
+          <span data-tr>Yeni Başlayandan Uzmana — Eksiksiz Bir Eğitim</span>
+          <span data-en>From Beginner to Expert — A Complete Education</span>
+        </p>
       </div>
 
-      <!-- Divider diamond -->
-      <div class="cover-divider">
+      <!-- İnce yatay çizgi + elmas -->
+      <div class="cover-divider" style="margin:0 auto 48px; opacity:0; animation:coverFadeUp 0.8s 0.75s forwards;">
         <div class="cover-divider-line"></div>
         <div class="cover-divider-diamond"></div>
         <div class="cover-divider-line"></div>
       </div>
 
-    </div><!-- /cover-body -->
-
-    <!-- Stats band -->
-    <div class="cover-stats-band">
-      <div class="cover-stats">
-        <div class="cover-stat">
-          <span class="cover-stat-n">34</span>
-          <span class="cover-stat-l"><span data-tr>Bölüm</span><span data-en>Chapters</span></span>
+      <!-- Sayılar — yatay 4'lü, minimal -->
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); width:100%; max-width:420px; margin:0 auto 40px; border:1px solid rgba(154,123,58,0.1); opacity:0; animation:coverFadeUp 0.8s 0.9s forwards;">
+        <div style="padding:16px 0; text-align:center; border-right:1px solid rgba(154,123,58,0.1);">
+          <div style="font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:700; color:var(--gold-pale); line-height:1;">34</div>
+          <div style="font-family:'Inconsolata',monospace; font-size:0.48rem; letter-spacing:0.2em; color:rgba(154,123,58,0.4); text-transform:uppercase; margin-top:4px;"><span data-tr>Bölüm</span><span data-en>Chapters</span></div>
         </div>
-        <div class="cover-stat">
-          <span class="cover-stat-n">60+</span>
-          <span class="cover-stat-l"><span data-tr>Finansal<br>Metrik</span><span data-en>Financial<br>Metrics</span></span>
+        <div style="padding:16px 0; text-align:center; border-right:1px solid rgba(154,123,58,0.1);">
+          <div style="font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:700; color:var(--gold-pale); line-height:1;">60+</div>
+          <div style="font-family:'Inconsolata',monospace; font-size:0.48rem; letter-spacing:0.2em; color:rgba(154,123,58,0.4); text-transform:uppercase; margin-top:4px;"><span data-tr>Metrik</span><span data-en>Metrics</span></div>
         </div>
-        <div class="cover-stat">
-          <span class="cover-stat-n">20</span>
-          <span class="cover-stat-l"><span data-tr>Bilişsel<br>Önyargı</span><span data-en>Cognitive<br>Biases</span></span>
+        <div style="padding:16px 0; text-align:center; border-right:1px solid rgba(154,123,58,0.1);">
+          <div style="font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:700; color:var(--gold-pale); line-height:1;">20</div>
+          <div style="font-family:'Inconsolata',monospace; font-size:0.48rem; letter-spacing:0.2em; color:rgba(154,123,58,0.4); text-transform:uppercase; margin-top:4px;"><span data-tr>Önyargı</span><span data-en>Biases</span></div>
         </div>
-        <div class="cover-stat">
-          <span class="cover-stat-n">4</span>
-          <span class="cover-stat-l"><span data-tr>Yeni<br>Bölüm</span><span data-en>New<br>Chapters</span></span>
+        <div style="padding:16px 0; text-align:center;">
+          <div style="font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:700; color:var(--gold-pale); line-height:1;">4</div>
+          <div style="font-family:'Inconsolata',monospace; font-size:0.48rem; letter-spacing:0.2em; color:rgba(154,123,58,0.4); text-transform:uppercase; margin-top:4px;"><span data-tr>Yeni</span><span data-en>New</span></div>
         </div>
       </div>
+
+      <!-- Sağa kaydır ipucu -->
+      <div style="display:flex; align-items:center; gap:10px; opacity:0; animation:coverFadeUp 0.8s 1.1s forwards;">
+        <div style="width:20px; height:1px; background:rgba(154,123,58,0.3);"></div>
+        <span style="font-family:'Inconsolata',monospace; font-size:0.52rem; letter-spacing:0.25em; color:rgba(154,123,58,0.4); text-transform:uppercase;">
+          <span data-tr>Okumaya Başla</span><span data-en>Begin Reading</span>
+        </span>
+        <div style="width:20px; height:1px; background:rgba(154,123,58,0.3);"></div>
+      </div>
+
     </div>
 
-    <!-- Feature highlights strip -->
-    <div style="display:flex; justify-content:center; gap:32px; padding:18px 40px 0; flex-wrap:wrap;">
-      <div style="font-family:'Inconsolata',monospace; font-size:0.58rem; letter-spacing:0.18em; color:rgba(154,123,58,0.55); text-transform:uppercase; text-align:center;">
-        <span data-tr>Temel Analiz &amp; Değerleme</span><span data-en>Fundamental Analysis &amp; Valuation</span>
-      </div>
-      <div style="color:rgba(154,123,58,0.25); font-size:0.6rem;">✦</div>
-      <div style="font-family:'Inconsolata',monospace; font-size:0.58rem; letter-spacing:0.18em; color:rgba(154,123,58,0.55); text-transform:uppercase; text-align:center;">
-        <span data-tr>Teknik Analiz &amp; Kripto</span><span data-en>Technical Analysis &amp; Crypto</span>
-      </div>
-      <div style="color:rgba(154,123,58,0.25); font-size:0.6rem;">✦</div>
-      <div style="font-family:'Inconsolata',monospace; font-size:0.58rem; letter-spacing:0.18em; color:rgba(154,123,58,0.55); text-transform:uppercase; text-align:center;">
-        <span data-tr>Davranışsal Finans</span><span data-en>Behavioural Finance</span>
-      </div>
-      <div style="color:rgba(154,123,58,0.25); font-size:0.6rem;">✦</div>
-      <div style="font-family:'Inconsolata',monospace; font-size:0.58rem; letter-spacing:0.18em; color:rgba(154,123,58,0.55); text-transform:uppercase; text-align:center;">
-        <span data-tr>Küresel Piyasalar &amp; Vergi</span><span data-en>Global Markets &amp; Tax</span>
-      </div>
-      <div style="color:rgba(154,123,58,0.25); font-size:0.6rem;">✦</div>
-      <div style="font-family:'Inconsolata',monospace; font-size:0.58rem; letter-spacing:0.18em; color:rgba(154,123,58,0.55); text-transform:uppercase; text-align:center;">
-        <span data-tr>Sıfırdan Portföy Kurma</span><span data-en>Building a Portfolio from Scratch</span>
-      </div>
-    </div>
-
-    <!-- Bottom scroll cue -->
-    <div class="cover-bottom-band">
-      <span class="cover-scroll-text"><span data-tr>Okumaya Başla</span><span data-en>Begin Reading</span></span>
-      <div class="cover-scroll-line"></div>
-    </div>
+    <!-- İnce alt çizgi -->
+    <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent, rgba(154,123,58,0.25), transparent); z-index:3;"></div>
 
   </section>
 
@@ -5660,7 +5736,7 @@ p.body-text:first-of-type::first-letter {
       <span data-tr>Küresel Borsalar</span><span data-en>Global Stock Exchanges</span>
     </div>
 
-    <div class="chapter-cover" style="min-height:22vh; display:flex; flex-direction:column; justify-content:center; padding:40px 0 32px;">
+    <div class="chapter-cover" style="display:flex; flex-direction:column; justify-content:center; padding:32px 0 24px;">
       <div class="chapter-num" style="font-family:'Inconsolata',monospace; font-size:0.6rem; letter-spacing:0.3em; color:rgba(154,123,58,0.45); text-transform:uppercase; margin-bottom:12px;">
         <span data-tr>Bölüm</span><span data-en>Chapter</span> · 31
       </div>
@@ -5790,7 +5866,7 @@ p.body-text:first-of-type::first-letter {
       <span data-tr>Global Merkez Bankaları</span><span data-en>Global Central Banks</span>
     </div>
 
-    <div class="chapter-cover" style="min-height:22vh; display:flex; flex-direction:column; justify-content:center; padding:40px 0 32px;">
+    <div class="chapter-cover" style="display:flex; flex-direction:column; justify-content:center; padding:32px 0 24px;">
       <div class="chapter-num" style="font-family:'Inconsolata',monospace; font-size:0.6rem; letter-spacing:0.3em; color:rgba(154,123,58,0.45); text-transform:uppercase; margin-bottom:12px;">
         <span data-tr>Bölüm</span><span data-en>Chapter</span> · 32
       </div>
@@ -5916,7 +5992,7 @@ p.body-text:first-of-type::first-letter {
       <span data-tr>Global ETF Stratejisi</span><span data-en>Global ETF Strategy</span>
     </div>
 
-    <div class="chapter-cover" style="min-height:22vh; display:flex; flex-direction:column; justify-content:center; padding:40px 0 32px;">
+    <div class="chapter-cover" style="display:flex; flex-direction:column; justify-content:center; padding:32px 0 24px;">
       <div class="chapter-num" style="font-family:'Inconsolata',monospace; font-size:0.6rem; letter-spacing:0.3em; color:rgba(154,123,58,0.45); text-transform:uppercase; margin-bottom:12px;">
         <span data-tr>Bölüm</span><span data-en>Chapter</span> · 33
       </div>
@@ -6056,7 +6132,7 @@ p.body-text:first-of-type::first-letter {
       <span data-tr>Uluslararası Vergi & Offshore</span><span data-en>International Tax & Offshore</span>
     </div>
 
-    <div class="chapter-cover" style="min-height:22vh; display:flex; flex-direction:column; justify-content:center; padding:40px 0 32px;">
+    <div class="chapter-cover" style="display:flex; flex-direction:column; justify-content:center; padding:32px 0 24px;">
       <div class="chapter-num" style="font-family:'Inconsolata',monospace; font-size:0.6rem; letter-spacing:0.3em; color:rgba(154,123,58,0.45); text-transform:uppercase; margin-bottom:12px;">
         <span data-tr>Bölüm</span><span data-en>Chapter</span> · 34
       </div>
@@ -6196,6 +6272,19 @@ p.body-text:first-of-type::first-letter {
 </main>
 
 <script>
+// ─── Yatay Sayfa Navigasyonu ───────────────────────────────
+function navigatePage(dir) {
+  var main = document.getElementById('book-main');
+  if (!main) return;
+  var pageWidth = window.innerWidth;
+  main.scrollBy({ left: dir * pageWidth, behavior: 'smooth' });
+}
+// Klavye ok tuşları
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowRight') navigatePage(1);
+  if (e.key === 'ArrowLeft') navigatePage(-1);
+});
+
 // ─── Language Toggle — LangSystem (lang.js) Entegrasyonu ───
 // Bu dosya, lang.js'in LangSystem'iyle tam senkron çalışır.
 // Ortak localStorage anahtarı: tm_settings → { lang: 'tr'|'en' }
@@ -6281,11 +6370,14 @@ window.addEventListener('storage', function(e) {
 });
 
 // Reading Progress
-window.addEventListener('scroll', () => {
-  const d = document.documentElement;
-  const progress = d.scrollTop / (d.scrollHeight - d.clientHeight);
-  document.getElementById('reading-progress').style.transform = `scaleX(${progress})`;
-});
+// Yatay scroll progress
+var bookMain = document.getElementById('book-main');
+if (bookMain) {
+  bookMain.addEventListener('scroll', function() {
+    var progress = bookMain.scrollLeft / (bookMain.scrollWidth - bookMain.clientWidth);
+    document.getElementById('reading-progress').style.transform = 'scaleX(' + progress + ')';
+  });
+}
 
 // TOC Active State
 const sections = document.querySelectorAll('[id]');
