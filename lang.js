@@ -219,6 +219,12 @@ var LangSystem = {
             if (parent.id === 'commChatMessages') return true;
             parent = parent.parentNode;
         }
+        // data-en olan span: zaten Ingilizce iceriyor, dokunma
+        // data-tr olan span: css ile gizlenecek, LangSystem karistirmasin
+        var checkNode = node.nodeType === 3 ? node.parentNode : node;
+        if (checkNode && checkNode.hasAttribute) {
+            if (checkNode.hasAttribute('data-en') || checkNode.hasAttribute('data-tr')) return true;
+        }
         return false;
     },
 

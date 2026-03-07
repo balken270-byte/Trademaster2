@@ -7572,10 +7572,10 @@ function _applyLangUI(lang) {
 }
 
 function setLang(lang) {
-  // 1. Bu sayfanın görsel durumunu güncelle
+  // 1. Bu sayfanın görsel durumunu güncelle (data-tr/data-en CSS sistemi)
   _applyLangUI(lang);
 
-  // 2. Her iki localStorage anahtarını da güncelle
+  // 2. localStorage güncelle
   localStorage.setItem('trv_lang', lang);
   try {
     var settings = JSON.parse(localStorage.getItem('tm_settings') || '{}');
@@ -7583,11 +7583,26 @@ function setLang(lang) {
     localStorage.setItem('tm_settings', JSON.stringify(settings));
   } catch(e) {}
 
-  // 3. lang.js LangSystem yüklüyse onu da senkronize et
-  //    (aynı sekmede hem bu sayfa hem ana uygulama açıksa)
-  if (window.LangSystem && typeof window.LangSystem.set === 'function') {
-    if (window.LangSystem.currentLang !== lang) {
-      window.LangSystem.set(lang);
+  // 3. LangSystem: data-tr/data-en olmayan Türkçe metinleri otomatik çevir
+  //    isIgnored() data-tr/data-en span'larını koruduğu için çakışma olmaz
+  if (window.LangSystem) {
+    window.LangSystem.currentLang = lang;
+    if (lang === 'en') {
+      // Kısa gecikme: önce CSS data-tr/data-en geçişini tamamlasın
+      setTimeout(function() {
+        if (window.LangSystem.observer) {
+          window.LangSystem.observer.disconnect();
+          window.LangSystem.observer = null;
+        }
+        window.LangSystem.startTranslation();
+      }, 80);
+    } else {
+      // TR'ye dönünce: otomatik çevirilenleri orijinaline döndür
+      window.LangSystem._restoreOriginal();
+      if (window.LangSystem.observer) {
+        window.LangSystem.observer.disconnect();
+        window.LangSystem.observer = null;
+      }
     }
   }
 }
@@ -7615,6 +7630,17 @@ function setLang(lang) {
     var s2 = JSON.parse(localStorage.getItem('tm_settings') || '{}');
     if (!s2.lang) { s2.lang = saved; localStorage.setItem('tm_settings', JSON.stringify(s2)); }
   } catch(e) {}
+
+  // Sayfa EN modunda açıldıysa LangSystem'i başlat (data-tr/data-en dışındakiler çevrilsin)
+  if (saved === 'en') {
+    var _initLangWait = setInterval(function() {
+      if (window.LangSystem && typeof window.LangSystem.startTranslation === 'function') {
+        clearInterval(_initLangWait);
+        window.LangSystem.currentLang = 'en';
+        window.LangSystem.startTranslation();
+      }
+    }, 100);
+  }
 })();
 
 // ─── storage olayı: ana uygulama dil değiştirirse bu sayfa da güncellenir ──
@@ -7623,19 +7649,13 @@ window.addEventListener('storage', function(e) {
     try {
       var settings = JSON.parse(e.newValue || '{}');
       if (settings.lang === 'tr' || settings.lang === 'en') {
-        _applyLangUI(settings.lang);
-        localStorage.setItem('trv_lang', settings.lang);
+        setLang(settings.lang); // setLang: hem UI hem LangSystem senkronize eder
       }
     } catch(err) {}
   }
   if (e.key === 'trv_lang') {
     if (e.newValue === 'tr' || e.newValue === 'en') {
-      _applyLangUI(e.newValue);
-      try {
-        var s3 = JSON.parse(localStorage.getItem('tm_settings') || '{}');
-        s3.lang = e.newValue;
-        localStorage.setItem('tm_settings', JSON.stringify(s3));
-      } catch(err2) {}
+      setLang(e.newValue);
     }
   }
 });
