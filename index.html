@@ -18163,7 +18163,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.3"; 
+    const CURRENT_VERSION = "1.9"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -30073,8 +30073,11 @@ async function runDeepDiveAnalysis() {
         return sum + (item.amt * ((item.curr && item.curr > 0) ? item.curr : item.buy));
     }, 0) + cash;
 
-    var analyzedAssets = [];
-    updateLog(losers.length + ' varlık için geçmiş veriler taranıyor...');
+     var analyzedAssets = [];
+     updateLog(losers.length + ' varlık için geçmiş veriler taranıyor...');
+
+     // Firebase karşılaştırma önbelleği — her varlık analiz edildikten sonra doldurulur
+     var _pastRecords = {};
 
     for (var i = 0; i < losers.length; i++) {
         var asset  = losers[i];
@@ -30099,6 +30102,103 @@ async function runDeepDiveAnalysis() {
 
         var metrics = calculateTechnicalMetrics(candles, asset.buy,
             (asset.curr && asset.curr > 0) ? asset.curr : asset.buy, source);
+
+        // Teknik analiz tamamlandı → bu varlık için global geçmişi çek
+        // 2 saniye timeout — Firebase yoksa veya yavaşsa analizi bloklamaz
+        if (typeof TradeViaAnalytics !== 'undefined' && !_pastRecords[rawSym]) {
+            try {
+                var _fbTimeout = new Promise(function(res){ setTimeout(function(){ res([]); }, 2000); });
+                var _fbFetch   = TradeViaAnalytics.getGlobalHistory(rawSym, 80);
+                var symRecords = await Promise.race([_fbFetch, _fbTimeout]);
+                if (symRecords && symRecords.length > 0) {
+                    symRecords.sort(function(a,b){ return b.ts - a.ts; });
+                    _pastRecords[rawSym] = symRecords;
+                }
+            } catch(e) {}
+        }
+
+        // ══ KOLEKTİF KALİBRASYON — Sessiz, kullanıcıya gösterilmez ══
+        // Global havuzdaki geçmiş analizler anlık skoru rafine eder.
+        // Mantık: Piyasanın dinamik yapısı için 3 katman:
+        //   1. Topluluk skor momentum'u  → skor trendini mevcut analize katkı
+        //   2. RSI sapma düzeltmesi      → geçmişte RSI yanıltıcıysa ceza
+        //   3. Sinyal tutarlılığı bonusu → aynı sinyal tekrar tekrar doğrulanıyorsa güven artışı
+        var pastData = _pastRecords[rawSym] || [];
+        if (pastData.length >= 3) {
+            var now_ms   = Date.now();
+            var prev7    = pastData.filter(function(r){ return (now_ms - r.ts) < 7  * 86400000; });
+            var prev30   = pastData.filter(function(r){ return (now_ms - r.ts) < 30 * 86400000; });
+            var prev90   = pastData.filter(function(r){ return (now_ms - r.ts) < 90 * 86400000; });
+
+            // ── Katman 1: Topluluk skor momentum ──────────────────────
+            // Son 7 günde kaç kullanıcı aynı yönde sinyal aldı?
+            var recScore7  = prev7.length  ? prev7.reduce(function(s,r){  return s+(r.score||0); }, 0) / prev7.length  : null;
+            var recScore30 = prev30.length ? prev30.reduce(function(s,r){ return s+(r.score||0); }, 0) / prev30.length : null;
+            var communityMomentum = 0;
+            if (recScore7 !== null && recScore30 !== null) {
+                // Topluluk skorları son 7 günde yükseliyorsa → +bonus, düşüyorsa → ceza
+                var momentumDelta = recScore7 - recScore30;
+                communityMomentum = momentumDelta > 10 ? 4
+                                  : momentumDelta > 5  ? 2
+                                  : momentumDelta < -10 ? -4
+                                  : momentumDelta < -5  ? -2 : 0;
+            }
+
+            // ── Katman 2: RSI güvenilirlik geçmişi ────────────────────
+            // Geçmişte RSI aşırı satım (< 30) verirken fiyat düşmeye devam ettiyse
+            // → bu varlıkta RSI güvenilmezdir → momentum skoruna küçük düzeltme
+            var rsiFailCount = prev90.filter(function(r){
+                return r.rsi14 < 30 && r.recommendation === 'AL'
+                    && r.outcomePnl !== undefined && r.outcomePnl !== null && r.outcomePnl < -5;
+            }).length;
+            var rsiReliabilityPenalty = rsiFailCount >= 3 ? -3 : rsiFailCount >= 1 ? -1 : 0;
+
+            // ── Katman 3: Sinyal tutarlılığı bonusu ───────────────────
+            // Son 30 günde aynı yönde sinyal tekrar ediyorsa güven artar
+            var curRec     = metrics.score >= 65 ? 'AL' : metrics.score >= 45 ? 'BEKLE' : 'SAT';
+            var consistent = prev30.filter(function(r){ return r.recommendation === curRec; }).length;
+            var consistencyBonus = 0;
+            if (prev30.length >= 5) {
+                var consistencyRate = consistent / prev30.length;
+                consistencyBonus = consistencyRate >= 0.8 ? 3
+                                 : consistencyRate >= 0.6 ? 1 : 0;
+            }
+
+            // ── Katman 4: Volatilite geçmişi (ATR uyarısı) ────────────
+            // Geçmiş analizlerde bu varlık sürekli yüksek ATR verdiyse
+            // → stop/TP mesafeleri gerçekçi mi diye kontrol et
+            var avgHistAtr = prev30.length
+                ? prev30.reduce(function(s,r){ return s + (parseFloat(r.atrPct)||0); }, 0) / prev30.length
+                : 0;
+            var volConsistencyNote = avgHistAtr > 0
+                ? (avgHistAtr > 8 ? 'yüksek_volatil' : avgHistAtr > 4 ? 'orta_volatil' : 'düşük_volatil')
+                : null;
+
+            // ── Toplam kalibrasyon delta ───────────────────────────────
+            // Max ±8 puan — gerçek teknik analizi çok fazla bozmasın
+            var calibDelta = communityMomentum + rsiReliabilityPenalty + consistencyBonus;
+            calibDelta = Math.max(-8, Math.min(8, calibDelta));
+
+            // Skora uygula (0-100 sınırları koru)
+            var rawScore     = metrics.score;
+            metrics.score    = Math.max(1, Math.min(100, Math.round(rawScore + calibDelta)));
+
+            // Metadata — debug/ileride gösterim için saklı tut
+            metrics._calibration = {
+                applied:            calibDelta,
+                rawScore:           rawScore,
+                communityMomentum:  communityMomentum,
+                rsiPenalty:         rsiReliabilityPenalty,
+                consistencyBonus:   consistencyBonus,
+                dataPoints:         pastData.length,
+                uniqueUsers:        new Set(pastData.map(function(r){ return r.anonId; })).size,
+                avgVolatility:      volConsistencyNote,
+                avgScore7d:         recScore7  !== null ? parseFloat(recScore7.toFixed(1))  : null,
+                avgScore30d:        recScore30 !== null ? parseFloat(recScore30.toFixed(1)) : null,
+            };
+        }
+        // pastData yoksa kalibrasyon yapılmaz, ham skor kalır
+        // _calibration eksikse recordAnalysis'te null olarak kaydedilir
 
         var newObj      = Object.assign({}, asset);
         newObj.metrics  = metrics;
@@ -30893,6 +30993,11 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro) {
     if (screenLoad) screenLoad.style.display = 'none';
     if (resultArea) resultArea.style.display  = 'block';
     if (btnStart) {
+
+    // ── Analitik: analizi global havuza kaydet (async, UI'ı bloklamaz) ──
+    if (plan && plan.length > 0 && typeof TradeViaAnalytics !== 'undefined') {
+        TradeViaAnalytics.recordAnalysis(plan, macro).catch(function(){});
+    }
         btnStart.style.display = 'flex';
         btnStart.innerHTML = '<i class="fas fa-redo" style="font-size:11px;margin-right:7px;"></i>YENİDEN HESAPLA';
     }
@@ -31482,7 +31587,13 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro) {
       <div class="rc6-rsi-track"><div class="rc6-rsi-fill" style="width:${Math.min(100,rsi).toFixed(1)}%;background:${rsiFillBg};"></div></div>
       <div class="rc6-rsi-zones"><span class="rc6-rsi-zone" style="${rsi<30?'color:'+rsiC:''}">${rsi<30?'▲ '+rsi.toFixed(0):'0'}</span><span class="rc6-rsi-zone">30</span><span class="rc6-rsi-zone" style="${rsi>=30&&rsi<=70?'color:'+rsiC:''}">${rsi>=30&&rsi<=70?'▲ '+rsi.toFixed(0):'50'}</span><span class="rc6-rsi-zone">70</span><span class="rc6-rsi-zone" style="${rsi>70?'color:'+rsiC:''}">100</span></div>
     </div>
-    <div class="rc6-card-footer"><div class="rc6-wave-bars">${barHtml}</div><span class="rc6-footer-label" style="color:${animColor};">${animLabel}</span><div class="rc6-expand-row"><span>Detay</span><i class="fas fa-chevron-down rc6-chev"></i></div></div>
+    <div class="rc6-card-footer"><div class="rc6-wave-bars">${barHtml}</div><span class="rc6-footer-label" style="color:${animColor};">${animLabel}</span>
+      <div style="display:flex;gap:4px;margin-left:auto;margin-right:6px;" onclick="event.stopPropagation()">
+        <button onclick="TradeViaAnalytics.recordDecision('${sym}','AL',${curN},${score});this.style.background='#10b981';this.style.color='#fff';[...this.parentNode.children].forEach(function(b,i){if(i!==0)b.style.opacity='0.3'});" style="font-size:9px;font-weight:700;padding:3px 7px;border-radius:6px;border:1px solid #10b98155;background:transparent;color:#10b981;cursor:pointer;transition:.2s;">AL</button>
+        <button onclick="TradeViaAnalytics.recordDecision('${sym}','BEKLE',${curN},${score});this.style.background='#f59e0b';this.style.color='#fff';[...this.parentNode.children].forEach(function(b,i){if(i!==1)b.style.opacity='0.3'});" style="font-size:9px;font-weight:700;padding:3px 7px;border-radius:6px;border:1px solid #f59e0b55;background:transparent;color:#f59e0b;cursor:pointer;transition:.2s;">BKL</button>
+        <button onclick="TradeViaAnalytics.recordDecision('${sym}','SAT',${curN},${score});this.style.background='#ef4444';this.style.color='#fff';[...this.parentNode.children].forEach(function(b,i){if(i!==2)b.style.opacity='0.3'});" style="font-size:9px;font-weight:700;padding:3px 7px;border-radius:6px;border:1px solid #ef444455;background:transparent;color:#ef4444;cursor:pointer;transition:.2s;">SAT</button>
+      </div>
+      <div class="rc6-expand-row"><span>Detay</span><i class="fas fa-chevron-down rc6-chev"></i></div></div>
     <div class="rc6-detail">${detailInner}</div>
   </div>
 </div>`;
@@ -31865,6 +31976,457 @@ async function fetchCandleHistory(symbol, originalName, assetObj) {
     return null;
 }
 
+
+// ══════════════════════════════════════════════════════════════════════
+//  TRADEVIA ANALİTİK MOTORU v1.0 — Kolektif Zeka & Kalibrasyon Sistemi
+//  Mimari:
+//    • Her analiz → Firebase "ai_analysis_logs" koleksiyonu (global, anonim)
+//    • Kullanıcı kararı → "ai_decision_outcomes" (anonim uid hash)
+//    • 30 gün sonra fiyat takibi → "ai_outcome_results" (tahmin doğruluğu)
+//    • Kalibrasyon verisi → "ai_signal_stats" (hangi sinyal ne kadar tuttu)
+//    • localStorage yedek (Firebase başarısız olursa)
+// ══════════════════════════════════════════════════════════════════════
+
+var TradeViaAnalytics = (function() {
+
+    // ── Anonim kullanıcı ID üret (Firebase auth gerektirmez) ────────
+    function _getAnonId() {
+        var k = 'tv_anon_id';
+        var id = localStorage.getItem(k);
+        if (!id) {
+            id = 'anon_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
+            localStorage.setItem(k, id);
+        }
+        return id;
+    }
+
+    // ── Firebase'e güvenli yaz (hata yakalanır, sessiz devam eder) ──
+    async function _fbWrite(collection, docId, data) {
+        try {
+            if (typeof fbDb === 'undefined') return false;
+            if (docId) {
+                await fbDb.collection(collection).doc(docId).set(data, { merge: true });
+            } else {
+                await fbDb.collection(collection).add(data);
+            }
+            return true;
+        } catch(e) {
+            console.warn('[Analytics] Firebase yazma hatası:', e.message);
+            return false;
+        }
+    }
+
+    // ── localStorage yedek yaz ──────────────────────────────────────
+    function _lsBackup(key, data) {
+        try {
+            var existing = JSON.parse(localStorage.getItem('tv_analytics_queue') || '[]');
+            existing.push({ key: key, data: data, ts: Date.now() });
+            // Max 200 kayıt tut
+            if (existing.length > 200) existing = existing.slice(-200);
+            localStorage.setItem('tv_analytics_queue', JSON.stringify(existing));
+        } catch(e) {}
+    }
+
+    // ── Bekleyen localStorage kayıtlarını Firebase'e at ────────────
+    async function _flushQueue() {
+        try {
+            var queue = JSON.parse(localStorage.getItem('tv_analytics_queue') || '[]');
+            if (queue.length === 0) return;
+            var sent = [];
+            for (var i = 0; i < Math.min(queue.length, 10); i++) {
+                var item = queue[i];
+                var ok = await _fbWrite(item.key, null, item.data);
+                if (ok) sent.push(i);
+            }
+            // Başarıyla gönderilenleri sil
+            var remaining = queue.filter(function(_, idx) { return sent.indexOf(idx) === -1; });
+            localStorage.setItem('tv_analytics_queue', JSON.stringify(remaining));
+        } catch(e) {}
+    }
+
+    // ── Ana kayıt: Analiz tamamlandığında çağrılır ─────────────────
+    async function recordAnalysis(plan, macro) {
+        if (!plan || plan.length === 0) return;
+        var anonId  = _getAnonId();
+        var fbUid   = (typeof fbAuth !== 'undefined' && fbAuth.currentUser) ? fbAuth.currentUser.uid : null;
+        var ts      = Date.now();
+        var dateStr = new Date(ts).toISOString().split('T')[0];  // YYYY-MM-DD
+
+        // Her varlık için ayrı kayıt
+        for (var i = 0; i < plan.length; i++) {
+            var p = plan[i];
+            var m = p.metrics || {};
+
+            var record = {
+                // ── Zaman & Kimlik ──────────────────────────────
+                ts:         ts,
+                date:       dateStr,
+                anonId:     anonId,
+                fbUid:      fbUid || 'guest',
+
+                // ── Varlık bilgisi ──────────────────────────────
+                symbol:     p.cleanSym || (p.name||'?'),
+                assetName:  p.name || '',
+                category:   p.category || 'kripto',
+                dataSource: m.dataSource || 'yok',
+                dataQuality:m.dataQuality || 'düşük',
+
+                // ── Fiyat bilgisi ───────────────────────────────
+                priceAtAnalysis: m.livePrice || p.curr || p.buy || 0,
+                costBasis:       p.buy || 0,
+                dropPct:         m.drop || 0,
+                drawdownPct:     m.drawdown || 0,
+                daysBelow:       m.daysBelow || 0,
+
+                // ── Ana skor ────────────────────────────────────
+                score:       m.score || 0,
+                confidence:  m.confidence || 'Düşük',
+                recommendation: m.score >= 65 ? 'AL' : m.score >= 45 ? 'BEKLE' : 'SAT',
+
+                // ── Tüm indikatör değerleri ─────────────────────
+                rsi14:       m.rsi || 50,
+                rsi7:        m.shortRsi || 50,
+                stochRsi:    m.stochRsi || 50,
+                williamsR:   m.williamsR || -50,
+                macdBull:    m.macdBull || false,
+                macdBear:    m.macdBear || false,
+                macdAbove:   m.macdAbove || false,
+                bbPosition:  m.bbPosition || '',
+                bbSqueeze:   m.bbSqueeze || false,
+                bbBelow:     m.bbBelow || false,
+                goldCross:   m.goldCross || false,
+                deathCross:  m.deathCross || false,
+                rsiBullDiv:  m.rsiBullDiv || false,
+                obvTrend:    m.obvTrend || 'bilinmiyor',
+                atrPct:      parseFloat(m.atrPct) || 0,
+                volSpike:    parseFloat(m.volSpike) || 1,
+                volumeReliable: m.volumeReliable !== false,
+                sma200gap:   parseFloat(m.sma200gap) || 0,
+                aboveSma200: m.aboveSma200 || false,
+                nearSupport: m.nearSupport || false,
+                atSupport:   m.atSupport || false,
+                nearResistance: m.nearResistance || false,
+                distToSupport:    parseFloat(m.distToSupport) || 999,
+                distToResistance: parseFloat(m.distToResistance) || 999,
+                nearFibLevel: m.nearFibLevel ? m.nearFibLevel.label : null,
+                nearRoundNumber: m.nearRoundNumber || false,
+
+                // ── Katman skorları ─────────────────────────────
+                layerTrend:    (m.layers && m.layers.trend)     || 0,
+                layerMomentum: (m.layers && m.layers.momentum)  || 0,
+                layerVolume:   (m.layers && m.layers.volume)    || 0,
+                layerStructure:(m.layers && m.layers.structure) || 0,
+                layerContext:  (m.layers && m.layers.context)   || 0,
+
+                // ── Sinyal/Uyarı listesi ────────────────────────
+                signals:  (m.signalList  || []).join(','),
+                warnings: (m.warnList    || []).join(','),
+                signalCount: m.signalCount || 0,
+                warnCount:   m.warnCount   || 0,
+
+                // ── Makro bağlam ────────────────────────────────
+                btc7:       macro ? (macro.btc7 || 0)  : 0,
+                fearGreed:  macro ? (macro.fg   || 50) : 50,
+                macroMult:  m.macroMult || 1.0,
+
+                // ── Öneri bütçesi & stop/TP ─────────────────────
+                suggestedBudget: p.allocation || 0,
+                stopLoss:    m.stopPrice || 0,
+
+                // ── 30 gün sonra kontrol için işaret ───────────
+                checkAt:    ts + (30 * 24 * 60 * 60 * 1000),
+                outcomeChecked: false,
+                outcomePrice:   null,
+                outcomeCorrect: null,
+
+                // ── Versiyon ────────────────────────────────────
+                engineVersion: 'v6.1',
+                calibration: m._calibration || null
+            };
+
+            // Firebase'e yaz
+            var docId = anonId + '_' + record.symbol + '_' + ts;
+            var fbOk  = await _fbWrite('ai_analysis_logs', docId, record);
+
+            // Sinyal istatistiklerini güncelle (global sayaçlar)
+            _updateSignalStats(record);
+
+            // localStorage yedek
+            if (!fbOk) _lsBackup('ai_analysis_logs', record);
+        }
+
+        // Bekleyen kayıtları gönder
+        await _flushQueue();
+        console.log('[Analytics] ' + plan.length + ' analiz kaydedildi.');
+    }
+
+    // ── Sinyal istatistikleri — hangi sinyal kaç kez tetiklendi ────
+    async function _updateSignalStats(record) {
+        try {
+            if (typeof fbDb === 'undefined') return;
+            var signals = record.signals ? record.signals.split(',').filter(Boolean) : [];
+            var warnings = record.warnings ? record.warnings.split(',').filter(Boolean) : [];
+            var all = signals.concat(warnings.map(function(w){ return 'WARN_' + w; }));
+            for (var i = 0; i < all.length; i++) {
+                var sig = all[i];
+                if (!sig) continue;
+                fbDb.collection('ai_signal_stats').doc(sig).set({
+                    signal: sig,
+                    count: firebase.firestore.FieldValue.increment(1),
+                    lastSeen: record.ts,
+                    // Doğruluk güncellenecek outcome_results ile
+                    correctCount: firebase.firestore.FieldValue.increment(0)
+                }, { merge: true }).catch(function(){});
+            }
+        } catch(e) {}
+    }
+
+    // ── Kullanıcı kararı kaydet (AL/SAT/BEKLE butonu tıklandığında) ─
+    async function recordDecision(symbol, decision, priceAtDecision, analysisScore) {
+        var anonId = _getAnonId();
+        var ts = Date.now();
+        var record = {
+            ts:             ts,
+            date:           new Date(ts).toISOString().split('T')[0],
+            anonId:         anonId,
+            symbol:         symbol,
+            decision:       decision,          // 'AL' | 'SAT' | 'BEKLE' | 'ATLA'
+            priceAtDecision: priceAtDecision,
+            analysisScore:  analysisScore,
+            checkAt:        ts + (30 * 24 * 60 * 60 * 1000),
+            outcomeChecked: false,
+            outcomePrice:   null,
+            outcomePnl:     null,
+            engineVersion:  'v6.1'
+        };
+        var docId = anonId + '_' + symbol + '_dec_' + ts;
+        var fbOk = await _fbWrite('ai_decision_outcomes', docId, record);
+        if (!fbOk) _lsBackup('ai_decision_outcomes', record);
+        return record;
+    }
+
+    // ── 30 gün sonuç kontrolü ───────────────────────────────────────
+    // Eski analizlerin fiyatı şimdiki fiyatla karşılaştır
+    // ── Çoklu kaynak fiyat çekici (outcome kontrolü için) ──────────
+    async function _fetchCurrentPrice(symbol, category) {
+        var sym = (symbol || '').toUpperCase().replace(/USDT|\.IS$/i, '').trim();
+        var isBIST   = (symbol||'').includes('.IS') || (category === 'bist');
+        var isStock  = !isBIST && (category === 'hisse' || category === 'us');
+        var isCrypto = !isBIST && !isStock;
+
+        if (isCrypto) {
+            try {
+                var binRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=' + sym + 'USDT');
+                if (binRes.ok) { var bd = await binRes.json(); if (parseFloat(bd.price)>0) return {price:parseFloat(bd.price),source:'binance'}; }
+            } catch(e) {}
+            try {
+                var cgKey = (typeof coingeckoApiKey!=='undefined'&&coingeckoApiKey)?'&x_cg_demo_api_key='+coingeckoApiKey:'';
+                var cgRes = await fetch('https://api.coingecko.com/api/v3/simple/price?ids='+sym.toLowerCase()+'&vs_currencies=usd'+cgKey);
+                if (cgRes.ok) { var cd=await cgRes.json(); var k=Object.keys(cd); if(k.length&&cd[k[0]].usd>0) return {price:cd[k[0]].usd,source:'coingecko'}; }
+            } catch(e) {}
+            try {
+                var ccRes = await fetch('https://min-api.cryptocompare.com/data/price?fsym='+sym+'&tsyms=USD');
+                if (ccRes.ok) { var cc=await ccRes.json(); if(cc.USD>0) return {price:cc.USD,source:'cryptocompare'}; }
+            } catch(e) {}
+        }
+        if (isStock) {
+            try {
+                var pKey=(typeof polyApiKey!=='undefined'&&polyApiKey)?polyApiKey:'';
+                if (pKey) {
+                    var pRes=await fetch('https://api.polygon.io/v2/last/trade/'+sym+'?apiKey='+pKey);
+                    if (pRes.ok) { var pd=await pRes.json(); if(pd.results&&pd.results.p>0) return {price:pd.results.p,source:'polygon'}; }
+                }
+            } catch(e) {}
+            try {
+                var yRes=await _fetchWithProxy('https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=1d',6000);
+                if (yRes&&yRes.chart&&yRes.chart.result&&yRes.chart.result[0]) {
+                    var meta=yRes.chart.result[0].meta; var p=meta.regularMarketPrice||meta.previousClose;
+                    if (p>0) return {price:p,source:'yahoo'};
+                }
+            } catch(e) {}
+        }
+        if (isBIST) {
+            try {
+                var byRes=await _fetchWithProxy('https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'.IS?interval=1d&range=1d',6000);
+                if (byRes&&byRes.chart&&byRes.chart.result&&byRes.chart.result[0]) {
+                    var bmeta=byRes.chart.result[0].meta; var bp=bmeta.regularMarketPrice||bmeta.previousClose;
+                    if (bp>0) return {price:bp,source:'yahoo_bist'};
+                }
+            } catch(e) {}
+        }
+        return null;
+    }
+
+    async function checkPastOutcomes() {
+        try {
+            if (typeof fbDb === 'undefined') return;
+            var now = Date.now();
+            var snap = await fbDb.collection('ai_decision_outcomes')
+                .where('outcomeChecked', '==', false)
+                .where('checkAt', '<=', now)
+                .limit(20).get();
+            if (snap.empty) return;
+            snap.forEach(async function(doc) {
+                var d = doc.data();
+                if (!d.symbol || !d.priceAtDecision) return;
+                try {
+                    var result = await _fetchCurrentPrice(d.symbol, d.category);
+                    if (!result || !result.price) return;
+                    var pnlPct = ((result.price - d.priceAtDecision) / d.priceAtDecision) * 100;
+                    var isCorrect = (d.decision==='AL' && pnlPct>5)
+                                 || (d.decision==='SAT' && pnlPct<-5)
+                                 || (d.decision==='BEKLE' && Math.abs(pnlPct)<8);
+                    await fbDb.collection('ai_decision_outcomes').doc(doc.id).update({
+                        outcomeChecked:true, outcomePrice:result.price, outcomePriceSource:result.source,
+                        outcomePnl:parseFloat(pnlPct.toFixed(2)), outcomeCorrect:isCorrect, outcomeCheckedAt:now
+                    });
+                    var sigs = (d.signals||'').split(',').filter(Boolean);
+                    for (var si=0; si<sigs.length; si++) {
+                        fbDb.collection('ai_signal_stats').doc(sigs[si]).set({
+                            totalOutcomes: firebase.firestore.FieldValue.increment(1),
+                            correctCount:  firebase.firestore.FieldValue.increment(isCorrect?1:0)
+                        },{merge:true}).catch(function(){});
+                    }
+                } catch(pe) { console.warn('[Analytics] Fiyat hatasi:', pe); }
+            });
+        } catch(e) { console.warn('[Analytics] checkPastOutcomes hatasi:', e); }
+    }
+
+        // ── Global istatistikleri çek (kalibrasyon için) ────────────────
+    async function getSignalAccuracy() {
+        try {
+            if (typeof fbDb === 'undefined') return null;
+            var snap = await fbDb.collection('ai_signal_stats').orderBy('count', 'desc').limit(30).get();
+            var stats = {};
+            snap.forEach(function(doc) {
+                var d = doc.data();
+                stats[d.signal] = {
+                    count:    d.count || 0,
+                    correct:  d.correctCount || 0,
+                    accuracy: d.count > 0 ? Math.round((d.correctCount / d.count) * 100) : null
+                };
+            });
+            return stats;
+        } catch(e) { return null; }
+    }
+
+    // ── Analiz geçmişini UI'da göster ──────────────────────────────
+    // ── Kendi geçmişim (kullanıcıya özel, geçmiş görüntüleme için) ─
+    async function getMyHistory(limit) {
+        limit = limit || 50;
+        var anonId = _getAnonId();
+        try {
+            if (typeof fbDb !== 'undefined') {
+                var snap = await fbDb.collection('ai_analysis_logs')
+                    .where('anonId', '==', anonId)
+                    .orderBy('ts', 'desc')
+                    .limit(limit)
+                    .get();
+                if (!snap.empty) {
+                    var results = [];
+                    snap.forEach(function(d){ results.push(d.data()); });
+                    return results;
+                }
+            }
+        } catch(e) {}
+        var queue = JSON.parse(localStorage.getItem('tv_analytics_queue') || '[]');
+        return queue.filter(function(x){ return x.key === 'ai_analysis_logs'; })
+                    .map(function(x){ return x.data; })
+                    .reverse().slice(0, limit);
+    }
+
+    // ── Global geçmiş — TÜM kullanıcıların verisi, sembol bazında ─
+    // Karşılaştırma ve kalibrasyon için asıl kaynak bu
+    async function getGlobalHistory(symbol, limitPerSymbol) {
+        limitPerSymbol = limitPerSymbol || 100;
+        var results = [];
+        try {
+            if (typeof fbDb !== 'undefined') {
+                var q = fbDb.collection('ai_analysis_logs')
+                    .where('symbol', '==', symbol.toUpperCase())
+                    .orderBy('ts', 'desc')
+                    .limit(limitPerSymbol);
+                var snap = await q.get();
+                snap.forEach(function(d){ results.push(d.data()); });
+            }
+        } catch(e) {
+            // localStorage fallback (sadece bu cihazın verileri)
+            var queue = JSON.parse(localStorage.getItem('tv_analytics_queue') || '[]');
+            results = queue.filter(function(x){
+                return x.key === 'ai_analysis_logs' && x.data.symbol === symbol.toUpperCase();
+            }).map(function(x){ return x.data; }).reverse().slice(0, limitPerSymbol);
+        }
+        return results;
+    }
+
+    // ── Global geçmişi toplu çek — birden fazla sembol için ─────────
+    // runDeepDiveAnalysis'te tüm zararlı varlıkları tek sorguda çeker
+    async function getGlobalHistoryBatch(symbols, limitPerSymbol) {
+        limitPerSymbol = limitPerSymbol || 80;
+        var out = {};  // { symbol: [records] }
+        if (!symbols || symbols.length === 0) return out;
+        try {
+            if (typeof fbDb !== 'undefined') {
+                // Firestore 'in' operatörü max 10 eleman — büyük portföyleri böl
+                var chunks = [];
+                var upperSyms = symbols.map(function(s){ return s.toUpperCase(); });
+                for (var i = 0; i < upperSyms.length; i += 10) {
+                    chunks.push(upperSyms.slice(i, i + 10));
+                }
+                for (var ci = 0; ci < chunks.length; ci++) {
+                    var snap = await fbDb.collection('ai_analysis_logs')
+                        .where('symbol', 'in', chunks[ci])
+                        .orderBy('ts', 'desc')
+                        .limit(limitPerSymbol * chunks[ci].length)
+                        .get();
+                    snap.forEach(function(d) {
+                        var rec = d.data();
+                        if (!out[rec.symbol]) out[rec.symbol] = [];
+                        if (out[rec.symbol].length < limitPerSymbol) out[rec.symbol].push(rec);
+                    });
+                }
+            }
+        } catch(e) {
+            // localStorage fallback
+            var queue2 = JSON.parse(localStorage.getItem('tv_analytics_queue') || '[]');
+            queue2.forEach(function(x) {
+                if (x.key !== 'ai_analysis_logs') return;
+                var s = x.data.symbol;
+                if (!out[s]) out[s] = [];
+                out[s].push(x.data);
+            });
+        }
+        return out;
+    }
+
+    // ── Uygulama başladığında çalışır ──────────────────────────────
+    function init() {
+        // 30 gün geçen kararları kontrol et (background)
+        setTimeout(function() { checkPastOutcomes(); }, 8000);
+        // Bekleyen queue'yu temizle
+        setTimeout(function() { _flushQueue(); }, 3000);
+    }
+
+    return {
+        init:             init,
+        recordAnalysis:   recordAnalysis,
+        recordDecision:   recordDecision,
+        checkPastOutcomes: checkPastOutcomes,
+        getSignalAccuracy: getSignalAccuracy,
+        getMyHistory:     getMyHistory,
+        getGlobalHistory: getGlobalHistory,
+        getGlobalHistoryBatch: getGlobalHistoryBatch,
+        getAnonId:        _getAnonId
+    };
+
+})();
+
+// Uygulama yüklenince başlat
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ TradeViaAnalytics.init(); });
+} else {
+    setTimeout(function(){ TradeViaAnalytics.init(); }, 1000);
+}
 
 
 // --- 3'LÜ MOD GEÇİŞ SİSTEMİ (GİZLEME ÖZELLİKLİ) ---
