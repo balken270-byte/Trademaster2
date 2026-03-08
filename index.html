@@ -13073,7 +13073,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div>
                 <div style="font-size:15px; font-weight:800; color:white; margin-bottom:6px;">DeepScan™ Analiz Motoru</div>
                 <div style="font-size:11px; color:#cbd5e1; line-height:1.5;">
-                    Yapay zeka, varlıkların <b>son 90 günlük</b> verilerini tarar; RSI, Volatilite ve Trend analizi yaparak hangisinin "ölü yatırım" hangisinin "fırsat" olduğunu belirler.
+                    Yapay zeka, varlıkların <b>son 180 günlük</b> verilerini tarar; RSI, Volatilite ve Trend analizi yaparak hangisinin "ölü yatırım" hangisinin "fırsat" olduğunu belirler.
                 </div>
             </div>
         </div>
@@ -17797,8 +17797,8 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
 .rc6-expand-row{display:flex;align-items:center;gap:4px;font-size:10px;color:#374151;font-weight:600;flex-shrink:0;}
 .rc6-chev{font-size:9px;color:#374151;transition:transform .3s;}
 .rc6-chev.open{transform:rotate(180deg);}
-.rc6-detail{max-height:0;overflow:hidden;opacity:0;transition:max-height .4s ease,opacity .3s ease;}
-.rc6-detail.open{max-height:1200px;opacity:1;}
+.rc6-detail{max-height:0;overflow:hidden;opacity:0;transition:max-height .5s cubic-bezier(0.4,0,0.2,1),opacity .3s ease;}
+.rc6-detail.open{max-height:9999px;opacity:1;}
 .rc6-rr-bar-wrap{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.04);}
 .rc6-rr-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
 .rc6-rr-title{font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.8px;}
@@ -17813,6 +17813,10 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
 .rc6-stp-val{font-size:14px;font-weight:900;}
 .rc6-stp-pct{font-size:9px;font-weight:600;margin-top:2px;opacity:.7;}
 .rc6-analysis{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);}
+.rc6-analysis-scroll{max-height:420px;overflow-y:auto;overscroll-behavior:contain;padding-right:4px;}
+.rc6-analysis-scroll::-webkit-scrollbar{width:3px;}
+.rc6-analysis-scroll::-webkit-scrollbar-track{background:rgba(255,255,255,.04);border-radius:2px;}
+.rc6-analysis-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:2px;}
 .rc6-analysis-src{display:flex;align-items:center;font-size:9px;color:#374151;font-weight:600;}
 .rc6-plan{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);}
 .rc6-plan-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#374151;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
@@ -18159,7 +18163,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.3"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -30145,9 +30149,14 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource) {
         var n = closes.length;
         if (n < 10) return generateBasicAnalysis(cost, currentPrice, src);
 
-        // ── Veri kalitesi ────────────────────────────────────────
+        // ── Veri kalitesi — hacim güvenilirlik kontrolü dahil ────
         var hasVolume = volumes.some(function(v){ return v > 0; });
-        var dataQuality = (n >= 60 && hasVolume) ? 'yüksek' : (n >= 30) ? 'orta' : 'düşük';
+        // BIST/Yahoo hacim kalitesi: %40'tan fazla sıfır = güvenilmez
+        var zeroVolCount = volumes.filter(function(v){ return v === 0; }).length;
+        var volumeReliable = hasVolume && (zeroVolCount < volumes.length * 0.4);
+        // Veri kalitesi: 120+ bar yüksek, 60-119 orta, <60 düşük
+        var dataQuality = (n >= 120 && volumeReliable) ? 'yüksek'
+                        : (n >= 120 || (n >= 60 && hasVolume)) ? 'orta' : 'düşük';
         var dqMult = dataQuality === 'yüksek' ? 1.0 : dataQuality === 'orta' ? 0.85 : 0.65;
 
         // ── Yardımcı fonksiyonlar ────────────────────────────────
@@ -30158,23 +30167,39 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource) {
         }
         function emaArr(arr, period) {
             if (!arr.length) return [];
-            var k = 2 / (period + 1), out = [arr[0]];
+            var k   = 2 / (period + 1);
+            var p   = Math.min(period, arr.length);
+            // SMA seed: ilk EMA değeri = ilk `period` kapanışın ortalaması
+            // arr[0] seed'inden ~1-3 puan daha doğru sonuç verir
+            var seed = arr.slice(0, p).reduce(function(a,b){ return a+b; }, 0) / p;
+            var out  = [seed];
             for (var i = 1; i < arr.length; i++)
                 out.push(arr[i] * k + out[i-1] * (1-k));
             return out;
         }
+        // ── RSI: Wilder Smoothing Yöntemi (TradingView/Bloomberg standardı) ──
+        // Basit ortalama yerine Wilder'ın SMMA formülü: (prev_avg*(n-1) + curr) / n
+        // İlk n bar SMA seed, sonrası Wilder SMMA — TradingView ile birebir eşleşir
         function rsiCalc(arr, period) {
             var p = Math.min(period, arr.length - 1);
-            if (p <= 0) return 50;
-            var g = 0, l = 0, s = arr.length - p;
-            for (var i = s; i < arr.length; i++) {
-                if (i === 0) continue;
-                var d = arr[i] - arr[i-1];
-                if (d > 0) g += d; else l -= d;
+            if (p <= 1) return 50;
+            // İlk p bar için basit ortalama (seed)
+            var gainSum = 0, lossSum = 0;
+            for (var i = 1; i <= p; i++) {
+                var d0 = arr[i] - arr[i-1];
+                if (d0 > 0) gainSum += d0; else lossSum -= d0;
             }
-            var ag = g/p, al = l/p;
-            if (al === 0) return 100; if (ag === 0) return 0;
-            return 100 - (100 / (1 + ag/al));
+            var avgGain = gainSum / p;
+            var avgLoss = lossSum / p;
+            // Wilder SMMA — kalan barlar
+            for (var j = p + 1; j < arr.length; j++) {
+                var dj = arr[j] - arr[j-1];
+                avgGain = (avgGain * (p - 1) + (dj > 0 ? dj : 0)) / p;
+                avgLoss = (avgLoss * (p - 1) + (dj < 0 ? -dj : 0)) / p;
+            }
+            if (avgLoss === 0) return 100;
+            if (avgGain === 0) return 0;
+            return 100 - (100 / (1 + avgGain / avgLoss));
         }
         // Stochastic RSI
         function stochRsiCalc(arr, rsiPeriod, stochPeriod, kPeriod) {
@@ -30231,47 +30256,233 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource) {
             var sd  = Math.sqrt(sl.reduce(function(a,v){ return a + Math.pow(v-mid,2); },0) / period);
             return { upper: mid+mult*sd, mid: mid, lower: mid-mult*sd, bw: (2*mult*sd)/mid*100 };
         }
+        // ── RSI Bullish Divergence — 5-bar pivot + Wilder RSI + zone filtresi ──
+        // TradingView standardı: 5 bar left/right pivot, 5-60 bar aralığı
+        // Regular Bullish: fiyat lower-low, RSI higher-low → reversal sinyali
+        // Hidden Bullish: fiyat higher-low, RSI lower-low → trend devam
         function rsiBullDiv(c) {
-            var w = Math.min(10, c.length);
-            var sub  = c.slice(c.length - w);
-            var prev = c.slice(c.length - w*2, c.length - w + 1);
-            if (prev.length < 2) return false;
-            var priceDown  = sub[sub.length-1] < sub[0];
-            var rsiRecent  = rsiCalc(sub, w-1);
-            var rsiPrev    = rsiCalc(prev, Math.min(w-1, prev.length-1));
-            return priceDown && rsiRecent > rsiPrev && rsiRecent < 45;
+            if (c.length < 30) return false;
+            // Son 60 bar içinde 5-bar pivot low tespiti
+            var pivotBars = Math.min(60, c.length - 6);
+            var pivots = [];  // {idx, price, rsi}
+            for (var i = 5; i < pivotBars; i++) {
+                var slice = c.slice(0, c.length - i + 5);
+                var idx   = slice.length - 1;
+                // 5-bar local minimum: 2 sol + 2 sağ
+                var isMin = c[idx] < c[idx-1] && c[idx] < c[idx-2] &&
+                            c[idx] < c[idx+1] && c[idx] < c[idx+2];
+                if (!isMin) continue;
+                var rsiVal = rsiCalc(c.slice(0, idx + 1), 14);
+                pivots.push({ idx: idx, price: c[idx], rsi: rsiVal });
+            }
+            if (pivots.length < 2) return false;
+            // Son iki pivot'u karşılaştır: Regular Bullish Divergence
+            var p1 = pivots[pivots.length - 1];  // daha eski
+            var p2 = pivots[pivots.length - 2];  // daha yeni (daha yakın zamanda)
+            if (!p1 || !p2) return false;
+            var barSep = Math.abs(p1.idx - p2.idx);
+            if (barSep < 5 || barSep > 60) return false;  // çok yakın veya çok uzak
+            // Regular Bullish: fiyat LL, RSI HL + RSI oversold zone (<45)
+            var regularBull = p2.price < p1.price && p2.rsi > p1.rsi && p2.rsi < 45;
+            // En az %1 fiyat farkı olmalı (noise filtresi)
+            var priceSep = Math.abs(p1.price - p2.price) / p1.price > 0.01;
+            return regularBull && priceSep;
         }
+        // ── OBV Trend — BIST null hacim koruması + dinamik eşik ──
         function obvTrendCalc(c, v) {
-            if (!v || v.every(function(x){ return x===0; })) return 'bilinmiyor';
+            if (!v || v.length === 0) return 'bilinmiyor';
+            var nonZero = v.filter(function(x){ return x > 0; }).length;
+            // BIST'te hacim %40'tan fazla sıfırsa güvenilmez — bilinmiyor döndür
+            if (nonZero < v.length * 0.4) return 'bilinmiyor';
             var obv = 0, arr = [];
             for (var i = 1; i < c.length; i++) {
                 if (c[i] > c[i-1]) obv += (v[i]||0);
                 else if (c[i] < c[i-1]) obv -= (v[i]||0);
                 arr.push(obv);
             }
-            if (arr.length < 5) return 'bilinmiyor';
-            var r = smaFn(arr.slice(-5), 5);
-            var o = smaFn(arr.slice(-15,-5), 10);
-            if (!o) return 'bilinmiyor';
-            return r > o*1.05 ? 'yükselen' : r < o*0.95 ? 'düşen' : 'yatay';
+            if (arr.length < 10) return 'bilinmiyor';
+            var recent = smaFn(arr.slice(-7), 7);
+            var older  = smaFn(arr.slice(-20, -7), 13);
+            if (!older || older === 0) return 'bilinmiyor';
+            var ratio = recent / older;
+            return ratio > 1.03 ? 'yükselen' : ratio < 0.97 ? 'düşen' : 'yatay';
         }
 
         // ── İndikatörler ─────────────────────────────────────────
-        var sma20 = smaFn(closes, 20);
-        var sma50 = smaFn(closes, 50);
-        var e21a  = emaArr(closes, 21);
-        var e50a  = emaArr(closes, 50);
-        var ema21 = e21a[e21a.length-1];
-        var ema50 = e50a[e50a.length-1];
+        var sma20  = smaFn(closes, 20);
+        var sma50  = smaFn(closes, 50);
+        var sma200 = closes.length >= 100 ? smaFn(closes, Math.min(200, closes.length)) : null;
+        var e21a   = emaArr(closes, 21);
+        var e50a   = emaArr(closes, 50);
+        var ema21  = e21a[e21a.length-1];
+        var ema50  = e50a[e50a.length-1];
 
-        var rsi14   = rsiCalc(closes, 14);
-        var rsi7    = rsiCalc(closes, 7);
+        var rsi14    = rsiCalc(closes, 14);
+        var rsi7     = rsiCalc(closes, 7);
         var stochRsi = stochRsiCalc(closes, 14, 14, 3);
-        var macd    = macdCalc(closes);
-        var bb      = bbCalc(closes, 20, 2);
-        var atr     = atrCalc(highs, lows, closes, 14);
-        var bullDiv = rsiBullDiv(closes);
-        var obv     = obvTrendCalc(closes, volumes);
+        var macd     = macdCalc(closes);
+        var bb       = bbCalc(closes, 20, 2);
+        var atr      = atrCalc(highs, lows, closes, 14);
+        var bullDiv  = rsiBullDiv(closes);
+        var obv      = obvTrendCalc(closes, volumes);
+
+        // ── Williams %R (14 dönem) ───────────────────────────────
+        // -100..0 arası: -80 altı oversold, -20 üstü overbought
+        var williamsR = (function() {
+            var p = Math.min(14, closes.length);
+            var sub = closes.slice(-p);
+            var hh  = Math.max.apply(null, highs.slice(-p));
+            var ll  = Math.min.apply(null, lows.slice(-p));
+            return hh > ll ? ((hh - currentPrice) / (hh - ll)) * -100 : -50;
+        })();
+
+        // ── SMA200 durumu ────────────────────────────────────────
+        var aboveSma200  = sma200 !== null && currentPrice > sma200;
+        var belowSma200  = sma200 !== null && currentPrice < sma200;
+        var sma200gap    = sma200 ? ((currentPrice - sma200) / sma200 * 100) : 0; // % uzaklık
+
+        // ── Hacim Spike (güncel 7g ort / önceki 20g ort) ────────
+        var volSma20  = hasVol && volumes.length >= 20 ? smaFn(volumes.slice(-20), 20) : 0;
+        var volRecent = hasVol && volumes.length >= 5  ? smaFn(volumes.slice(-5), 5)   : 0;
+        var volSpike  = volSma20 > 0 ? volRecent / volSma20 : 1.0; // 1.0 = normal, >2 = olağandışı
+
+        // ── Destek / Direnç Seviyeleri — v2: Volume-weighted + Fibonacci + Psikolojik ──
+        var supportLevel = 0, resistanceLevel = 0;
+        var fibLevels = [];  // Fibonacci retracement seviyeleri
+        var nearRoundNumber = false;
+
+        (function() {
+            var w = Math.min(closes.length, n);
+
+            // ── 1. Volume-weighted swing pivot tespiti ──────────
+            // Her swing noktası sadece fiyat değil, o güne ait hacimle ağırlıklandırılır
+            // Yüksek hacimli swing → daha önemli destek/direnç
+            var swingLows  = [];  // [{price, vol, idx}]
+            var swingHighs = [];
+
+            for (var i = 2; i < w - 2; i++) {
+                // 3-bar pivot (önceki 2 bar + sonraki 2 bar karşılaştırması)
+                var isSwingLow  = lows[i]  < lows[i-1]  && lows[i]  < lows[i-2]  &&
+                                  lows[i]  < lows[i+1]  && lows[i]  < lows[i+2];
+                var isSwingHigh = highs[i] > highs[i-1] && highs[i] > highs[i-2] &&
+                                  highs[i] > highs[i+1] && highs[i] > highs[i+2];
+                var vol = volumes[i] || 1;
+
+                if (isSwingLow)  swingLows.push({ price: lows[i],  vol: vol, idx: i });
+                if (isSwingHigh) swingHighs.push({ price: highs[i], vol: vol, idx: i });
+            }
+
+            // Hacim ağırlıklı en güçlü destek = fiyatın altındaki, en yüksek hacimli pivot
+            var belowPivots = swingLows.filter(function(s){ return s.price < currentPrice; });
+            var abovePivots = swingHighs.filter(function(s){ return s.price > currentPrice; });
+
+            if (belowPivots.length > 0) {
+                // En yakın 3 destek adayı içinden en yüksek hacimli olanı seç
+                belowPivots.sort(function(a,b){ return b.price - a.price; });  // fiyata göre azalan
+                var topCandidates = belowPivots.slice(0, Math.min(3, belowPivots.length));
+                topCandidates.sort(function(a,b){ return b.vol - a.vol; });    // hacme göre azalan
+                supportLevel = topCandidates[0].price;
+            }
+
+            if (abovePivots.length > 0) {
+                // En yakın 3 direnç adayı içinden en yüksek hacimli olanı seç
+                abovePivots.sort(function(a,b){ return a.price - b.price; });  // fiyata göre artan
+                var topRCandidates = abovePivots.slice(0, Math.min(3, abovePivots.length));
+                topRCandidates.sort(function(a,b){ return b.vol - a.vol; });
+                resistanceLevel = topRCandidates[0].price;
+            }
+
+            // ── 2. Fibonacci Retracement — Trend Yönü Filtreli ──────────
+            // Standart kural: Yükseliş trendinde Low→High, Düşüş trendinde High→Low
+            // EMA21 > EMA50 = uptrend, EMA21 < EMA50 = downtrend
+            var majorHigh = Math.max.apply(null, highs);
+            var majorLow  = Math.min.apply(null, lows);
+            var fibRange  = majorHigh - majorLow;
+            // Trend yönünü EMA ile belirle
+            var isUptrend = e21a && e50a && e21a[e21a.length-1] > e50a[e50a.length-1];
+
+            if (fibRange > 0 && fibRange / currentPrice > 0.05) {  // anlamlı swing olmalı
+                var fibRatios = [0.236, 0.382, 0.500, 0.618, 0.786];
+                fibRatios.forEach(function(ratio) {
+                    var fibPrice;
+                    if (isUptrend) {
+                        // Yükseliş: Low'dan High'a çiz — retracement seviyeleri destek olarak çalışır
+                        fibPrice = majorHigh - fibRange * ratio;
+                    } else {
+                        // Düşüş: High'dan Low'a çiz — retracement seviyeleri direnç olarak çalışır
+                        fibPrice = majorLow + fibRange * ratio;
+                    }
+                    fibLevels.push({
+                        price: fibPrice,
+                        label: (ratio * 100).toFixed(1) + '%',
+                        ratio: ratio,
+                        isSupport: isUptrend  // trend yönüne göre rol değişir
+                    });
+                });
+
+                // Güncel fiyata en yakın Fib seviyesi
+                var closestFibBelow = null, closestFibAbove = null;
+                fibLevels.forEach(function(f) {
+                    if (f.price < currentPrice) {
+                        if (!closestFibBelow || f.price > closestFibBelow.price) closestFibBelow = f;
+                    } else {
+                        if (!closestFibAbove || f.price < closestFibAbove.price) closestFibAbove = f;
+                    }
+                });
+
+                // Pivot + Fib çakışması (±%5 tolerans) → destek/direnci güçlendir
+                if (closestFibBelow) {
+                    var fibDistPct = Math.abs(currentPrice - closestFibBelow.price) / currentPrice;
+                    if (fibDistPct < 0.08) {
+                        if (supportLevel > 0) {
+                            var pivFibGap = Math.abs(supportLevel - closestFibBelow.price) / currentPrice;
+                            if (pivFibGap < 0.05) supportLevel = (supportLevel + closestFibBelow.price) / 2;
+                        } else {
+                            supportLevel = closestFibBelow.price;
+                        }
+                    }
+                }
+                if (closestFibAbove && resistanceLevel === 0) {
+                    var fibAbovePct = Math.abs(closestFibAbove.price - currentPrice) / currentPrice;
+                    if (fibAbovePct < 0.10) resistanceLevel = closestFibAbove.price;
+                }
+            }
+
+            // ── 3. Psikolojik Round Number tespiti ──────────────
+            // $0.001, $0.01, $0.1, $1, $10, $100, $1000, $10000 gibi seviyelere yakınlık
+            var roundLevels = [];
+            var magnitude = Math.pow(10, Math.floor(Math.log10(currentPrice)));
+            [0.5, 1, 2, 5, 10].forEach(function(m) {
+                roundLevels.push(Math.floor(currentPrice / (magnitude * m)) * (magnitude * m));
+                roundLevels.push(Math.ceil(currentPrice  / (magnitude * m)) * (magnitude * m));
+            });
+            nearRoundNumber = roundLevels.some(function(r) {
+                return r > 0 && Math.abs(currentPrice - r) / currentPrice < 0.025;
+            });
+
+            // Round number yakınsa destek/direnci buna yakınlaştır
+            if (nearRoundNumber) {
+                var nearestRound = roundLevels.reduce(function(best, r) {
+                    if (r <= 0) return best;
+                    return Math.abs(r - currentPrice) < Math.abs(best - currentPrice) ? r : best;
+                }, currentPrice * 2);
+                if (nearestRound < currentPrice && (supportLevel === 0 || nearestRound > supportLevel))
+                    supportLevel = nearestRound;
+                if (nearestRound > currentPrice && (resistanceLevel === 0 || nearestRound < resistanceLevel))
+                    resistanceLevel = nearestRound;
+            }
+        })();
+
+        var distToSupport    = supportLevel > 0    ? ((currentPrice - supportLevel) / currentPrice * 100) : 999;
+        var distToResistance = resistanceLevel > 0 ? ((resistanceLevel - currentPrice) / currentPrice * 100) : 999;
+        var nearSupport      = distToSupport < 4;
+        var nearResistance   = distToResistance < 4;
+        var atSupport        = distToSupport < 2;
+
+        // Fibonacci seviyesi bilgisi (analist yorumu için)
+        var nearFibLevel = fibLevels.find(function(f) {
+            return Math.abs(f.price - currentPrice) / currentPrice < 0.05;
+        }) || null;
 
         var lossFromCost = cost > 0 ? ((cost - currentPrice) / cost) * 100 : 0;
         var peakPrice    = Math.max.apply(null, highs);
@@ -30320,70 +30531,112 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource) {
             : null;
 
         // ════════════════════════════════════════════════════════
-        //  5 KATMAN VOTER PUANLAMA SİSTEMİ — v5.0
-        //  Skor 0'dan başlar, her katman bağımsız oy verir.
+        //  5 KATMAN VOTER PUANLAMA SİSTEMİ — v6.0
+        //  YENİ: SMA200 + Williams %R + Volume Spike + Destek/Direnç
+        //  Mod: Agresif (fırsatları kaçırma)
         // ════════════════════════════════════════════════════════
 
-        // ── KATMAN 1: TREND (ağırlık %30) ───────────────────────
+        // ── KATMAN 1: TREND (ağırlık %28) ───────────────────────
+        // SMA200 entegrasyonu: uzun vadeli bağlam belirleyici
         var trendScore;
-        if (goldCross)                                      trendScore = 100;
-        else if (emaAbove && macd.aboveZero && macd.macd > macd.signal) trendScore = 85;
-        else if (emaAbove && macd.macd > macd.signal)       trendScore = 65;
-        else if (emaAbove)                                  trendScore = 48;
-        else if (deathCross)                                trendScore = 0;
-        else if (emaBelow && macd.bearCross)                trendScore = 5;
-        else if (emaBelow && macd.macd > macd.signal && macd.histExpanding) trendScore = 35;
-        else if (emaBelow)                                  trendScore = 20;
-        else                                                trendScore = 40;
+        if      (goldCross && aboveSma200)                                   trendScore = 100;
+        else if (goldCross)                                                   trendScore = 88;
+        else if (emaAbove && macd.aboveZero && macd.macd > macd.signal && aboveSma200) trendScore = 92;
+        else if (emaAbove && macd.aboveZero && macd.macd > macd.signal)      trendScore = 80;
+        else if (emaAbove && macd.macd > macd.signal && aboveSma200)         trendScore = 70;
+        else if (emaAbove && macd.macd > macd.signal)                        trendScore = 60;
+        else if (emaAbove && aboveSma200)                                    trendScore = 55;
+        else if (emaAbove)                                                    trendScore = 42;
+        else if (deathCross && belowSma200)                                  trendScore = 0;
+        else if (deathCross)                                                  trendScore = 5;
+        else if (emaBelow && belowSma200 && macd.bearCross)                  trendScore = 3;
+        else if (emaBelow && macd.bearCross)                                 trendScore = 8;
+        else if (emaBelow && belowSma200)                                    trendScore = 12;
+        else if (emaBelow && macd.macd > macd.signal && macd.histExpanding)  trendScore = 38;
+        else if (emaBelow)                                                    trendScore = 20;
+        else if (aboveSma200)                                                 trendScore = 48;
+        else                                                                  trendScore = 35;
 
-        // ── KATMAN 2: MOMENTUM (ağırlık %25) ────────────────────
-        // Stoch RSI + RSI14 çift teyidi
+        // SMA200'e yakınlık bonusu/cezası
+        if (sma200 !== null) {
+            if (aboveSma200 && sma200gap < 3)  trendScore = Math.min(100, trendScore + 8);  // taze geçiş
+            if (belowSma200 && sma200gap > -3) trendScore = Math.max(0,   trendScore - 8);  // taze kırılım
+        }
+
+        // ── KATMAN 2: MOMENTUM (ağırlık %24) ────────────────────
+        // Williams %R üçlü teyit sistemi
         var momScore;
-        if      (stochRsi < 20 && rsi14 < 35) momScore = 95; // çift teyit oversold
-        else if (stochRsi < 20 && rsi14 < 45) momScore = 75;
-        else if (rsi14 < 30)                  momScore = 70;
-        else if (rsi14 < 40)                  momScore = 55;
-        else if (rsi14 < 50)                  momScore = 45;
-        else if (rsi14 > 70 && stochRsi > 80) momScore = 10; // çift teyit overbought
-        else if (rsi14 > 70)                  momScore = 20;
-        else if (rsi14 > 60)                  momScore = 32;
-        else                                  momScore = 42;
+        var wOversold  = williamsR < -80;
+        var wOverbought = williamsR > -20;
 
-        // Dead cat bounce tuzağı: kısa RSI yüksek ama genel tablo zayıf
+        if      (stochRsi < 20 && rsi14 < 35 && wOversold)  momScore = 100; // üçlü oversold teyit
+        else if (stochRsi < 20 && rsi14 < 35)                momScore = 92;
+        else if (rsi14 < 30 && wOversold)                    momScore = 82;
+        else if (stochRsi < 20 && wOversold)                 momScore = 78;
+        else if (rsi14 < 30)                                  momScore = 70;
+        else if (rsi14 < 40 && wOversold)                    momScore = 65;
+        else if (rsi14 < 40)                                  momScore = 52;
+        else if (rsi14 < 50 && williamsR < -60)              momScore = 48;
+        else if (rsi14 < 50)                                  momScore = 42;
+        else if (rsi14 > 70 && stochRsi > 80 && wOverbought) momScore = 3;  // üçlü overbought
+        else if (rsi14 > 70 && stochRsi > 80)                momScore = 8;
+        else if (rsi14 > 70 && wOverbought)                  momScore = 12;
+        else if (rsi14 > 70)                                  momScore = 20;
+        else if (rsi14 > 60 && wOverbought)                  momScore = 28;
+        else if (rsi14 > 60)                                  momScore = 35;
+        else                                                  momScore = 42;
+
+        // Dead cat bounce koruması
         if (rsi7 > 62 && rsi14 < 40 && !aboveSma50) momScore = Math.min(momScore, 22);
-
-        // RSI divergans bonusu
-        if (bullDiv) momScore = Math.min(100, momScore + 15);
+        // RSI diverjans bonusu
+        if (bullDiv) momScore = Math.min(100, momScore + 18);
 
         // ── KATMAN 3: HACİM (ağırlık: veri kalitesine göre) ─────
+        // Volume Spike ratio entegrasyonu
         var volWeight = dataQuality === 'yüksek' ? 0.20 : dataQuality === 'orta' ? 0.10 : 0.05;
         var volScore;
-        if (!hasVol)                                           volScore = 50;
-        else if (volRising && isRecovering && obv==='yükselen') volScore = 100;
-        else if (volRising && isRecovering)                    volScore = 80;
-        else if (obv === 'yükselen' && !volRising)             volScore = 65;
-        else if (volRising && momentum7 < 0)                   volScore = 10;
-        else if (obv === 'düşen' && volRising)                 volScore = 15;
-        else if (obv === 'düşen')                              volScore = 30;
-        else                                                   volScore = 50;
+        if (!hasVol) {
+            volScore = 50;
+        } else if (volSpike > 2.5 && isRecovering && obv === 'yükselen') volScore = 100; // olağandışı güçlü
+        else if (volSpike > 2.0 && isRecovering)                          volScore = 90;
+        else if (volSpike > 1.5 && isRecovering && obv === 'yükselen')   volScore = 82;
+        else if (volRising && isRecovering && obv === 'yükselen')         volScore = 75;
+        else if (volSpike > 1.5 && isRecovering)                          volScore = 70;
+        else if (volRising && isRecovering)                                volScore = 65;
+        else if (obv === 'yükselen' && volSpike > 1.2)                    volScore = 62;
+        else if (obv === 'yükselen')                                       volScore = 55;
+        else if (volSpike > 2.5 && momentum7 < 0)                         volScore = 5;  // panik satışı
+        else if (volRising && momentum7 < 0)                              volScore = 12;
+        else if (obv === 'düşen' && volSpike > 1.5)                       volScore = 10;
+        else if (obv === 'düşen' && volRising)                            volScore = 18;
+        else if (obv === 'düşen')                                          volScore = 30;
+        else if (volSpike < 0.5)                                           volScore = 35;  // hacim kurudu
+        else                                                               volScore = 48;
 
-        // ── KATMAN 4: YAPI / VOLATİLİTE (ağırlık %15) ───────────
+        // ── KATMAN 4: YAPI / DESTEK-DİRENÇ (ağırlık %16) ───────
+        // Pivot destek/direnç entegrasyonu
         var structScore;
-        if (bbBelow && bullDiv)        structScore = 100;
-        else if (bbBelow && rsi14<35)  structScore = 85;
-        else if (bbBelow)              structScore = 62;
-        else if (bbSqueeze)            structScore = 52;
-        else if (bbAboveUpper)         structScore = 15;
-        else                           structScore = 44;
+        if (bbBelow && bullDiv && atSupport)    structScore = 100;
+        else if (bbBelow && bullDiv)            structScore = 92;
+        else if (bbBelow && rsi14 < 35 && nearSupport) structScore = 88;
+        else if (bbBelow && rsi14 < 35)         structScore = 80;
+        else if (bbBelow && nearSupport)         structScore = 72;
+        else if (bbBelow)                        structScore = 60;
+        else if (bbSqueeze && nearSupport)       structScore = 58;
+        else if (bbSqueeze)                      structScore = 50;
+        else if (nearSupport && !nearResistance) structScore = 55;  // destek yakın, direnç uzak
+        else if (nearResistance)                 structScore = 25;  // direncin dibinde
+        else if (bbAboveUpper)                   structScore = 18;
+        else                                     structScore = 42;
 
-        if      (momentum7 > 5)  structScore = Math.min(100, structScore + 20);
-        else if (momentum7 > 2)  structScore = Math.min(100, structScore + 10);
-        else if (momentum7 <-5)  structScore = Math.max(0, structScore - 20);
-        else if (momentum7 <-2)  structScore = Math.max(0, structScore - 10);
-        if (atrPct > 8)          structScore = Math.max(0, structScore - 10);
+        if      (momentum7 > 5)  structScore = Math.min(100, structScore + 22);
+        else if (momentum7 > 2)  structScore = Math.min(100, structScore + 12);
+        else if (momentum7 < -5) structScore = Math.max(0,   structScore - 22);
+        else if (momentum7 < -2) structScore = Math.max(0,   structScore - 12);
+        if (atrPct > 8)          structScore = Math.max(0,   structScore - 10);
 
         // ── KATMAN 5: SÜRE & BAĞLAM (kalan ağırlık) ─────────────
-        var w5 = 1.0 - 0.30 - 0.25 - volWeight - 0.15;
+        var w5 = 1.0 - 0.28 - 0.24 - volWeight - 0.16;
         var contextScore = 60;
         if      (daysBelow > 90) contextScore -= 40;
         else if (daysBelow > 60) contextScore -= 28;
@@ -30397,15 +30650,17 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource) {
         } else if (lossFromCost > 35) contextScore += 12;
         else if (lossFromCost < 12)   contextScore -= 8;
 
-        if (isRecovering) contextScore = Math.min(100, contextScore + 15);
+        if (isRecovering)  contextScore = Math.min(100, contextScore + 15);
+        if (aboveSma200)   contextScore = Math.min(100, contextScore + 10); // uzun vade sağlıklı
+        if (belowSma200 && daysBelow > 30) contextScore = Math.max(0, contextScore - 8);
         contextScore = Math.max(0, Math.min(100, contextScore));
 
         // ── Ham skor (makro öncesi) ──────────────────────────────
         var rawScore = (
-            trendScore   * 0.30 +
-            momScore     * 0.25 +
+            trendScore   * 0.28 +
+            momScore     * 0.24 +
             volScore     * volWeight +
-            structScore  * 0.15 +
+            structScore  * 0.16 +
             contextScore * w5
         );
 
@@ -30416,26 +30671,42 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource) {
 
         // ── Sinyal / uyarı listesi (açıklama için) ───────────────
         var signals = [], warnings = [];
-        if (trendScore >= 65)  signals.push('TREND_UP');
+        if (trendScore >= 65)      signals.push('TREND_UP');
         else if (trendScore <= 20) warnings.push('TREND_DOWN');
-        if (momScore >= 70)    signals.push('OVERSOLD');
-        else if (momScore <= 22) warnings.push('OVERBOUGHT_OR_DCB');
-        if (stochRsi < 20 && rsi14 < 35) signals.push('DOUBLE_OVERSOLD');
-        if (bullDiv)           signals.push('BULL_DIV');
-        if (goldCross)         signals.push('GOLDEN_CROSS');
-        if (deathCross)        warnings.push('DEATH_CROSS');
-        if (macd.bullCross)    signals.push('MACD_BULL');
-        if (macd.bearCross)    warnings.push('MACD_BEAR');
-        if (bbBelow && rsi14<35) signals.push('BB_OVERSOLD');
-        if (bbSqueeze)         signals.push('BB_SQUEEZE');
-        if (volRising && isRecovering) signals.push('VOL_CONFIRM');
-        if (volRising && momentum7<0)  warnings.push('VOL_SELLING');
-        if (obv === 'yükselen') signals.push('OBV_UP');
-        if (obv === 'düşen')    warnings.push('OBV_DOWN');
-        if (daysBelow > 90)    warnings.push('CHRONIC');
-        if (daysBelow > 60)    warnings.push('LONG_BELOW');
-        if (atrPct > 8)        warnings.push('HIGH_VOL');
-        if (rsi7 > 62 && rsi14<40) warnings.push('DEAD_CAT');
+        if (momScore >= 70)        signals.push('OVERSOLD');
+        else if (momScore <= 22)   warnings.push('OVERBOUGHT_OR_DCB');
+        if (stochRsi < 20 && rsi14 < 35 && wOversold) signals.push('TRIPLE_OVERSOLD');
+        else if (stochRsi < 20 && rsi14 < 35)          signals.push('DOUBLE_OVERSOLD');
+        if (bullDiv)               signals.push('BULL_DIV');
+        if (goldCross)             signals.push('GOLDEN_CROSS');
+        if (deathCross)            warnings.push('DEATH_CROSS');
+        if (macd.bullCross)        signals.push('MACD_BULL');
+        if (macd.bearCross)        warnings.push('MACD_BEAR');
+        if (bbBelow && rsi14 < 35) signals.push('BB_OVERSOLD');
+        if (bbSqueeze)             signals.push('BB_SQUEEZE');
+        // Hacim sinyalleri — yalnızca güvenilir hacim verisi varsa aktifleştir
+        if (volumeReliable) {
+            if (volSpike > 2.0 && isRecovering)      signals.push('VOL_SURGE');
+            else if (volRising && isRecovering)       signals.push('VOL_CONFIRM');
+            if (volSpike > 2.0 && momentum7 < 0)     warnings.push('VOL_PANIC');
+            else if (volRising && momentum7 < 0)      warnings.push('VOL_SELLING');
+            if (obv === 'yükselen')                   signals.push('OBV_UP');
+            if (obv === 'düşen')                      warnings.push('OBV_DOWN');
+        }
+        if (daysBelow > 90)        warnings.push('CHRONIC');
+        if (daysBelow > 60)        warnings.push('LONG_BELOW');
+        if (atrPct > 8)            warnings.push('HIGH_VOL');
+        if (rsi7 > 62 && rsi14 < 40) warnings.push('DEAD_CAT');
+        // Yeni: SMA200
+        if (aboveSma200)           signals.push('ABOVE_SMA200');
+        if (belowSma200)           warnings.push('BELOW_SMA200');
+        // Yeni: Williams %R
+        if (wOversold && rsi14 < 40)   signals.push('WILLIAMS_OVERSOLD');
+        if (wOverbought && rsi14 > 60)  warnings.push('WILLIAMS_OVERBOUGHT');
+        // Yeni: Destek/Direnç
+        if (atSupport)             signals.push('AT_SUPPORT');
+        else if (nearSupport)      signals.push('NEAR_SUPPORT');
+        if (nearResistance)        warnings.push('NEAR_RESISTANCE');
 
         var total = signals.length + warnings.length;
         var conf  = total > 0 ? Math.round((Math.max(signals.length, warnings.length) / total) * 100) : 50;
@@ -30451,6 +30722,9 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource) {
 
         return {
             score: score, rsi: rsi14, shortRsi: rsi7, stochRsi: stochRsi,
+            livePrice: currentPrice,  // son mum kapanışı — her zaman taze
+            volumeReliable: volumeReliable,  // hacim verisi güvenilir mi
+            williamsR: williamsR,
             trend: currentPrice > sma50 ? 'Yükseliş' : 'Düşüş',
             desc: desc, drop: lossFromCost, drawdown: drawdownPct, daysBelow: daysBelow,
             momentum7: momentum7, isRecovering: isRecovering, dataSource: src,
@@ -30461,9 +30735,16 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource) {
             goldCross: goldCross, deathCross: deathCross, rsiBullDiv: bullDiv,
             obvTrend: obv, atrPct: atrPct.toFixed(1), stopNote: stopNote,
             stopPrice: stopPrice, confidence: confLbl,
+            // SMA200
+            sma200: sma200, aboveSma200: aboveSma200, belowSma200: belowSma200, sma200gap: sma200gap.toFixed(1),
+            // Hacim Spike
+            volSpike: volSpike.toFixed(2),
+            // Fibonacci & Psikolojik seviyeler
+            fibLevels: fibLevels, nearFibLevel: nearFibLevel, nearRoundNumber: nearRoundNumber,
+            distToSupport: distToSupport.toFixed(1), distToResistance: distToResistance.toFixed(1),
+            nearSupport: nearSupport, atSupport: atSupport, nearResistance: nearResistance,
             signalList: signals, warnList: warnings,
             signalCount: signals.length, warnCount: warnings.length,
-            // Katman skorları (şeffaflık için)
             layers: {
                 trend: Math.round(trendScore),
                 momentum: Math.round(momScore),
@@ -30697,7 +30978,9 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro) {
         var usd = (typeof usdTryRate !== 'undefined' && usdTryRate > 0) ? usdTryRate : 36.5;
 
         var buyN  = p.buy  || 0;
-        var curN  = (p.curr && p.curr > 0) ? p.curr : p.buy || 0;
+        // Canlı fiyat önceliği: metrics.livePrice (son mum) > p.curr (portföy kaydı) > p.buy
+        var curN  = (m.livePrice && m.livePrice > 0) ? m.livePrice
+                  : (p.curr && p.curr > 0) ? p.curr : p.buy || 0;
         if (isTRY && isUsd && buyN > 500)  { buyN /= usd; }
         if (isTRY && isUsd && curN > 500)  { curN /= usd; }
 
@@ -30895,7 +31178,7 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro) {
             var rsiNum = parseFloat(rsiVal);
             if (rsiNum < 25) {
                 var stochNote = stochVal ? ' StochRSI da ' + stochVal + ' ile aşırı satım bölgesinde — iki göstergeden çift teyit.' : '';
-                paragraphs.push('📉 <strong>RSI ' + rsiVal + ' — Aşırı Satım:</strong> Fiyat 90 günlük tarihin en dip bölgelerine yaklaştı.' + stochNote + ' Tarihsel olarak RSI 25\'in altı, kısa vadeli teknik geri dönüşlerin tetiklendiği seviyedir. Ancak aşırı satım, anında yükseliş garantisi değildir — kötü haberde daha da düşebilir.');
+                paragraphs.push('📉 <strong>RSI ' + rsiVal + ' — Aşırı Satım:</strong> Fiyat 180 günlük tarihin en dip bölgelerine yaklaştı.' + stochNote + ' Tarihsel olarak RSI 25\'in altı, kısa vadeli teknik geri dönüşlerin tetiklendiği seviyedir. Ancak aşırı satım, anında yükseliş garantisi değildir — kötü haberde daha da düşebilir.');
             } else if (rsiNum < 35) {
                 var stochNote = stochVal ? (parseInt(stochVal) < 20 ? ' StochRSI ' + stochVal + ' ile bunu teyit ediyor.' : ' Ancak StochRSI henüz ' + stochVal + ' seviyesinde, teyit zayıf.') : '';
                 paragraphs.push('📉 <strong>RSI ' + rsiVal + ' — Satım Baskısı Yüksek:</strong> Son 14 günde satıcılar alıcılardan belirgin şekilde güçlü.' + stochNote + ' Bu seviye genellikle "dip arama" sürecinin işareti olsa da aceleci davranmak erken olabilir.');
@@ -30909,8 +31192,29 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro) {
                 paragraphs.push('📊 <strong>RSI ' + rsiVal + ' — Nötr:</strong>' + stochNote + ' Ne aşırı satım ne aşırı alım — piyasa şu an yön arıyor. Bu belirsizlik, büyük pozisyon açmak için uygun bir atmosfer değil.');
             }
 
-            // ── BÖLÜM 3: Trend göstergesi (EMA/MACD) ──
-            if (sl.includes('GOLDEN_CROSS')) {
+            // ── BÖLÜM 3: Trend göstergesi (EMA/MACD + SMA200) ──
+            if (m.aboveSma200 !== undefined) {
+                var smaGapStr = m.sma200gap ? Math.abs(parseFloat(m.sma200gap)).toFixed(1) : '?';
+                if (m.aboveSma200) {
+                    var gapNote = parseFloat(m.sma200gap) < 5
+                        ? ' Fiyat bu kritik seviyeyi yakın zamanda geçti — trendin ilk sinyali olabilir.'
+                        : ' Fiyat bu seviyenin %' + smaGapStr + ' üzerinde seyrediyor.';
+                    if (sl.includes('GOLDEN_CROSS')) {
+                        paragraphs.push('✨ <strong>Golden Cross + SMA200 Üstü:</strong> 21 günlük ortalama 50 günlüğü geçti ve fiyat 200 günlük ortalamanın da üstünde.' + gapNote + ' Bu üçlü uyum, orta vadeli yükselişlerin en güçlü teknik onayı sayılır.');
+                    } else {
+                        paragraphs.push('📈 <strong>SMA200 Üstünde (+%' + smaGapStr + '):</strong> Fiyat 200 günlük uzun vadeli ortalamanın üstünde seyrediyor.' + gapNote + ' Profesyonel analistlerin en çok izlediği seviye budur — üstünde olmak büyük resmin pozitif olduğunu gösterir.');
+                    }
+                } else {
+                    var gapNote2 = parseFloat(m.sma200gap) > -5
+                        ? ' Fiyat bu seviyeyi yakın zamanda kırdı — düşüşün ilk ciddi sinyali.'
+                        : ' Fiyat bu seviyenin %' + smaGapStr + ' altında.';
+                    if (wl.includes('DEATH_CROSS')) {
+                        paragraphs.push('💀 <strong>Death Cross + SMA200 Altı:</strong> 21 günlük ortalama 50 günlüğün altına indi ve fiyat 200 günlük ortalamanın da altında.' + gapNote2 + ' İki ayrı düşüş sinyalinin aynı anda tetiklenmesi, orta vadeli tablonun ciddi biçimde bozulduğuna işaret eder.');
+                    } else {
+                        paragraphs.push('⚠️ <strong>SMA200 Altında (-%' + smaGapStr + '):</strong> Fiyat 200 günlük uzun vadeli ortalamanın altında seyrediyor.' + gapNote2 + ' Bu seviyenin altındaki kısa vadeli sinyaller, uzun vadeli trendle çelişir — dikkatli olunması gereken bir konumdur.');
+                    }
+                }
+            } else if (sl.includes('GOLDEN_CROSS')) {
                 paragraphs.push('✨ <strong>Golden Cross oluştu:</strong> 21 günlük hareketli ortalama, 50 günlüğün üzerine çıktı. Bu, orta vadeli trend dönüşünün en güçlü teknik teyididir. Geçmiş verilere göre Golden Cross sonrası ilk 30 günde olumlu getiri ihtimali yüksektir — ancak düşüş piyasasında yanıltıcı olabilir.');
             } else if (wl.includes('DEATH_CROSS')) {
                 paragraphs.push('💀 <strong>Death Cross aktif:</strong> 21 günlük ortalama, 50 günlüğün altına indi. Bu, kısa vadeli satış baskısının orta vadeli trendi de aşağı çektiğinin işareti. Death Cross sonrası piyasalar genellikle birkaç hafta daha geri çekilmeye devam eder.');
@@ -30933,15 +31237,55 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro) {
                 paragraphs.push('📈 <strong>Bollinger Üst Bandı Aşıldı:</strong> Fiyat istatistiksel üst sınırın dışına çıktı. Bu genellikle güçlü momentum işareti olsa da kısa vadede geri çekilme yaşanabilir. Zaten pozisyondaysanız stop-loss seviyelerini güncellemenin zamanı gelebilir.');
             }
 
-            // ── BÖLÜM 5: Hacim analizi ──
-            if (sl.includes('VOL_CONFIRM')) {
-                paragraphs.push('📊 <strong>Hacim Teyidi:</strong> Fiyat toparlanırken işlem hacmi de arttı. Bu kritik bir ayrıntı — hacim desteği olmayan fiyat hareketleri genellikle kalıcı olmaz. OBV (On-Balance Volume) göstergesi de yükselen trend gösteriyor: büyük oyuncuların sessizce alım yaptığına işaret edebilir.');
+            // ── BÖLÜM 3b: Williams %R ──
+            if (m.williamsR !== undefined) {
+                var wR = m.williamsR;
+                var wRStr = wR.toFixed(0);
+                if (sl.includes('TRIPLE_OVERSOLD')) {
+                    paragraphs.push('🎯 <strong>Üçlü Oversold Teyidi (RSI + StochRSI + Williams %R ' + wRStr + '):</strong> Üç farklı momentum göstergesi aynı anda aşırı satım bölgesinde. Bu nadir bir kombinasyon — satıcıların büyük bölümünün zaten çıkmış olduğuna işaret eder. Tarihsel olarak bu üçlü teyit, kısa vadede güçlü geri dönüş ihtimalini önemli ölçüde artırır.');
+                } else if (sl.includes('WILLIAMS_OVERSOLD')) {
+                    paragraphs.push('📉 <strong>Williams %R ' + wRStr + ' — Aşırı Satım Teyidi:</strong> Williams %R göstergesi -80\'in altında; RSI ile birlikte ikinci bir momentum onayı oluştu. Williams %R, RSI\'dan daha hızlı tepki verir — yani RSI henüz dönmeden Williams %R geri dönüş işareti verebilir. Bu erkenci sinyal, RSI\'nın da yakında tepki vereceğine işaret eder.');
+                } else if (wl.includes('WILLIAMS_OVERBOUGHT')) {
+                    paragraphs.push('📈 <strong>Williams %R ' + wRStr + ' — Aşırı Alım Teyidi:</strong> Williams %R -20\'nin üzerinde; RSI ile birlikte alıcıların aşırı agresif davrandığını iki gösterge de teyit ediyor. Bu seviyede yeni alım yapmak geri dönüş riskini artırır.');
+                } else if (wR < -50) {
+                    paragraphs.push('📊 <strong>Williams %R ' + wRStr + ':</strong> Satım baskısı bölgesinde (%R < -50) ama aşırı satım eşiğine henüz ulaşmadı. RSI ' + rsiVal + ' ile birlikte değerlendirildiğinde piyasa zayıf ama dip henüz netleşmedi.');
+                }
+            }
+
+            // ── BÖLÜM 4b: Destek / Direnç Seviyeleri ──
+            if (sl.includes('AT_SUPPORT') && m.supportLevel > 0) {
+                var fibNote = m.nearFibLevel ? ' Bu seviye aynı zamanda Fibonacci %' + m.nearFibLevel.label + ' retracement çizgisiyle örtüşüyor — teknik güç iki katına çıkıyor.' : '';
+                var roundNote = m.nearRoundNumber ? ' Üstelik psikolojik bir round-number seviyesine yakın — büyük oyuncular bu seviyelere özel dikkat eder.' : '';
+                paragraphs.push('🧱 <strong>Güçlü Destek Üstünde ($' + parseFloat(m.supportLevel).toFixed(4) + '):</strong> Fiyat 180 günlük tarihin en hacimli swing-low destek bölgesinin tam üstünde.' + fibNote + roundNote + ' Stop-loss bu seviyenin hemen altına konulabilir.');
+            } else if (sl.includes('NEAR_SUPPORT') && m.supportLevel > 0) {
+                var fibNote2 = m.nearFibLevel ? ' Yakınındaki Fibonacci %' + m.nearFibLevel.label + ' seviyesi de destek bölgesini güçlendiriyor.' : '';
+                paragraphs.push('🧱 <strong>Destek Yakınında ($' + parseFloat(m.supportLevel).toFixed(4) + ', -%' + m.distToSupport + '):</strong> Fiyat hacimli bir destek bölgesine yaklaşıyor.' + fibNote2 + ' Kırılırsa kayıplar hızlanabilir, tutarsa güçlü zıplama fırsatı oluşur.');
+            } else if (m.nearFibLevel) {
+                var fibDir = m.nearFibLevel.price < curN ? 'destek' : 'direnç';
+                paragraphs.push('📐 <strong>Fibonacci %' + m.nearFibLevel.label + ' Seviyesi Yakın ($' + parseFloat(m.nearFibLevel.price).toFixed(4) + '):</strong> Fiyat önemli bir Fibonacci retracement ' + fibDir + ' seviyesine %' + (Math.abs(curN - m.nearFibLevel.price)/curN*100).toFixed(1) + ' uzaklıkta. Trend analistlerinin en çok izlediği seviyelerden biri — tepki yaşanabilir.');
+            } else if (wl.includes('NEAR_RESISTANCE') && m.resistanceLevel > 0) {
+                paragraphs.push('🚧 <strong>Direnç Yakınında ($' + parseFloat(m.resistanceLevel).toFixed(4) + ', +%' + m.distToResistance + '):</strong> Fiyat 180 günlük tarihin önemli bir swing-high direnç bölgesine yaklaşıyor. Bu seviye geçmişte satıcıları çekti — aşılamazsa fiyat geri döner.');
+            } else if (m.nearRoundNumber) {
+                paragraphs.push('🔢 <strong>Psikolojik Seviye Yakınında:</strong> Fiyat önemli bir round-number seviyesine yakın. Büyük fon yöneticileri ve algoritmik sistemler bu seviyelere stop ve limit emirleri yığar — bu seviyelerde güçlü tepkiler görülür.');
+            }
+
+            // ── BÖLÜM 5: Hacim analizi (Spike dahil) ──
+            var volSpikeNum = m.volSpike ? parseFloat(m.volSpike) : 1.0;
+            var volUnreliable = m.volumeReliable === false;
+            if (volUnreliable) {
+                paragraphs.push('📊 <strong>Hacim Verisi Sınırlı:</strong> Bu varlık için kaynak veri sağlayıcısında hacim kaydı eksik — OBV ve Hacim Spike hesaplamaları bu analiz için devre dışı bırakıldı. Fiyat ve momentum sinyalleri (RSI, MACD, BB) yine de tam çalışıyor; bu sonuçlara güvenebilirsin. Hacim doğrulaması için TradingView veya Borsa İstanbul sitesini ziyaret et.');
+            } else if (sl.includes('VOL_SURGE')) {
+                paragraphs.push('🔥 <strong>Hacim Patlaması (' + volSpikeNum.toFixed(1) + 'x Ortalama):</strong> Güncel hacim, 20 günlük ortalamanın ' + volSpikeNum.toFixed(1) + ' katı — olağandışı yüksek. Fiyat toparlanırken bu kadar güçlü hacim, kurumsal alıcıların ya da büyük oyuncuların devreye girdiğine işaret edebilir. OBV de ' + (sl.includes('OBV_UP') ? 'yükselen' : 'nötr') + ' trend gösteriyor.');
+            } else if (sl.includes('VOL_CONFIRM')) {
+                paragraphs.push('📊 <strong>Hacim Teyidi (' + volSpikeNum.toFixed(1) + 'x Ortalama):</strong> Fiyat toparlanırken işlem hacmi de arttı. Hacim desteği olmayan fiyat hareketleri genellikle kalıcı olmaz — bu teyit, hareketin daha güvenilir olduğunu gösterir.');
+            } else if (wl.includes('VOL_PANIC')) {
+                paragraphs.push('🚨 <strong>Panik Satışı (' + volSpikeNum.toFixed(1) + 'x Ortalama):</strong> Fiyat düşerken hacim patlaması yaşanıyor — bu panik satışının klasik görünümüdür. Olumlu tarafı: panik satışları çoğunlukla kısa sürer ve dip oluşumuna yakın gerçekleşir. Olumsuz tarafı: dip henüz gelmemiş olabilir.');
             } else if (wl.includes('VOL_SELLING')) {
-                paragraphs.push('📊 <strong>Hacimli Satış Baskısı:</strong> Fiyat düşerken işlem hacmi artıyor. Bu, piyasadan çıkmak isteyen tarafın çok sayıda olduğu anlamına gelir — panik satışı değil ama kararlı çıkış. OBV aşağı trend gösterdiğinde alım yapmak büyük oyuncuların karşı tarafında durmak demektir.');
+                paragraphs.push('📊 <strong>Hacimli Satış Baskısı (' + volSpikeNum.toFixed(1) + 'x Ortalama):</strong> Fiyat düşerken işlem hacmi artıyor. OBV aşağı trend gösterdiğinde alım yapmak büyük oyuncuların karşı tarafında durmak demektir.');
             } else if (sl.includes('OBV_UP')) {
-                paragraphs.push('📊 <strong>OBV Yükseliyor:</strong> On-Balance Volume, fiyat hareketinden bağımsız olarak sessiz alım baskısını ölçer. OBV artarken fiyat henüz tepki vermemişse bu, fiyatın önce hacmin peşinden gelmesini beklediğine işaret eder — gecikmiş fiyat hareketi olabilir.');
+                paragraphs.push('📊 <strong>OBV Yükseliyor:</strong> Hacim ' + volSpikeNum.toFixed(1) + 'x ortalamada seyrediyor. On-Balance Volume sessiz alım baskısını ölçer — OBV artarken fiyat henüz tepki vermemişse gecikmiş fiyat hareketi olabilir.');
             } else if (wl.includes('OBV_DOWN')) {
-                paragraphs.push('📊 <strong>OBV Düşüyor:</strong> Hacim analizi zayıflayan alım ilgisine işaret ediyor. Fiyat stabil görünse bile arka planda çıkış baskısı birikebilir — dikkatli olunması gereken bir sinyal.');
+                paragraphs.push('📊 <strong>OBV Düşüyor:</strong> Hacim analizi zayıflayan alım ilgisine işaret ediyor (mevcut hacim ortalamanın ' + volSpikeNum.toFixed(1) + 'x\'i). Fiyat stabil görünse bile arka planda çıkış baskısı birikebilir.');
             }
 
             // ── BÖLÜM 6: Zaman ve zarar analizi (en kritik bölüm) ──
@@ -31050,7 +31394,7 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro) {
         var detailInner = '';
         if (score < 32) {
             detailInner = `
-            <div style="padding:0 14px 14px;">${analystComment}</div>
+            <div style="padding:0 14px 14px;"><div class="rc6-analysis-scroll">${analystComment}</div></div>
             ${atrStopHtml}
             <div style="height:6px;"></div>`;
         } else {
@@ -31074,7 +31418,7 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro) {
             </div>
             <div class="rc6-analysis">
                 <div class="rc6-analysis-src"><span>${srcI} ${srcN}</span><span style="margin-left:auto;color:#374151;">Skor ${score}/100 · ${m.dataQuality||'?'} veri</span></div>
-                ${analystComment}
+                <div class="rc6-analysis-scroll">${analystComment}</div>
             </div>
             ${atrStopHtml}
             ${planHTML}
@@ -31291,29 +31635,74 @@ async function fetchCandleHistory(symbol, originalName, assetObj) {
 
     // ── BIST HİSSELERİ ──────────────────────────────────────
     if (isBIST) {
+        // ── BIST Kaynakları: Yahoo → İş Yatırım (hacim için) ───────────
+        var bistCandles = null;
         try {
             var bistSym = cleanSym + '.IS';
             var end0    = Math.floor(Date.now() / 1000);
-            var start0  = end0 - (90 * 86400);
+            var start0  = end0 - (180 * 86400);  // 180 gün
             var yUrl0   = 'https://query1.finance.yahoo.com/v8/finance/chart/' + bistSym +
                           '?interval=1d&period1=' + start0 + '&period2=' + end0;
             var d0 = await _fetchWithProxy(yUrl0, 7000);
-            if (d0) {
-                if (d0.chart && d0.chart.result && d0.chart.result[0]) {
-                    var r0    = d0.chart.result[0];
-                    var ts0   = r0.timestamp || [];
-                    var q0    = r0.indicators.quote[0];
-                    if (ts0.length > 10) {
-                        var candles0 = ts0.map(function(_, i){
-                            return { open: q0.open[i]||0, high: q0.high[i]||0,
-                                     low:  q0.low[i]||0,  close: q0.close[i]||0,
-                                     volume: q0.volume[i]||0 };
-                        }).filter(function(c){ return c.close > 0; });
-                        if (candles0.length > 10) return { candles: candles0, source: 'yahoo' };
-                    }
+            if (d0 && d0.chart && d0.chart.result && d0.chart.result[0]) {
+                var r0    = d0.chart.result[0];
+                var ts0   = r0.timestamp || [];
+                var q0    = r0.indicators.quote[0];
+                if (ts0.length > 10) {
+                    var candles0 = ts0.map(function(_, i){
+                        return { open: q0.open[i]||0, high: q0.high[i]||0,
+                                 low:  q0.low[i]||0,  close: q0.close[i]||0,
+                                 volume: q0.volume[i]||0 };
+                    }).filter(function(c){ return c.close > 0; });
+                    if (candles0.length > 10) bistCandles = candles0;
                 }
             }
         } catch(e) { console.warn('BIST Yahoo hatası:', e); }
+
+        // Hacim kalitesi kontrolü: %50'den fazla sıfır hacim varsa
+        // İkinci kaynak olarak Stooq dene (ücretsiz, BIST hacim verisi mevcut)
+        if (bistCandles) {
+            var zeroVolCount = bistCandles.filter(function(c){ return c.volume === 0; }).length;
+            var volPct = zeroVolCount / bistCandles.length;
+            if (volPct > 0.5) {
+                // Stooq.com — BIST hisseleri için hacim verisi daha güvenilir
+                try {
+                    var stooqSym = cleanSym.toLowerCase() + '.us';  // Stooq BIST formatı
+                    // Not: Stooq PL kısaltması kullanır ama proxy üzerinden denenebilir
+                    var stooqUrl = 'https://stooq.com/q/d/l/?s=' + cleanSym.toLowerCase() + '.tr&i=d';
+                    var stooqData = await _fetchWithProxy(stooqUrl, 6000);
+                    if (stooqData && typeof stooqData === 'string' && stooqData.includes(',')) {
+                        var lines = stooqData.trim().split('\n');
+                        if (lines.length > 10) {
+                            var stooqCandles = [];
+                            for (var si2 = 1; si2 < lines.length; si2++) {
+                                var parts = lines[si2].split(',');
+                                if (parts.length >= 6) {
+                                    var sc = {
+                                        open: parseFloat(parts[1])||0,
+                                        high: parseFloat(parts[2])||0,
+                                        low:  parseFloat(parts[3])||0,
+                                        close: parseFloat(parts[4])||0,
+                                        volume: parseFloat(parts[5])||0
+                                    };
+                                    if (sc.close > 0) stooqCandles.push(sc);
+                                }
+                            }
+                            if (stooqCandles.length > 10) {
+                                // Stooq'dan hacim al, Yahoo'dan fiyat kullan (daha güvenilir)
+                                var minLen = Math.min(bistCandles.length, stooqCandles.length);
+                                for (var mi = 0; mi < minLen; mi++) {
+                                    if (stooqCandles[mi].volume > 0) {
+                                        bistCandles[bistCandles.length - minLen + mi].volume = stooqCandles[mi].volume;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch(stooqErr) { console.warn('Stooq BIST hatası:', stooqErr); }
+            }
+            return { candles: bistCandles, source: 'yahoo' };
+        }
         return null;
     }
 
@@ -31324,11 +31713,11 @@ async function fetchCandleHistory(symbol, originalName, assetObj) {
             var pKey = (typeof polyApiKey !== 'undefined' && polyApiKey) ? polyApiKey : '';
             if (pKey) {
                 var dEnd   = new Date();
-                var dStart = new Date(); dStart.setDate(dStart.getDate() - 90);
+                var dStart = new Date(); dStart.setDate(dStart.getDate() - 180);  // 90→180 gün
                 var pUrl   = 'https://api.polygon.io/v2/aggs/ticker/' + cleanSym +
                              '/range/1/day/' + dStart.toISOString().split('T')[0] +
                              '/' + dEnd.toISOString().split('T')[0] +
-                             '?adjusted=true&sort=asc&limit=90&apiKey=' + pKey;
+                             '?adjusted=true&sort=asc&limit=180&apiKey=' + pKey;
                 var pRes = await fetch(pUrl);
                 if (pRes.ok) {
                     var pData = await pRes.json();
@@ -31344,7 +31733,7 @@ async function fetchCandleHistory(symbol, originalName, assetObj) {
         // Yahoo yedek
         try {
             var end1   = Math.floor(Date.now() / 1000);
-            var start1 = end1 - (90 * 86400);
+            var start1 = end1 - (180 * 86400);  // 90→180 gün
             var yUrl1  = 'https://query1.finance.yahoo.com/v8/finance/chart/' + cleanSym +
                          '?interval=1d&period1=' + start1 + '&period2=' + end1;
             var d1 = await _fetchWithProxy(yUrl1, 7000);
@@ -31378,7 +31767,7 @@ async function fetchCandleHistory(symbol, originalName, assetObj) {
         var ccSym = altSymbols[si];
         try {
             var ccUrl = 'https://min-api.cryptocompare.com/data/v2/histoday?fsym=' +
-                        ccSym + '&tsym=USD&limit=90';
+                        ccSym + '&tsym=USD&limit=180';  // 90→180 gün
             var ccRes = await fetch(ccUrl);
             if (ccRes.ok) {
                 var ccData = await ccRes.json();
@@ -31423,7 +31812,7 @@ async function fetchCandleHistory(symbol, originalName, assetObj) {
                 await new Promise(function(res){ setTimeout(res, 300); });
                 var ohlcRes = await fetch(
                     'https://api.coingecko.com/api/v3/coins/' + resolvedCgId +
-                    '/ohlc?vs_currency=usd&days=90&x_cg_demo_api_key=' + cgKey2);
+                    '/ohlc?vs_currency=usd&days=180&x_cg_demo_api_key=' + cgKey2);  // 90→180
                 if (ohlcRes.ok) {
                     var ohlcData = await ohlcRes.json();
                     if (ohlcData && ohlcData.length > 10) {
@@ -31432,7 +31821,7 @@ async function fetchCandleHistory(symbol, originalName, assetObj) {
                         try {
                             var volRes = await fetch(
                                 'https://api.coingecko.com/api/v3/coins/' + resolvedCgId +
-                                '/market_chart?vs_currency=usd&days=90&interval=daily&x_cg_demo_api_key=' + cgKey2);
+                                '/market_chart?vs_currency=usd&days=180&interval=daily&x_cg_demo_api_key=' + cgKey2);  // 90→180
                             if (volRes.ok) {
                                 var volData = await volRes.json();
                                 volumes = (volData.total_volumes || []).map(function(v){ return v[1]; });
@@ -31456,7 +31845,7 @@ async function fetchCandleHistory(symbol, originalName, assetObj) {
         var binSym = altSymbols[bi] + 'USDT';
         try {
             var binRes = await fetch(
-                'https://api.binance.com/api/v3/klines?symbol=' + binSym + '&interval=1d&limit=90');
+                'https://api.binance.com/api/v3/klines?symbol=' + binSym + '&interval=1d&limit=180');  // 90→180
             if (binRes.ok) {
                 var binData = await binRes.json();
                 if (binData && binData.length > 10) {
