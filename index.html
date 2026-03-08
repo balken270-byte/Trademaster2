@@ -4299,13 +4299,22 @@ input:checked + .tgl-slider:before { transform: translateX(20px); }
 .s-tab.seg-style {
     flex: 1;
     text-align: center;
-    padding: 8px;
-    font-size: 11px;
+    padding: 8px 4px;
+    font-size: 10px;
     font-weight: 600;
     color: var(--text-sub);
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    line-height: 1.2;
+}
+.s-tab.seg-style i {
+    font-size: 13px;
+    display: block;
 }
 .s-tab.seg-style.active {
     background: var(--bg-card);
@@ -8393,10 +8402,10 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 
     <div class="settings-tabs segmented" style="margin-bottom: 20px;">
-        <div class="s-tab seg-style active" onclick="switchAnTab('perf', this)">PERFORMANS</div>
-        <div class="s-tab seg-style" onclick="switchAnTab('lab', this)">AR-GE</div>
-        <div class="s-tab seg-style" onclick="switchAnTab('vision', this)">HEDEFLERİM</div>
-        <div class="s-tab seg-style psycho-tab" onclick="switchAnTab('psycho', this)">PSİKOLOJİ</div>
+        <div class="s-tab seg-style active" onclick="switchAnTab('perf', this)"><i class="fas fa-chart-bar" style="margin-right:5px;font-size:11px;"></i>PERFORMANS</div>
+        <div class="s-tab seg-style" onclick="switchAnTab('lab', this)"><i class="fas fa-flask" style="margin-right:5px;font-size:11px;"></i>AR-GE</div>
+        <div class="s-tab seg-style" onclick="switchAnTab('vision', this)"><i class="fas fa-bullseye" style="margin-right:5px;font-size:11px;"></i>HEDEFLERİM</div>
+        <div class="s-tab seg-style psycho-tab" onclick="switchAnTab('psycho', this)"><i class="fas fa-brain" style="margin-right:5px;font-size:11px;"></i>PSİKOLOJİ</div>
     </div>
 
     
@@ -12710,14 +12719,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <!-- Tab Navigation - Kompakt versiyon -->
     <div class="lab-tab-nav">
-        <button class="chart-filter-btn active" onclick="switchLabTool('growth', this)">
-            <i class="fas fa-chart-line"></i>
-            <span>Büyüme</span>
-        </button>
-        <button class="chart-filter-btn" onclick="switchLabTool('risk', this)">
-            <i class="fas fa-shield-halved"></i>
-            <span>Risk</span>
-        </button>
         <button class="chart-filter-btn" onclick="switchLabTool('avg', this)">
             <i class="fas fa-chess-knight"></i>
             <span>Maliyet</span>
@@ -12726,14 +12727,22 @@ document.addEventListener('DOMContentLoaded', function() {
             <i class="fas fa-clock-rotate-left"></i>
             <span>Zaman</span>
         </button>
+        <button class="chart-filter-btn" onclick="switchLabTool('risk', this)">
+            <i class="fas fa-shield-halved"></i>
+            <span>Risk</span>
+        </button>
         <button class="chart-filter-btn" onclick="switchLabTool('pos', this)">
             <i class="fas fa-wand-magic-sparkles"></i>
             <span>Sihirbaz</span>
         </button>
+        <button class="chart-filter-btn active" onclick="switchLabTool('growth', this)">
+            <i class="fas fa-chart-line"></i>
+            <span>Büyüme</span>
+        </button>
     </div>
 
     <!-- ========== GROWTH TOOL ========== -->
-    <div id="lab-tool-growth" class="lab-tool-container">
+    <div id="lab-tool-growth" class="lab-tool-container" style="display:none;">
         <div class="lab-glass-card">
             <div class="lab-tool-header">
                 <div class="lab-tool-icon gold"><i class="fas fa-flask"></i></div>
@@ -12972,7 +12981,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 
     <!-- ========== AVERAGE DOWN TOOL ========== -->
-    <div id="lab-tool-avg" class="lab-tool-container" style="display:none;">
+    <div id="lab-tool-avg" class="lab-tool-container" style="display:block;">
         <div class="lab-glass-card">
             <div class="lab-tool-header">
                 <div class="lab-tool-icon sky"><i class="fas fa-chess-knight"></i></div>
@@ -12997,19 +13006,19 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
 
             <div class="lab-mode-toggle">
-    <div class="sim-tab active" onclick="switchAvgMode('budget', this)">
+    <div class="sim-tab active" onclick="switchAvgMode('auto', this)">
+        <i class="fas fa-life-ring"></i> AI Kurtarıcı
+    </div>
+    <div class="sim-tab" onclick="switchAvgMode('budget', this)">
         <i class="fas fa-wallet"></i> Bütçe Planı
     </div>
     <div class="sim-tab" onclick="switchAvgMode('target', this)">
         <i class="fas fa-crosshairs"></i> Hedef Fiyat
     </div>
-    <div class="sim-tab" onclick="switchAvgMode('auto', this)">
-        <i class="fas fa-life-ring"></i> AI Kurtarıcı
-    </div>
 </div>
 
 
-    <div id="avg-manual-inputs" class="lab-form-grid">
+    <div id="avg-manual-inputs" class="lab-form-grid" style="display:none;">
     <div class="lab-form-group">
         <label class="lab-form-label">Eldeki Adet</label>
         <input type="number" id="aaOldQty" class="lab-input" placeholder="0">
@@ -13029,7 +13038,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             
             <!-- Budget Mode -->
-            <div id="avg-mode-budget">
+            <div id="avg-mode-budget" style="display:none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <span class="lab-form-label" style="color: var(--lab-accent-sky);">Ne kadar ekleyebilirsin? (Nakit)</span>
                     <span id="sliderValDisplay" style="font-size: 11px; color: var(--lab-accent-sky); font-weight: 600;">0</span>
@@ -13061,7 +13070,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
 
 
-<div id="avg-mode-auto" style="display:none; animation: fadeIn 0.4s;">
+<div id="avg-mode-auto" style="display:block; animation: fadeIn 0.4s;">
     
     <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1)); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; padding: 20px; margin-bottom: 20px; position:relative; overflow:hidden;">
         <div style="position:absolute; top:-20px; right:-20px; width:100px; height:100px; background:radial-gradient(circle, rgba(52,211,153,0.2) 0%, transparent 70%); border-radius:50%;"></div>
@@ -18163,7 +18172,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.9"; 
+    const CURRENT_VERSION = "1.8"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -26617,6 +26626,17 @@ function switchAnTab(tab, btn) {
                 const labStart = document.getElementById('labStart');
                 if(currentNet > 0 && labStart && !labStart.value) labStart.value = currentNet;
             }
+            // AR-GE açılınca varsayılan sekme: Maliyet + AI Kurtarıcı kasa güncelle
+            setTimeout(function() {
+                var maliyetBtn = document.querySelector(".lab-tab-nav .chart-filter-btn[onclick*=\"'avg'\"]");
+                if (maliyetBtn && typeof switchLabTool === 'function') {
+                    switchLabTool('avg', maliyetBtn);
+                }
+                var autoBtn = document.querySelector(".lab-mode-toggle .sim-tab[onclick*=\"'auto'\"]");
+                if (typeof switchAvgMode === 'function') {
+                    switchAvgMode('auto', autoBtn);
+                }
+            }, 150);
         }
         
         // ---> GÜVENLİ ÇAĞRI <---
@@ -29431,6 +29451,20 @@ window.switchAnTab = function(tab, btn) {
     // Veri yükleyiciler
     if(tab === 'vision' && typeof loadVisionData === 'function') loadVisionData();
     if(tab === 'lab' && typeof populateRiskAssets === 'function') populateRiskAssets();
+    if(tab === 'lab') {
+        // AR-GE açılınca varsayılan sekme: Maliyet
+        setTimeout(function() {
+            var maliyetBtn = document.querySelector(".lab-tab-nav .chart-filter-btn[onclick*=\"'avg'\"]");
+            if (maliyetBtn && typeof switchLabTool === 'function') {
+                switchLabTool('avg', maliyetBtn);
+            }
+            // AI Kurtarıcı varsayılan aktif: kasa bakiyesini güncelle
+            var autoBtn = document.querySelector(".lab-mode-toggle .sim-tab[onclick*=\"'auto'\"]");
+            if (typeof switchAvgMode === 'function') {
+                switchAvgMode('auto', autoBtn);
+            }
+        }, 100);
+    }
     if(tab === 'perf') {
         if(typeof updateGoalVisuals === 'function') setTimeout(updateGoalVisuals, 30);
         if(typeof renderDailyChart === 'function') setTimeout(renderDailyChart, 30);
