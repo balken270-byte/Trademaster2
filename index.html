@@ -12942,6 +12942,465 @@ document.addEventListener('DOMContentLoaded', function() {
     #an-view-lab .lab-big-number-value { font-size: 28px; }
     #an-view-lab .lab-tool-header { flex-direction: column; text-align: center; }
 }
+
+/* ─────────────────────────────────────────
+   RISK COCKPIT PREMIUM STYLES
+───────────────────────────────────────── */
+#lab-tool-risk {
+  --rc-void:       #03050d;
+  --rc-deep:       #070a14;
+  --rc-surface:    #0c1120;
+  --rc-raise:      #111928;
+  --rc-lift:       #18212f;
+  --rc-glass:      rgba(11,16,30,0.82);
+  --rc-glass2:     rgba(16,23,42,0.65);
+  --rc-border0:    rgba(255,255,255,0.04);
+  --rc-border1:    rgba(255,255,255,0.07);
+  --rc-border2:    rgba(255,255,255,0.12);
+  --rc-gold:       #C8A84B;
+  --rc-gold2:      #e2c97e;
+  --rc-gold-a12:   rgba(200,168,75,0.12);
+  --rc-gold-a20:   rgba(200,168,75,0.20);
+  --rc-gold-a30:   rgba(200,168,75,0.30);
+  --rc-rose:       #f43f5e;
+  --rc-rose-a12:   rgba(244,63,94,0.12);
+  --rc-rose-a25:   rgba(244,63,94,0.25);
+  --rc-teal:       #0dd9a4;
+  --rc-teal-a12:   rgba(13,217,164,0.12);
+  --rc-teal-a25:   rgba(13,217,164,0.25);
+  --rc-sky:        #56b4f0;
+  --rc-sky-a12:    rgba(86,180,240,0.12);
+  --rc-violet:     #a78bfa;
+  --rc-violet-a12: rgba(167,139,250,0.12);
+  --rc-hi:   #eef2ff;
+  --rc-mid:  #8494b0;
+  --rc-lo:   #3d4e66;
+  --rc-mono: 'DM Mono', monospace;
+  --rc-r1: 8px; --rc-r2: 14px; --rc-r3: 20px;
+  font-family: 'Outfit', sans-serif;
+  padding-bottom: 20px;
+}
+#lab-tool-risk .rc-tabs {
+  display: flex;
+  background: rgba(7,10,20,0.9);
+  border-bottom: 1px solid var(--rc-border0);
+  margin: 0 -1px 0;
+  position: sticky; top: -1px; z-index: 50;
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px);
+  margin: 0 -16px;
+  padding: 0;
+}
+#lab-tool-risk .rc-tab {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 13px 0;
+  font-size: 12px; font-weight: 600; color: var(--rc-lo);
+  border-bottom: 2px solid transparent;
+  cursor: pointer; transition: all .22s; user-select: none; letter-spacing: .2px;
+}
+#lab-tool-risk .rc-tab i { font-size: 14px; }
+#lab-tool-risk .rc-tab.active {
+  color: var(--rc-gold);
+  border-bottom-color: var(--rc-gold);
+  background: linear-gradient(180deg, transparent 50%, rgba(200,168,75,.04) 100%);
+}
+#lab-tool-risk .rc-pv { display: none; padding-bottom: 20px; }
+#lab-tool-risk .rc-pv.active {
+  display: block;
+  animation: rcFadeUp .28s cubic-bezier(.4,0,.2,1) forwards;
+}
+@keyframes rcFadeUp {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+/* Section heading */
+#lab-tool-risk .rc-sec-head {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  padding: 18px 4px 10px;
+}
+#lab-tool-risk .rc-sec-title {
+  font-size: 18px; font-weight: 800; letter-spacing: -.4px; line-height: 1.1; color: var(--rc-hi);
+}
+#lab-tool-risk .rc-sec-title span {
+  display: block; font-size: 10px; font-weight: 500;
+  color: var(--rc-mid); margin-top: 3px;
+}
+#lab-tool-risk .rc-sec-action {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 600; color: var(--rc-gold); cursor: pointer;
+}
+/* Metric strip */
+#lab-tool-risk .rc-metric-strip {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 7px; margin-bottom: 10px;
+}
+#lab-tool-risk .rc-mchip {
+  background: var(--rc-glass);
+  border: 1px solid var(--rc-border1);
+  border-radius: var(--rc-r2); padding: 11px 8px 9px;
+  text-align: center; position: relative; overflow: hidden;
+}
+#lab-tool-risk .rc-mchip::after {
+  content: ''; position: absolute; top:0; left:0; right:0; height:1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.07), transparent);
+}
+#lab-tool-risk .rc-mchip-lbl {
+  font-size: 7px; color: var(--rc-lo);
+  letter-spacing: 1.2px; text-transform: uppercase;
+  font-family: var(--rc-mono); margin-bottom: 5px;
+}
+#lab-tool-risk .rc-mchip-val {
+  font-size: 15px; font-weight: 800; font-family: var(--rc-mono); line-height: 1;
+}
+#lab-tool-risk .rc-mchip-val.gold { color: var(--rc-gold); }
+#lab-tool-risk .rc-mchip-val.rose { color: var(--rc-rose); }
+#lab-tool-risk .rc-mchip-val.teal { color: var(--rc-teal); }
+#lab-tool-risk .rc-mchip-sub { font-size: 8px; color: var(--rc-lo); margin-top: 2px; font-family: var(--rc-mono); }
+/* Card */
+#lab-tool-risk .rc-card {
+  background: var(--rc-glass);
+  border: 1px solid var(--rc-border1);
+  border-radius: var(--rc-r3); padding: 16px;
+  margin-bottom: 10px; position: relative; overflow: hidden;
+}
+#lab-tool-risk .rc-card::after {
+  content: ''; position: absolute; top:0; left:10%; right:10%; height:1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);
+}
+#lab-tool-risk .rc-card.gold-accent { border-color: var(--rc-gold-a20); }
+#lab-tool-risk .rc-card.rose-accent { border-color: var(--rc-rose-a25); }
+#lab-tool-risk .rc-card.teal-accent { border-color: var(--rc-teal-a25); }
+#lab-tool-risk .rc-card.violet-accent { border-color: rgba(167,139,250,.22); }
+/* Clabel */
+#lab-tool-risk .rc-clabel {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 9px; font-weight: 700; color: var(--rc-lo);
+  letter-spacing: 1.5px; text-transform: uppercase;
+  font-family: var(--rc-mono); margin-bottom: 12px;
+}
+#lab-tool-risk .rc-clabel-dot {
+  width: 4px; height: 4px; border-radius: 50%; background: var(--rc-gold);
+}
+#lab-tool-risk .rc-clabel-dot.rose { background: var(--rc-rose); }
+#lab-tool-risk .rc-clabel-dot.teal { background: var(--rc-teal); }
+#lab-tool-risk .rc-clabel-dot.violet { background: var(--rc-violet); }
+/* Input rows */
+#lab-tool-risk .rc-inp-group { display: flex; flex-direction: column; gap: 6px; }
+#lab-tool-risk .rc-inp-group-title {
+  font-size: 9px; color: var(--rc-lo);
+  letter-spacing: 1.3px; text-transform: uppercase;
+  font-family: var(--rc-mono); padding: 0 2px; margin-top: 2px;
+}
+#lab-tool-risk .rc-inp-row {
+  display: flex; align-items: center; height: 44px;
+  background: var(--rc-raise); border: 1px solid var(--rc-border1);
+  border-radius: var(--rc-r2); padding: 0 12px;
+  transition: border-color .2s, box-shadow .2s;
+}
+#lab-tool-risk .rc-inp-row:focus-within {
+  border-color: var(--rc-gold-a30);
+  box-shadow: 0 0 0 3px rgba(200,168,75,.05);
+}
+#lab-tool-risk .rc-inp-row.red:focus-within {
+  border-color: var(--rc-rose-a25); box-shadow: 0 0 0 3px rgba(244,63,94,.05);
+}
+#lab-tool-risk .rc-inp-row.green:focus-within {
+  border-color: var(--rc-teal-a25); box-shadow: 0 0 0 3px rgba(13,217,164,.05);
+}
+#lab-tool-risk .rc-inp-lbl {
+  font-size: 9px; color: var(--rc-lo);
+  font-family: var(--rc-mono); letter-spacing: .7px;
+  text-transform: uppercase; width: 52px; flex-shrink: 0;
+}
+#lab-tool-risk .rc-inp-sep {
+  width: 1px; height: 16px; background: var(--rc-border1); margin: 0 10px; flex-shrink: 0;
+}
+#lab-tool-risk .rc-inp-field {
+  flex: 1; background: transparent; border: none;
+  color: var(--rc-hi); font-family: var(--rc-mono);
+  font-size: 13px; font-weight: 500; outline: none; padding: 0;
+  -webkit-appearance: none; -moz-appearance: textfield;
+}
+#lab-tool-risk .rc-inp-field::-webkit-inner-spin-button,
+#lab-tool-risk .rc-inp-field::-webkit-outer-spin-button { -webkit-appearance: none; }
+#lab-tool-risk .rc-inp-field::placeholder { color: var(--rc-lo); font-size: 11px; font-weight: 400; }
+#lab-tool-risk select.rc-inp-field { cursor: pointer; }
+#lab-tool-risk .rc-inp-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+#lab-tool-risk .rc-div-line { height: 1px; background: var(--rc-border0); margin: 12px 0; }
+/* Kelly hint */
+#lab-tool-risk .rc-kelly-hint {
+  display: none; margin-top: 10px; padding: 9px 11px; border-radius: var(--rc-r2);
+  font-size: 11px; line-height: 1.5;
+  background: var(--rc-gold-a12); border: 1px solid var(--rc-gold-a20); color: var(--rc-gold);
+}
+/* Result box */
+#lab-tool-risk .rc-result-box {
+  background: linear-gradient(145deg, rgba(8,12,24,.9), rgba(5,8,18,.95));
+  border: 1px solid var(--rc-border1);
+  border-radius: var(--rc-r3); padding: 16px;
+  position: relative; overflow: hidden; margin-top: 10px;
+}
+#lab-tool-risk .rc-result-box::before {
+  content: ''; position: absolute; top:0; left:-120%; right:0; height: 1.5px;
+  background: linear-gradient(90deg, transparent 0%, var(--rc-gold) 50%, transparent 100%);
+  animation: rcScanGold 4s ease-in-out infinite; pointer-events: none;
+}
+#lab-tool-risk .rc-result-box.rose-scan::before {
+  background: linear-gradient(90deg, transparent 0%, var(--rc-rose) 50%, transparent 100%);
+}
+@keyframes rcScanGold {
+  0%   { left:-120%; opacity:0; } 8%  { opacity:1; }
+  92%  { opacity:1; } 100% { left:120%; opacity:0; }
+}
+#lab-tool-risk .rc-res-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;
+}
+#lab-tool-risk .rc-res-cell {
+  background: rgba(0,0,0,.28); border-radius: var(--rc-r2); padding: 11px; text-align: center;
+}
+#lab-tool-risk .rc-res-lbl {
+  font-size: 8px; color: var(--rc-lo); letter-spacing: 1.1px; text-transform: uppercase;
+  font-family: var(--rc-mono); margin-bottom: 4px;
+}
+#lab-tool-risk .rc-res-val {
+  font-size: 20px; font-weight: 800; font-family: var(--rc-mono); line-height: 1;
+}
+#lab-tool-risk .rc-rr-wrap {
+  background: rgba(0,0,0,.22); border-radius: var(--rc-r2); padding: 11px 13px; margin-bottom: 9px;
+}
+#lab-tool-risk .rc-rr-track {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+}
+#lab-tool-risk .rc-rr-risk {
+  height: 6px; border-radius: 4px; background: var(--rc-rose); width: 36px; flex-shrink: 0;
+}
+#lab-tool-risk .rc-rr-vs { font-size: 9px; color: var(--rc-lo); font-family: var(--rc-mono); flex-shrink: 0; }
+#lab-tool-risk .rc-rr-reward {
+  height: 6px; border-radius: 4px; background: var(--rc-teal);
+  transition: width .45s ease; min-width: 6px;
+}
+#lab-tool-risk .rc-rr-foot { display: flex; justify-content: space-between; align-items: flex-end; }
+#lab-tool-risk .rc-rr-ratio { font-size: 20px; font-weight: 800; font-family: var(--rc-mono); }
+#lab-tool-risk .rc-rr-bewr { font-size: 11px; font-family: var(--rc-mono); color: var(--rc-mid); }
+#lab-tool-risk .rc-rr-bewr-lbl { font-size: 8px; color: var(--rc-lo); font-family: var(--rc-mono); letter-spacing: 1px; }
+#lab-tool-risk .rc-advice-row {
+  display: flex; align-items: flex-start; gap: 8px;
+  background: rgba(0,0,0,.2); border-radius: var(--rc-r1); padding: 9px 11px;
+}
+#lab-tool-risk .rc-advice-row i { color: var(--rc-gold); margin-top: 2px; flex-shrink: 0; font-size: 12px; }
+#lab-tool-risk .rc-advice-row span { font-size: 11px; color: var(--rc-mid); line-height: 1.55; }
+#lab-tool-risk .rc-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 9px; border-radius: 20px;
+  font-size: 9px; font-weight: 700; font-family: var(--rc-mono); letter-spacing: .7px;
+}
+#lab-tool-risk .rc-tag.teal { background: var(--rc-teal-a12); color: var(--rc-teal); }
+#lab-tool-risk .rc-tag.rose { background: var(--rc-rose-a12); color: var(--rc-rose); }
+#lab-tool-risk .rc-tag.gold { background: var(--rc-gold-a12); color: var(--rc-gold); }
+/* Portfolio gauge */
+#lab-tool-risk .rc-pf-wrap { display: flex; align-items: center; gap: 14px; }
+#lab-tool-risk .rc-gauge-svg-wrap { position: relative; width: 80px; height: 80px; flex-shrink: 0; }
+#lab-tool-risk .rc-gauge-svg-wrap svg { display: block; }
+#lab-tool-risk .rc-gauge-center {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+#lab-tool-risk .rc-gauge-pct { font-size: 13px; font-weight: 800; font-family: var(--rc-mono); line-height: 1; transition: color .4s; }
+#lab-tool-risk .rc-gauge-lbl { font-size: 7px; color: var(--rc-lo); font-family: var(--rc-mono); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+#lab-tool-risk .rc-pf-info { flex: 1; }
+#lab-tool-risk .rc-pf-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+#lab-tool-risk .rc-pf-row-lbl { font-size: 10px; font-weight: 500; color: var(--rc-mid); }
+#lab-tool-risk .rc-pf-row-val { font-size: 13px; font-weight: 800; font-family: var(--rc-mono); }
+#lab-tool-risk .rc-gauge-bar { height: 4px; background: var(--rc-raise); border-radius: 4px; overflow: hidden; margin: 5px 0; }
+#lab-tool-risk .rc-gauge-bar-fill {
+  height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, var(--rc-teal), var(--rc-gold)); transition: width .55s ease;
+}
+#lab-tool-risk .rc-pf-remaining { font-size: 10px; color: var(--rc-lo); }
+#lab-tool-risk .rc-pf-remaining b { color: var(--rc-teal); font-family: var(--rc-mono); }
+#lab-tool-risk .rc-pf-warn {
+  display: none; margin-top: 10px; padding: 9px 11px;
+  background: var(--rc-rose-a12); border: 1px solid var(--rc-rose-a25);
+  border-radius: var(--rc-r2); font-size: 11px; color: #fca5a5; line-height: 1.5;
+}
+#lab-tool-risk .rc-pf-warn i { color: var(--rc-rose); margin-right: 5px; }
+/* Positions */
+#lab-tool-risk .rc-pos-item {
+  display: flex; align-items: center; gap: 9px;
+  background: var(--rc-raise); border-radius: var(--rc-r2);
+  padding: 9px 11px; margin-bottom: 6px;
+  border-left: 3px solid var(--rc-rose);
+}
+#lab-tool-risk .rc-pos-item-body { flex: 1; }
+#lab-tool-risk .rc-pos-name { font-size: 12px; font-weight: 700; color: var(--rc-hi); }
+#lab-tool-risk .rc-pos-meta { font-size: 10px; color: var(--rc-mid); margin-top: 2px; font-family: var(--rc-mono); }
+#lab-tool-risk .rc-pos-del { background: none; border: none; color: var(--rc-lo); cursor: pointer; font-size: 12px; padding: 4px; transition: color .2s; }
+#lab-tool-risk .rc-pos-del:hover { color: var(--rc-rose); }
+#lab-tool-risk .rc-add-btn {
+  width: 100%; padding: 12px;
+  background: linear-gradient(135deg, var(--rc-gold) 0%, #a8772a 100%);
+  border: none; border-radius: var(--rc-r2);
+  font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 700;
+  color: #050a12; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all .2s; box-shadow: 0 4px 18px rgba(200,168,75,.18); margin-top: 8px;
+}
+#lab-tool-risk .rc-add-btn:active { transform: scale(.98); box-shadow: none; }
+/* Chaos accordion */
+#lab-tool-risk .rc-ac-item {
+  background: var(--rc-glass); border: 1px solid var(--rc-border1);
+  border-radius: var(--rc-r3); margin-bottom: 8px;
+  overflow: hidden; position: relative; transition: border-color .25s;
+}
+#lab-tool-risk .rc-ac-item::before {
+  content: ''; position: absolute; top:0; left:0; width: 3px; height: 100%;
+  border-radius: 3px 0 0 3px; background: var(--rc-rose); opacity:0; transition: opacity .25s; z-index: 2;
+}
+#lab-tool-risk .rc-ac-item.ci-teal::before { background: var(--rc-teal); }
+#lab-tool-risk .rc-ac-item.ci-gold::before { background: var(--rc-gold); }
+#lab-tool-risk .rc-ac-item.ci-sky::before  { background: var(--rc-sky); }
+#lab-tool-risk .rc-ac-item.open { border-color: rgba(244,63,94,.22); }
+#lab-tool-risk .rc-ac-item.ci-teal.open { border-color: var(--rc-teal-a25); }
+#lab-tool-risk .rc-ac-item.ci-gold.open { border-color: var(--rc-gold-a20); }
+#lab-tool-risk .rc-ac-item.open::before  { opacity: 1; }
+#lab-tool-risk .rc-ac-trigger {
+  display: flex; align-items: center; gap: 11px;
+  padding: 13px 15px; cursor: pointer; user-select: none; transition: background .18s;
+}
+#lab-tool-risk .rc-ac-icon { font-size: 24px; line-height: 1; flex-shrink: 0; }
+#lab-tool-risk .rc-ac-info { flex: 1; }
+#lab-tool-risk .rc-ac-name { font-size: 13px; font-weight: 700; color: var(--rc-hi); }
+#lab-tool-risk .rc-ac-desc { font-size: 10px; color: var(--rc-lo); margin-top: 2px; font-family: var(--rc-mono); }
+#lab-tool-risk .rc-ac-right { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+#lab-tool-risk .rc-ac-impact-tag {
+  font-size: 9px; font-weight: 700; font-family: var(--rc-mono);
+  padding: 3px 7px; border-radius: 20px;
+  background: var(--rc-rose-a12); color: var(--rc-rose);
+}
+#lab-tool-risk .rc-ac-item.ci-teal .rc-ac-impact-tag { background: var(--rc-teal-a12); color: var(--rc-teal); }
+#lab-tool-risk .rc-ac-item.ci-gold .rc-ac-impact-tag { background: var(--rc-gold-a12); color: var(--rc-gold); }
+#lab-tool-risk .rc-ac-chevron { color: var(--rc-lo); font-size: 11px; transition: transform .32s cubic-bezier(.4,0,.2,1); }
+#lab-tool-risk .rc-ac-item.open .rc-ac-chevron { transform: rotate(180deg); }
+#lab-tool-risk .rc-ac-body { max-height: 0; overflow: hidden; transition: max-height .38s cubic-bezier(.4,0,.2,1); }
+#lab-tool-risk .rc-ac-item.open .rc-ac-body { max-height: 460px; }
+#lab-tool-risk .rc-ac-inner { padding: 0 15px 15px; border-top: 1px solid var(--rc-border0); padding-top: 13px; }
+#lab-tool-risk .rc-badge-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+#lab-tool-risk .rc-ibadge {
+  display: flex; align-items: center; gap: 4px;
+  background: rgba(0,0,0,.3); border: 1px solid var(--rc-border1);
+  border-radius: var(--rc-r1); padding: 4px 9px; font-size: 10px; font-family: var(--rc-mono);
+}
+#lab-tool-risk .rc-ibadge-lbl { color: var(--rc-lo); }
+#lab-tool-risk .rc-ibadge-val { font-weight: 700; }
+#lab-tool-risk .rc-ibadge-val.red { color: var(--rc-rose); }
+#lab-tool-risk .rc-ibadge-val.green { color: var(--rc-teal); }
+#lab-tool-risk .rc-ibadge-val.neu { color: var(--rc-mid); }
+#lab-tool-risk .rc-sim-result { background: rgba(0,0,0,.22); border-radius: var(--rc-r2); padding: 12px; }
+#lab-tool-risk .rc-sim-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px; }
+#lab-tool-risk .rc-sim-lbl { font-size: 9px; color: var(--rc-lo); font-family: var(--rc-mono); letter-spacing: 1px; }
+#lab-tool-risk .rc-sim-val { font-size: 19px; font-weight: 800; font-family: var(--rc-mono); }
+#lab-tool-risk .rc-sim-bar { height: 5px; background: var(--rc-raise); border-radius: 5px; overflow: hidden; margin-bottom: 7px; }
+#lab-tool-risk .rc-sim-bar-fill { height: 100%; border-radius: 5px; background: var(--rc-rose); transition: width .5s ease, background .4s; }
+#lab-tool-risk .rc-sim-change { font-size: 11px; font-family: var(--rc-mono); font-weight: 700; }
+#lab-tool-risk .rc-sim-advice { font-size: 11px; color: var(--rc-mid); line-height: 1.5; margin-top: 9px; }
+/* Custom chaos inputs */
+#lab-tool-risk .rc-cust-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 11px; }
+#lab-tool-risk .rc-cust-cell { display: flex; flex-direction: column; gap: 3px; }
+#lab-tool-risk .rc-cust-lbl { font-size: 9px; color: var(--rc-lo); font-family: var(--rc-mono); letter-spacing: 1px; text-transform: uppercase; }
+#lab-tool-risk .rc-cust-inp {
+  background: var(--rc-raise); border: 1px solid var(--rc-border1);
+  border-radius: var(--rc-r1); padding: 8px 10px;
+  color: var(--rc-hi); font-family: var(--rc-mono); font-size: 13px;
+  outline: none; transition: border-color .2s; width: 100%;
+}
+#lab-tool-risk .rc-cust-inp:focus { border-color: var(--rc-gold-a30); }
+/* Mini tools */
+#lab-tool-risk .rc-mini-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 10px; }
+#lab-tool-risk .rc-mini-card {
+  background: var(--rc-glass); border: 1px solid var(--rc-border1);
+  border-radius: var(--rc-r3); padding: 14px; position: relative; overflow: hidden;
+}
+#lab-tool-risk .rc-mini-card::after {
+  content: ''; position: absolute; top:0; left:10%; right:10%; height:1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.07), transparent);
+}
+#lab-tool-risk .rc-mini-big { font-size: 24px; font-weight: 800; font-family: var(--rc-mono); line-height: 1; margin: 6px 0 3px; transition: color .3s; }
+#lab-tool-risk .rc-mini-sub { font-size: 9px; color: var(--rc-lo); font-family: var(--rc-mono); }
+#lab-tool-risk .rc-range-wrap { margin: 7px 0; }
+#lab-tool-risk .rc-pslider {
+  width: 100%; height: 4px; -webkit-appearance: none; appearance: none;
+  background: var(--rc-raise); border-radius: 4px; outline: none; cursor: pointer;
+}
+#lab-tool-risk .rc-pslider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--rc-hi); border: 2px solid var(--rc-rose); cursor: pointer; transition: transform .15s;
+}
+#lab-tool-risk .rc-mini-inp-row {
+  display: flex; align-items: center; height: 32px;
+  background: var(--rc-raise); border: 1px solid var(--rc-border1);
+  border-radius: 8px; padding: 0 8px; transition: border-color .2s;
+}
+#lab-tool-risk .rc-mini-inp-row:focus-within { border-color: var(--rc-gold-a20); }
+#lab-tool-risk .rc-mini-inp-lbl { font-size: 8px; color: var(--rc-lo); font-family: var(--rc-mono); width: 24px; }
+#lab-tool-risk .rc-mini-inp { flex:1; background:transparent; border:none; color:var(--rc-hi); font-family:var(--rc-mono); font-size:12px; outline:none; padding:0; -webkit-appearance:none; }
+/* History */
+#lab-tool-risk .rc-hist-item {
+  background: var(--rc-raise); border-radius: var(--rc-r2);
+  padding: 9px 11px; margin-bottom: 6px; border-left: 3px solid var(--rc-violet);
+}
+#lab-tool-risk .rc-hist-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
+#lab-tool-risk .rc-hist-title { font-size: 11px; font-weight: 700; color: var(--rc-hi); }
+#lab-tool-risk .rc-hist-date { font-size: 9px; color: var(--rc-lo); font-family: var(--rc-mono); }
+#lab-tool-risk .rc-hist-detail { font-size: 10px; color: var(--rc-mid); font-family: var(--rc-mono); }
+/* Utility */
+#lab-tool-risk .rc-empty-state { text-align: center; padding: 16px; color: var(--rc-lo); font-size: 12px; line-height: 1.6; }
+#lab-tool-risk .rc-div-btn { background: none; border: none; color: var(--rc-lo); cursor: pointer; font-size: 11px; padding: 0; display:flex; align-items:center; gap:4px; }
+
+/* Portfolio chips */
+#lab-tool-risk .rc-pf-chips-row {
+  display: none; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;
+}
+#lab-tool-risk .rc-pf-chip {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--rc-raise); border: 1px solid var(--rc-border1);
+  border-radius: 30px; padding: 6px 12px;
+  font-size: 11px; font-weight: 700; color: var(--rc-mid);
+  font-family: var(--rc-mono); cursor: pointer;
+  transition: all .18s; white-space: nowrap;
+}
+#lab-tool-risk .rc-pf-chip span {
+  font-size: 10px; color: var(--rc-lo); font-weight: 400; margin-left: 2px;
+}
+#lab-tool-risk .rc-pf-chip:active { transform: scale(.94); }
+/* Enhanced input row focus state */
+#lab-tool-risk .rc-inp-row:hover {
+  border-color: rgba(255,255,255,0.1);
+}
+/* Kelly section */
+#lab-tool-risk .rc-kelly-wrap {
+  background: rgba(200,168,75,0.05);
+  border: 1px solid var(--rc-gold-a12);
+  border-radius: var(--rc-r2);
+  padding: 12px;
+  margin-top: 2px;
+}
+#lab-tool-risk .rc-kelly-mode-btn {
+  flex: 1; padding: 7px 4px;
+  background: var(--rc-raise);
+  border: 1px solid var(--rc-border1);
+  border-radius: var(--rc-r1);
+  color: var(--rc-lo);
+  font-family: var(--rc-mono); font-size: 11px; font-weight: 700;
+  cursor: pointer; transition: all .18s;
+}
+#lab-tool-risk .rc-kelly-mode-btn.active {
+  background: rgba(200,168,75,0.15);
+  border-color: var(--rc-gold);
+  color: var(--rc-gold);
+}
+/* Portföy sec-head fix */
+#lab-tool-risk .rc-portfoy-sec { padding-top: 20px; }
+
 </style>
 
 <div id="an-view-lab" class="an-view-section lab-fullscreen-mode" style="display:none;">
@@ -13120,124 +13579,533 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <!-- ========== RISK TOOL ========== -->
     <div id="lab-tool-risk" class="lab-tool-container" style="display:none;">
-        <div class="lab-glass-card">
-            <div class="lab-tool-header">
-                <div class="lab-tool-icon rose"><i class="fas fa-radiation"></i></div>
-                <div class="lab-tool-info">
-                    <h3>Risk & Pozisyon Yönetimi</h3>
-                    <p>Portföyünün krizlere dayanıklılığını test edin</p>
-                </div>
-            </div>
 
-            <!-- Chaos Room -->
-            <div class="lab-section-label" style="color: var(--lab-accent-rose);">Kaos Odası</div>
-            
-            <div class="custom-select-wrapper" style="width:100%; margin-bottom:12px;">
-                <button type="button" class="custom-select-btn" id="chaosScenarioSelectBtn" onclick="toggleCustomSelect('chaosScenario')" style="width:100%;">
-                    <span class="cs-label" id="chaosScenarioSelectLabel">🔮 Senaryo Seçiniz...</span>
-                    <span class="cs-arrow" id="chaosScenarioSelectArrow">▼</span>
-                </button>
-                <div class="custom-select-dropdown" id="chaosScenarioSelectDropdown">
-                    <div class="cs-option selected" onclick="selectChaosScenario('0','🔮 Senaryo Seçiniz...')">🔮 Senaryo Seçiniz...</div>
-                    <div class="cs-option" onclick="selectChaosScenario('crypto_winter','❄️ Kripto Kışı (Bitcoin -%60)')">❄️ Kripto Kışı (Bitcoin -%60)</div>
-                    <div class="cs-option" onclick="selectChaosScenario('market_crash','📉 Küresel Borsa Çöküşü (-%35)')">📉 Küresel Borsa Çöküşü (-%35)</div>
-                    <div class="cs-option" onclick="selectChaosScenario('currency_shock','💱 Kur Şoku (Dolar +%40)')">💱 Kur Şoku (Dolar +%40)</div>
-                    <div class="cs-option" onclick="selectChaosScenario('gold_rush','🥇 Güvenli Liman (Altın +%25)')">🥇 Güvenli Liman (Altın +%25)</div>
-                    <div class="cs-option" onclick="selectChaosScenario('black_monday','⚫ Kara Pazartesi (Her Şey -%20)')">⚫ Kara Pazartesi (Her Şey -%20)</div>
-                </div>
-            </div>
-            <select id="chaosScenario" style="display:none;"><option value="0">Senaryo Seçiniz</option></select>
+      <!-- PAGE TABS -->
+      <div class="rc-tabs">
+        <div class="rc-tab active" onclick="rcSwitchPV('rc-pv1',this)">
+          <i class="fas fa-crosshairs"></i>Pozisyon & Portföy
+        </div>
+        <div class="rc-tab" onclick="rcSwitchPV('rc-pv2',this)">
+          <i class="fas fa-radiation"></i>Kaos & Araçlar
+        </div>
+      </div>
 
-            <div id="chaosResult" style="display:none;">
-                <div class="lab-stat-label">Senaryo Sonrası Tahmini Bakiye</div>
-                <div class="lab-big-number">
-                    <div class="lab-big-number-value" id="chaosBalance">--</div>
-                </div>
-                
-                <div class="lab-progress-container">
-                    <div id="chaosBar" class="lab-progress-fill" style="width: 100%; background: linear-gradient(90deg, #ef4444, #f59e0b);"></div>
-                    <div class="lab-progress-text">
-                        <span id="chaosChangeText">--</span>
-                    </div>
-                </div>
+      <!-- ═══ SAYFA 1: POZİSYON & PORTFÖY ═══ -->
+      <div class="rc-pv active" id="rc-pv1">
 
-                <div class="lab-advice-box">
-                    <i class="fas fa-lightbulb" style="color: var(--lab-accent-gold);"></i>
-                    <p id="chaosAdvice">--</p>
-                </div>
-            </div>
+        <div class="rc-sec-head">
+          <div class="rc-sec-title">Pozisyon<span>Anlık hesaplama aktif</span></div>
         </div>
 
-        <!-- Position Calculator -->
-        <div class="lab-glass-card">
-            <div class="lab-section-label">Pozisyon Hesaplama</div>
-
-            <div style="background: rgba(0,0,0,0.2); padding: 14px; border-radius: 10px; margin-bottom: 16px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span class="lab-form-label"><i class="fas fa-folder-open"></i> Portföyden Seç</span>
-                    <button onclick="populateRiskAssets()" class="lab-btn-secondary"><i class="fas fa-sync-alt"></i></button>
-                </div>
-                <div class="custom-select-wrapper" style="width:100%;">
-                    <button type="button" class="custom-select-btn" id="riskAssetSelectBtn" onclick="toggleCustomSelect('riskAsset')" style="width:100%; font-family:'DM Mono',monospace;">
-                        <span class="cs-label" id="riskAssetSelectLabel">Manuel Giriş / Seçiniz</span>
-                        <span class="cs-arrow" id="riskAssetSelectArrow">▼</span>
-                    </button>
-                    <div class="custom-select-dropdown" id="riskAssetSelectDropdown">
-                        <div class="cs-option selected" onclick="selectLabAsset('risk',-1,'Manuel Giriş / Seçiniz')">Manuel Giriş / Seçiniz</div>
-                    </div>
-                </div>
-                <select id="riskAssetSelect" style="display:none;" onchange="fillRiskFromAsset()"><option value="-1">Manuel Giriş / Seçiniz</option></select>
-            </div>
-
-            <div class="lab-form-grid">
-                <div class="lab-form-group">
-                    <label class="lab-form-label">Sermaye (Varlık Değeri)</label>
-                    <input type="number" id="riskBalance" class="lab-input" placeholder="Otomatik çekilir">
-                </div>
-                <div class="lab-form-group">
-                    <label class="lab-form-label">Risk İştahı (%)</label>
-                    <input type="number" id="riskPct" class="lab-input" value="1" placeholder="%1">
-                </div>
-                <div class="lab-form-group">
-                    <label class="lab-form-label">Giriş Fiyatı</label>
-                    <input type="number" id="riskEntry" class="lab-input" placeholder="0.00">
-                </div>
-                <div class="lab-form-group">
-                    <label class="lab-form-label">Stop Fiyatı</label>
-                    <input type="number" id="riskStop" class="lab-input" placeholder="0.00">
-                </div>
-            </div>
-
-            <button class="lab-btn-primary rose" onclick="calcLabRisk()">
-                <i class="fas fa-calculator"></i> POZİSYON HESAPLA
+        <!-- Portföy custom dropdown - same system as advAvg -->
+        <div style="margin-bottom:14px;">
+          <div class="custom-select-wrapper" style="width:100%;">
+            <button type="button" class="custom-select-btn" id="riskSelectBtn" onclick="toggleCustomSelect('risk')" style="width:100%; font-family:'DM Mono',monospace; background:rgba(0,0,0,0.3); border-color:rgba(212,165,116,0.25);">
+              <span class="cs-label" id="riskSelectLabel"><i class="fas fa-folder-open" style="margin-right:6px;opacity:0.6;"></i>Manuel Giriş / Seçiniz</span>
+              <span class="cs-arrow" id="riskSelectArrow">▼</span>
             </button>
-        </div>
-
-        <!-- Risk Results -->
-        <div id="riskResultBox" style="display:none;">
-            <div class="lab-results-card rose">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                    <div class="lab-section-label" style="color: var(--lab-accent-rose); margin: 0;">İşlem Planı</div>
-                    <span style="font-size: 10px; color: var(--lab-text-muted);">STOP ZARARI: <span id="resRiskLoss" style="color: white; font-weight: 700;">--</span></span>
-                </div>
-                <div class="lab-stats-grid">
-                    <div class="lab-stat-item">
-                        <div class="lab-stat-label">Alınacak Adet</div>
-                        <div class="lab-stat-value" id="resRiskQty">--</div>
-                    </div>
-                    <div class="lab-stat-item">
-                        <div class="lab-stat-label">Gereken Nakit</div>
-                        <div class="lab-stat-value gold" id="resPosSize">--</div>
-                    </div>
-                </div>
-                <div class="lab-advice-box">
-                    <i class="fas fa-wallet" style="color: var(--lab-text-secondary);"></i>
-                    <p id="riskRatioText">--</p>
-                </div>
+            <div class="custom-select-dropdown" id="riskSelectDropdown">
+              <div class="cs-option selected" onclick="selectLabAsset('risk',-1,'Manuel Giriş / Seçiniz')">Manuel Giriş / Seçiniz</div>
             </div>
+          </div>
         </div>
-    </div>
 
+        <div class="rc-metric-strip">
+          <div class="rc-mchip">
+            <div class="rc-mchip-lbl">MAX RİSK</div>
+            <div class="rc-mchip-val rose" id="mt-risk">—</div>
+            <div class="rc-mchip-sub" id="mt-risk-sub">%—</div>
+          </div>
+          <div class="rc-mchip">
+            <div class="rc-mchip-lbl">POZİSYON</div>
+            <div class="rc-mchip-val gold" id="mt-pos">—</div>
+            <div class="rc-mchip-sub" id="mt-pos-sub">sermaye %—</div>
+          </div>
+          <div class="rc-mchip">
+            <div class="rc-mchip-lbl">R:R</div>
+            <div class="rc-mchip-val teal" id="mt-rr">—</div>
+            <div class="rc-mchip-sub" id="mt-rr-sub">hedef girin</div>
+          </div>
+        </div>
+
+        <!-- Input card -->
+        <div class="rc-card gold-accent">
+          <div class="rc-clabel"><span class="rc-clabel-dot"></span>PARAMETRELER</div>
+
+          <!-- Hidden asset select for custom dropdown -->
+          <select id="riskAssetSelect" style="display:none;" onchange="rcFillFromSelect(this.value)">
+            <option value="-1">Manuel Giriş / Seçiniz</option>
+          </select>
+
+          <!-- Sermaye & Risk -->
+          <div class="rc-inp-group">
+            <div class="rc-inp-group-title">Sermaye & Risk</div>
+            <div class="rc-inp-row">
+              <span class="rc-inp-lbl">Sermaye</span>
+              <div class="rc-inp-sep"></div>
+              <input class="rc-inp-field" type="number" id="riskBalance" placeholder="100 000" oninput="calcLabRisk()">
+            </div>
+            <div class="rc-inp-row">
+              <span class="rc-inp-lbl">Risk %</span>
+              <div class="rc-inp-sep"></div>
+              <input class="rc-inp-field" type="number" id="riskPct" value="1" placeholder="1" oninput="calcLabRisk()">
+            </div>
+          </div>
+          <div class="rc-div-line"></div>
+
+          <!-- Fiyatlar -->
+          <div class="rc-inp-group">
+            <div class="rc-inp-group-title">Fiyatlar</div>
+            <div class="rc-inp-row red">
+              <span class="rc-inp-lbl">Giriş</span>
+              <div class="rc-inp-sep"></div>
+              <input class="rc-inp-field" type="number" id="riskEntry" placeholder="0.0000" oninput="calcLabRisk()">
+            </div>
+            <div class="rc-inp-row red">
+              <span class="rc-inp-lbl">Stop</span>
+              <div class="rc-inp-sep"></div>
+              <input class="rc-inp-field" type="number" id="riskStop" placeholder="0.0000" oninput="calcLabRisk()">
+            </div>
+            <div class="rc-inp-row green">
+              <span class="rc-inp-lbl">Hedef</span>
+              <div class="rc-inp-sep"></div>
+              <input class="rc-inp-field" type="number" id="riskTarget" placeholder="0.0000  (R:R için opsiyonel)" oninput="calcLabRisk()">
+            </div>
+          </div>
+          <div class="rc-div-line"></div>
+
+          <!-- Kelly -->
+          <div class="rc-kelly-wrap">
+            <div class="rc-clabel" style="margin-bottom:10px;color:var(--rc-gold);">
+              <span class="rc-clabel-dot" style="background:var(--rc-gold);box-shadow:0 0 6px var(--rc-gold);"></span>KELLY KRİTERİ
+              <span style="font-size:9px;color:var(--rc-lo);letter-spacing:0;margin-left:2px;">(opsiyonel)</span>
+            </div>
+            <!-- Win Rate -->
+            <div class="rc-inp-row" style="margin-bottom:7px;">
+              <span class="rc-inp-lbl">Win %</span>
+              <div class="rc-inp-sep"></div>
+              <input class="rc-inp-field" type="number" id="kellyWinRate" placeholder="55" oninput="calcLabRisk()">
+            </div>
+            <!-- Mod - tam satır, taşma yok -->
+            <div style="margin-bottom:7px;">
+              <div style="font-size:9px;color:var(--rc-lo);font-family:var(--rc-mono);margin-bottom:5px;">MOD</div>
+              <div style="display:flex;gap:6px;">
+                <button class="rc-kelly-mode-btn active" id="kellyModeHalf" onclick="rcSetKellyMode(0.5,this)">Half (½)</button>
+                <button class="rc-kelly-mode-btn" id="kellyModeFull" onclick="rcSetKellyMode(1,this)">Full</button>
+                <button class="rc-kelly-mode-btn" id="kellyModeQtr" onclick="rcSetKellyMode(0.25,this)">¼ Kelly</button>
+              </div>
+            </div>
+            <select id="kellyMode" style="display:none;">
+              <option value="0.5" selected>Half</option>
+              <option value="1">Full</option>
+              <option value="0.25">Quarter</option>
+            </select>
+            <div class="rc-kelly-hint" id="kellyHint"></div>
+          </div>
+        </div>
+
+        <!-- RESULT -->
+        <div id="riskResultBox" style="display:none;">
+          <div class="rc-result-box rose-scan">
+            <div class="rc-clabel"><span class="rc-clabel-dot rose"></span>İŞLEM PLANI</div>
+            <div class="rc-res-grid">
+              <div class="rc-res-cell">
+                <div class="rc-res-lbl">Alınacak Adet</div>
+                <div class="rc-res-val" id="resRiskQty" style="color:var(--rc-hi);">—</div>
+              </div>
+              <div class="rc-res-cell">
+                <div class="rc-res-lbl">Gereken Nakit</div>
+                <div class="rc-res-val" id="resPosSize" style="color:var(--rc-gold);">—</div>
+              </div>
+            </div>
+            <!-- R:R section -->
+            <div id="rrSection" style="display:none;">
+              <div class="rc-rr-wrap">
+                <div class="rc-rr-track">
+                  <div class="rc-rr-risk"></div>
+                  <span class="rc-rr-vs">vs</span>
+                  <div class="rc-rr-reward" id="rrRewardSeg" style="width:80px;"></div>
+                </div>
+                <div class="rc-rr-foot">
+                  <div>
+                    <div class="rc-rr-ratio" id="rrRatio" style="color:var(--rc-teal);">1:2.0</div>
+                    <div style="font-size:8px;color:var(--rc-lo);font-family:var(--rc-mono);">R:R ORANI</div>
+                  </div>
+                  <div style="text-align:right;">
+                    <div class="rc-rr-bewr" id="rrBEWR">%33 win yeterli</div>
+                    <div class="rc-rr-bewr-lbl">BAŞABAŞ</div>
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px;">
+                <span class="rc-tag gold" id="rrBadge">Hesaplanıyor</span>
+                <span style="font-size:12px;font-family:var(--rc-mono);" id="rrProfit"></span>
+              </div>
+            </div>
+            <div class="rc-advice-row">
+              <i class="fas fa-circle-info"></i>
+              <span id="riskRatioText">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- PORTFOLIO RISK -->
+        <div class="rc-sec-head" style="padding-top:22px;">
+          <div class="rc-sec-title">Portföy Risk<span>Toplam açık pozisyon izleme</span></div>
+          <div class="rc-sec-action" onclick="refreshPFRisk()">
+            <i class="fas fa-rotate-right"></i>
+          </div>
+        </div>
+
+        <div class="rc-card teal-accent">
+          <div class="rc-clabel"><span class="rc-clabel-dot teal"></span>RİSK DURUMU</div>
+          <div class="rc-pf-wrap">
+            <div class="rc-gauge-svg-wrap">
+              <svg width="80" height="80" viewBox="0 0 82 82">
+                <circle cx="41" cy="41" r="32" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="6"/>
+                <circle id="gaugeFill" cx="41" cy="41" r="32" fill="none"
+                  stroke="var(--rc-teal)" stroke-width="6" stroke-linecap="round"
+                  stroke-dasharray="201.1" stroke-dashoffset="201.1"
+                  transform="rotate(-90 41 41)"
+                  style="transition: stroke-dashoffset .6s ease, stroke .4s ease;"/>
+              </svg>
+              <div class="rc-gauge-center">
+                <div class="rc-gauge-pct" id="gaugePct">0%</div>
+                <div class="rc-gauge-lbl">kullanılan</div>
+              </div>
+            </div>
+            <div class="rc-pf-info">
+              <div class="rc-pf-row">
+                <span class="rc-pf-row-lbl">Toplam Açık Risk</span>
+                <span class="rc-pf-row-val" id="pfTotalRisk" style="color:var(--rc-rose);">₺0</span>
+              </div>
+              <div class="rc-gauge-bar">
+                <div class="rc-gauge-bar-fill" id="gaugeBarFill" style="width:0%;"></div>
+              </div>
+              <div class="rc-pf-remaining">%6 Limitine Kalan: <b id="pfRemaining">%6.00</b></div>
+            </div>
+          </div>
+          <div class="rc-pf-warn" id="pfWarn">
+            <i class="fas fa-triangle-exclamation"></i><span id="pfWarnMsg"></span>
+          </div>
+        </div>
+
+        <div class="rc-card">
+          <div class="rc-clabel" style="display:flex;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="rc-clabel-dot rose"></span>AÇIK POZİSYONLAR
+            </div>
+            <span id="pfPosCount" style="font-size:9px;color:var(--rc-lo);font-family:var(--rc-mono);">0 pozisyon</span>
+          </div>
+          <div id="pfPosList">
+            <div class="rc-empty-state">Henüz kayıtlı pozisyon yok<br><span style="font-size:10px;">Aşağıdan ekleyin</span></div>
+          </div>
+          <button class="rc-add-btn" onclick="addPosition()">
+            <i class="fas fa-plus"></i> Pozisyon Ekle
+          </button>
+        </div>
+
+      </div><!-- /rc-pv1 -->
+
+      <!-- ═══ SAYFA 2: KAOS & ARAÇLAR ═══ -->
+      <div class="rc-pv" id="rc-pv2">
+
+        <div class="rc-sec-head">
+          <div class="rc-sec-title">Kaos Odası<span>Senaryo stres testi</span></div>
+          <span class="rc-tag rose"><i class="fas fa-radiation"></i> SİMÜLATÖR</span>
+        </div>
+
+        <!-- Accordion items -->
+        <div class="rc-ac-item" id="rc-ac-crypto">
+          <div class="rc-ac-trigger" onclick="rcToggleAC('rc-ac-crypto','crypto_winter')">
+            <div class="rc-ac-icon">❄️</div>
+            <div class="rc-ac-info">
+              <div class="rc-ac-name">Kripto Kışı</div>
+              <div class="rc-ac-desc">BTC −60% · Kripto sektörü çöküşü</div>
+            </div>
+            <div class="rc-ac-right">
+              <span class="rc-ac-impact-tag">−60%</span>
+              <i class="fas fa-chevron-down rc-ac-chevron"></i>
+            </div>
+          </div>
+          <div class="rc-ac-body"><div class="rc-ac-inner">
+            <div class="rc-badge-row">
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">KRİPTO</span><span class="rc-ibadge-val red">−60%</span></div>
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">HİSSE</span><span class="rc-ibadge-val red">−10%</span></div>
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">ALTIN</span><span class="rc-ibadge-val neu">±0%</span></div>
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">NAKİT</span><span class="rc-ibadge-val neu">±0%</span></div>
+            </div>
+            <div class="rc-sim-result">
+              <div class="rc-sim-row"><span class="rc-sim-lbl">SENARYO SONRASI BAKİYE</span><span class="rc-sim-val" id="sb-crypto" style="color:var(--rc-rose);">₺ —</span></div>
+              <div class="rc-sim-bar"><div class="rc-sim-bar-fill" id="sbar-crypto" style="width:80%;"></div></div>
+              <div style="display:flex;justify-content:space-between;"><span class="rc-sim-change" id="sc-crypto" style="color:var(--rc-rose);">—</span></div>
+              <div class="rc-sim-advice" id="sa-crypto">Portföyünüz yüklenince otomatik hesaplanır.</div>
+            </div>
+          </div></div>
+        </div>
+
+        <div class="rc-ac-item" id="rc-ac-crash">
+          <div class="rc-ac-trigger" onclick="rcToggleAC('rc-ac-crash','market_crash')">
+            <div class="rc-ac-icon">📉</div>
+            <div class="rc-ac-info">
+              <div class="rc-ac-name">Küresel Borsa Çöküşü</div>
+              <div class="rc-ac-desc">Hisse −35% · Altın sığınağa koşuyor</div>
+            </div>
+            <div class="rc-ac-right">
+              <span class="rc-ac-impact-tag">−35%</span>
+              <i class="fas fa-chevron-down rc-ac-chevron"></i>
+            </div>
+          </div>
+          <div class="rc-ac-body"><div class="rc-ac-inner">
+            <div class="rc-badge-row">
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">HİSSE</span><span class="rc-ibadge-val red">−35%</span></div>
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">KRİPTO</span><span class="rc-ibadge-val red">−30%</span></div>
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">ALTIN</span><span class="rc-ibadge-val green">+10%</span></div>
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">DÖVİZ</span><span class="rc-ibadge-val green">+5%</span></div>
+            </div>
+            <div class="rc-sim-result">
+              <div class="rc-sim-row"><span class="rc-sim-lbl">SENARYO SONRASI BAKİYE</span><span class="rc-sim-val" id="sb-crash" style="color:var(--rc-rose);">₺ —</span></div>
+              <div class="rc-sim-bar"><div class="rc-sim-bar-fill" id="sbar-crash" style="width:70%;"></div></div>
+              <div style="display:flex;"><span class="rc-sim-change" id="sc-crash" style="color:var(--rc-rose);">—</span></div>
+              <div class="rc-sim-advice" id="sa-crash">Portföyünüz yüklenince otomatik hesaplanır.</div>
+            </div>
+          </div></div>
+        </div>
+
+        <div class="rc-ac-item ci-gold" id="rc-ac-kur">
+          <div class="rc-ac-trigger" onclick="rcToggleAC('rc-ac-kur','currency_shock')">
+            <div class="rc-ac-icon">💱</div>
+            <div class="rc-ac-info">
+              <div class="rc-ac-name">Kur Şoku</div>
+              <div class="rc-ac-desc">Dolar +40% · TL varlıklar eridi</div>
+            </div>
+            <div class="rc-ac-right">
+              <span class="rc-ac-impact-tag">+40% $</span>
+              <i class="fas fa-chevron-down rc-ac-chevron"></i>
+            </div>
+          </div>
+          <div class="rc-ac-body"><div class="rc-ac-inner">
+            <div class="rc-badge-row">
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">DÖVİZ</span><span class="rc-ibadge-val green">+40%</span></div>
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">ALTIN</span><span class="rc-ibadge-val green">+40%</span></div>
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">NAKİT TL</span><span class="rc-ibadge-val red">−28%</span></div>
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">HİSSE</span><span class="rc-ibadge-val green">+5%</span></div>
+            </div>
+            <div class="rc-sim-result">
+              <div class="rc-sim-row"><span class="rc-sim-lbl">SENARYO SONRASI BAKİYE</span><span class="rc-sim-val" id="sb-kur" style="color:var(--rc-gold);">₺ —</span></div>
+              <div class="rc-sim-bar"><div class="rc-sim-bar-fill" id="sbar-kur" style="width:90%;background:var(--rc-gold);"></div></div>
+              <div style="display:flex;"><span class="rc-sim-change" id="sc-kur" style="color:var(--rc-gold);">—</span></div>
+              <div class="rc-sim-advice" id="sa-kur">Portföyünüz yüklenince otomatik hesaplanır.</div>
+            </div>
+          </div></div>
+        </div>
+
+        <div class="rc-ac-item ci-teal" id="rc-ac-gold">
+          <div class="rc-ac-trigger" onclick="rcToggleAC('rc-ac-gold','gold_rush')">
+            <div class="rc-ac-icon">🥇</div>
+            <div class="rc-ac-info">
+              <div class="rc-ac-name">Güvenli Liman Rallisi</div>
+              <div class="rc-ac-desc">Altın +25% · Risk iştahı düşüyor</div>
+            </div>
+            <div class="rc-ac-right">
+              <span class="rc-ac-impact-tag">+25% XAU</span>
+              <i class="fas fa-chevron-down rc-ac-chevron"></i>
+            </div>
+          </div>
+          <div class="rc-ac-body"><div class="rc-ac-inner">
+            <div class="rc-badge-row">
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">ALTIN</span><span class="rc-ibadge-val green">+25%</span></div>
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">KRİPTO</span><span class="rc-ibadge-val red">−10%</span></div>
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">HİSSE</span><span class="rc-ibadge-val red">−10%</span></div>
+            </div>
+            <div class="rc-sim-result">
+              <div class="rc-sim-row"><span class="rc-sim-lbl">SENARYO SONRASI BAKİYE</span><span class="rc-sim-val" id="sb-gold" style="color:var(--rc-teal);">₺ —</span></div>
+              <div class="rc-sim-bar"><div class="rc-sim-bar-fill" id="sbar-gold" style="width:95%;background:var(--rc-teal);"></div></div>
+              <div style="display:flex;"><span class="rc-sim-change" id="sc-gold" style="color:var(--rc-teal);">—</span></div>
+              <div class="rc-sim-advice" id="sa-gold">Portföyünüz yüklenince otomatik hesaplanır.</div>
+            </div>
+          </div></div>
+        </div>
+
+        <div class="rc-ac-item" id="rc-ac-black">
+          <div class="rc-ac-trigger" onclick="rcToggleAC('rc-ac-black','black_monday')">
+            <div class="rc-ac-icon">⚫</div>
+            <div class="rc-ac-info">
+              <div class="rc-ac-name">Kara Pazartesi</div>
+              <div class="rc-ac-desc">Her varlık −20% · Nakit tek sığınak</div>
+            </div>
+            <div class="rc-ac-right">
+              <span class="rc-ac-impact-tag">−20% HER ŞEY</span>
+              <i class="fas fa-chevron-down rc-ac-chevron"></i>
+            </div>
+          </div>
+          <div class="rc-ac-body"><div class="rc-ac-inner">
+            <div class="rc-badge-row">
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">KRİPTO</span><span class="rc-ibadge-val red">−20%</span></div>
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">HİSSE</span><span class="rc-ibadge-val red">−20%</span></div>
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">ALTIN</span><span class="rc-ibadge-val red">−20%</span></div>
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">DÖVİZ</span><span class="rc-ibadge-val red">−20%</span></div>
+            </div>
+            <div class="rc-sim-result">
+              <div class="rc-sim-row"><span class="rc-sim-lbl">SENARYO SONRASI BAKİYE</span><span class="rc-sim-val" id="sb-black" style="color:var(--rc-rose);">₺ —</span></div>
+              <div class="rc-sim-bar"><div class="rc-sim-bar-fill" id="sbar-black" style="width:80%;"></div></div>
+              <div style="display:flex;"><span class="rc-sim-change" id="sc-black" style="color:var(--rc-rose);">—</span></div>
+              <div class="rc-sim-advice" id="sa-black">Portföyünüz yüklenince otomatik hesaplanır.</div>
+            </div>
+          </div></div>
+        </div>
+
+        <div class="rc-ac-item" id="rc-ac-tcmb">
+          <div class="rc-ac-trigger" onclick="rcToggleAC('rc-ac-tcmb','tcmb_shock')">
+            <div class="rc-ac-icon">🇹🇷</div>
+            <div class="rc-ac-info">
+              <div class="rc-ac-name">TCMB Faiz Şoku</div>
+              <div class="rc-ac-desc">BIST −25% · Döviz baskısı</div>
+            </div>
+            <div class="rc-ac-right">
+              <span class="rc-ac-impact-tag">BIST −25%</span>
+              <i class="fas fa-chevron-down rc-ac-chevron"></i>
+            </div>
+          </div>
+          <div class="rc-ac-body"><div class="rc-ac-inner">
+            <div class="rc-badge-row">
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">BIST</span><span class="rc-ibadge-val red">−25%</span></div>
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">DÖVİZ</span><span class="rc-ibadge-val green">+10%</span></div>
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">ALTIN</span><span class="rc-ibadge-val green">+5%</span></div>
+            </div>
+            <div class="rc-sim-result">
+              <div class="rc-sim-row"><span class="rc-sim-lbl">SENARYO SONRASI BAKİYE</span><span class="rc-sim-val" id="sb-tcmb" style="color:var(--rc-rose);">₺ —</span></div>
+              <div class="rc-sim-bar"><div class="rc-sim-bar-fill" id="sbar-tcmb" style="width:78%;"></div></div>
+              <div style="display:flex;"><span class="rc-sim-change" id="sc-tcmb" style="color:var(--rc-rose);">—</span></div>
+              <div class="rc-sim-advice" id="sa-tcmb">Portföyünüz yüklenince otomatik hesaplanır.</div>
+            </div>
+          </div></div>
+        </div>
+
+        <div class="rc-ac-item ci-sky" id="rc-ac-ai">
+          <div class="rc-ac-trigger" onclick="rcToggleAC('rc-ac-ai','ai_bubble')">
+            <div class="rc-ac-icon">🤖</div>
+            <div class="rc-ac-info">
+              <div class="rc-ac-name">AI Balonu Patlaması</div>
+              <div class="rc-ac-desc">Teknoloji −50% · Genel hisse −15%</div>
+            </div>
+            <div class="rc-ac-right">
+              <span class="rc-ac-impact-tag" style="background:var(--rc-sky-a12);color:var(--rc-sky);">TECH −50%</span>
+              <i class="fas fa-chevron-down rc-ac-chevron"></i>
+            </div>
+          </div>
+          <div class="rc-ac-body"><div class="rc-ac-inner">
+            <div class="rc-badge-row">
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">TECH</span><span class="rc-ibadge-val red">−50%</span></div>
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">HİSSE</span><span class="rc-ibadge-val red">−15%</span></div>
+              <div class="rc-ibadge"><span class="rc-ibadge-lbl">ALTIN</span><span class="rc-ibadge-val green">+8%</span></div>
+            </div>
+            <div class="rc-sim-result">
+              <div class="rc-sim-row"><span class="rc-sim-lbl">SENARYO SONRASI BAKİYE</span><span class="rc-sim-val" id="sb-ai" style="color:var(--rc-rose);">₺ —</span></div>
+              <div class="rc-sim-bar"><div class="rc-sim-bar-fill" id="sbar-ai" style="width:75%;"></div></div>
+              <div style="display:flex;"><span class="rc-sim-change" id="sc-ai" style="color:var(--rc-rose);">—</span></div>
+              <div class="rc-sim-advice" id="sa-ai">Portföyünüz yüklenince otomatik hesaplanır.</div>
+            </div>
+          </div></div>
+        </div>
+
+        <div class="rc-ac-item ci-gold" id="rc-ac-custom">
+          <div class="rc-ac-trigger" onclick="rcToggleAC('rc-ac-custom','custom')">
+            <div class="rc-ac-icon">✏️</div>
+            <div class="rc-ac-info">
+              <div class="rc-ac-name">Özel Senaryo</div>
+              <div class="rc-ac-desc">Kendi kriz değerlerini belirle</div>
+            </div>
+            <div class="rc-ac-right">
+              <span class="rc-ac-impact-tag">ÖZEL</span>
+              <i class="fas fa-chevron-down rc-ac-chevron"></i>
+            </div>
+          </div>
+          <div class="rc-ac-body"><div class="rc-ac-inner">
+            <div class="rc-cust-grid">
+              <div class="rc-cust-cell"><div class="rc-cust-lbl">Kripto %</div><input class="rc-cust-inp" type="number" id="custCr" value="-30" oninput="rcRunCustomChaos()"></div>
+              <div class="rc-cust-cell"><div class="rc-cust-lbl">Hisse %</div><input class="rc-cust-inp" type="number" id="custBi" value="-20" oninput="rcRunCustomChaos()"></div>
+              <div class="rc-cust-cell"><div class="rc-cust-lbl">Altın %</div><input class="rc-cust-inp" type="number" id="custGo" value="10" oninput="rcRunCustomChaos()"></div>
+              <div class="rc-cust-cell"><div class="rc-cust-lbl">Döviz %</div><input class="rc-cust-inp" type="number" id="custFx" value="0" oninput="rcRunCustomChaos()"></div>
+            </div>
+            <div class="rc-sim-result">
+              <div class="rc-sim-row"><span class="rc-sim-lbl">SENARYO SONRASI BAKİYE</span><span class="rc-sim-val" id="sb-custom" style="color:var(--rc-gold);">₺ —</span></div>
+              <div class="rc-sim-bar"><div class="rc-sim-bar-fill" id="sbar-custom" style="width:85%;background:var(--rc-gold);"></div></div>
+              <div style="display:flex;"><span class="rc-sim-change" id="sc-custom" style="color:var(--rc-gold);">—</span></div>
+              <div class="rc-sim-advice" id="sa-custom">Portföyünüz yüklenince otomatik hesaplanır.</div>
+            </div>
+          </div></div>
+        </div>
+
+        <!-- ARAÇLAR -->
+        <div class="rc-sec-head" style="padding-top:22px;">
+          <div class="rc-sec-title">Araçlar<span>Drawdown · Beklenti</span></div>
+        </div>
+
+        <div class="rc-mini-grid">
+          <!-- Drawdown -->
+          <div class="rc-mini-card" style="border-color:rgba(244,63,94,.22);width:100%;box-sizing:border-box;">
+            <div class="rc-clabel" style="margin-bottom:9px;"><span class="rc-clabel-dot rose"></span>DRAWDOWN</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+              <div style="font-size:9px;color:var(--rc-lo);font-family:var(--rc-mono);">Ardışık Kayıp</div>
+              <div style="font-size:13px;font-weight:800;color:var(--rc-rose);font-family:var(--rc-mono);" id="ddN">10</div>
+            </div>
+            <div class="rc-range-wrap">
+              <input class="rc-pslider" type="range" min="1" max="30" value="10" oninput="rcUpdateDD(this.value)" style="--thumb-color:var(--rc-rose);">
+            </div>
+            <div class="rc-mini-big" id="ddPct" style="color:var(--rc-rose);margin:4px 0 1px;">−18%</div>
+            <div class="rc-mini-sub" id="ddInfo" style="margin-bottom:8px;">%2 risk → 10 kayıp</div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <div style="flex:1;background:rgba(0,0,0,.25);border-radius:var(--rc-r1);padding:6px 8px;">
+                <div style="font-size:7px;color:var(--rc-lo);font-family:var(--rc-mono);">%50 EROZYON</div>
+                <div style="font-size:14px;font-weight:800;font-family:var(--rc-mono);color:var(--rc-sky);line-height:1.2;" id="ddHalf">35</div>
+                <div style="font-size:8px;color:var(--rc-lo);font-family:var(--rc-mono);">kayıp</div>
+              </div>
+              <div style="background:var(--rc-raise);border:1px solid var(--rc-border1);border-radius:var(--rc-r1);padding:8px;text-align:center;">
+                <div style="font-size:7px;color:var(--rc-lo);font-family:var(--rc-mono);margin-bottom:3px;">RİSK %</div>
+                <input class="rc-mini-inp" type="number" id="ddRp" value="2" oninput="rcUpdateDDRp()" style="width:36px;text-align:center;font-size:14px;font-weight:800;">
+              </div>
+            </div>
+          </div>
+
+          <!-- Expectancy -->
+          <div class="rc-mini-card" style="border-color:rgba(13,217,164,.22);width:100%;box-sizing:border-box;">
+            <div class="rc-clabel" style="margin-bottom:9px;"><span class="rc-clabel-dot teal"></span>BEKLENTI</div>
+            <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:9px;">
+              <div style="background:var(--rc-raise);border:1px solid var(--rc-border1);border-radius:var(--rc-r1);padding:6px 9px;">
+                <div style="font-size:7px;color:var(--rc-lo);font-family:var(--rc-mono);margin-bottom:2px;">WIN RATE %</div>
+                <input class="rc-mini-inp" type="number" id="expWr" value="55" oninput="rcCalcExp()" style="font-size:14px;font-weight:800;width:100%;">
+              </div>
+              <div style="display:flex;gap:5px;">
+                <div style="flex:1;background:rgba(13,217,164,.06);border:1px solid rgba(13,217,164,.15);border-radius:var(--rc-r1);padding:6px 9px;">
+                  <div style="font-size:7px;color:var(--rc-teal);font-family:var(--rc-mono);margin-bottom:2px;">AVG WIN R</div>
+                  <input class="rc-mini-inp" type="number" id="expAw" value="2" oninput="rcCalcExp()" style="font-size:13px;font-weight:800;width:100%;color:var(--rc-teal);">
+                </div>
+                <div style="flex:1;background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.15);border-radius:var(--rc-r1);padding:6px 9px;">
+                  <div style="font-size:7px;color:var(--rc-rose);font-family:var(--rc-mono);margin-bottom:2px;">AVG LOSS R</div>
+                  <input class="rc-mini-inp" type="number" id="expAl" value="1" oninput="rcCalcExp()" style="font-size:13px;font-weight:800;width:100%;color:var(--rc-rose);">
+                </div>
+              </div>
+            </div>
+            <div class="rc-mini-big" id="expVal" style="color:var(--rc-lo);">—R</div>
+            <div class="rc-mini-sub" id="expInfo" style="margin-top:2px;">100 trade →</div>
+          </div>
+        </div>
+
+        <!-- History -->
+        <div class="rc-card violet-accent">
+          <div class="rc-clabel" style="display:flex;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="rc-clabel-dot violet"></span>RİSK GEÇMİŞİ
+            </div>
+            <button class="rc-div-btn" onclick="rcClearHistory()"><i class="fas fa-trash-can"></i></button>
+          </div>
+          <div id="histList"><div class="rc-empty-state">Pozisyon hesaplayınca burada görünür</div></div>
+        </div>
+
+      </div><!-- /rc-pv2 -->
+
+    </div>
     <!-- ========== AVERAGE DOWN TOOL ========== -->
     <div id="lab-tool-avg" class="lab-tool-container" style="display:block;">
         <div class="lab-glass-card">
@@ -18512,7 +19380,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.7"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -27454,6 +28322,14 @@ function switchLabTool(tool, btn) {
             inputBalance.value = Math.floor(storedCash);
             inputBalance.placeholder = "Nakit veya Varlık Değeri";
         }
+        // Yeni: Drawdown balancı da doldur
+        let ddBal = document.getElementById('ddBalance');
+        if(ddBal && ddBal.value === '') ddBal.value = Math.floor(storedCash);
+        calcDrawdown();
+        refreshPortfolioRisk();
+        renderRiskHistory();
+        // RC Premium Risk Cockpit init
+        setTimeout(function(){ if (typeof rcInitRisk === 'function') rcInitRisk(); }, 50);
     }
 
     // B) Maliyet Düşürme Aracı Mantığı
@@ -27679,12 +28555,15 @@ function calcLabRisk() {
     let entry = parseFloat(document.getElementById('riskEntry').value);
     let stop = parseFloat(document.getElementById('riskStop').value);
 
-    if(isNaN(balance) || isNaN(riskPct) || isNaN(entry) || isNaN(stop)) return tvAlert("Eksik Alan", "Lütfen tüm alanları doldurun.");
+    if(isNaN(balance) || isNaN(riskPct) || isNaN(entry) || isNaN(stop)) {
+        document.getElementById('riskResultBox').style.display = 'none';
+        return;
+    }
     
     let riskAmount = balance * (riskPct / 100);
     let diffPerUnit = Math.abs(entry - stop); 
     
-    if(diffPerUnit === 0) return tvAlert("Hata", "Giriş ve Stop fiyatı aynı olamaz.");
+    if(diffPerUnit === 0) return;
 
     let qty = riskAmount / diffPerUnit;
     let totalPosSize = qty * entry;
@@ -27700,7 +28579,6 @@ function calcLabRisk() {
     
     if(ratioText) {
         let isManual = document.getElementById('riskAssetSelect') && document.getElementById('riskAssetSelect').value == "-1";
-        
         if(portfolioImpact > 100 && isManual) {
             warnEl.style.color = "var(--danger)";
             warnEl.style.border = "1px solid var(--danger)";
@@ -27711,14 +28589,625 @@ function calcLabRisk() {
             ratioText.innerHTML = `Bu işlem sermayenin <b>%${portfolioImpact.toFixed(1)}</b> kadarını kapsar.`;
         }
     }
+
+    // ── R:R HESABI ──
+    let target = parseFloat(document.getElementById('riskTarget').value);
+    let rrCard = document.getElementById('rrCard');
+    if(!isNaN(target) && target > 0 && diffPerUnit > 0) {
+        let reward = Math.abs(target - entry);
+        let rrRatio = reward / diffPerUnit;
+        let breakEvenWR = (1 / (1 + rrRatio)) * 100;
+        let targetProfit = qty * Math.abs(target - entry);
+
+        document.getElementById('resRR').innerText = '1:' + rrRatio.toFixed(2);
+        document.getElementById('resTargetProfit').innerText = '+' + sym + targetProfit.toLocaleString(undefined, {maximumFractionDigits:2});
+        document.getElementById('resBreakEven').innerText = breakEvenWR.toFixed(1) + '%';
+
+        let badge = document.getElementById('rrBadge');
+        if(rrRatio >= 3) {
+            badge.style.background = 'rgba(16,185,129,0.15)'; badge.style.color = '#10b981';
+            badge.innerHTML = '✅ Mükemmel R:R — Uzun vadede kazandıran oran';
+        } else if(rrRatio >= 2) {
+            badge.style.background = 'rgba(245,158,11,0.15)'; badge.style.color = '#f59e0b';
+            badge.innerHTML = '⚡ Kabul Edilebilir R:R — Minimum 2:1 eşiğinde';
+        } else {
+            badge.style.background = 'rgba(239,68,68,0.15)'; badge.style.color = '#ef4444';
+            badge.innerHTML = '⚠️ Zayıf R:R — Bu oranla uzun vadede kâr zor';
+        }
+        if(rrCard) rrCard.style.display = 'block';
+    } else {
+        if(rrCard) rrCard.style.display = 'none';
+    }
+
+    // ── KELLY KRİTERİ ──
+    let winRateEl = document.getElementById('kellyWinRate');
+    let kellyResult = document.getElementById('kellyResult');
+    if(winRateEl && !isNaN(parseFloat(winRateEl.value))) {
+        let wr = parseFloat(winRateEl.value) / 100;
+        let lr = 1 - wr;
+        let target2 = parseFloat(document.getElementById('riskTarget').value);
+        let b = (!isNaN(target2) && diffPerUnit > 0) ? (Math.abs(target2 - entry) / diffPerUnit) : 2;
+        let fullKelly = ((b * wr) - lr) / b;
+        let mode = document.getElementById('kellyMode').value;
+        let kellyF = fullKelly * (mode === 'full' ? 1 : mode === 'half' ? 0.5 : 0.25);
+        let kellyPct = Math.max(0, kellyF * 100);
+        let kellyAmt = balance * (kellyPct / 100);
+        
+        if(kellyResult) {
+            kellyResult.style.display = 'block';
+            let modeLabel = mode === 'full' ? 'Full' : mode === 'half' ? 'Half' : 'Quarter';
+            if(fullKelly <= 0) {
+                kellyResult.innerHTML = `<i class="fas fa-times-circle"></i> Kelly Negatif: Bu R:R ve kazanma oranıyla işlem önerilmez.`;
+                kellyResult.style.color = '#ef4444';
+            } else {
+                kellyResult.innerHTML = `<i class="fas fa-brain"></i> <b>${modeLabel}-Kelly:</b> Sermayenin <b>%${kellyPct.toFixed(2)}</b>'si = <b>${sym}${kellyAmt.toLocaleString(undefined, {maximumFractionDigits:0})}</b> risk alınabilir.`;
+                kellyResult.style.color = '#C9A84C';
+            }
+        }
+    } else {
+        if(kellyResult) kellyResult.style.display = 'none';
+    }
+
     document.getElementById('riskResultBox').style.display = 'block';
+
+    // ── GEÇMİŞE KAYDET ──
+    saveRiskHistory({ balance, riskPct, entry, stop, target: parseFloat(document.getElementById('riskTarget').value) || null, qty, totalPosSize, riskAmount, sym });
 }
 
-/* --------------------------------------------------------------------------
-   BÖLÜM: AKILLI MALİYET SİHİRBAZI (TAM SÜRÜM)
-   -------------------------------------------------------------------------- */
+// ── DRAWDOWN SİMÜLATÖRÜ ──
+function calcDrawdown() {
+  // Redirect to RC version which uses correct IDs
+  const slider = document.querySelector('#lab-tool-risk .rc-pslider');
+  if (slider && typeof rcUpdateDD === 'function') rcUpdateDD(parseInt(slider.value));
+}
+function calcExpectancy() {
+  // Redirect to RC version
+  if (typeof rcCalcExp === 'function') rcCalcExp();
+}
+function refreshPortfolioRisk() {
+  // Redirect to RC Premium version
+  if (typeof refreshPFRisk === 'function') refreshPFRisk();
+}
 
-// 1. VARLIK SEÇİLİNCE ÇALIŞAN ANA FONKSİYON
+function removeOpenPosition(idx) {
+    openPositions.splice(idx, 1);
+    localStorage.setItem('tv_open_positions', JSON.stringify(openPositions));
+    refreshPortfolioRisk();
+}
+
+// ── RİSK GEÇMİŞİ ──
+function saveRiskHistory(data) {
+    if(!data.entry || !data.stop || !data.balance) return;
+    let hist = JSON.parse(localStorage.getItem('tv_risk_history') || '[]');
+    hist.unshift({
+        date: new Date().toLocaleDateString('tr-TR'),
+        balance: data.balance,
+        riskPct: data.riskPct,
+        entry: data.entry,
+        stop: data.stop,
+        target: data.target,
+        qty: data.qty,
+        posSize: data.totalPosSize,
+        riskAmt: data.riskAmount,
+        sym: data.sym
+    });
+    if(hist.length > 20) hist = hist.slice(0, 20);
+    localStorage.setItem('tv_risk_history', JSON.stringify(hist));
+    renderRiskHistory();
+}
+
+function renderRiskHistory() {
+  // Redirect to RC version
+  if (typeof rcRenderHistory === 'function') rcRenderHistory();
+}
+function clearRiskHistory() {
+  if (typeof rcClearHistory === 'function') rcClearHistory();
+}
+function rcSwitchPV(id, el) {
+  const container = document.getElementById('lab-tool-risk');
+  container.querySelectorAll('.rc-pv').forEach(p => p.classList.remove('active'));
+  const pv = document.getElementById(id);
+  if (pv) pv.classList.add('active');
+  container.querySelectorAll('.rc-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// Override calcLabRisk to work with new RC elements
+function addOpenPosition() {
+  // RC Premium versiyonuna yönlendir
+  if (typeof addPosition === 'function') addPosition();
+}
+
+function rcSetKellyMode(val, btn) {
+  // Update hidden select
+  const sel = document.getElementById('kellyMode');
+  if (sel) sel.value = val;
+  // Update button styles
+  document.querySelectorAll('#lab-tool-risk .rc-kelly-mode-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  calcLabRisk();
+}
+
+window.calcLabRisk = function() {
+  // Guard: abort if RC elements not in DOM (another tool active)
+  if (!document.getElementById('riskBalance')) return;
+  const sym  = (typeof appSettings !== 'undefined' && appSettings.currency === 'USD') ? '$' : '₺';
+  const bal  = parseFloat(document.getElementById('riskBalance').value);
+  const rp   = parseFloat(document.getElementById('riskPct').value);
+  const en   = parseFloat(document.getElementById('riskEntry').value);
+  const st   = parseFloat(document.getElementById('riskStop').value);
+  const tg   = parseFloat(document.getElementById('riskTarget').value);
+  const kwr  = parseFloat(document.getElementById('kellyWinRate').value);
+  const kmod = parseFloat(document.getElementById('kellyMode').value);
+
+  if (!isNaN(bal) && !isNaN(rp)) {
+    const riskAmt = bal * rp / 100;
+    const mtRisk = document.getElementById('mt-risk');
+    const mtRiskSub = document.getElementById('mt-risk-sub');
+    if (mtRisk) mtRisk.innerText = sym + Math.floor(riskAmt).toLocaleString('tr-TR');
+    if (mtRiskSub) mtRiskSub.innerText = '%' + rp;
+  }
+
+  const riskResultBox = document.getElementById('riskResultBox');
+  if (isNaN(bal) || isNaN(rp) || isNaN(en) || isNaN(st) || Math.abs(en - st) < 1e-9) {
+    if (riskResultBox) riskResultBox.style.display = 'none';
+    const mtPos = document.getElementById('mt-pos');
+    const mtRr  = document.getElementById('mt-rr');
+    if (mtPos) mtPos.innerText = '—';
+    if (mtRr)  mtRr.innerText = '—';
+    // Show warning if entry == stop
+    if (!isNaN(en) && !isNaN(st) && en > 0 && st > 0 && Math.abs(en - st) < 1e-9) {
+      const ratioText = document.getElementById('riskRatioText');
+      if (ratioText) ratioText.innerText = '⚠️ Giriş ve Stop fiyatı aynı olamaz.';
+      if (riskResultBox) riskResultBox.style.display = 'block';
+    }
+    return;
+  }
+
+  const riskAmt = bal * rp / 100;
+  const diff    = Math.abs(en - st);
+  const qty     = riskAmt / diff;
+  const posSize = qty * en;
+  const pctBal  = posSize / bal * 100;
+
+  const mtPos = document.getElementById('mt-pos');
+  const mtPosSub = document.getElementById('mt-pos-sub');
+  if (mtPos) mtPos.innerText = sym + Math.floor(posSize).toLocaleString('tr-TR');
+  if (mtPosSub) mtPosSub.innerText = 'sermaye %' + pctBal.toFixed(1);
+  const resQty = document.getElementById('resRiskQty');
+  const resPosSize = document.getElementById('resPosSize');
+  const riskRatioText = document.getElementById('riskRatioText');
+  if (resQty) resQty.innerText = qty.toLocaleString('tr-TR', {maximumFractionDigits:4});
+  if (resPosSize) resPosSize.innerText = sym + Math.floor(posSize).toLocaleString('tr-TR');
+  if (riskRatioText) riskRatioText.innerText =
+    `Bu işlem sermayenin %${pctBal.toFixed(1)}'ini kullanır.` +
+    (pctBal > 30 ? ' ⚠️ Yüksek konsantrasyon.' : '');
+
+  // R:R
+  const rrSec = document.getElementById('rrSection');
+  const mtRr  = document.getElementById('mt-rr');
+  const mtRrSub = document.getElementById('mt-rr-sub');
+  if (!isNaN(tg) && tg > 0) {
+    const reward = Math.abs(tg - en);
+    const rr     = reward / diff;
+    const bewr   = 1 / (1 + rr) * 100;
+    const profit = qty * reward;
+    const rrColor = rr >= 2 ? 'var(--rc-teal)' : rr >= 1.5 ? 'var(--rc-gold)' : 'var(--rc-rose)';
+    if (mtRr)    { mtRr.innerText = '1:' + rr.toFixed(2); mtRr.style.color = rrColor; }
+    if (mtRrSub) mtRrSub.innerText = 'başabaş %' + bewr.toFixed(1);
+    const rrRatio = document.getElementById('rrRatio');
+    const rrBEWR  = document.getElementById('rrBEWR');
+    const rrRewardSeg = document.getElementById('rrRewardSeg');
+    const rrProfit    = document.getElementById('rrProfit');
+    const rrBadge     = document.getElementById('rrBadge');
+    if (rrRatio)     { rrRatio.innerText = '1:' + rr.toFixed(2); rrRatio.style.color = rrColor; }
+    if (rrBEWR)      rrBEWR.innerText = '%' + bewr.toFixed(1) + ' win yeterli';
+    if (rrRewardSeg) rrRewardSeg.style.width = Math.min(180, 38 * rr) + 'px';
+    if (rrProfit)    { rrProfit.innerText = '+' + sym + Math.floor(profit).toLocaleString('tr-TR'); rrProfit.style.color = 'var(--rc-teal)'; }
+    if (rrBadge) {
+      if (rr >= 3)      { rrBadge.className='rc-tag teal'; rrBadge.innerText='✅ Mükemmel R:R'; }
+      else if (rr >= 2) { rrBadge.className='rc-tag gold'; rrBadge.innerText='⚡ Kabul Edilebilir'; }
+      else              { rrBadge.className='rc-tag rose'; rrBadge.innerText='⚠️ Zayıf R:R'; }
+    }
+    if (rrSec) rrSec.style.display = 'block';
+  } else {
+    if (rrSec) rrSec.style.display = 'none';
+    if (mtRr)    { mtRr.innerText = '—'; mtRr.style.color = 'var(--rc-teal)'; }
+    if (mtRrSub) mtRrSub.innerText = 'hedef girin';
+  }
+
+  // Kelly
+  const khint = document.getElementById('kellyHint');
+  if (khint && !isNaN(kwr)) {
+    const p = kwr / 100, q = 1 - p;
+    const b = (!isNaN(tg) && diff > 0) ? Math.abs(tg - en) / diff : 2;
+    const full = Math.max(0, (b * p - q) / b);
+    const adj  = full * kmod;
+    const modeLabel = kmod === 1 ? 'Full' : kmod === 0.5 ? 'Half' : 'Quarter';
+    if (full <= 0) {
+      khint.innerHTML = '<i class="fas fa-xmark" style="margin-right:5px;color:var(--rc-rose);"></i>Kelly negatif — bu kombinasyon önerilmez.';
+      khint.style.background = 'var(--rc-rose-a12)'; khint.style.borderColor = 'var(--rc-rose-a25)'; khint.style.color = '#fca5a5';
+    } else {
+      khint.innerHTML = `<i class="fas fa-brain" style="margin-right:5px;"></i><b>${modeLabel}-Kelly:</b> Önerilen risk <b>%${(adj*100).toFixed(2)}</b>`;
+      khint.style.background = 'var(--rc-gold-a12)'; khint.style.borderColor = 'var(--rc-gold-a20)'; khint.style.color = 'var(--rc-gold)';
+    }
+    khint.style.display = 'block';
+  } else if (khint) {
+    khint.style.display = 'none';
+  }
+
+  if (riskResultBox) riskResultBox.style.display = 'block';
+  rcSaveHistory({ sym, bal, rp, en, st, tg: isNaN(tg) ? null : tg, qty, posSize, riskAmt });
+};
+
+window.populateRiskAssets = function() {
+  const pf  = JSON.parse(localStorage.getItem('myPF_final') || '[]');
+  const curr = (typeof appSettings !== 'undefined') ? appSettings.currency : 'TRY';
+  const sym  = curr === 'USD' ? '$' : '₺';
+
+  // ── Fill the new riskSelectDropdown (same pattern as advAvg) ──
+  const dd = document.getElementById('riskSelectDropdown');
+  if (dd) {
+    dd.innerHTML = '<div class="cs-option selected" onclick="selectLabAsset(\'risk\',-1,\'Manuel Giriş / Seçiniz\')">Manuel Giriş / Seçiniz</div>';
+    pf.forEach((a, i) => {
+      const price = a.curr || a.buy;
+      const div = document.createElement('div');
+      div.className = 'cs-option';
+      div.setAttribute('onclick', `selectLabAsset('risk',${i},'${a.name}')`);
+      div.innerHTML = `${a.name} <span style="opacity:0.5;font-size:11px;">${a.amt} Adet</span>`;
+      dd.appendChild(div);
+    });
+  }
+
+  // ── Legacy hidden select (fallback) ──
+  const sel = document.getElementById('riskAssetSelect');
+  if (sel) {
+    sel.innerHTML = '<option value="-1">Manuel Giriş / Seçiniz</option>';
+    pf.forEach((a, i) => { const o=document.createElement('option'); o.value=i; o.textContent=a.name; sel.appendChild(o); });
+  }
+
+  // ── Auto-fill sermaye from wallet ──
+  const cash = parseFloat(localStorage.getItem('tm_cash_balance') || '0');
+  if (cash > 0) {
+    const balEl = document.getElementById('riskBalance');
+    if (balEl && !balEl.value) balEl.value = Math.floor(cash);
+  }
+};
+
+window.fillFromPortfolio = function() {
+  const selEl = document.getElementById('riskAssetSelect') || document.getElementById('pfSel');
+  const idx = selEl ? parseInt(selEl.value) : -1;
+  if (isNaN(idx) || idx < 0) return;
+  window.rcFillFromSelect(idx);
+};
+
+window.rcFillFromSelect = function(idxStr) {
+  const idx = parseInt(idxStr);
+  if (isNaN(idx) || idx < 0) return;
+  const pf = JSON.parse(localStorage.getItem('myPF_final') || '[]');
+  const a  = pf[idx];
+  if (!a) return;
+  const riskEntry   = document.getElementById('riskEntry');
+  const riskStop    = document.getElementById('riskStop');
+  const riskTarget  = document.getElementById('riskTarget');
+  const riskBalance = document.getElementById('riskBalance');
+  const currentPrice = a.curr || a.buy;
+  if (riskEntry)  riskEntry.value  = currentPrice.toFixed(4);
+  if (riskStop)   riskStop.value   = (currentPrice * 0.95).toFixed(4);
+  if (riskTarget) riskTarget.value = '';
+  const cash = parseFloat(localStorage.getItem('tm_cash_balance') || '0');
+  if (cash > 0 && riskBalance && !riskBalance.value) riskBalance.value = Math.floor(cash);
+  calcLabRisk();
+  // Update button label
+  const lbl = document.getElementById('riskSelectLabel');
+  if (lbl) lbl.innerHTML = `<i class="fas fa-folder-open" style="margin-right:6px;opacity:0.6;"></i>${a.name} — ${currentPrice.toLocaleString('tr-TR',{maximumFractionDigits:2})}`;
+};
+window.fillRiskFromAsset = window.fillFromPortfolio;
+
+var _rcOpenPositions = JSON.parse(localStorage.getItem('tv_open_positions') || '[]');
+
+window.refreshPFRisk = function() {
+  const storedCash = parseFloat(localStorage.getItem('tm_cash_balance') || '0');
+  const pf    = JSON.parse(localStorage.getItem('myPF_final') || '[]');
+  const usd   = (typeof usdTryRate !== 'undefined') ? usdTryRate : 36.5;
+  const curr  = (typeof appSettings !== 'undefined') ? appSettings.currency : 'TRY';
+  const sym   = curr === 'USD' ? '$' : '₺';
+  const pfVal = pf.reduce((a, x) => {
+    const p = x.curr || x.buy;
+    return a + (curr === 'TRY' ? (x.origin === 'USD' ? p*x.amt*usd : p*x.amt) : (x.origin === 'TRY' ? p*x.amt/usd : p*x.amt));
+  }, 0);
+  const grand   = Math.max(storedCash + pfVal, 1);
+  const totRisk = _rcOpenPositions.reduce((a, p) => a + (p.riskAmt || 0), 0);
+  const usedPct = Math.min(100, totRisk / grand * 100);
+  const rem     = Math.max(0, 6 - usedPct);
+  const C = 201.1;
+  const offset = C * (1 - Math.min(1, usedPct / 100));
+  const gF = document.getElementById('gaugeFill');
+  if (gF) {
+    gF.style.strokeDashoffset = offset;
+    gF.style.stroke = usedPct > 6 ? 'var(--rc-rose)' : usedPct > 4 ? 'var(--rc-gold)' : 'var(--rc-teal)';
+  }
+  const gPct = document.getElementById('gaugePct');
+  if (gPct) { gPct.innerText = usedPct.toFixed(1) + '%'; gPct.style.color = usedPct > 6 ? 'var(--rc-rose)' : usedPct > 4 ? 'var(--rc-gold)' : 'var(--rc-teal)'; }
+  const pfTR = document.getElementById('pfTotalRisk');
+  const gbf  = document.getElementById('gaugeBarFill');
+  const pfRem = document.getElementById('pfRemaining');
+  if (pfTR)  pfTR.innerText = sym + totRisk.toLocaleString('tr-TR', {maximumFractionDigits:0});
+  if (gbf)   gbf.style.width = Math.min(100, usedPct / 6 * 100) + '%';
+  if (pfRem) pfRem.innerText = '%' + rem.toFixed(2);
+  const warn = document.getElementById('pfWarn');
+  const wMsg = document.getElementById('pfWarnMsg');
+  if (warn && wMsg) {
+    if (usedPct > 6) {
+      warn.style.display = 'flex'; warn.style.alignItems = 'flex-start';
+      wMsg.innerText = 'Toplam portföy riski %6 limitini aştı! Yeni pozisyon açmak çok riskli.';
+    } else if (usedPct > 4) {
+      warn.style.display = 'flex'; warn.style.alignItems = 'flex-start';
+      wMsg.innerText = 'Risk limitine yaklaşıyorsunuz. Yeni pozisyon açmadan dikkat edin.';
+    } else { warn.style.display = 'none'; }
+  }
+  const listEl  = document.getElementById('pfPosList');
+  const countEl = document.getElementById('pfPosCount');
+  if (countEl) countEl.innerText = _rcOpenPositions.length + ' pozisyon';
+  if (listEl) {
+    if (_rcOpenPositions.length === 0) {
+      listEl.innerHTML = '<div class="rc-empty-state">Henüz kayıtlı pozisyon yok<br><span style="font-size:10px;">Aşağıdan ekleyin</span></div>';
+    } else {
+      listEl.innerHTML = _rcOpenPositions.map((p, i) => `
+        <div class="rc-pos-item">
+          <div class="rc-pos-item-body">
+            <div class="rc-pos-name">${p.name || 'Pozisyon ' + (i+1)}</div>
+            <div class="rc-pos-meta">Risk: <b style="color:var(--rc-rose);">${sym}${(p.riskAmt||0).toLocaleString('tr-TR',{maximumFractionDigits:0})}</b>${p.date ? ' · ' + p.date : ''}</div>
+          </div>
+          <button class="rc-pos-del" onclick="rcRemovePos(${i})"><i class="fas fa-times"></i></button>
+        </div>
+      `).join('');
+    }
+  }
+};
+
+window.addPosition = async function() {
+  const prompt_ = (typeof tvPrompt === 'function') ? tvPrompt : (t, v, p) => Promise.resolve(window.prompt(t + (p ? '\n' + p : ''), v || ''));
+  const name = await prompt_('Pozisyon Adı', '', 'Örn: THYAO, BTC, EURUSD');
+  if (!name || !name.trim()) return;
+  const amt = await prompt_('Risk Tutarı (₺)', '', 'Örn: 500');
+  if (!amt) return;
+  _rcOpenPositions.push({ name: name.trim(), riskAmt: parseFloat(amt) || 0, date: new Date().toLocaleDateString('tr-TR') });
+  localStorage.setItem('tv_open_positions', JSON.stringify(_rcOpenPositions));
+  refreshPFRisk();
+};
+
+window.rcRemovePos = function(i) {
+  _rcOpenPositions.splice(i, 1);
+  localStorage.setItem('tv_open_positions', JSON.stringify(_rcOpenPositions));
+  refreshPFRisk();
+};
+
+// Chaos Accordion
+const _rcChaosImpacts = {
+  crypto_winter: { crypto:.40, bist:.90, gold:1.00, forex:1.00, cash:1.00 },
+  market_crash:  { crypto:.70, bist:.65, gold:1.10, forex:1.05, cash:1.00 },
+  currency_shock:{ crypto:1.00, bist:1.05, gold:1.40, forex:1.40, cash:.72 },
+  gold_rush:     { crypto:.90, bist:.90, gold:1.25, forex:1.00, cash:1.00 },
+  black_monday:  { crypto:.80, bist:.80, gold:.80, forex:.80, cash:1.00 },
+  tcmb_shock:    { crypto:1.00, bist:.75, gold:1.05, forex:1.10, cash:.90 },
+  ai_bubble:     { crypto:.75, bist:.85, gold:1.08, forex:1.00, cash:1.00 },
+};
+const _rcAcShortId = {
+  'rc-ac-crypto':'crypto','rc-ac-crash':'crash','rc-ac-kur':'kur',
+  'rc-ac-gold':'gold','rc-ac-black':'black','rc-ac-tcmb':'tcmb','rc-ac-ai':'ai','rc-ac-custom':'custom'
+};
+
+function rcToggleAC(itemId, key) {
+  const container = document.getElementById('lab-tool-risk');
+  if (!container) return;
+  const item = document.getElementById(itemId);
+  if (!item) return;
+  const isOpen = item.classList.contains('open');
+  container.querySelectorAll('.rc-ac-item.open').forEach(el => el.classList.remove('open'));
+  if (!isOpen) {
+    item.classList.add('open');
+    if (key === 'custom') rcRunCustomChaos();
+    else rcRunChaos(_rcAcShortId[itemId], key);
+  }
+}
+
+function _rcGetPF() {
+  const as   = JSON.parse(localStorage.getItem('myPF_final') || '[]');
+  const cash = parseFloat(localStorage.getItem('tm_cash_balance') || '0');
+  const usd  = (typeof usdTryRate !== 'undefined') ? usdTryRate : 36.5;
+  const curr = (typeof appSettings !== 'undefined') ? appSettings.currency : 'TRY';
+  const sym  = curr === 'USD' ? '$' : '₺';
+  return { as, cash, usd, curr, sym };
+}
+
+function _rcAssetType(name) {
+  if (typeof getAssetTag !== 'function') return 'bist';
+  const t = getAssetTag(name).t;
+  if (t === 'KRİPTO') return 'crypto';
+  if (t === 'EMTİA')  return 'gold';
+  if (t === 'DÖVİZ')  return 'forex';
+  return 'bist';
+}
+
+function rcRunChaos(shortId, key) {
+  const { as, cash, usd, curr, sym } = _rcGetPF();
+  const impact = _rcChaosImpacts[key];
+  let cur = 0, sim = 0;
+  as.forEach(a => {
+    const p   = a.curr || a.buy;
+    const val = curr === 'TRY' ? (a.origin === 'USD' ? p*a.amt*usd : p*a.amt) : (a.origin === 'TRY' ? p*a.amt/usd : p*a.amt);
+    cur += val; sim += val * (impact[_rcAssetType(a.name)] || 1);
+  });
+  cur += cash; sim += cash * impact.cash;
+  _rcApplyChaosUI(shortId, sym, cur, sim);
+}
+
+function rcRunCustomChaos() {
+  const cr = (parseFloat(document.getElementById('custCr').value) || 0) / 100;
+  const bi = (parseFloat(document.getElementById('custBi').value) || 0) / 100;
+  const go = (parseFloat(document.getElementById('custGo').value) || 0) / 100;
+  const fx = (parseFloat(document.getElementById('custFx').value) || 0) / 100;
+  const { as, cash, usd, curr, sym } = _rcGetPF();
+  const imp = { crypto:1+cr, bist:1+bi, gold:1+go, forex:1+fx, cash:1 };
+  let cur = 0, sim = 0;
+  as.forEach(a => {
+    const p   = a.curr || a.buy;
+    const val = curr === 'TRY' ? (a.origin === 'USD' ? p*a.amt*usd : p*a.amt) : (a.origin === 'TRY' ? p*a.amt/usd : p*a.amt);
+    cur += val; sim += val * (imp[_rcAssetType(a.name)] || 1);
+  });
+  cur += cash; sim += cash;
+  _rcApplyChaosUI('custom', sym, cur, sim);
+}
+
+function _rcApplyChaosUI(id, sym, cur, sim) {
+  const diff   = sim - cur;
+  const pct    = cur > 1 ? diff / cur * 100 : 0;
+  const barW   = Math.max(4, Math.min(100, 100 + pct));
+  const isGood = diff >= 0;
+  const clr    = isGood ? 'var(--rc-teal)' : 'var(--rc-rose)';
+  const balEl  = document.getElementById('sb-'   + id);
+  const barEl  = document.getElementById('sbar-' + id);
+  const chgEl  = document.getElementById('sc-'   + id);
+  const advEl  = document.getElementById('sa-'   + id);
+  if (balEl) { balEl.innerText = sym + Math.floor(sim).toLocaleString('tr-TR'); balEl.style.color = clr; }
+  if (barEl) { barEl.style.width = barW + '%'; barEl.style.background = clr; }
+  if (chgEl) { chgEl.innerText = (diff>=0?'+':'') + sym + Math.floor(diff).toLocaleString('tr-TR') + ' (' + (diff>=0?'+':'') + pct.toFixed(1) + '%)'; chgEl.style.color = clr; }
+  if (advEl) {
+    if (cur < 100) advEl.innerHTML = 'Portföyünüz yüklenince otomatik hesaplanır.';
+    else if (isGood) advEl.innerHTML = '✅ Portföyün bu senaryodan <b>kârlı</b> çıkıyor.';
+    else if (Math.abs(pct) > 30) advEl.innerHTML = '🚨 <b>Kritik!</b> Bu senaryo portföyünü ciddi yaralar.';
+    else advEl.innerHTML = '⚠️ Portföy hasar alır. Risk dağılımını gözden geçirin.';
+  }
+}
+
+function rcUpdateDD(n) {
+  n = parseInt(n);
+  const ddNEl = document.getElementById('ddN');
+  if (ddNEl) ddNEl.innerText = n;
+  const rp  = parseFloat((document.getElementById('ddRp') || {}).value) || 2;
+  const rem = Math.pow(1 - rp/100, n);
+  const lostPct  = (1 - rem) * 100;
+  const halfLoss = Math.ceil(Math.log(.5) / Math.log(1 - rp/100));
+  const pctEl = document.getElementById('ddPct');
+  if (pctEl) { pctEl.innerText = '−' + lostPct.toFixed(1) + '%'; pctEl.style.color = lostPct > 40 ? 'var(--rc-rose)' : lostPct > 20 ? 'var(--rc-gold)' : 'var(--rc-teal)'; }
+  const ddInfo = document.getElementById('ddInfo');
+  const ddHalf = document.getElementById('ddHalf');
+  if (ddInfo) ddInfo.innerText = '%' + rp + ' risk · ' + n + ' kayıp';
+  if (ddHalf) ddHalf.innerText = halfLoss;
+}
+function rcUpdateDDRp() {
+  const v = document.querySelector('#lab-tool-risk .rc-pslider');
+  rcUpdateDD(v ? v.value : 10);
+}
+setTimeout(() => { rcUpdateDD(10); }, 200);
+
+function rcCalcExp() {
+  const wr = parseFloat((document.getElementById('expWr') || {}).value) / 100;
+  const aw = parseFloat((document.getElementById('expAw') || {}).value);
+  const al = parseFloat((document.getElementById('expAl') || {}).value);
+  if (isNaN(wr) || isNaN(aw) || isNaN(al)) return;
+  const e  = (wr * aw) - ((1-wr) * al);
+  const el = document.getElementById('expVal');
+  if (el) { el.innerText = (e>=0?'+':'') + e.toFixed(3) + 'R'; el.style.color = e>=0?'var(--rc-teal)':'var(--rc-rose)'; }
+  const expInfo = document.getElementById('expInfo');
+  if (expInfo) expInfo.innerText = '100 trade → ' + (e*100>=0?'+':'') + (e*100).toFixed(1) + 'R';
+}
+
+function rcSaveHistory(d) {
+  if (!d.en || !d.st || !d.bal) return;
+  const h = JSON.parse(localStorage.getItem('tv_risk_history') || '[]');
+  h.unshift(d);
+  localStorage.setItem('tv_risk_history', JSON.stringify(h.slice(0,15)));
+  rcRenderHistory();
+}
+function rcRenderHistory() {
+  const h  = JSON.parse(localStorage.getItem('tv_risk_history') || '[]');
+  const el = document.getElementById('histList');
+  if (!el) return;
+  if (!h.length) { el.innerHTML = '<div class="rc-empty-state">Pozisyon hesaplayınca burada görünür</div>'; return; }
+  el.innerHTML = h.map(r => `
+    <div class="rc-hist-item">
+      <div class="rc-hist-top">
+        <span class="rc-hist-title">Giriş ${r.sym}${(r.en||0).toLocaleString('tr-TR',{maximumFractionDigits:4})} → Stop ${r.sym}${(r.st||0).toLocaleString('tr-TR',{maximumFractionDigits:4})}</span>
+        <span class="rc-hist-date">${new Date().toLocaleDateString('tr-TR')}</span>
+      </div>
+      <div class="rc-hist-detail">Risk <b style="color:var(--rc-rose);">${r.sym}${Math.floor(r.riskAmt||0).toLocaleString('tr-TR')}</b> · %${r.rp} · <b>${(r.qty||0).toLocaleString('tr-TR',{maximumFractionDigits:2})}</b> adet${r.tg ? ` · Hedef <b style="color:var(--rc-teal);">${r.sym}${r.tg.toLocaleString('tr-TR',{maximumFractionDigits:4})}</b>` : ''}</div>
+    </div>
+  `).join('');
+}
+function rcClearHistory() {
+  localStorage.removeItem('tv_risk_history');
+  rcRenderHistory();
+}
+
+function rcInitRisk() {
+  // Auto-fill wallet balance
+  const cash = parseFloat(localStorage.getItem('tm_cash_balance') || '0');
+  const balEl = document.getElementById('riskBalance');
+  if (cash > 0 && balEl) balEl.value = Math.floor(cash);
+  // Reset dropdown label
+  const lbl = document.getElementById('riskSelectLabel');
+  if (lbl) lbl.innerHTML = '<i class="fas fa-folder-open" style="margin-right:6px;opacity:0.6;"></i>Portföyden Seçiniz';
+  // Load portfolio into dropdown
+  populateRiskAssets();
+  // Refresh gauges
+  refreshPFRisk();
+  rcRenderHistory();
+  setTimeout(() => { rcUpdateDD(10); rcCalcExp(); }, 100);
+  // Show portfolio quick-select button
+  const pfSelEl = document.getElementById('pfSel');
+  if (pfSelEl) {
+    const pf = JSON.parse(localStorage.getItem('myPF_final') || '[]');
+    // if portfolio has items, make select visible as chip row
+    if (pf.length > 0) rcRenderPFChips(pf);
+  }
+}
+
+function rcRenderPFChips(pf) {
+  // Show portfolio assets as quick-tap chips under sec-head
+  const container = document.getElementById('rc-pf-chips');
+  if (!container) return;
+  const usd = (typeof usdTryRate !== 'undefined') ? usdTryRate : 36.5;
+  const curr = (typeof appSettings !== 'undefined') ? appSettings.currency : 'TRY';
+  const sym = curr === 'USD' ? '$' : '₺';
+  container.innerHTML = pf.slice(0,6).map((a, i) => {
+    const price = a.curr || a.buy;
+    return `<button class="rc-pf-chip" onclick="rcPickAsset(${i})">${a.name}<span>${sym}${price.toLocaleString('tr-TR',{maximumFractionDigits:2})}</span></button>`;
+  }).join('') + (pf.length > 6 ? `<span style="font-size:10px;color:var(--rc-lo);align-self:center;">+${pf.length-6}</span>` : '');
+  container.style.display = 'flex';
+}
+
+function rcPickAsset(idx) {
+  const pf = JSON.parse(localStorage.getItem('myPF_final') || '[]');
+  const a = pf[idx]; if (!a) return;
+  const riskEntry = document.getElementById('riskEntry');
+  const riskStop  = document.getElementById('riskStop');
+  const riskBalance = document.getElementById('riskBalance');
+  // Use current price as entry; stop = 5% below current price (not avg cost)
+  const currentPrice = a.curr || a.buy;
+  if (riskEntry) riskEntry.value = currentPrice.toFixed(4);
+  if (riskStop)  riskStop.value  = (currentPrice * 0.95).toFixed(4); // -5% default stop
+  // Clear target when switching assets
+  const riskTarget = document.getElementById('riskTarget');
+  if (riskTarget) riskTarget.value = '';
+  const cash = parseFloat(localStorage.getItem('tm_cash_balance') || '0');
+  if (cash > 0 && riskBalance && !riskBalance.value) riskBalance.value = Math.floor(cash);
+  calcLabRisk();
+  // Visual feedback - highlight selected chip
+  document.querySelectorAll('#lab-tool-risk .rc-pf-chip').forEach((c, ci) => {
+    c.style.borderColor = ci === idx ? 'var(--rc-gold)' : 'var(--rc-border1)';
+    c.style.color       = ci === idx ? 'var(--rc-gold)' : 'var(--rc-mid)';
+    c.style.background  = ci === idx ? 'rgba(200,168,75,0.1)' : '';
+  });
+}
+
+// Stub aliases for old callers
+window.runChaosSimulation = function() {};
+window.selectChaosScenario = function() {};
+/* END RC PREMIUM RISK COCKPIT */
+
+
 function fillAdvAvgData() {
     let idx = document.getElementById('advAvgSelect').value;
     
@@ -28308,103 +29797,109 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 /* --- KAOS SİMÜLASYON MOTORU --- */
-function selectChaosScenario(value, label) {
-    document.getElementById('chaosScenario').value = value;
-    var labelEl = document.getElementById('chaosScenarioSelectLabel');
-    if(labelEl) labelEl.textContent = label;
-    // dropdown'ı kapat
-    if(typeof closeAllDropdowns === 'function') closeAllDropdowns();
-    // simülasyonu çalıştır
-    if(value !== '0') runChaosSimulation();
-    else { var r = document.getElementById('chaosResult'); if(r) r.style.display = 'none'; }
+function selectChaosScenario(scenarioId) {
+  // Old function: redirected to RC Premium — use accordion buttons
+  if (typeof rcToggleAC === 'function') {
+    const keyMap = {
+      'crypto_winter':'crypto','market_crash':'crash','currency_shock':'kur',
+      'gold_rush':'gold','black_monday':'black','tcmb_shock':'tcmb','ai_bubble':'ai'
+    };
+    const k = keyMap[scenarioId];
+    if (k) rcToggleAC('rc-ac-'+k, k);
+  }
 }
 
 function runChaosSimulation() {
     let scenario = document.getElementById('chaosScenario').value;
-    if(scenario === "0") {
-        document.getElementById('chaosResult').style.display = 'none';
-        return;
-    }
+    if(scenario === "0") { document.getElementById('chaosResult').style.display = 'none'; return; }
 
-    // 1. Mevcut Portföyü Çek
     let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
     let cash = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
-    
-    // Anlık Kurları Al (Global değişkenlerden)
     let currentUsd = (typeof usdTryRate !== 'undefined') ? usdTryRate : 36.50;
     let appCurr = (typeof appSettings !== 'undefined') ? appSettings.currency : 'TRY';
     let sym = appCurr === 'TRY' ? '₺' : '$';
 
-    // 2. Senaryo Etkileri (Çarpanlar)
-    // 1.0 = Değişim yok, 0.5 = %50 düşüş, 1.5 = %50 artış
+    // Senaryo Etkileri — genişletilmiş
     const impacts = {
-        'crypto_winter': { crypto: 0.40, bist: 0.90, gold: 1.00, forex: 1.00, cash: 1.00 }, // Kripto %60 erir
-        'market_crash':  { crypto: 0.70, bist: 0.65, gold: 1.10, forex: 1.05, cash: 1.00 }, // Borsa %35 cokus, Altin artar
-        'gold_rush':     { crypto: 0.90, bist: 0.90, gold: 1.25, forex: 1.00, cash: 1.00 }, // Altın rallisi
-        'black_monday':  { crypto: 0.80, bist: 0.80, gold: 0.80, forex: 0.80, cash: 1.00 }  // Nakit hariç her şey düşer
+        'crypto_winter':  { crypto: 0.40, bist: 0.90, gold: 1.00, forex: 1.00, cash: 1.00 },
+        'market_crash':   { crypto: 0.70, bist: 0.65, gold: 1.10, forex: 1.05, cash: 1.00 },
+        'currency_shock': { crypto: 1.00, bist: 1.05, gold: 1.40, forex: 1.40, cash: 0.70 },
+        'gold_rush':      { crypto: 0.90, bist: 0.90, gold: 1.25, forex: 1.00, cash: 1.00 },
+        'black_monday':   { crypto: 0.80, bist: 0.80, gold: 0.80, forex: 0.80, cash: 1.00 },
+        'tcmb_shock':     { crypto: 1.00, bist: 0.75, gold: 1.05, forex: 1.10, cash: 0.90 },
+        'oil_crisis':     { crypto: 0.95, bist: 0.92, gold: 1.08, forex: 1.00, cash: 1.00 },
+        'bank_crisis':    { crypto: 0.85, bist: 0.60, gold: 1.20, forex: 1.15, cash: 1.00 },
+        'geopolitical':   { crypto: 0.90, bist: 0.80, gold: 1.15, forex: 1.05, cash: 1.00 },
+        'ai_bubble':      { crypto: 0.75, bist: 0.85, gold: 1.05, forex: 1.00, cash: 1.00 },
     };
 
-    let selectedImpact = impacts[scenario];
-    let currentTotal = 0;
-    let simulatedTotal = 0;
+    let selectedImpact;
+    if(scenario === 'custom') {
+        let cc = parseFloat(document.getElementById('customCrypto').value) || 0;
+        let cb = parseFloat(document.getElementById('customBist').value) || 0;
+        let cg = parseFloat(document.getElementById('customGold').value) || 0;
+        let cf = parseFloat(document.getElementById('customForex').value) || 0;
+        selectedImpact = { crypto: 1 + cc/100, bist: 1 + cb/100, gold: 1 + cg/100, forex: 1 + cf/100, cash: 1.00 };
+    } else {
+        selectedImpact = impacts[scenario];
+    }
 
-    // 3. Hesaplama Döngüsü
+    if(!selectedImpact) return;
+
+    let currentTotal = 0, simulatedTotal = 0;
+    let breakdown = { crypto: {cur:0,sim:0}, bist: {cur:0,sim:0}, gold: {cur:0,sim:0}, forex: {cur:0,sim:0} };
+
     as.forEach(asset => {
-        // Varlığın şu anki değerini hesapla
         let price = asset.curr || asset.buy;
-        let val = 0;
-
-        if(appCurr === 'TRY') {
-            val = (asset.origin === 'USD') ? (price * asset.amt * currentUsd) : (price * asset.amt);
-        } else {
-            val = (asset.origin === 'TRY') ? ((price * asset.amt) / currentUsd) : (price * asset.amt);
-        }
-        
+        let val = appCurr === 'TRY' ? (asset.origin === 'USD' ? price * asset.amt * currentUsd : price * asset.amt)
+                                    : (asset.origin === 'TRY' ? (price * asset.amt) / currentUsd : price * asset.amt);
         currentTotal += val;
-
-        // Varlığın Türünü Bul (Senaryo için)
-        let tagData = getAssetTag(asset.name); // Mevcut fonksiyonunu kullanıyoruz
-        let type = 'bist'; // Varsayılan
-        
+        let tagData = getAssetTag(asset.name);
+        let type = 'bist';
         if(tagData.t === 'KRİPTO') type = 'crypto';
         else if(tagData.t === 'EMTİA') type = 'gold';
         else if(tagData.t === 'DÖVİZ') type = 'forex';
-        
-        // Simüle edilmiş değer
-        let multiplier = selectedImpact[type];
+        let multiplier = selectedImpact[type] || 1;
+        breakdown[type].cur += val;
+        breakdown[type].sim += val * multiplier;
         simulatedTotal += val * multiplier;
     });
 
-    // Nakit Etkisi
     currentTotal += cash;
-    simulatedTotal += cash * selectedImpact.cash; // Genelde nakit sabittir ama enflasyon senaryosu eklenebilir
+    simulatedTotal += cash * selectedImpact.cash;
+    breakdown.bist.cur += cash; breakdown.bist.sim += cash * selectedImpact.cash;
 
-    // 4. Sonuçları Göster
     let diff = simulatedTotal - currentTotal;
     let diffPercent = (currentTotal > 0) ? (diff / currentTotal) * 100 : 0;
-    
-    // UI Güncelleme
+
     document.getElementById('chaosBalance').innerText = sym + simulatedTotal.toLocaleString(undefined, {maximumFractionDigits:0});
-    
+
     const bar = document.getElementById('chaosBar');
     const txt = document.getElementById('chaosChangeText');
     const advice = document.getElementById('chaosAdvice');
 
     if(diff >= 0) {
-        bar.style.width = "100%";
-        bar.style.background = "#10b981"; // Yeşil
+        bar.style.width = "100%"; bar.style.background = "#10b981";
         txt.innerText = `Dayanıklı: +${sym}${diff.toLocaleString(undefined, {maximumFractionDigits:0})} (+%${diffPercent.toFixed(1)})`;
         advice.innerHTML = "Portföyün bu senaryodan <b>kârlı</b> çıkıyor. Kriz fırsata dönüşebilir.";
     } else {
-        // Zarar barı hesapla (Görsel olarak %100'den düşür)
-        let width = Math.max(10, 100 - Math.abs(diffPercent)); 
-        bar.style.width = width + "%";
-        bar.style.background = "#ef4444"; // Kırmızı
+        let width = Math.max(10, 100 - Math.abs(diffPercent));
+        bar.style.width = width + "%"; bar.style.background = "#ef4444";
         txt.innerText = `Erime: ${diffPercent.toFixed(1)}% (${sym}${Math.abs(diff).toLocaleString(undefined, {maximumFractionDigits:0})})`;
-        
-        // Dinamik Tavsiye
         if(Math.abs(diffPercent) > 30) advice.innerHTML = "<b>KRİTİK RİSK!</b> Bu senaryo gerçekleşirse varlıkların ciddi erir. Nakit veya Altın oranını artırmayı düşün.";
         else advice.innerHTML = "Portföyün darbe alıyor ama hayatta kalır. Risk dağılımını gözden geçir.";
+    }
+
+    // Varlık Sınıfı Kırılımı
+    let bEl = document.getElementById('chaosBreakdown');
+    if(bEl) {
+        let types = [{k:'crypto',l:'Kripto'},{k:'bist',l:'Hisse/Nakit'},{k:'gold',l:'Emtia'},{k:'forex',l:'Döviz'}];
+        bEl.innerHTML = types.filter(t => breakdown[t.k].cur > 0).map(t => {
+            let d = breakdown[t.k].sim - breakdown[t.k].cur;
+            let dp = breakdown[t.k].cur > 0 ? (d/breakdown[t.k].cur*100).toFixed(1) : '0';
+            let col = d >= 0 ? '#10b981' : '#ef4444';
+            return `<span style="margin-right:10px;">${t.l}: <b style="color:${col}">${d>=0?'+':''}${sym}${Math.abs(d).toLocaleString(undefined,{maximumFractionDigits:0})} (%${dp})</b></span>`;
+        }).join('');
     }
 
     document.getElementById('chaosResult').style.display = 'block';
@@ -29693,74 +31188,7 @@ document.addEventListener("DOMContentLoaded", () => {
    ====================================================== */
 
 /* 1. RİSK HESAPLAMA MOTORU */
-window.calcLabRisk = function() {
-    // A) Sayı Okuma Yardımcısı (Türkçe/İngilizce uyumlu)
-    function parseNum(val) {
-        if (!val) return 0;
-        val = val.toString().trim();
-        // 1.000,50 formatı (TR) -> 1000.50
-        if (val.includes('.') && val.includes(',')) {
-            val = val.replace(/\./g, '').replace(',', '.');
-        } 
-        // 10,5 formatı (TR) -> 10.5
-        else if (val.includes(',')) {
-            val = val.replace(',', '.');
-        }
-        return parseFloat(val) || 0;
-    }
-
-    // B) Değerleri Al
-    let balance = parseNum(document.getElementById('riskBalance').value);
-    let riskPct = parseNum(document.getElementById('riskPct').value);
-    let entry = parseNum(document.getElementById('riskEntry').value);
-    let stop = parseNum(document.getElementById('riskStop').value);
-
-    // C) Hata Kontrolleri
-    if (balance <= 0) return tvAlert("Eksik Alan", "Lütfen kasa bakiyesini girin.");
-    if (entry <= 0 || stop <= 0) return tvAlert("Hata", "Fiyatlar 0 olamaz.");
-    if (entry === stop) return tvAlert("Hata", "Giriş ve Stop fiyatı aynı olamaz.");
-
-    // D) Hesaplama
-    let riskAmount = balance * (riskPct / 100); // Riske edilen para
-    let diff = Math.abs(entry - stop);          // Birim başına fark
-    let qty = riskAmount / diff;                // Adet
-    let totalSize = qty * entry;                // Toplam Pozisyon Büyüklüğü
-
-    // E) PARA BİRİMİ TESPİTİ (ÖNEMLİ DÜZELTME BURADA)
-    let sym = '₺'; // Varsayılan TL
-    let currencyCode = 'TRY';
-
-    // 1. appSettings kontrolü
-    if (typeof appSettings !== 'undefined' && appSettings.currency) {
-        if (appSettings.currency === 'USD') {
-            sym = '$';
-            currencyCode = 'USD';
-        }
-    } 
-    // 2. HTML dilinden yedek kontrol
-    else if (document.documentElement.lang === 'en') {
-        sym = '$';
-        currencyCode = 'USD';
-    }
-
-    // F) Sonuçları Ekrana Yazdır (Para birimine uygun formatta)
-    // Adet (Lot) her zaman düz sayıdır
-    document.getElementById('resRiskQty').innerText = qty.toLocaleString('tr-TR', {maximumFractionDigits: 4});
-    
-    // Para değerleri
-    document.getElementById('resRiskLoss').innerText = "-" + sym + riskAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    document.getElementById('resPosSize').innerText = sym + totalSize.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-
-    // Alt Bilgi
-    let ratio = (totalSize / balance) * 100;
-    let ratioText = document.getElementById('riskRatioText');
-    if(ratioText) {
-        ratioText.innerHTML = `Bu işlem kasanın <b>%${ratio.toFixed(1)}</b> kadarını kullanır.`;
-    }
-
-    // Sonuç kutusunu aç
-    document.getElementById('riskResultBox').style.display = 'block';
-};
+/* calcLabRisk: RC Premium versiyonu yukarıda tanımlı - eski kopya devre dışı */
 
 /* 2. ÜST BAR YÖNETİMİ (KARIŞIKLIK ÖNLEYİCİ) */
 window.switchAnTab = function(tab, btn) {
