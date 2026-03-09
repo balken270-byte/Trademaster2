@@ -19380,7 +19380,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.5"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -31857,14 +31857,23 @@ async function runDeepDiveAnalysis() {
     try {
         var history = JSON.parse(localStorage.getItem('tm_full_trade_history')) || [];
         if (history.length > 0) {
+            // DÜZELTME: 7 gün → 14 gün (daha temsili pencere)
+            // 7 gün önceki panik satışlar artık yakalanıyor
             var recentSells = history.filter(function(t){
                 return t.type === 'SATIM' && t.date &&
-                    (Date.now() - new Date(t.date).getTime()) < 7 * 86400000;
+                    (Date.now() - new Date(t.date).getTime()) < 14 * 86400000;
             }).length;
-            if (recentSells >= 3) {
-                traderProfile = { riskAdvice: 0.5, msg: 'Son 7 günde çok fazla satış tespit edildi. Panik kararlar genellikle zarara yol açar. Bu yüzden önerilen bütçeyi %50 azalttım — düşünmek için zaman al.', type: 'Panik' };
+            // Son 30 günde toplam satış sayısı (kronik panik tespiti için)
+            var monthlySells = history.filter(function(t){
+                return t.type === 'SATIM' && t.date &&
+                    (Date.now() - new Date(t.date).getTime()) < 30 * 86400000;
+            }).length;
+            if (recentSells >= 4 || monthlySells >= 8) {
+                traderProfile = { riskAdvice: 0.5, msg: 'Son 14 günde çok fazla satış tespit edildi. Panik kararlar genellikle zarara yol açar. Bu yüzden önerilen bütçeyi %50 azalttım — düşünmek için zaman al.', type: 'Panik' };
+            } else if (recentSells >= 2 || monthlySells >= 4) {
+                traderProfile = { riskAdvice: 0.75, msg: 'Son 2 haftada birden fazla satış hareketi var. Aceleci davranmamak için önerilen bütçeyi biraz kıstım.', type: 'Dikkatli' };
             } else if (recentSells >= 1) {
-                traderProfile = { riskAdvice: 0.75, msg: 'Son hafta satış hareketlerin var. Aceleci davranmamak için önerilen bütçeyi biraz kıstım.', type: 'Dikkatli' };
+                traderProfile = { riskAdvice: 0.90, msg: 'Son 2 haftada satış hareketi tespit edildi. Küçük ihtiyat olarak bütçeyi %10 kıstım.', type: 'Hafif Dikkatli' };
             }
         }
     } catch(e) {}
@@ -32157,37 +32166,36 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource) {
             var sd  = Math.sqrt(sl.reduce(function(a,v){ return a + Math.pow(v-mid,2); },0) / period);
             return { upper: mid+mult*sd, mid: mid, lower: mid-mult*sd, bw: (2*mult*sd)/mid*100 };
         }
-        // ── RSI Bullish Divergence — 5-bar pivot + Wilder RSI + zone filtresi ──
-        // TradingView standardı: 5 bar left/right pivot, 5-60 bar aralığı
-        // Regular Bullish: fiyat lower-low, RSI higher-low → reversal sinyali
-        // Hidden Bullish: fiyat higher-low, RSI lower-low → trend devam
+        // ── RSI Bullish Divergence — Doğru pivot tespiti (TradingView standardı) ──
+        // Yöntem: Tüm dizi üzerinde sol 2 + sağ 2 bar pivot low tarama
+        // c[i-2], c[i-1] < c[i] > c[i+1], c[i+2] → güvenli indeks aralığında
+        // Önceki yöntem: slice+idx yöntemi c[idx+1], c[idx+2]'yi tanımsız yapıyordu
         function rsiBullDiv(c) {
             if (c.length < 30) return false;
-            // Son 60 bar içinde 5-bar pivot low tespiti
-            var pivotBars = Math.min(60, c.length - 6);
+            var lookback = Math.min(c.length - 3, 80); // sağda en az 2 bar güvencesi
             var pivots = [];  // {idx, price, rsi}
-            for (var i = 5; i < pivotBars; i++) {
-                var slice = c.slice(0, c.length - i + 5);
-                var idx   = slice.length - 1;
-                // 5-bar local minimum: 2 sol + 2 sağ
-                var isMin = c[idx] < c[idx-1] && c[idx] < c[idx-2] &&
-                            c[idx] < c[idx+1] && c[idx] < c[idx+2];
+            // i: pivot adayı — solunda 2, sağında 2 bar olduğundan emin ol
+            for (var i = 2; i < lookback; i++) {
+                var isMin = c[i] < c[i-1] && c[i] < c[i-2] &&
+                            c[i] < c[i+1] && c[i] < c[i+2];
                 if (!isMin) continue;
-                var rsiVal = rsiCalc(c.slice(0, idx + 1), 14);
-                pivots.push({ idx: idx, price: c[idx], rsi: rsiVal });
+                var rsiVal = rsiCalc(c.slice(0, i + 1), 14);
+                pivots.push({ idx: i, price: c[i], rsi: rsiVal });
             }
             if (pivots.length < 2) return false;
-            // Son iki pivot'u karşılaştır: Regular Bullish Divergence
-            var p1 = pivots[pivots.length - 1];  // daha eski
-            var p2 = pivots[pivots.length - 2];  // daha yeni (daha yakın zamanda)
+            // En son 2 pivot: p1 eski, p2 yeni (daha büyük idx = daha yakın zamanda)
+            var p1 = pivots[pivots.length - 2];  // eski pivot
+            var p2 = pivots[pivots.length - 1];  // yeni pivot
             if (!p1 || !p2) return false;
-            var barSep = Math.abs(p1.idx - p2.idx);
+            var barSep = p2.idx - p1.idx;
             if (barSep < 5 || barSep > 60) return false;  // çok yakın veya çok uzak
-            // Regular Bullish: fiyat LL, RSI HL + RSI oversold zone (<45)
+            // Regular Bullish Divergence: fiyat LL, RSI HL + RSI oversold zone (<45)
             var regularBull = p2.price < p1.price && p2.rsi > p1.rsi && p2.rsi < 45;
             // En az %1 fiyat farkı olmalı (noise filtresi)
             var priceSep = Math.abs(p1.price - p2.price) / p1.price > 0.01;
-            return regularBull && priceSep;
+            // En az 2 RSI puan farkı olmalı (anlamsız mikroskobik divergence önleme)
+            var rsiSep = (p2.rsi - p1.rsi) > 2;
+            return regularBull && priceSep && rsiSep;
         }
         // ── OBV Trend — BIST null hacim koruması + dinamik eşik ──
         function obvTrendCalc(c, v) {
@@ -32243,6 +32251,10 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource) {
         var sma200gap    = sma200 ? ((currentPrice - sma200) / sma200 * 100) : 0; // % uzaklık
 
         // ── Hacim Spike (güncel 7g ort / önceki 20g ort) ────────
+        // DÜZELTME: hasVol burada tanımlanıyor — aşağıdaki (satır ~32404) tanım kaldırıldı
+        var hasVol    = volumes.some(function(v){ return v > 0; });
+        var zeroVolCountEarly = volumes.filter(function(v){ return v === 0; }).length;
+        var volumeReliableEarly = hasVol && (zeroVolCountEarly < volumes.length * 0.4);
         var volSma20  = hasVol && volumes.length >= 20 ? smaFn(volumes.slice(-20), 20) : 0;
         var volRecent = hasVol && volumes.length >= 5  ? smaFn(volumes.slice(-5), 5)   : 0;
         var volSpike  = volSma20 > 0 ? volRecent / volSma20 : 1.0; // 1.0 = normal, >2 = olağandışı
@@ -32293,31 +32305,42 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource) {
                 resistanceLevel = topRCandidates[0].price;
             }
 
-            // ── 2. Fibonacci Retracement — Trend Yönü Filtreli ──────────
-            // Standart kural: Yükseliş trendinde Low→High, Düşüş trendinde High→Low
-            // EMA21 > EMA50 = uptrend, EMA21 < EMA50 = downtrend
+            // ── 2. Fibonacci Retracement — Evrensel yöntem (Babypips/TradingView standardı) ──
+            // Yükseliş trendinde Low→High çiz (retracement = destek arama)
+            // Düşüş trendinde High→Low çiz (retracement = direnç arama)
+            // DÜZELTME: Sadece EMA21/50 yerine fiyat pozisyonu + EMA kombinasyonu kullanılıyor
+            // Zararda varlıklarda EMA21 genellikle EMA50 altında → hep downtrend verir
+            // Çözüm: Momentum7 + EMA hem de fiyatın son 20 bar ortalamasına göre çift kontrol
             var majorHigh = Math.max.apply(null, highs);
             var majorLow  = Math.min.apply(null, lows);
             var fibRange  = majorHigh - majorLow;
-            // Trend yönünü EMA ile belirle
-            var isUptrend = e21a && e50a && e21a[e21a.length-1] > e50a[e50a.length-1];
+
+            // Trend tespiti: EMA21/50 + son 20 bar fiyat ortalamasına göre (daha güvenilir)
+            var ema21Last = e21a[e21a.length-1];
+            var ema50Last = e50a[e50a.length-1];
+            var recentAvg20 = smaFn(closes.slice(-20), Math.min(20, closes.length));
+            // İkili kontrol: hem EMA hem de recent avg uptrend tarafında ise uptrend say
+            var isUptrend = (ema21Last > ema50Last) && (currentPrice > recentAvg20);
 
             if (fibRange > 0 && fibRange / currentPrice > 0.05) {  // anlamlı swing olmalı
                 var fibRatios = [0.236, 0.382, 0.500, 0.618, 0.786];
                 fibRatios.forEach(function(ratio) {
                     var fibPrice;
                     if (isUptrend) {
-                        // Yükseliş: Low'dan High'a çiz — retracement seviyeleri destek olarak çalışır
+                        // Yükseliş: Low'dan High'a çiz — retracement seviyeleri destek
                         fibPrice = majorHigh - fibRange * ratio;
                     } else {
-                        // Düşüş: High'dan Low'a çiz — retracement seviyeleri direnç olarak çalışır
+                        // Düşüş: High'dan Low'a çiz — retracement seviyeleri direnç
+                        // Ama bazı seviyeler fiyatın altında olabilir (geçmiş destek)
                         fibPrice = majorLow + fibRange * ratio;
                     }
+                    // Seviyenin fiyata göre rolünü dinamik olarak belirle
+                    var levelIsSupport = fibPrice < currentPrice;
                     fibLevels.push({
                         price: fibPrice,
                         label: (ratio * 100).toFixed(1) + '%',
                         ratio: ratio,
-                        isSupport: isUptrend  // trend yönüne göre rol değişir
+                        isSupport: levelIsSupport  // fiyata göre dinamik rol
                     });
                 });
 
@@ -32385,6 +32408,313 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource) {
             return Math.abs(f.price - currentPrice) / currentPrice < 0.05;
         }) || null;
 
+        // ══════════════════════════════════════════════════════════
+        // ── YENİ İNDİKATÖRLER v6.0 ─────────────────────────────
+        // ══════════════════════════════════════════════════════════
+
+        // ── 1. ADX (Average Directional Index) — Wilder Yöntemi ──
+        // +DI / -DI / ADX: Trend gücü + yön tespiti
+        // ADX > 25: Güçlü trend | > 40: Çok güçlü | < 20: Trendsiz/dönüm noktası
+        var adxVal = 25, adxPlusDI = 25, adxMinusDI = 25, adxTrend = 'nötr';
+        (function() {
+            var p = Math.min(14, closes.length - 1);
+            if (highs.length < p + 1 || lows.length < p + 1) return;
+            // True Range ve DM dizileri
+            var trArr = [], plusDM = [], minusDM = [];
+            for (var i = 1; i < closes.length; i++) {
+                var h = highs[i], l = lows[i], pc = closes[i-1];
+                var tr = Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc));
+                var pdm = Math.max(h - (highs[i-1]||h), 0);
+                var mdm = Math.max((lows[i-1]||l) - l, 0);
+                if (pdm > mdm) { plusDM.push(pdm); minusDM.push(0); }
+                else if (mdm > pdm) { minusDM.push(mdm); plusDM.push(0); }
+                else { plusDM.push(0); minusDM.push(0); }
+                trArr.push(tr);
+            }
+            // Wilder smoothing (SMMA) — p=14
+            function wilderSmooth(arr, period) {
+                if (arr.length < period) return arr.reduce(function(a,b){return a+b;},0)/arr.length||0;
+                var seed = arr.slice(0, period).reduce(function(a,b){return a+b;},0);
+                var out = [seed];
+                for (var i = period; i < arr.length; i++)
+                    out.push(out[out.length-1] - out[out.length-1]/period + arr[i]);
+                return out[out.length-1];
+            }
+            var atr14  = wilderSmooth(trArr, p);
+            var pDI14  = wilderSmooth(plusDM, p);
+            var mDI14  = wilderSmooth(minusDM, p);
+            if (atr14 <= 0) return;
+            var pDIpct = (pDI14 / atr14) * 100;
+            var mDIpct = (mDI14 / atr14) * 100;
+            // DX → ADX (Wilder smooth of DX)
+            var dxArr = [];
+            var smoothTR = trArr.slice(0, p).reduce(function(a,b){return a+b;},0);
+            var smoothP  = plusDM.slice(0, p).reduce(function(a,b){return a+b;},0);
+            var smoothM  = minusDM.slice(0, p).reduce(function(a,b){return a+b;},0);
+            for (var i = p; i < trArr.length; i++) {
+                smoothTR = smoothTR - smoothTR/p + trArr[i];
+                smoothP  = smoothP  - smoothP/p  + plusDM[i];
+                smoothM  = smoothM  - smoothM/p  + minusDM[i];
+                var diP = smoothTR > 0 ? (smoothP / smoothTR) * 100 : 0;
+                var diM = smoothTR > 0 ? (smoothM / smoothTR) * 100 : 0;
+                var dxV = (diP + diM) > 0 ? (Math.abs(diP - diM) / (diP + diM)) * 100 : 0;
+                dxArr.push(dxV);
+            }
+            adxVal     = dxArr.length >= p ? wilderSmooth(dxArr, p) / (wilderSmooth(dxArr, p) > 0 ? 1 : 1) : 25;
+            // Gerçek ADX: dxArr'ın Wilder smooth'u
+            if (dxArr.length >= p) {
+                var adxSeed = dxArr.slice(0, p).reduce(function(a,b){return a+b;},0) / p;
+                var adxSmooth = adxSeed;
+                for (var i = p; i < dxArr.length; i++)
+                    adxSmooth = adxSmooth - adxSmooth/p + dxArr[i]/p;
+                adxVal = Math.min(100, Math.max(0, adxSmooth));
+            }
+            adxPlusDI  = Math.min(100, Math.max(0, pDIpct));
+            adxMinusDI = Math.min(100, Math.max(0, mDIpct));
+            // Trend yorumu
+            if (adxVal >= 40) {
+                adxTrend = adxPlusDI > adxMinusDI ? 'güçlü_yükseliş' : 'güçlü_düşüş';
+            } else if (adxVal >= 25) {
+                adxTrend = adxPlusDI > adxMinusDI ? 'yükseliş' : 'düşüş';
+            } else if (adxVal >= 15) {
+                adxTrend = adxPlusDI > adxMinusDI ? 'zayıf_yükseliş' : 'zayıf_düşüş';
+            } else {
+                adxTrend = 'trendsiz'; // En iyi dönüş fırsatları burada!
+            }
+        })();
+
+        // ── 2. CMF — Chaikin Money Flow (20 dönem) ──────────────
+        // > +0.15: Güçlü birikim (AL sinyali teyidi)
+        // < -0.15: Güçlü dağıtım (SAT sinyali teyidi)
+        // CMF bullish divergence: fiyat yeni dip, CMF daha yüksek dip → dönüş yakın
+        var cmfVal = 0, cmfSignal = 'nötr', cmfDiv = false;
+        (function() {
+            var period = Math.min(20, closes.length);
+            if (period < 5 || !hasVol) return;
+            var mfvArr = [];
+            for (var i = 0; i < closes.length; i++) {
+                var h = highs[i]||closes[i], l = lows[i]||closes[i], c = closes[i];
+                var hl = h - l;
+                // Money Flow Multiplier: (Close - Low - (High - Close)) / (High - Low)
+                var mfm = hl > 0 ? ((c - l) - (h - c)) / hl : 0;
+                mfvArr.push(mfm * (volumes[i]||0));
+            }
+            var recentMFV = mfvArr.slice(-period).reduce(function(a,b){return a+b;},0);
+            var recentVOL = volumes.slice(-period).reduce(function(a,b){return a+b;},0);
+            cmfVal = recentVOL > 0 ? recentMFV / recentVOL : 0;
+            cmfVal = Math.max(-1, Math.min(1, cmfVal));
+            cmfSignal = cmfVal > 0.15 ? 'güçlü_birikim'
+                      : cmfVal > 0.05 ? 'hafif_birikim'
+                      : cmfVal < -0.15 ? 'güçlü_dağıtım'
+                      : cmfVal < -0.05 ? 'hafif_dağıtım' : 'nötr';
+            // CMF Bullish Divergence: Son 2 dip karşılaştır
+            // Fiyat yeni dip → ama CMF daha yüksek (satıcılar yoruluyor)
+            if (closes.length >= 20 && period >= 10) {
+                var mid1 = Math.floor(period * 0.5);
+                var mfvPrev = mfvArr.slice(-period, -mid1).reduce(function(a,b){return a+b;},0);
+                var volPrev = volumes.slice(-period, -mid1).reduce(function(a,b){return a+b;},0);
+                var cmfPrev = volPrev > 0 ? mfvPrev / volPrev : 0;
+                var pricePrev = Math.min.apply(null, closes.slice(-period, -mid1));
+                var priceCurr = Math.min.apply(null, closes.slice(-mid1));
+                // Fiyat düşmüş ama CMF yükselmiş → bullish divergence
+                if (priceCurr < pricePrev && cmfVal > cmfPrev + 0.05) cmfDiv = true;
+            }
+        })();
+
+        // ── 3. NATR — Normalized ATR (%) ─────────────────────────
+        // ATR'yi fiyata oranlar → farklı varlıkları karşılaştırılabilir kılar
+        // NATR > 8%: Yüksek volatilite | 3-8%: Orta | < 3%: Düşük
+        var natrVal = 0, natrLabel = 'düşük';
+        (function() {
+            var atrRaw = atr > 0 ? atr : 0;
+            natrVal = currentPrice > 0 ? (atrRaw / currentPrice) * 100 : 0;
+            natrLabel = natrVal > 8 ? 'çok_yüksek'
+                      : natrVal > 5 ? 'yüksek'
+                      : natrVal > 3 ? 'orta'
+                      : natrVal > 1 ? 'düşük' : 'çok_düşük';
+        })();
+
+        // ── 4. PUMP & DUMP DEDEKTÖRÜ ─────────────────────────────
+        // Son 3 bar + hacim spike + RSI aşırı bölge kombinasyonu
+        // pumpScore / dumpScore: 0-100 (eşik: 60+)
+        var pumpScore = 0, dumpScore = 0, pumpDumpLabel = null, pumpDumpWarning = '';
+        (function() {
+            if (closes.length < 5) return;
+            var last3closes = closes.slice(-4);
+            var price3DayChange = last3closes.length >= 2
+                ? ((last3closes[last3closes.length-1] - last3closes[0]) / last3closes[0]) * 100
+                : 0;
+            // Volatilite eşiği: NATR'ye göre dinamik
+            // Yüksek vol varlıkta pump eşiği daha yüksek
+            var pumpThreshold = natrVal > 6 ? 15 : natrVal > 3 ? 10 : 7;
+            var dumpThreshold = natrVal > 6 ? 12 : natrVal > 3 ? 8  : 6;
+
+            // PUMP sinyalleri
+            if (price3DayChange > pumpThreshold)      pumpScore += 35;
+            else if (price3DayChange > pumpThreshold/2) pumpScore += 15;
+            if (volSpike > 3.5)  pumpScore += 25;
+            else if (volSpike > 2) pumpScore += 12;
+            if (rsi14 > 75)      pumpScore += 20;
+            else if (rsi14 > 65) pumpScore += 10;
+            if (macd && macd.hist > 0) {
+                // Histogram tepe: son bar < önceki bar (momentum tükeniyor)
+                // Yaklaşık test: macd.hist mevcut değeri var mı kontrol
+                pumpScore += 10;
+            }
+            if (bbAboveUpper)    pumpScore += 10;
+            pumpScore = Math.min(100, pumpScore);
+
+            // DUMP sinyalleri
+            if (price3DayChange < -dumpThreshold)         dumpScore += 35;
+            else if (price3DayChange < -dumpThreshold/2)  dumpScore += 15;
+            if (volSpike > 3.0 && price3DayChange < 0)   dumpScore += 25;
+            else if (volSpike > 1.8 && price3DayChange < 0) dumpScore += 12;
+            if (rsi14 < 25)      dumpScore += 20;
+            else if (rsi14 < 35) dumpScore += 10;
+            if (bbBelow)         dumpScore += 10;
+            if (adxTrend === 'güçlü_düşüş') dumpScore += 10;
+            dumpScore = Math.min(100, dumpScore);
+
+            // Etiketleme
+            if (pumpScore >= 65 && pumpScore > dumpScore) {
+                pumpDumpLabel = 'PUMP';
+                pumpDumpWarning = 'Son ' + Math.abs(price3DayChange).toFixed(1) + '% ani yükseliş + ' + volSpike.toFixed(1) + 'x hacim. Pump sinyali — momentum tükenebilir, aceleci alım yapmaktan kaçın.';
+            } else if (pumpScore >= 45 && pumpScore > dumpScore) {
+                pumpDumpLabel = 'PUMP_ŞÜPHELI';
+                pumpDumpWarning = 'Ani fiyat artışı + yüksek hacim tespit edildi. Doğrulama bekleniyor.';
+            } else if (dumpScore >= 65 && dumpScore > pumpScore) {
+                pumpDumpLabel = 'DUMP';
+                pumpDumpWarning = 'Son ' + Math.abs(price3DayChange).toFixed(1) + '% sert düşüş + ' + volSpike.toFixed(1) + 'x hacim. Panik satışı başlamış olabilir — 3-5 gün stabilize olmasını bekle.';
+            } else if (dumpScore >= 45 && dumpScore > pumpScore) {
+                pumpDumpLabel = 'DUMP_ŞÜPHELI';
+                pumpDumpWarning = 'Fiyat ve hacim kombinasyonu baskı satışına işaret ediyor. Giriş için stabilize sinyali bekle.';
+            }
+        })();
+
+        // ══════════════════════════════════════════════════════════
+        // ── 3 SENARYO HESAPLAMA (BOĞA / BAZA / AYI) ────────────
+        // Her senaryo bağımsız koşullar ve ağırlıklı skorla oluşur
+        // ══════════════════════════════════════════════════════════
+        var scenarios = (function() {
+            var baseScore = 0; // ham teknik skor (henüz hesaplanmamış, ileride kullanılır)
+
+            // ── BOĞA Senaryosu koşulları ─────────────────────────
+            // Optimistik: Tüm olumlu sinyaller + CMF birikim + ADX trendsiz veya zayıf yükseliş
+            var bullBonuses = 0, bullPenalties = 0;
+            if (rsi14 < 35)                     bullBonuses += 20;
+            if (rsi14 < 25)                     bullBonuses += 10; // ekstra
+            if (stochRsi < 20)                  bullBonuses += 12;
+            if (cmfVal > 0.10)                  bullBonuses += 18; // YENİ: CMF birikim
+            if (cmfDiv)                         bullBonuses += 15; // YENİ: CMF divergence
+            if (adxTrend === 'trendsiz')        bullBonuses += 12; // YENİ: Trendsiz = dönüş fırsatı
+            if (adxTrend === 'zayıf_yükseliş') bullBonuses += 8;
+            if (adxTrend === 'yükseliş')        bullBonuses += 5;
+            if (goldCross)                      bullBonuses += 18;
+            if (bullDiv)                        bullBonuses += 14;
+            if (bbBelow)                        bullBonuses += 10;
+            if (bbSqueeze)                      bullBonuses += 8;  // kırılım beklentisi
+            if (nearSupport || atSupport)       bullBonuses += 10;
+            if (isRecovering)                   bullBonuses += 8;
+            if (volRising && momentum7 > 0)     bullBonuses += 10;
+            if (williamsR < -80)                bullBonuses += 8;
+            if (aboveSma200)                    bullBonuses += 6;
+            if (nearFibLevel && nearFibLevel.isSupport) bullBonuses += 7;
+            // Boğa için penaltiler
+            if (adxTrend === 'güçlü_düşüş')    bullPenalties += 30; // YENİ: Güçlü düşüş trendi riski
+            if (adxTrend === 'düşüş')           bullPenalties += 15;
+            if (cmfVal < -0.10)                 bullPenalties += 15; // YENİ: CMF dağıtım
+            if (deathCross)                     bullPenalties += 20;
+            if (pumpDumpLabel === 'PUMP' || pumpDumpLabel === 'PUMP_ŞÜPHELI') bullPenalties += 20; // YENİ: Pump sonrası AL tehlikeli
+            if (natrLabel === 'çok_yüksek')     bullPenalties += 8;
+            var bullScore = Math.max(1, Math.min(100, 40 + bullBonuses - bullPenalties));
+
+            // ── AYI Senaryosu koşulları ───────────────────────────
+            // Kötümser: Tüm olumsuz sinyaller + CMF dağıtım + ADX güçlü düşüş
+            var bearBonuses = 0;
+            if (adxTrend === 'güçlü_düşüş')    bearBonuses += 25; // YENİ: ADX güçlü trend
+            if (adxTrend === 'düşüş')           bearBonuses += 15;
+            if (cmfVal < -0.15)                 bearBonuses += 20; // YENİ: CMF güçlü dağıtım
+            if (cmfVal < -0.05)                 bearBonuses += 10;
+            if (deathCross)                     bearBonuses += 18;
+            if (macd && !macd.aboveSignal)      bearBonuses += 10;
+            if (rsi14 > 65)                     bearBonuses += 12; // Aşırı alım
+            if (!isRecovering && momentum7 < -3) bearBonuses += 10;
+            if (pumpDumpLabel === 'DUMP' || pumpDumpLabel === 'DUMP_ŞÜPHELI') bearBonuses += 18; // YENİ
+            if (!aboveSma200 && belowBothSma)   bearBonuses += 12;
+            if (natrLabel === 'çok_yüksek' || natrLabel === 'yüksek') bearBonuses += 8;
+            if (adxVal >= 35 && adxMinusDI > adxPlusDI) bearBonuses += 15; // YENİ: ADX+DI güçlü onay
+            var bearScore = Math.max(1, Math.min(100, 25 + bearBonuses));
+
+            // ── BAZA Senaryosu — Ham ortalama ─────────────────────
+            var bazaScore = Math.max(1, Math.min(100, Math.round((bullScore + (100 - bearScore)) / 2)));
+
+            // Bütçe çarpanları: boğa senaryosu en cömert, ayı en kısıtlı
+            var bullBudgetMult = bullScore >= 70 ? 1.0
+                               : bullScore >= 55 ? 0.75 : 0.5;
+            var bazaBudgetMult = bazaScore >= 55 ? 0.6 : 0.4;
+            var bearBudgetMult = 0.2; // Ayı senaryosunda minimum giriş
+
+            // ADX güçlü düşüş trendinde boğa bütçesini daha da kısıt
+            if (adxTrend === 'güçlü_düşüş') {
+                bullBudgetMult *= 0.5;
+                bazaBudgetMult *= 0.5;
+            }
+
+            // Pump tespit edilmişse tüm bütçeleri kıs
+            if (pumpDumpLabel === 'PUMP') {
+                bullBudgetMult *= 0.3;
+                bazaBudgetMult *= 0.3;
+            }
+
+            return {
+                bull: {
+                    score:      bullScore,
+                    label:      bullScore >= 70 ? '💎 GÜÇLÜ BOĞA' : bullScore >= 55 ? '📈 BOĞA' : '🔍 HAFİF BOĞA',
+                    color:      bullScore >= 70 ? '#10b981' : bullScore >= 55 ? '#34d399' : '#6ee7b7',
+                    budgetMult: bullBudgetMult,
+                    adxNote:    adxTrend,
+                    cmfNote:    cmfVal.toFixed(3),
+                    summary:    adxTrend === 'güçlü_düşüş'
+                        ? 'ADX güçlü düşüş trendi var. Boğa senaryosu mümkün ancak yüksek riskli — sadece %' + Math.round(bullBudgetMult*100) + ' bütçe ile küçük pozisyon.'
+                        : adxTrend === 'trendsiz' && cmfDiv
+                        ? 'Trend gücü zayıf + CMF divergence var. Bu, dönüş yaklaşıyor işareti. Birikim aşaması başlıyor olabilir.'
+                        : cmfVal > 0.15
+                        ? 'CMF güçlü birikim sinyali veriyor (' + (cmfVal*100).toFixed(0) + '%). Büyük oyuncular bu varlıkta pozisyon alıyor olabilir.'
+                        : bullScore >= 70
+                        ? 'Teknik tablo güçlü alım sinyali veriyor. ADX (' + adxVal.toFixed(0) + ') trend durumu: ' + adxTrend + '.'
+                        : 'Karışık sinyallerde boğa tarafı hafif ağır basıyor. Dikkatli pozisyon açılabilir.'
+                },
+                baza: {
+                    score:      bazaScore,
+                    label:      bazaScore >= 55 ? '⚖️ DENGELI' : '😐 NÖTR',
+                    color:      '#f59e0b',
+                    budgetMult: bazaBudgetMult,
+                    summary:    pumpDumpLabel
+                        ? (pumpDumpLabel.startsWith('PUMP') ? 'Pump sinyali tespit edildi. Dengeli bütçeyle giriş tehlikeli — momentumun düşmesini bekle.' : 'Dump sinyali tespit edildi. Stabilize olana kadar bekle, panik satışı tükenince dengeli giriş yap.')
+                        : adxTrend === 'nötr' || adxTrend === 'trendsiz'
+                        ? 'Piyasa yön arıyor. ADX (' + adxVal.toFixed(0) + ') trend gücü zayıf — ne kaçış ne de net alım noktası. Küçük test pozisyonu mantıklı.'
+                        : 'Sinyaller karışık. CMF: ' + (cmfVal >= 0 ? '+' : '') + (cmfVal*100).toFixed(0) + '%. Kademeli giriş ve geniş stop-loss ile korunun.'
+                },
+                bear: {
+                    score:      bearScore,
+                    label:      bearScore >= 70 ? '🐻 GÜÇLÜ AYI' : bearScore >= 50 ? '📉 AYI' : '😟 HAFİF AYI',
+                    color:      bearScore >= 70 ? '#ef4444' : bearScore >= 50 ? '#f87171' : '#fca5a5',
+                    budgetMult: bearBudgetMult,
+                    summary:    adxTrend === 'güçlü_düşüş'
+                        ? 'ADX ' + adxVal.toFixed(0) + ' ile güçlü düşüş trendi onaylandı. -DI (' + adxMinusDI.toFixed(0) + ') +DI (' + adxPlusDI.toFixed(0) + ') üzerinde. Falling knife riski yüksek — bekle.'
+                        : cmfVal < -0.15
+                        ? 'CMF ' + (cmfVal*100).toFixed(0) + '% ile güçlü dağıtım görünüyor. Büyük oyuncular çıkıyor olabilir — dikkatli ol.'
+                        : pumpDumpLabel === 'DUMP'
+                        ? 'Panik dump tespit edildi. 3-5 gün bekleme periyodu — dust settle olduktan sonra tekrar değerlendir.'
+                        : 'Teknik göstergeler zayıf. Yeni para koymak için daha iyi sinyal bekle.'
+                },
+                pumpDump:   { label: pumpDumpLabel, warning: pumpDumpWarning, pumpScore: pumpScore, dumpScore: dumpScore },
+                adx:        { val: adxVal, plusDI: adxPlusDI, minusDI: adxMinusDI, trend: adxTrend },
+                cmf:        { val: cmfVal, signal: cmfSignal, div: cmfDiv },
+                natr:       { val: natrVal, label: natrLabel }
+            };
+        })();
+
         var lossFromCost = cost > 0 ? ((cost - currentPrice) / cost) * 100 : 0;
         var peakPrice    = Math.max.apply(null, highs);
         var drawdownPct  = peakPrice > 0 ? ((peakPrice - currentPrice) / peakPrice) * 100 : 0;
@@ -32401,7 +32731,7 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource) {
         for (var ri = 1; ri < last5.length; ri++) if (last5[ri] > last5[ri-1]) recovDays++;
         var isRecovering = recovDays >= 3;
 
-        var hasVol   = volumes.some(function(v){ return v > 0; });
+        // hasVol yukarıda (volSpike hesabından önce) tanımlandı — tekrar tanımlamaya gerek yok
         var volR     = hasVol ? smaFn(volumes.slice(-7), 7) : 0;
         var volOS    = volumes.slice(-30, -7);
         var volO     = (hasVol && volOS.length > 0) ? smaFn(volOS, volOS.length) : 0;
@@ -32623,8 +32953,8 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource) {
 
         return {
             score: score, rsi: rsi14, shortRsi: rsi7, stochRsi: stochRsi,
-            livePrice: currentPrice,  // son mum kapanışı — her zaman taze
-            volumeReliable: volumeReliable,  // hacim verisi güvenilir mi
+            livePrice: currentPrice,
+            volumeReliable: volumeReliable,
             williamsR: williamsR,
             trend: currentPrice > sma50 ? 'Yükseliş' : 'Düşüş',
             desc: desc, drop: lossFromCost, drawdown: drawdownPct, daysBelow: daysBelow,
@@ -32636,16 +32966,20 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource) {
             goldCross: goldCross, deathCross: deathCross, rsiBullDiv: bullDiv,
             obvTrend: obv, atrPct: atrPct.toFixed(1), stopNote: stopNote,
             stopPrice: stopPrice, confidence: confLbl,
-            // SMA200
             sma200: sma200, aboveSma200: aboveSma200, belowSma200: belowSma200, sma200gap: sma200gap.toFixed(1),
-            // Hacim Spike
             volSpike: volSpike.toFixed(2),
-            // Fibonacci & Psikolojik seviyeler
             fibLevels: fibLevels, nearFibLevel: nearFibLevel, nearRoundNumber: nearRoundNumber,
             distToSupport: distToSupport.toFixed(1), distToResistance: distToResistance.toFixed(1),
             nearSupport: nearSupport, atSupport: atSupport, nearResistance: nearResistance,
             signalList: signals, warnList: warnings,
             signalCount: signals.length, warnCount: warnings.length,
+            // ── YENİ v6.0 ─────────────────────────────────────
+            adx: adxVal.toFixed(1), adxPlusDI: adxPlusDI.toFixed(1), adxMinusDI: adxMinusDI.toFixed(1), adxTrend: adxTrend,
+            cmf: cmfVal.toFixed(3), cmfSignal: cmfSignal, cmfDiv: cmfDiv,
+            natr: natrVal.toFixed(2), natrLabel: natrLabel,
+            pumpDump: scenarios.pumpDump,
+            scenarios: scenarios,
+            // ──────────────────────────────────────────────────
             layers: {
                 trend: Math.round(trendScore),
                 momentum: Math.round(momScore),
@@ -32750,11 +33084,33 @@ function generateAiStrategy(assets, allocatedCash, totalPortfolioValue, macro) {
             { allocation = allocatedCash * 0.15; warningMsg += ' [Düşük güven: maks %15]'; }
         if (a.metrics._noMargin && allocation > allocatedCash * 0.10)
             { allocation = allocatedCash * 0.10; warningMsg += ' [Güvenlik marjı yok]'; }
+        // v6: ADX güçlü düşüş → bütçe kısıtlaması
+        if (a.metrics.adxTrend === 'güçlü_düşüş' && allocation > allocatedCash * 0.20)
+            { allocation = allocatedCash * 0.20; warningMsg += ' [ADX güçlü düşüş: maks %20]'; }
+        // v6: Pump tespiti → alım tehlikeli, maksimum %10
+        if (isPump && allocation > allocatedCash * 0.10)
+            { allocation = allocatedCash * 0.10; warningMsg += ' [PUMP tespit: maks %10]'; }
+        // v6: CMF güçlü dağıtım → bütçe kısıtla
+        if (cmfBear && allocation > allocatedCash * 0.25)
+            { allocation = allocatedCash * 0.25; warningMsg += ' [CMF dağıtım: maks %25]'; }
+
+        // v6: ADX, CMF, Pump/Dump senaryolarını güçlü/zayıf sinyale dahil et
+        var adxStrongUp   = a.metrics.adxTrend === 'güçlü_yükseliş' || a.metrics.adxTrend === 'yükseliş';
+        var adxStrongDown = a.metrics.adxTrend === 'güçlü_düşüş' || a.metrics.adxTrend === 'düşüş';
+        var cmfBull  = parseFloat(a.metrics.cmf||0) > 0.10;
+        var cmfBear  = parseFloat(a.metrics.cmf||0) < -0.10;
+        var isPump   = a.metrics.pumpDump && (a.metrics.pumpDump.label === 'PUMP' || a.metrics.pumpDump.label === 'PUMP_ŞÜPHELI');
+        var isDump   = a.metrics.pumpDump && (a.metrics.pumpDump.label === 'DUMP' || a.metrics.pumpDump.label === 'DUMP_ŞÜPHELI');
 
         var strong = (a.metrics.macdBull && a.metrics.rsi < 40) ||
                      (a.metrics.bbBelow  && a.metrics.rsi < 35) ||
-                     (a.metrics.rsiBullDiv && a.metrics.macdAbove);
-        var weak   = a.metrics.deathCross || (a.metrics.macdBear && a.metrics.rsi > 50);
+                     (a.metrics.rsiBullDiv && a.metrics.macdAbove) ||
+                     (cmfBull && a.metrics.rsi < 45) ||       // YENİ: CMF birikim + RSI düşük
+                     (adxStrongUp && cmfBull) ||               // YENİ: ADX trend + CMF onayı
+                     (a.metrics.cmfDiv && a.metrics.rsi < 40); // YENİ: CMF divergence + oversold
+        var weak   = a.metrics.deathCross || (a.metrics.macdBear && a.metrics.rsi > 50) ||
+                     (adxStrongDown && cmfBear) ||  // YENİ: ADX düşüş + CMF dağıtım
+                     isPump;                        // YENİ: Pump sonrası alım tehlikeli → weak say
 
         var color, label;
         var s = a.metrics.score;
@@ -32895,48 +33251,51 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro) {
         var totalAmt = (p.amt || 0) + newAmt;
         var newAvg   = totalAmt > 0 ? ((p.amt||0)*buyN + newAmt*curN) / totalAmt : buyN;
 
-        // ── Stop Loss & Take Profit ────────────────────────────
-        // Kural: Her zaman GÜNCEL FİYAT (curN) bazlı hesap.
-        // newAvg sadece "yeni ortalama gösterimi" için, stop hesabında kullanılmaz.
-        // ATR bazlı stop: curN - (atr * 1.5)  → volatiliteye göre gerçekçi mesafe
-        // ATR yoksa veya çok küçükse: sabit %8/%12/%15 bantları
+        // ── Stop Loss & Take Profit — ATR Tabanlı (Araştırma Destekli v2) ────────────
+        // Kural: GÜNCEL FİYAT (curN) bazlı hesap (maliyet değil)
+        // ATR stop multiplier: 2.0x (swing trader standardı: LuxAlgo, ATR Stop Loss kılavuzları)
+        // ATR TP multiplier:   3.0x → 1:1.5 R/R oranı (minimum kabul edilebilir)
+        // Aşırı volatil varlıklar (ATR > %8): stop 2.5x, TP 3.5x
+        // Düşük volatilite (ATR < %2): stop 1.5x, TP 2.5x
 
         var atrVal     = (m.atrPct && parseFloat(m.atrPct) > 0) ? parseFloat(m.atrPct) / 100 : 0;
         var stopPctRaw, tpPctRaw;
 
         if (atrVal > 0) {
-            // ATR * 1.5 = stop mesafesi, ATR * 2.5 = hedef mesafesi (risk/ödül ~1:1.67)
-            stopPctRaw = Math.min(atrVal * 1.5, 0.18);  // max %18 stop
-            tpPctRaw   = stopPctRaw * 1.67;              // hedef: risk*1.67
+            // ATR'ye göre multiplier seçimi — araştırma destekli (LuxAlgo, Investopedia)
+            var stopMult = atrVal > 0.08 ? 2.5 : atrVal < 0.02 ? 1.5 : 2.0;
+            var tpMult   = atrVal > 0.08 ? 3.5 : atrVal < 0.02 ? 2.5 : 3.0;
+            stopPctRaw = Math.min(atrVal * stopMult, 0.20);  // max %20 stop
+            tpPctRaw   = atrVal * tpMult;
         } else {
-            // Veri yoksa sabit bantlar: volatilite tahminli
-            var volGuess = isCrypto ? 0.08 : 0.06;      // kripto %8, hisse %6
-            stopPctRaw = volGuess;
-            tpPctRaw   = volGuess * 1.67;
+            // Veri yoksa volatilite tahmini — kripto %8, hisse %6
+            var volGuess = isCrypto ? 0.08 : 0.06;
+            stopPctRaw = volGuess * 2.0;   // 2x standart multiplier
+            tpPctRaw   = volGuess * 3.0;   // 3x TP
         }
 
-        // Piyasa koşullarına göre stop/tp ayarı
+        // RSI durumuna göre ince ayar
         var rsiForStop = m.rsi || 50;
         if (rsiForStop < 35) {
-            // Aşırı satım: daha dar stop (fiyat dip yakın), daha geniş hedef
+            // Aşırı satım: dip yakın, stop'u daralt, hedefi genişlet
             stopPctRaw = stopPctRaw * 0.8;
-            tpPctRaw   = stopPctRaw * 2.5;
+            tpPctRaw   = tpPctRaw   * 1.3;
         } else if (rsiForStop > 65) {
-            // Aşırı alım: daha geniş stop (momentum var), daha yakın hedef
+            // Aşırı alım: momentum var ama geri çekilme riski — stop biraz geniş
             stopPctRaw = stopPctRaw * 1.2;
-            tpPctRaw   = stopPctRaw * 1.2;
+            tpPctRaw   = tpPctRaw   * 0.9;
         }
 
-        // Makul sınırlar: stop %3-%18, hedef %4-%40
-        stopPctRaw = Math.max(0.03, Math.min(0.18, stopPctRaw));
-        tpPctRaw   = Math.max(0.04, Math.min(0.40, tpPctRaw));
+        // Makul sınırlar: stop %3-%20, TP %4-%50
+        stopPctRaw = Math.max(0.03, Math.min(0.20, stopPctRaw));
+        tpPctRaw   = Math.max(0.04, Math.min(0.50, tpPctRaw));
 
         var stopLoss   = curN * (1 - stopPctRaw);
         var takeProfit = curN * (1 + tpPctRaw);
 
         // Güvenlik: her zaman curN altında/üstünde olmalı
-        if (stopLoss   >= curN) stopLoss   = curN * 0.92;
-        if (takeProfit <= curN) takeProfit = curN * 1.12;
+        if (stopLoss   >= curN) stopLoss   = curN * 0.90;
+        if (takeProfit <= curN) takeProfit = curN * 1.15;
 
         var rrRisk   = parseFloat((stopPctRaw  * 100).toFixed(1));
         var rrReward = parseFloat((tpPctRaw    * 100).toFixed(1));
@@ -33026,6 +33385,38 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro) {
         // Veri kalitesi chip
         if (m.dataQuality === 'düşük') {
             v4chips += `<span style="display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:#94a3b8;border-color:rgba(148,163,184,.25);background:rgba(148,163,184,.08);">⚠️ Sınırlı Veri</span>`;
+        }
+
+        // ── YENİ v6 CHIPLER: ADX + CMF + NATR + PUMP/DUMP ──
+        // ADX chip
+        if (m.adxTrend) {
+            var adxNum = parseFloat(m.adx||25);
+            var adxChipColor = adxNum >= 40 ? (m.adxTrend.includes('yükseliş')?'#10b981':'#ef4444')
+                             : adxNum >= 25 ? (m.adxTrend.includes('yükseliş')?'#34d399':'#f87171')
+                             : '#94a3b8';
+            var adxChipLabel = adxNum >= 40 ? '💪 ADX '+adxNum.toFixed(0)+' GÜÇ' : adxNum >= 25 ? '📊 ADX '+adxNum.toFixed(0) : '〰️ ADX '+adxNum.toFixed(0)+' TRENDSIZ';
+            v4chips += `<span style="display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:${adxChipColor};border-color:${adxChipColor}33;background:${adxChipColor}10;">${adxChipLabel}</span>`;
+        }
+        // CMF chip
+        if (m.cmf !== undefined) {
+            var cmfNum = parseFloat(m.cmf||0);
+            var cmfChipColor = cmfNum > 0.10 ? '#10b981' : cmfNum > 0.05 ? '#34d399' : cmfNum < -0.10 ? '#ef4444' : cmfNum < -0.05 ? '#f87171' : '#64748b';
+            var cmfChipLabel = cmfNum > 0.10 ? '💰 CMF +'+(cmfNum*100).toFixed(0)+'%' : cmfNum > 0.05 ? '📈 CMF +'+(cmfNum*100).toFixed(0)+'%' : cmfNum < -0.10 ? '🔴 CMF '+(cmfNum*100).toFixed(0)+'%' : cmfNum < -0.05 ? '📉 CMF '+(cmfNum*100).toFixed(0)+'%' : '〰️ CMF '+(cmfNum*100).toFixed(0)+'%';
+            v4chips += `<span style="display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:${cmfChipColor};border-color:${cmfChipColor}33;background:${cmfChipColor}10;">${cmfChipLabel}</span>`;
+            if (m.cmfDiv) v4chips += `<span style="display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:#34d399;border-color:rgba(52,211,153,.25);background:rgba(52,211,153,.08);">💧 CMF DIV</span>`;
+        }
+        // NATR chip
+        if (m.natr !== undefined) {
+            var natrNum = parseFloat(m.natr||0);
+            var natrChipColor = natrNum > 8 ? '#ef4444' : natrNum > 5 ? '#f97316' : natrNum > 3 ? '#f59e0b' : '#64748b';
+            v4chips += `<span style="display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:${natrChipColor};border-color:${natrChipColor}33;background:${natrChipColor}10;">🌪 NATR %${natrNum.toFixed(1)}</span>`;
+        }
+        // PUMP/DUMP chip
+        if (m.pumpDump && m.pumpDump.label) {
+            var pdLabel = m.pumpDump.label;
+            var pdColor = pdLabel === 'PUMP' ? '#f97316' : pdLabel === 'PUMP_ŞÜPHELI' ? '#fbbf24' : pdLabel === 'DUMP' ? '#ef4444' : '#f87171';
+            var pdIcon  = pdLabel === 'PUMP' ? '🚀 PUMP TESPİT' : pdLabel === 'PUMP_ŞÜPHELI' ? '⚠️ PUMP?' : pdLabel === 'DUMP' ? '💥 DUMP TESPİT' : '⚠️ DUMP?';
+            v4chips += `<span style="display:inline-flex;align-items:center;padding:4px 9px;border-radius:6px;font-size:9px;font-weight:800;letter-spacing:.6px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:${pdColor};border-color:${pdColor}55;background:${pdColor}18;animation:coachLivePulse 2s ease infinite;">${pdIcon}</span>`;
         }
 
         // ATR stop notu
@@ -33244,7 +33635,54 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro) {
                 paragraphs.push('📋 <strong>Veri Kalitesi Orta:</strong> ' + (m.dataSource === 'yahoo' ? 'Yahoo Finance' : m.dataSource) + ' üzerinden yeterli veri alındı ancak bazı göstergeler (özellikle hacim) eksik olabilir. Analiz %' + (confLbl === 'Yüksek' ? '80-90' : '60-75') + ' güven aralığında.');
             }
 
-            // ── BÖLÜM 10: Makro bağlam (kripto için BTC, hisse için Fed) ──
+            // ── BÖLÜM 9b: ADX Trend Gücü Yorumu (YENİ v6) ──
+            if (m.adxTrend && m.adx) {
+                var adxNum2 = parseFloat(m.adx);
+                var pDI = parseFloat(m.adxPlusDI||25), mDI = parseFloat(m.adxMinusDI||25);
+                if (m.adxTrend === 'güçlü_düşüş') {
+                    paragraphs.push('💪 <strong>ADX ' + adxNum2.toFixed(0) + ' — Güçlü Düşüş Trendi Onaylandı:</strong> -DI (' + mDI.toFixed(0) + ') +DI (' + pDI.toFixed(0) + ') üzerinde ve ADX ' + adxNum2.toFixed(0) + ' ile trend gücü çok yüksek. Bu, düşüşün momentum kazandığını gösterir — RSI aşırı satım görünse bile "falling knife" riski gerçek. Ortalama düşürme kararı son derece riskli bu ortamda. Önce ADX\'in 25\'in altına inmesini bekle.');
+                } else if (m.adxTrend === 'düşüş') {
+                    paragraphs.push('📉 <strong>ADX ' + adxNum2.toFixed(0) + ' — Düşüş Trendi:</strong> -DI (' + mDI.toFixed(0) + ') +DI (' + pDI.toFixed(0) + ') üzerinde. Trend henüz yeterince güçlü değil ama yön düşüş tarafında. Bu durumda pozisyon büyütmek ortalamayı düşürür ama trendin tersine çalışmak demektir — dikkatli giriş yap.');
+                } else if (m.adxTrend === 'güçlü_yükseliş') {
+                    paragraphs.push('💪 <strong>ADX ' + adxNum2.toFixed(0) + ' — Güçlü Yükseliş Trendi:</strong> +DI (' + pDI.toFixed(0) + ') -DI (' + mDI.toFixed(0) + ') üzerinde ve ADX yüksek. Trend güçlü — bu ortamda AL sinyalleri çok daha güvenilir. Momentum taraftayken pozisyon açmak, trende karşı gitmekten çok daha akıllıca.');
+                } else if (m.adxTrend === 'trendsiz') {
+                    paragraphs.push('〰️ <strong>ADX ' + adxNum2.toFixed(0) + ' — Trendsiz / Biriktirme Aşaması:</strong> ADX ' + adxNum2.toFixed(0) + ' ile trend gücü çok zayıf — piyasa yön arıyor. Bu durum iki anlama gelebilir: (1) Büyük hareket öncesi enerji birikimi (fırsat!) veya (2) İlgisizlik/unutulmuş varlık. CMF ve hacim bunu ayırt etmeye yardımcı olur. Trendsiz ortam geri dönüş fırsatlarının en sık yaşandığı dönemdir.');
+                }
+            }
+
+            // ── BÖLÜM 9c: CMF Para Akışı Yorumu (YENİ v6) ──
+            if (m.cmfSignal && m.cmf !== undefined) {
+                var cmfNum2 = parseFloat(m.cmf);
+                if (m.cmfSignal === 'güçlü_birikim') {
+                    paragraphs.push('💰 <strong>CMF +' + (cmfNum2*100).toFixed(0) + '% — Güçlü Para Girişi:</strong> Chaikin Money Flow son 20 günde güçlü birikim sinyali veriyor. Bu, büyük oyuncuların (kurumlar, fonlar) bu varlıkta pozisyon aldığına işaret eder. Hacim bazlı bu sinyal, fiyat hareketinden önce gelir — piyasa henüz tepki vermemişse gecikmeli fiyat artışı olabilir. CMF, RSI\'dan farklı olarak kimin aldığını değil ne kadar alındığını ölçer.');
+                } else if (m.cmfSignal === 'hafif_birikim') {
+                    paragraphs.push('📈 <strong>CMF +' + (cmfNum2*100).toFixed(0) + '% — Hafif Para Girişi:</strong> Küçük ölçekli birikim sinyali. Büyük para değil ama satış baskısının azaldığına işaret ediyor. Diğer göstergeler de olumlu görünüyorsa bu teyit olarak değerlendirilebilir.');
+                } else if (m.cmfSignal === 'güçlü_dağıtım') {
+                    paragraphs.push('🔴 <strong>CMF ' + (cmfNum2*100).toFixed(0) + '% — Güçlü Para Çıkışı:</strong> Chaikin Money Flow güçlü dağıtım sinyali veriyor. Büyük oyuncular bu varlıktan çıkıyor olabilir. Fiyat stabil görünse bile arka planda satış baskısı birikiyorsa bu CMF\'te görünür. Bu sinyal görmezden gelinmemeli — özellikle ADX ile birleşince çok tehlikeli.');
+                } else if (m.cmfSignal === 'hafif_dağıtım') {
+                    paragraphs.push('📉 <strong>CMF ' + (cmfNum2*100).toFixed(0) + '% — Hafif Para Çıkışı:</strong> Küçük ölçekli dağıtım. Ciddi bir alarm değil ama birikim tarafında da değil. Diğer sinyallerle birlikte değerlendir.');
+                }
+                if (m.cmfDiv) {
+                    paragraphs.push('💧 <strong>CMF Bullish Diverjans Tespit Edildi:</strong> Fiyat yeni dip yaparken CMF daha yüksek dip yaptı — bu satıcıların yorulduğunun klasik işareti. Fiyatın dibine yaklaştığını veya dönüş aşamasında olduğunu gösterir. CMF divergence sinyalleri genellikle RSI divergence\'tan 5-10 gün önce gelir — erken uyarı sistemi gibi çalışır.');
+                }
+            }
+
+            // ── BÖLÜM 9d: Pump & Dump Yorumu (YENİ v6) ──
+            if (m.pumpDump && m.pumpDump.label) {
+                var pdLbl = m.pumpDump.label;
+                var pdWrn = m.pumpDump.warning || '';
+                if (pdLbl === 'PUMP') {
+                    paragraphs.push('🚀 <strong>PUMP TESPİT EDİLDİ — Kritik Uyarı:</strong> ' + pdWrn + ' Pump hareketleri genellikle 1-5 gün içinde geri döner. Pump sırasında alım yapmak, zirveye yakın pozisyon açmak anlamına gelir. Stop-loss olmadan bu varlıkta durmak büyük risk taşır. Güçlü el hareketini takip eden yatırımcılar çoğunlukla en son giren ve en çok zarar görenlerdir.');
+                } else if (pdLbl === 'PUMP_ŞÜPHELI') {
+                    paragraphs.push('⚠️ <strong>Şüpheli Pump Sinyali:</strong> ' + pdWrn + ' Doğrulanmış pump değil ama ani fiyat + hacim kombinasyonu dikkat çekici. Bu noktada yeni alım yapmak yerine 1-2 gün izlemeyi tercih et.');
+                } else if (pdLbl === 'DUMP') {
+                    paragraphs.push('💥 <strong>DUMP / PANIK SATIŞ TESPİT EDİLDİ:</strong> ' + pdWrn + ' İyi haber: Dump\'lar genellikle 1-5 gün içinde sakinleşir ve stabilizasyon başlar. Kötü haber: Dip henüz gelmemiş olabilir. Panik satışı sırasında alım yapmak yerine piyasanın stabilize olmasını — yani 2-3 ardışık düşük hacimli bar oluşmasını — beklemek çok daha güvenlidir.');
+                } else if (pdLbl === 'DUMP_ŞÜPHELI') {
+                    paragraphs.push('⚠️ <strong>Şüpheli Baskı Satışı:</strong> ' + pdWrn + ' Stabilize sinyali beklenmeden giriş yapılmaması tavsiye edilir.');
+                }
+            }
+
+                        // ── BÖLÜM 10: Makro bağlam (kripto için BTC, hisse için Fed) ──
             if (m.macroMult && m.macroMult < 0.88 && isCrypto) {
                 var btcStr = m.macroBtc7 ? m.macroBtc7.toFixed(1) : '?';
                 var fgStr  = m.macroFg   ? m.macroFg : '?';
@@ -33283,7 +33721,123 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro) {
         })();
 
         // ── Alım planı ───────────────────────────────────────────
-        var planHTML = '';
+
+        // ── 3 SENARYO BLOĞU (BOĞA / BAZA / AYI) ────────────────
+        var scenarioHTML = '';
+        if (m.scenarios) {
+            var sc = m.scenarios;
+            var bullS = sc.bull || {}, bazaS = sc.baza || {}, bearS = sc.bear || {};
+
+            // Pump/Dump uyarı kutusu — string concat (nested template literal hatası yok)
+            var pdWarn = '';
+            if (sc.pumpDump && sc.pumpDump.label) {
+                var _pdl = sc.pumpDump.label;
+                var _pdbg  = (_pdl==='PUMP'||_pdl==='PUMP_ŞÜPHELI') ? 'rgba(249,115,22,.1)'  : 'rgba(239,68,68,.1)';
+                var _pdbdr = (_pdl==='PUMP'||_pdl==='PUMP_ŞÜPHELI') ? 'rgba(249,115,22,.35)' : 'rgba(239,68,68,.35)';
+                var _pdtc  = (_pdl==='PUMP'||_pdl==='PUMP_ŞÜPHELI') ? '#fb923c'              : '#f87171';
+                pdWarn = '<div style="margin:0 12px 10px;padding:9px 12px;background:'+_pdbg+';border:1px solid '+_pdbdr+';border-radius:10px;font-size:10px;line-height:1.5;">'
+                       + '<span style="font-weight:800;font-size:9px;letter-spacing:.7px;text-transform:uppercase;color:'+_pdtc+';">⚡ '+_pdl+' TESPİT</span>'
+                       + '<br><span style="color:rgba(255,255,255,.55);">'+(sc.pumpDump.warning||'')+'</span></div>';
+            }
+
+            // ADX özet satırı
+            var adxSummary = '';
+            if (sc.adx) {
+                var _adxN  = parseFloat(sc.adx.val||25);
+                var _adxC  = _adxN >= 40 ? (sc.adx.trend.indexOf('yükseliş')>-1 ? '#10b981':'#ef4444')
+                           : _adxN >= 25 ? '#f59e0b' : '#94a3b8';
+                var _adxTC = _adxN >= 40 ? '#f59e0b' : '#64748b';
+                adxSummary = '<div style="margin:0 12px 8px;padding:7px 10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;display:flex;gap:12px;font-size:10px;">'
+                    + '<div style="text-align:center;min-width:45px;"><div style="color:#64748b;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">ADX</div>'
+                    + '<div style="font-size:16px;font-weight:900;color:'+_adxC+';">'+_adxN.toFixed(0)+'</div></div>'
+                    + '<div style="text-align:center;min-width:45px;"><div style="color:#64748b;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">+DI</div>'
+                    + '<div style="font-size:16px;font-weight:900;color:#34d399;">'+parseFloat(sc.adx.plusDI||25).toFixed(0)+'</div></div>'
+                    + '<div style="text-align:center;min-width:45px;"><div style="color:#64748b;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">-DI</div>'
+                    + '<div style="font-size:16px;font-weight:900;color:#f87171;">'+parseFloat(sc.adx.minusDI||25).toFixed(0)+'</div></div>'
+                    + '<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">'
+                    + '<div style="font-size:9px;color:#94a3b8;font-weight:600;">Trend Gücü</div>'
+                    + '<div style="font-size:10px;font-weight:700;color:'+_adxTC+';">'+(sc.adx.trend||'').replace(/_/g,' ').toUpperCase()+'</div>'
+                    + '</div></div>';
+            }
+
+            // CMF özet satırı
+            var cmfSummary = '';
+            if (sc.cmf) {
+                var _cmfN  = parseFloat(sc.cmf.val||0);
+                var _cmfC  = _cmfN > 0.05 ? '#10b981' : _cmfN < -0.05 ? '#ef4444' : '#94a3b8';
+                var _cmfBg = _cmfN > 0 ? 'linear-gradient(90deg,#065f46,#10b981)' : 'linear-gradient(90deg,#7f1d1d,#ef4444)';
+                var _cmfW  = Math.min(100, Math.abs(_cmfN)*300);
+                var _cmfDv = sc.cmf.div ? ' · 💧 BULLISH DIVERJANS' : '';
+                cmfSummary = '<div style="margin:0 12px 10px;padding:7px 10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;display:flex;align-items:center;gap:12px;font-size:10px;">'
+                    + '<div style="text-align:center;min-width:55px;"><div style="color:#64748b;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">CMF (20p)</div>'
+                    + '<div style="font-size:18px;font-weight:900;color:'+_cmfC+';">'+(_cmfN>=0?'+':'')+((_cmfN*100).toFixed(0))+'%</div></div>'
+                    + '<div style="flex:1;"><div style="font-size:9px;color:#94a3b8;font-weight:600;margin-bottom:2px;">'+(sc.cmf.signal||'').replace(/_/g,' ').toUpperCase()+_cmfDv+'</div>'
+                    + '<div style="height:4px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden;">'
+                    + '<div style="height:100%;width:'+_cmfW+'%;background:'+_cmfBg+';border-radius:4px;"></div></div></div></div>';
+            }
+
+            // Senaryo renk/label yardımcıları
+            var _bull_color  = bullS.color  || '#10b981';
+            var _baza_color  = '#f59e0b';
+            var _bear_color  = bearS.color  || '#ef4444';
+            var _bull_score  = bullS.score  || 0;
+            var _baza_score  = bazaS.score  || 0;
+            var _bear_score  = bearS.score  || 0;
+            var _bull_bdg    = Math.round((bullS.budgetMult||0)*100);
+            var _baza_bdg    = Math.round((bazaS.budgetMult||0)*100);
+            var _bear_bdg    = Math.round((bearS.budgetMult||0)*100);
+            var _bull_off    = 100 - _bull_score;
+            var _baza_off    = 100 - _baza_score;
+            var _bear_off    = 100 - _bear_score;
+
+            function _scenCard(bgGrad, bdrC, topC, label, color, score, offset, bdgBg, bdgBdr, bdgPct, summary) {
+                return '<div style="background:'+bgGrad+';border:1px solid '+bdrC+';border-radius:12px;padding:10px 8px;text-align:center;position:relative;overflow:hidden;">'
+                    + '<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,'+topC+',transparent);border-radius:2px;"></div>'
+                    + '<div style="font-size:8px;font-weight:800;color:'+color+';text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;">'+label+'</div>'
+                    + '<svg viewBox="0 0 36 36" style="width:44px;height:44px;margin:0 auto 4px;display:block;transform:rotate(-90deg);">'
+                    + '<circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="3"/>'
+                    + '<circle cx="18" cy="18" r="15.9" fill="none" stroke="'+color+'" stroke-width="3" stroke-linecap="round" stroke-dasharray="100" stroke-dashoffset="'+offset+'" style="filter:drop-shadow(0 0 4px '+color+');"/>'
+                    + '</svg>'
+                    + '<div style="font-size:20px;font-weight:900;color:'+color+';line-height:1;margin-bottom:2px;">'+score+'</div>'
+                    + '<div style="font-size:8px;color:#64748b;font-weight:600;margin-bottom:6px;">'+label.replace(/[🐂📈🔍⚖️😐🐻📉😟]/g,'').trim()+' Skor</div>'
+                    + '<div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.7);background:'+bdgBg+';border:1px solid '+bdgBdr+';border-radius:6px;padding:4px 6px;margin-bottom:5px;">Bütçe: %'+bdgPct+'</div>'
+                    + '<div style="font-size:8px;color:rgba(255,255,255,.4);line-height:1.4;">'+summary+'</div>'
+                    + '</div>';
+            }
+
+            var _bullCard = _scenCard(
+                'linear-gradient(145deg,rgba(16,185,129,.08),rgba(5,150,105,.04))',
+                'rgba(16,185,129,.22)', _bull_color,
+                bullS.label||'BOĞA', _bull_color, _bull_score, _bull_off,
+                'rgba(16,185,129,.1)', 'rgba(16,185,129,.2)', _bull_bdg,
+                bullS.summary||''
+            );
+            var _bazaCard = _scenCard(
+                'linear-gradient(145deg,rgba(245,158,11,.08),rgba(217,119,6,.04))',
+                'rgba(245,158,11,.22)', _baza_color,
+                bazaS.label||'DENGELI', _baza_color, _baza_score, _baza_off,
+                'rgba(245,158,11,.1)', 'rgba(245,158,11,.2)', _baza_bdg,
+                bazaS.summary||''
+            );
+            var _bearCard = _scenCard(
+                'linear-gradient(145deg,rgba(239,68,68,.08),rgba(185,28,28,.04))',
+                'rgba(239,68,68,.22)', _bear_color,
+                bearS.label||'AYI', _bear_color, _bear_score, _bear_off,
+                'rgba(239,68,68,.1)', 'rgba(239,68,68,.2)', _bear_bdg,
+                bearS.summary||''
+            );
+
+            scenarioHTML = '<div style="margin:0 12px 12px;padding:0;">'
+                + '<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.9px;color:#475569;margin-bottom:10px;display:flex;align-items:center;gap:6px;padding:0 2px;">'
+                + '<span style="width:16px;height:2px;background:linear-gradient(90deg,#6366f1,transparent);border-radius:2px;display:inline-block;"></span>'
+                + '3 SENARYO ANALİZİ'
+                + '<span style="width:16px;height:2px;background:linear-gradient(90deg,transparent,#6366f1);border-radius:2px;display:inline-block;"></span></div>'
+                + adxSummary + cmfSummary
+                + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">'
+                + _bullCard + _bazaCard + _bearCard
+                + '</div>' + pdWarn + '</div>';
+        }
+                var planHTML = '';
         if (hasBudget && newAvg>0) {
             var s1=curN, s2=curN*0.95, s3=curN*0.90, sa=p.allocation/3;
             planHTML = `
@@ -33327,6 +33881,7 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro) {
                 <div class="rc6-analysis-scroll">${analystComment}</div>
             </div>
             ${atrStopHtml}
+            ${scenarioHTML}
             ${planHTML}
             <div style="display:block;margin:10px 12px 14px;padding:9px 11px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:10px;font-size:10px;font-weight:400;color:rgba(245,158,11,.6);line-height:1.55;box-sizing:border-box;">
                 <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:rgba(245,158,11,.8);margin-bottom:4px;">⚠️ Kapsam Dışı</div>
