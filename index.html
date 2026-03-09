@@ -19380,7 +19380,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.5"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -31889,6 +31889,18 @@ async function runDeepDiveAnalysis() {
      // Firebase karşılaştırma önbelleği — her varlık analiz edildikten sonra doldurulur
      var _pastRecords = {};
 
+     // ── Sinyal doğruluk önbelleği — analiz başında bir kez çekilir ──
+     // ai_signal_stats'tan öğrenilmiş doğruluk oranları
+     // Örn: { MACD_BULL: { accuracy:72, bullAccuracy:81, bearAccuracy:45, reliable:true } }
+     var _signalAccuracy = {};
+     try {
+         if (typeof TradeViaAnalytics !== 'undefined') {
+             var _accTimeout = new Promise(function(res){ setTimeout(function(){ res(null); }, 3000); });
+             var _accResult  = await Promise.race([TradeViaAnalytics.getSignalAccuracy(), _accTimeout]);
+             if (_accResult) _signalAccuracy = _accResult;
+         }
+     } catch(e) {}
+
     for (var i = 0; i < losers.length; i++) {
         var asset  = losers[i];
         var rawSym = (asset.name || '')
@@ -31934,19 +31946,38 @@ async function runDeepDiveAnalysis() {
         //   2. RSI sapma düzeltmesi      → geçmişte RSI yanıltıcıysa ceza
         //   3. Sinyal tutarlılığı bonusu → aynı sinyal tekrar tekrar doğrulanıyorsa güven artışı
         var pastData = _pastRecords[rawSym] || [];
-        if (pastData.length >= 3) {
-            var now_ms   = Date.now();
-            var prev7    = pastData.filter(function(r){ return (now_ms - r.ts) < 7  * 86400000; });
-            var prev30   = pastData.filter(function(r){ return (now_ms - r.ts) < 30 * 86400000; });
-            var prev90   = pastData.filter(function(r){ return (now_ms - r.ts) < 90 * 86400000; });
+
+        // ── KRİTİK DÜZELTME: Sadece sonucu doğrulanmış kayıtları kullan ──
+        // outcomeChecked:false = henüz 30 günü dolmamış, sonucu belli olmayan analizler
+        // Bunları kalibrasyona katmak sistemi kendi kendini besleyen döngüye sokar:
+        // "Bugün skor 45 ürettim → geçmiş skor ortalaması 45 → kalibrasyon 0 → skor 45"
+        // Sadece outcomeChecked:true + outcomePnl dolu kayıtlar gerçek geçmiş verisidir.
+        var verifiedData = pastData.filter(function(r){
+            return r.outcomeChecked === true
+                && r.outcomePnl !== null
+                && r.outcomePnl !== undefined;
+        });
+
+        if (verifiedData.length >= 3) {
+            var now_ms = Date.now();
+            // Zaman filtreleri checkAt üzerinden — ts değil (analiz tarihi değil, sonuç tarihi)
+            var prev7  = verifiedData.filter(function(r){ return r.checkAt && (now_ms - r.checkAt) < 7  * 86400000; });
+            var prev30 = verifiedData.filter(function(r){ return r.checkAt && (now_ms - r.checkAt) < 30 * 86400000; });
+            var prev90 = verifiedData.filter(function(r){ return r.checkAt && (now_ms - r.checkAt) < 90 * 86400000; });
+
+            // Hiç checkAt yoksa ts'e dön (eski kayıtlar için geriye dönük uyumluluk)
+            if (prev7.length === 0 && prev30.length === 0) {
+                prev7  = verifiedData.filter(function(r){ return (now_ms - r.ts) < 37  * 86400000; }); // 30+7
+                prev30 = verifiedData.filter(function(r){ return (now_ms - r.ts) < 60  * 86400000; }); // 30+30
+                prev90 = verifiedData.filter(function(r){ return (now_ms - r.ts) < 120 * 86400000; }); // 30+90
+            }
 
             // ── Katman 1: Topluluk skor momentum ──────────────────────
-            // Son 7 günde kaç kullanıcı aynı yönde sinyal aldı?
-            var recScore7  = prev7.length  ? prev7.reduce(function(s,r){  return s+(r.score||0); }, 0) / prev7.length  : null;
-            var recScore30 = prev30.length ? prev30.reduce(function(s,r){ return s+(r.score||0); }, 0) / prev30.length : null;
+            // Doğrulanmış analizlerde skor trendi: son dönem vs daha öncesi
+            var recScore7  = prev7.length  >= 2 ? prev7.reduce(function(s,r){  return s+(r.score||0); }, 0) / prev7.length  : null;
+            var recScore30 = prev30.length >= 2 ? prev30.reduce(function(s,r){ return s+(r.score||0); }, 0) / prev30.length : null;
             var communityMomentum = 0;
             if (recScore7 !== null && recScore30 !== null) {
-                // Topluluk skorları son 7 günde yükseliyorsa → +bonus, düşüyorsa → ceza
                 var momentumDelta = recScore7 - recScore30;
                 communityMomentum = momentumDelta > 10 ? 4
                                   : momentumDelta > 5  ? 2
@@ -31955,28 +31986,28 @@ async function runDeepDiveAnalysis() {
             }
 
             // ── Katman 2: RSI güvenilirlik geçmişi ────────────────────
-            // Geçmişte RSI aşırı satım (< 30) verirken fiyat düşmeye devam ettiyse
-            // → bu varlıkta RSI güvenilmezdir → momentum skoruna küçük düzeltme
-            var rsiFailCount = prev90.filter(function(r){
-                return r.rsi14 < 30 && r.recommendation === 'AL'
-                    && r.outcomePnl !== undefined && r.outcomePnl !== null && r.outcomePnl < -5;
-            }).length;
-            var rsiReliabilityPenalty = rsiFailCount >= 3 ? -3 : rsiFailCount >= 1 ? -1 : 0;
+            // Bu varlıkta RSI < 30 → AL sinyali geçmişte kaç kez tuttu / tutmadı?
+            var rsiFailCount    = prev90.filter(function(r){ return r.rsi14 < 30 && r.recommendation === 'AL' && r.outcomePnl < -5; }).length;
+            var rsiSuccessCount = prev90.filter(function(r){ return r.rsi14 < 30 && r.recommendation === 'AL' && r.outcomePnl >  5; }).length;
+            var rsiReliabilityPenalty = 0;
+            if      (rsiFailCount >= 3 && rsiSuccessCount < rsiFailCount) rsiReliabilityPenalty = -3;
+            else if (rsiFailCount >= 1 && rsiSuccessCount === 0)          rsiReliabilityPenalty = -1;
+            else if (rsiSuccessCount >= 3 && rsiFailCount === 0)          rsiReliabilityPenalty = +2;
 
-            // ── Katman 3: Sinyal tutarlılığı bonusu ───────────────────
-            // Son 30 günde aynı yönde sinyal tekrar ediyorsa güven artar
-            var curRec     = metrics.score >= 65 ? 'AL' : metrics.score >= 45 ? 'BEKLE' : 'SAT';
-            var consistent = prev30.filter(function(r){ return r.recommendation === curRec; }).length;
+            // ── Katman 3: Geçmiş tahmin doğruluğu ─────────────────────
+            // outcomeCorrect: true/false — sistemin bu varlıktaki isabeti
+            var correctCount = prev30.filter(function(r){ return r.outcomeCorrect === true;  }).length;
+            var wrongCount   = prev30.filter(function(r){ return r.outcomeCorrect === false; }).length;
             var consistencyBonus = 0;
-            if (prev30.length >= 5) {
-                var consistencyRate = consistent / prev30.length;
-                consistencyBonus = consistencyRate >= 0.8 ? 3
-                                 : consistencyRate >= 0.6 ? 1 : 0;
+            if ((correctCount + wrongCount) >= 5) {
+                var correctRate = correctCount / (correctCount + wrongCount);
+                consistencyBonus = correctRate >= 0.75 ? 3
+                                 : correctRate >= 0.60 ? 1
+                                 : correctRate <= 0.30 ? -3
+                                 : correctRate <= 0.40 ? -1 : 0;
             }
 
-            // ── Katman 4: Volatilite geçmişi (ATR uyarısı) ────────────
-            // Geçmiş analizlerde bu varlık sürekli yüksek ATR verdiyse
-            // → stop/TP mesafeleri gerçekçi mi diye kontrol et
+            // ── Katman 4: Volatilite geçmişi ──────────────────────────
             var avgHistAtr = prev30.length
                 ? prev30.reduce(function(s,r){ return s + (parseFloat(r.atrPct)||0); }, 0) / prev30.length
                 : 0;
@@ -31984,14 +32015,111 @@ async function runDeepDiveAnalysis() {
                 ? (avgHistAtr > 8 ? 'yüksek_volatil' : avgHistAtr > 4 ? 'orta_volatil' : 'düşük_volatil')
                 : null;
 
+            // ══════════════════════════════════════════════════════════
+            // KATMAN 1 (ANLIK) — Geçmiş analizlerle indikatör delta karşılaştırması
+            // outcomeChecked beklenmez — tüm pastData kullanılır
+            // Amaç: Piyasa 2 dakikada değişti mi? RSI döndü mü? Hacim değişti mi?
+            // ══════════════════════════════════════════════════════════
+            var recentDelta = 0;
+
+            if (pastData.length >= 1) {
+                // En son kaydedilen analizi baz al (en yakın zamanlı)
+                var lastRec = pastData[0]; // zaten ts'e göre azalan sıralı
+
+                var curRsi   = metrics.rsi       || 50;
+                var curMacd  = metrics.macdBull  || false;
+                var curObv   = metrics.obvTrend  || 'bilinmiyor';
+                var curCmf   = parseFloat(metrics.cmf || 0);
+                var curAdx   = parseFloat(metrics.adx || 25);
+                var curScore = metrics.score;
+
+                var prevRsi   = lastRec.rsi14    || 50;
+                var prevMacd  = lastRec.macdBull || false;
+                var prevObv   = lastRec.obvTrend || 'bilinmiyor';
+                var prevCmf   = parseFloat(lastRec.cmf || 0);  // cmf alanı yoksa 0
+                var prevScore = lastRec.score    || 50;
+
+                // ── RSI delta: yön değişiyor mu? ──────────────────
+                var rsiDelta = curRsi - prevRsi;
+                if      (rsiDelta >  8 && curRsi < 45) recentDelta += 2;  // oversold'dan toparlanıyor
+                else if (rsiDelta >  4 && curRsi < 45) recentDelta += 1;
+                else if (rsiDelta < -8 && curRsi > 55) recentDelta -= 2;  // overbought'tan düşüyor
+                else if (rsiDelta < -4 && curRsi > 55) recentDelta -= 1;
+
+                // ── MACD yön değişimi ──────────────────────────────
+                if      (!prevMacd && curMacd)  recentDelta += 2;  // bearish → bullish döndü
+                else if ( prevMacd && !curMacd) recentDelta -= 2;  // bullish → bearish döndü
+
+                // ── OBV momentum değişimi ──────────────────────────
+                if      (prevObv === 'düşen'   && curObv === 'yükselen') recentDelta += 2;
+                else if (prevObv === 'yükselen' && curObv === 'düşen')   recentDelta -= 2;
+
+                // ── CMF para akışı değişimi ────────────────────────
+                var cmfDelta = curCmf - prevCmf;
+                if      (cmfDelta >  0.10 && curCmf > 0)  recentDelta += 1;  // para girişi artıyor
+                else if (cmfDelta < -0.10 && curCmf < 0)  recentDelta -= 1;  // para çıkışı artıyor
+
+                // ── Genel skor trendi (son 3 analiz varsa) ─────────
+                if (pastData.length >= 3) {
+                    var scores3 = pastData.slice(0, 3).map(function(r){ return r.score || 50; });
+                    var avgRecent3 = (scores3[0] + scores3[1] + scores3[2]) / 3;
+                    var scoreTrend = curScore - avgRecent3;
+                    if      (scoreTrend >  8) recentDelta += 1;  // skor yükselme trendinde
+                    else if (scoreTrend < -8) recentDelta -= 1;  // skor düşme trendinde
+                }
+
+                recentDelta = Math.max(-4, Math.min(4, recentDelta)); // max ±4 puan
+            }
+
+            // ── Katman 5: Öğrenilmiş sinyal doğruluğu ─────────────────
+            // Bu analizde aktif sinyallerin geçmişte ne kadar doğru çıktığına bak
+            // _signalAccuracy: analiz başında ai_signal_stats'tan çekildi
+            var signalLearnDelta = 0;
+            var currentBtc7 = (typeof macro !== 'undefined' && macro) ? (macro.btc7 || 0) : 0;
+            var isBullMarket = currentBtc7 > 3;
+            var isBearMarket = currentBtc7 < -3;
+
+            if (Object.keys(_signalAccuracy).length > 0) {
+                var activeSigs = (metrics.signalList || []);
+                var sigBonus = 0, sigPenalty = 0, sigCount = 0;
+
+                activeSigs.forEach(function(sigName) {
+                    var sigData = _signalAccuracy[sigName];
+                    if (!sigData || !sigData.reliable) return; // Yeterli örneklem yoksa atla
+
+                    // Piyasa koşuluna göre doğruluk oranı seç
+                    var acc = isBullMarket && sigData.bullAccuracy !== null ? sigData.bullAccuracy
+                            : isBearMarket && sigData.bearAccuracy !== null ? sigData.bearAccuracy
+                            : sigData.accuracy;
+
+                    if (acc === null) return;
+                    sigCount++;
+
+                    // Doğruluk > %70: bu sinyal güvenilir → küçük bonus
+                    // Doğruluk < %40: bu sinyal bu koşulda yanıltıcı → ceza
+                    if      (acc >= 75) sigBonus   += 2;
+                    else if (acc >= 65) sigBonus   += 1;
+                    else if (acc <= 35) sigPenalty += 2;
+                    else if (acc <= 45) sigPenalty += 1;
+                });
+
+                // Birden fazla sinyal varsa ortala — tek bir sinyalin aşırı etkisini önle
+                if (sigCount > 0) {
+                    signalLearnDelta = Math.round((sigBonus - sigPenalty) / Math.max(sigCount, 2));
+                    signalLearnDelta = Math.max(-4, Math.min(4, signalLearnDelta)); // max ±4 puan
+                }
+            }
+
             // ── Toplam kalibrasyon delta ───────────────────────────────
-            // Max ±8 puan — gerçek teknik analizi çok fazla bozmasın
-            var calibDelta = communityMomentum + rsiReliabilityPenalty + consistencyBonus;
-            calibDelta = Math.max(-8, Math.min(8, calibDelta));
+            // recentDelta: anlık piyasa değişimi (Katman 1)
+            // signalLearnDelta: öğrenilmiş sinyal doğruluğu (Katman 2)
+            // communityMomentum + rsiPenalty + consistencyBonus: doğrulanmış geçmiş (Katman 2)
+            var calibDelta = recentDelta + communityMomentum + rsiReliabilityPenalty + consistencyBonus + signalLearnDelta;
+            calibDelta = Math.max(-10, Math.min(10, calibDelta)); // 2 katman olduğu için limit biraz genişledi
 
             // Skora uygula (0-100 sınırları koru)
-            var rawScore     = metrics.score;
-            metrics.score    = Math.max(1, Math.min(100, Math.round(rawScore + calibDelta)));
+            var rawScore  = metrics.score;
+            metrics.score = Math.max(1, Math.min(100, Math.round(rawScore + calibDelta)));
 
             // Metadata — debug/ileride gösterim için saklı tut
             metrics._calibration = {
@@ -32000,7 +32128,10 @@ async function runDeepDiveAnalysis() {
                 communityMomentum:  communityMomentum,
                 rsiPenalty:         rsiReliabilityPenalty,
                 consistencyBonus:   consistencyBonus,
-                dataPoints:         pastData.length,
+                signalLearnDelta:   signalLearnDelta,
+                recentDelta:        recentDelta,
+                dataPoints:         verifiedData.length,
+                allDataPoints:      pastData.length,
                 uniqueUsers:        new Set(pastData.map(function(r){ return r.anonId; })).size,
                 avgVolatility:      volConsistencyNote,
                 avgScore7d:         recScore7  !== null ? parseFloat(recScore7.toFixed(1))  : null,
@@ -34613,53 +34744,145 @@ var TradeViaAnalytics = (function() {
         return null;
     }
 
+    // ══════════════════════════════════════════════════════════════
+    //  OUTCOME KONTROLÜ — Asıl kaynak: ai_analysis_logs
+    //  Mantık:
+    //    1. ai_analysis_logs'ta outcomeChecked:false ve checkAt geçmiş kayıtlar bulunur
+    //    2. O anın fiyatı çekilir, analiz fiyatıyla karşılaştırılır
+    //    3. Sonuç ai_analysis_logs kaydına yazılır
+    //    4. O analizde hangi sinyaller vardıysa ai_signal_stats güncellenir
+    //    5. Sinyal doğruluk oranları böylece gerçek analiz verisinden öğrenilir
+    //  NOT: ai_decision_outcomes (buton tıklamaları) sadece kullanıcı görüşüdür,
+    //       sistemin öğrenmesi için kullanılmaz.
+    // ══════════════════════════════════════════════════════════════
     async function checkPastOutcomes() {
         try {
             if (typeof fbDb === 'undefined') return;
             var now = Date.now();
-            var snap = await fbDb.collection('ai_decision_outcomes')
+
+            // ── Asıl kaynak: ai_analysis_logs ──────────────────────────
+            var snap = await fbDb.collection('ai_analysis_logs')
                 .where('outcomeChecked', '==', false)
                 .where('checkAt', '<=', now)
-                .limit(20).get();
+                .limit(30).get();
+
             if (snap.empty) return;
-            snap.forEach(async function(doc) {
-                var d = doc.data();
-                if (!d.symbol || !d.priceAtDecision) return;
+
+            var processed = 0;
+            var docs = [];
+            snap.forEach(function(doc){ docs.push({ id: doc.id, data: doc.data() }); });
+
+            for (var di = 0; di < docs.length; di++) {
+                var doc = docs[di];
+                var d   = doc.data;
+                if (!d.symbol || !d.priceAtAnalysis || d.priceAtAnalysis <= 0) continue;
+
                 try {
                     var result = await _fetchCurrentPrice(d.symbol, d.category);
-                    if (!result || !result.price) return;
-                    var pnlPct = ((result.price - d.priceAtDecision) / d.priceAtDecision) * 100;
-                    var isCorrect = (d.decision==='AL' && pnlPct>5)
-                                 || (d.decision==='SAT' && pnlPct<-5)
-                                 || (d.decision==='BEKLE' && Math.abs(pnlPct)<8);
-                    await fbDb.collection('ai_decision_outcomes').doc(doc.id).update({
-                        outcomeChecked:true, outcomePrice:result.price, outcomePriceSource:result.source,
-                        outcomePnl:parseFloat(pnlPct.toFixed(2)), outcomeCorrect:isCorrect, outcomeCheckedAt:now
+                    if (!result || !result.price || result.price <= 0) continue;
+
+                    // ── PnL hesabı ──────────────────────────────────────
+                    // recommendation: sistemin verdiği karar (AL/BEKLE/SAT)
+                    // pnlPct: analiz anından şu ana kadar fiyat değişimi
+                    var pnlPct    = ((result.price - d.priceAtAnalysis) / d.priceAtAnalysis) * 100;
+                    var rec       = d.recommendation || 'BEKLE';
+
+                    // Doğruluk kriteri:
+                    // AL   → 30 günde +%5 üstü yükseliş = doğru
+                    // SAT  → 30 günde -%5 altı düşüş    = doğru
+                    // BEKLE→ 30 günde ±%8 içinde kalış  = doğru
+                    var isCorrect = (rec === 'AL'    && pnlPct >  5)
+                                 || (rec === 'SAT'   && pnlPct < -5)
+                                 || (rec === 'BEKLE' && Math.abs(pnlPct) < 8);
+
+                    // ── ai_analysis_logs kaydını güncelle ───────────────
+                    await fbDb.collection('ai_analysis_logs').doc(doc.id).update({
+                        outcomeChecked:      true,
+                        outcomePrice:        result.price,
+                        outcomePriceSource:  result.source,
+                        outcomePnl:          parseFloat(pnlPct.toFixed(2)),
+                        outcomeCorrect:      isCorrect,
+                        outcomeCheckedAt:    now
                     });
-                    var sigs = (d.signals||'').split(',').filter(Boolean);
-                    for (var si=0; si<sigs.length; si++) {
-                        fbDb.collection('ai_signal_stats').doc(sigs[si]).set({
+
+                    // ── ai_signal_stats güncelle ────────────────────────
+                    // Her sinyal için: bu analizde doğru mu yanlış mıydı?
+                    // Zaman damgası da kaydediliyor — piyasa koşullarına göre
+                    // sinyal güvenilirliği zamanla değişebilir
+                    var allSigs = [];
+                    if (d.signals)  d.signals.split(',').filter(Boolean).forEach(function(s){ allSigs.push({ name: s, type: 'signal' }); });
+                    if (d.warnings) d.warnings.split(',').filter(Boolean).forEach(function(w){ allSigs.push({ name: 'WARN_' + w, type: 'warning' }); });
+
+                    for (var si = 0; si < allSigs.length; si++) {
+                        var sigName = allSigs[si].name;
+                        if (!sigName) continue;
+
+                        // Sinyalin bu analizdeki bağlamını da kaydet
+                        // (örn: RSI hangi seviyedeydi, trend ne yöndeydi)
+                        var sigContext = {
+                            rsi:        d.rsi14    || 50,
+                            macdBull:   d.macdBull || false,
+                            aboveSma200:d.aboveSma200 || false,
+                            btc7:       d.btc7     || 0,
+                            fearGreed:  d.fearGreed|| 50,
+                            dataQuality:d.dataQuality || 'düşük'
+                        };
+
+                        fbDb.collection('ai_signal_stats').doc(sigName).set({
+                            signal:        sigName,
+                            count:         firebase.firestore.FieldValue.increment(1),
                             totalOutcomes: firebase.firestore.FieldValue.increment(1),
-                            correctCount:  firebase.firestore.FieldValue.increment(isCorrect?1:0)
-                        },{merge:true}).catch(function(){});
+                            correctCount:  firebase.firestore.FieldValue.increment(isCorrect ? 1 : 0),
+                            lastOutcomeAt: now,
+                            lastCorrect:   isCorrect,
+                            // Piyasa koşuluna göre doğruluk: bull/bear/nötr ortam
+                            bullCorrect:  firebase.firestore.FieldValue.increment((d.btc7 > 3  && isCorrect) ? 1 : 0),
+                            bullTotal:    firebase.firestore.FieldValue.increment(d.btc7 > 3  ? 1 : 0),
+                            bearCorrect:  firebase.firestore.FieldValue.increment((d.btc7 < -3 && isCorrect) ? 1 : 0),
+                            bearTotal:    firebase.firestore.FieldValue.increment(d.btc7 < -3  ? 1 : 0)
+                        }, { merge: true }).catch(function(){});
                     }
-                } catch(pe) { console.warn('[Analytics] Fiyat hatasi:', pe); }
-            });
+
+                    processed++;
+                    // Rate limit — çok hızlı Firebase yazma engellemek için
+                    if (processed % 5 === 0) await new Promise(function(r){ setTimeout(r, 500); });
+
+                } catch(pe) { console.warn('[Analytics] Outcome hatasi ('+d.symbol+'):', pe); }
+            }
+
+            if (processed > 0) console.log('[Analytics] ' + processed + ' analiz sonucu güncellendi.');
+
         } catch(e) { console.warn('[Analytics] checkPastOutcomes hatasi:', e); }
     }
 
-        // ── Global istatistikleri çek (kalibrasyon için) ────────────────
+    // ── Sinyal doğruluk oranlarını çek — kalibrasyon için ──────────
+    // Hangi sinyal genel olarak ve hangi piyasa koşulunda daha güvenilir?
     async function getSignalAccuracy() {
         try {
             if (typeof fbDb === 'undefined') return null;
-            var snap = await fbDb.collection('ai_signal_stats').orderBy('count', 'desc').limit(30).get();
+            var snap = await fbDb.collection('ai_signal_stats')
+                .where('totalOutcomes', '>=', 5)   // En az 5 sonuç olan sinyaller (güvenilir örneklem)
+                .orderBy('totalOutcomes', 'desc')
+                .limit(50).get();
             var stats = {};
             snap.forEach(function(doc) {
                 var d = doc.data();
+                var total    = d.totalOutcomes || 0;
+                var correct  = d.correctCount  || 0;
+                var accuracy = total > 0 ? Math.round((correct / total) * 100) : null;
+
+                // Bull/bear koşullarında ayrı doğruluk oranı
+                var bullAcc = (d.bullTotal||0) >= 3 ? Math.round(((d.bullCorrect||0) / d.bullTotal) * 100) : null;
+                var bearAcc = (d.bearTotal||0) >= 3 ? Math.round(((d.bearCorrect||0) / d.bearTotal) * 100) : null;
+
                 stats[d.signal] = {
-                    count:    d.count || 0,
-                    correct:  d.correctCount || 0,
-                    accuracy: d.count > 0 ? Math.round((d.correctCount / d.count) * 100) : null
+                    count:    d.count   || 0,
+                    total:    total,
+                    correct:  correct,
+                    accuracy: accuracy,          // Genel doğruluk %
+                    bullAccuracy: bullAcc,        // Boğa piyasasında %
+                    bearAccuracy: bearAcc,        // Ayı piyasasında %
+                    reliable: accuracy !== null && accuracy >= 60 && total >= 10
                 };
             });
             return stats;
