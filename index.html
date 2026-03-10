@@ -14133,7 +14133,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             <div class="lab-mode-toggle">
     <div class="sim-tab active" onclick="switchAvgMode('auto', this)">
-        <i class="fas fa-satellite-dish"></i> DeepScan™
+        <i class="fas fa-life-ring"></i> AI Kurtarıcı
     </div>
     <div class="sim-tab" onclick="switchAvgMode('budget', this)">
         <i class="fas fa-wallet"></i> Bütçe Planı
@@ -16843,7 +16843,7 @@ function openLabFullscreen() {
                 <div class="ps-feature-item">
                     <div class="ps-feature-icon"><i class="fas fa-life-ring"></i></div>
                     <div class="ps-feature-text">
-                        <div class="ps-feature-title">DeepScan™</div>
+                        <div class="ps-feature-title">AI Kurtarıcı</div>
                         <div class="ps-feature-desc">Sınırsız AI analiz (Free: Günde 1)</div>
                     </div>
                     <div class="ov-feat-tag">∞</div>
@@ -19385,7 +19385,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.3"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -27831,7 +27831,7 @@ function switchAnTab(tab, btn) {
                 const labStart = document.getElementById('labStart');
                 if(currentNet > 0 && labStart && !labStart.value) labStart.value = currentNet;
             }
-            // AR-GE açılınca varsayılan sekme: Maliyet + DeepScan™ kasa güncelle
+            // AR-GE açılınca varsayılan sekme: Maliyet + AI Kurtarıcı kasa güncelle
             setTimeout(function() {
                 var maliyetBtn = document.querySelector(".lab-tab-nav .chart-filter-btn[onclick*=\"'avg'\"]");
                 if (maliyetBtn && typeof switchLabTool === 'function') {
@@ -31230,7 +31230,7 @@ window.switchAnTab = function(tab, btn) {
             if (maliyetBtn && typeof switchLabTool === 'function') {
                 switchLabTool('avg', maliyetBtn);
             }
-            // DeepScan™ varsayılan aktif: kasa bakiyesini güncelle
+            // AI Kurtarıcı varsayılan aktif: kasa bakiyesini güncelle
             var autoBtn = document.querySelector(".lab-mode-toggle .sim-tab[onclick*=\"'auto'\"]");
             if (typeof switchAvgMode === 'function') {
                 switchAvgMode('auto', autoBtn);
@@ -31764,71 +31764,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // ── Makro veri önbelleği (analize başlarken bir kez çekiliyor) ──
 window._macroCache = window._macroCache || { ts: 0, btc7: 0, fg: 50 };
 
-// ── Piyasa Değeri Önbelleği (10 dk) ─────────────────────────
-// DeepScan™ Market Intelligence: Büyük/küçük cap ayrımı doğru sinyal için kritik
-window._mcapCache = window._mcapCache || {};
-async function _fetchMarketCap(sym, cgId, assetType) {
-    var key = sym.toUpperCase();
-    var cached = window._mcapCache[key];
-    if (cached && (Date.now() - cached.ts) < 600000) return cached;
-
-    var result = { ts: Date.now(), marketCap: 0, rank: 0, category: 'unknown',
-                   volume24h: 0, circulatingSupply: 0, fullyDiluted: 0 };
-    try {
-        if (assetType === 'CRYPTO' && cgId) {
-            // CoinGecko markets endpoint — tek çağrıda tüm veri
-            var cgKey = (typeof coingeckoApiKey !== 'undefined' && coingeckoApiKey) ? '&x_cg_demo_api_key=' + coingeckoApiKey : '';
-            var mcUrl  = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=' + cgId + cgKey;
-            var mcRes  = await _fetchWithTimeout(mcUrl, 5000);
-            if (mcRes.ok) {
-                var mcData = await mcRes.json();
-                if (mcData && mcData[0]) {
-                    var d = mcData[0];
-                    result.marketCap         = d.market_cap || 0;
-                    result.rank              = d.market_cap_rank || 0;
-                    result.volume24h         = d.total_volume || 0;
-                    result.circulatingSupply = d.circulating_supply || 0;
-                    result.fullyDiluted      = d.fully_diluted_valuation || 0;
-                }
-            }
-        } else if ((assetType === 'US' || assetType === 'BIST') || assetType === 'unknown') {
-            // Yahoo Finance v10 quoteSummary — market cap + 52w range
-            var yTicker = assetType === 'BIST' ? sym + '.IS' : sym;
-            var yUrl = 'https://query1.finance.yahoo.com/v10/finance/quoteSummary/' + yTicker + '?modules=summaryDetail,price';
-            var yData = await _fetchWithProxy(yUrl, 6000);
-            if (yData && yData.quoteSummary && yData.quoteSummary.result) {
-                var summaryDetail = yData.quoteSummary.result[0].summaryDetail || {};
-                var priceModule   = yData.quoteSummary.result[0].price || {};
-                result.marketCap  = (summaryDetail.marketCap && summaryDetail.marketCap.raw) ? summaryDetail.marketCap.raw
-                                  : (priceModule.marketCap && priceModule.marketCap.raw) ? priceModule.marketCap.raw : 0;
-                result.volume24h  = (summaryDetail.volume && summaryDetail.volume.raw) ? summaryDetail.volume.raw : 0;
-            }
-        }
-    } catch(e) { console.warn('Market cap fetch hatası:', e); }
-
-    // ── Piyasa Değeri Kategorisi ──
-    var mc = result.marketCap;
-    if (assetType === 'CRYPTO') {
-        // Kripto kategorileri (Standart CoinGecko sınırları)
-        result.category = mc >= 10e9 ? 'large_cap'    // $10B+: Bitcoin, ETH tier
-                        : mc >= 1e9  ? 'mid_cap'      // $1B-10B: Güvenilir altcoinler
-                        : mc >= 100e6? 'small_cap'    // $100M-1B: Riski yüksek
-                        : mc > 0     ? 'micro_cap'    // <$100M: Çok riskli
-                        : 'unknown';
-    } else {
-        // Hisse senetleri (USD)
-        result.category = mc >= 200e9 ? 'mega_cap'    // $200B+: Apple, MSFT tier
-                        : mc >= 10e9  ? 'large_cap'   // $10B-200B: S&P 500
-                        : mc >= 2e9   ? 'mid_cap'     // $2B-10B
-                        : mc >= 300e6 ? 'small_cap'   // $300M-2B
-                        : mc > 0      ? 'micro_cap'   // <$300M
-                        : 'unknown';
-    }
-
-    window._mcapCache[key] = result;
-    return result;
-}
-
 async function _fetchMacroContext() {
     // 5 dakika önbellekte tazeyse tekrar çekme
     if (Date.now() - window._macroCache.ts < 300000) return window._macroCache;
@@ -32016,17 +31951,6 @@ async function runDeepDiveAnalysis(mode) {
         var result  = await fetchCandleHistory(rawSym, asset.name, asset);
         var candles = result ? result.candles : null;
         var source  = result ? result.source  : 'yok';
-        var detectedType = result ? (result.assetType || 'unknown') : 'unknown';
-        var detectedCgId = result ? (result.cgId || null) : null;
-
-        // ── Piyasa Değeri Çek (paralel, analizi bloklamaz) ──
-        var mcapInfo = { marketCap: 0, rank: 0, category: 'unknown', volume24h: 0 };
-        try {
-            var _mcapTimeout = new Promise(function(res){ setTimeout(function(){ res(null); }, 3000); });
-            var _mcapFetch   = _fetchMarketCap(rawSym, detectedCgId, detectedType);
-            var _mcapResult  = await Promise.race([_mcapFetch, _mcapTimeout]);
-            if (_mcapResult) mcapInfo = _mcapResult;
-        } catch(e) { console.warn('Market cap fetch skip:', e); }
 
         if (candles && candles.length > 0) {
             var lastCandle = candles[candles.length - 1];
@@ -32038,10 +31962,7 @@ async function runDeepDiveAnalysis(mode) {
         if (!asset.curr || asset.curr <= 0) asset.curr = asset.buy;
 
         var metrics = calculateTechnicalMetrics(candles, asset.buy,
-            (asset.curr && asset.curr > 0) ? asset.curr : asset.buy, source,
-            (asset.name||'').toUpperCase().includes('BINANCE:') || (asset.name||'').toUpperCase().endsWith('USDT') ? 'crypto'
-            : (asset.name||'').includes('.IS') || (asset.name||'').toUpperCase().includes('BIST:') ? 'bist'
-            : 'stock');
+            (asset.curr && asset.curr > 0) ? asset.curr : asset.buy, source);
 
         // Teknik analiz tamamlandı → bu varlık için global geçmişi çek
         // 2 saniye timeout — Firebase yoksa veya yavaşsa analizi bloklamaz
@@ -32262,7 +32183,6 @@ async function runDeepDiveAnalysis(mode) {
         var newObj      = Object.assign({}, asset);
         newObj.metrics  = metrics;
         newObj.cleanSym = rawSym;
-        newObj.mcap     = mcapInfo;  // Piyasa degeri verisi
         analyzedAssets.push(newObj);
 
         await new Promise(function(res){ setTimeout(res, 700); });
@@ -32282,13 +32202,11 @@ async function runDeepDiveAnalysis(mode) {
 //  - Stochastic RSI eklendi
 //  - Veri kalitesi skoru
 // ============================================================
-function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource, assetType) {
+function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource) {
     var src = dataSource || 'yok';
-    // Varlık tipi: 'crypto' = kripto, 'bist' = BIST hisse, 'stock' = yabancı hisse
-    var _assetType = assetType || 'unknown';
 
     try {
-        if (!candles || candles.length < 30)
+        if (!candles || candles.length < 14)
             return generateBasicAnalysis(cost, currentPrice, src);
 
         var closes, volumes, highs, lows;
@@ -32309,7 +32227,7 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource, asse
         volumes = volumes.filter(function(v){ return v >= 0; });
 
         var n = closes.length;
-        if (n < 30) return generateBasicAnalysis(cost, currentPrice, src);
+        if (n < 10) return generateBasicAnalysis(cost, currentPrice, src);
 
         // ── Veri kalitesi — hacim güvenilirlik kontrolü dahil ────
         var hasVolume = volumes.some(function(v){ return v > 0; });
@@ -32318,11 +32236,8 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource, asse
         var volumeReliable = hasVolume && (zeroVolCount < volumes.length * 0.4);
         // Veri kalitesi: 120+ bar yüksek, 60-119 orta, <60 düşük
         var dataQuality = (n >= 120 && volumeReliable) ? 'yüksek'
-                        : (n >= 120 || (n >= 60 && hasVolume)) ? 'orta'
-                        : (n >= 30) ? 'düşük' : 'yetersiz';
-        // DÜZELTME: 30-60 bar arası artık 0.40 çarpan (eskiden 0.65 — çok toleranslı)
-        // 30+ bar altında zaten generateBasicAnalysis döner (üstte kontrol edildi)
-        var dqMult = dataQuality === 'yüksek' ? 1.0 : dataQuality === 'orta' ? 0.85 : dataQuality === 'düşük' ? 0.40 : 0;
+                        : (n >= 120 || (n >= 60 && hasVolume)) ? 'orta' : 'düşük';
+        var dqMult = dataQuality === 'yüksek' ? 1.0 : dataQuality === 'orta' ? 0.85 : 0.65;
 
         // ── Yardımcı fonksiyonlar ────────────────────────────────
         function smaFn(arr, period) {
@@ -32398,17 +32313,10 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource, asse
             return trs.length ? smaFn(trs, Math.min(period, trs.length)) : 0;
         }
         function macdCalc(c) {
-            // ── Dinamik MACD Parametreleri (Araştırma Destekli) ──
-            // Kripto: 8/21/5 — yüksek volatilite, 7/24 piyasa, daha hızlı sinyal
-            // BIST: 12/26/9 — standart, günlük kapanır, yavaş hareket
-            // Yabancı hisse / bilinmeyen: 12/26/9 — borsa standardı
-            var fastP  = _assetType === 'crypto' ? 8  : 12;
-            var slowP  = _assetType === 'crypto' ? 21 : 26;
-            var signalP = _assetType === 'crypto' ? 5  : 9;
-            if (c.length < slowP) return { macd:0, signal:0, hist:0, prevHist:0, bullCross:false, bearCross:false, histExpanding:false, aboveZero:false, aboveSignal:false };
-            var e12 = emaArr(c, fastP), e26 = emaArr(c, slowP);
+            if (c.length < 26) return { macd:0, signal:0, hist:0, prevHist:0, bullCross:false, bearCross:false, histExpanding:false, aboveZero:false };
+            var e12 = emaArr(c, 12), e26 = emaArr(c, 26);
             var ml = e12.map(function(v,i){ return v - e26[i]; });
-            var sl = emaArr(ml, signalP);
+            var sl = emaArr(ml, 9);
             var ht = ml.map(function(v,i){ return v - sl[i]; });
             var L = ml.length - 1;
             return {
@@ -32417,8 +32325,7 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource, asse
                 bullCross: ml[L] > sl[L] && ml[L-1] <= sl[L-1],
                 bearCross: ml[L] < sl[L] && ml[L-1] >= sl[L-1],
                 histExpanding: Math.abs(ht[L]) > Math.abs(ht[L-1]||0),
-                aboveZero: ml[L] > 0,
-                aboveSignal: ml[L] > sl[L]
+                aboveZero: ml[L] > 0
             };
         }
         function bbCalc(c, period, mult) {
@@ -32582,15 +32489,8 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource, asse
             var ema21Last = e21a[e21a.length-1];
             var ema50Last = e50a[e50a.length-1];
             var recentAvg20 = smaFn(closes.slice(-20), Math.min(20, closes.length));
-            // ── Üçlü Fib Trend Tespiti (Zararlı varlıklar için güçlendirilmiş) ──
-            // Eski: Sadece EMA → zararlı varlıkta neredeyse her zaman downtrend
-            // Yeni: EMA + son fiyat yönü (closes[-1] vs closes[-10]) + recent avg
-            var closes10Ago = closes.length >= 10 ? closes[closes.length - 10] : closes[0];
-            var priceDirection10 = closes10Ago > 0 ? ((currentPrice - closes10Ago) / closes10Ago * 100) : 0;
-            // En az 2/3 koşul uptrend = uptrend say
-            var upConditions = [(ema21Last > ema50Last), (currentPrice > recentAvg20), (priceDirection10 > 0)];
-            var upCount = upConditions.filter(Boolean).length;
-            var isUptrend = upCount >= 2;
+            // İkili kontrol: hem EMA hem de recent avg uptrend tarafında ise uptrend say
+            var isUptrend = (ema21Last > ema50Last) && (currentPrice > recentAvg20);
 
             if (fibRange > 0 && fibRange / currentPrice > 0.05) {  // anlamlı swing olmalı
                 var fibRatios = [0.236, 0.382, 0.500, 0.618, 0.786];
@@ -32773,27 +32673,10 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource, asse
             var recentVOL = volumes.slice(-period).reduce(function(a,b){return a+b;},0);
             cmfVal = recentVOL > 0 ? recentMFV / recentVOL : 0;
             cmfVal = Math.max(-1, Math.min(1, cmfVal));
-
-            // ── CMF Gap Koruması: Ani fiyat boşluğu tespit ──
-            // %8+ gap: devre kesici, kapanış fiyatı açılışa ışık yılı uzakta
-            // Bu durumlarda CMF güvenilmez — sıfırla, sinyali devre dışı bırak
-            if (closes.length >= 2) {
-                var lastGap = Math.abs(closes[closes.length-1] - closes[closes.length-2]) / closes[closes.length-2];
-                var prevGap = closes.length >= 3
-                    ? Math.abs(closes[closes.length-2] - closes[closes.length-3]) / closes[closes.length-3]
-                    : 0;
-                if (lastGap > 0.08 || prevGap > 0.08) {
-                    cmfVal    = 0;  // Gap döneminde CMF güvenilmez
-                    cmfSignal = 'gap_var';  // UI'da özel uyarı
-                }
-            }
-
-            if (cmfSignal !== 'gap_var') {
-                cmfSignal = cmfVal > 0.15 ? 'güçlü_birikim'
-                          : cmfVal > 0.05 ? 'hafif_birikim'
-                          : cmfVal < -0.15 ? 'güçlü_dağıtım'
-                          : cmfVal < -0.05 ? 'hafif_dağıtım' : 'nötr';
-            }
+            cmfSignal = cmfVal > 0.15 ? 'güçlü_birikim'
+                      : cmfVal > 0.05 ? 'hafif_birikim'
+                      : cmfVal < -0.15 ? 'güçlü_dağıtım'
+                      : cmfVal < -0.05 ? 'hafif_dağıtım' : 'nötr';
             // CMF Bullish Divergence: Son 2 dip karşılaştır
             // Fiyat yeni dip → ama CMF daha yüksek (satıcılar yoruluyor)
             if (closes.length >= 20 && period >= 10) {
@@ -32821,80 +32704,123 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource, asse
                       : natrVal > 1 ? 'düşük' : 'çok_düşük';
         })();
 
-        // ── 4. PUMP & DUMP DEDEKTÖRÜ ─────────────────────────────
-        // Son 3 bar + hacim spike + RSI aşırı bölge kombinasyonu
-        // pumpScore / dumpScore: 0-100 (eşik: 60+)
+        // ── 4. PUMP & DUMP DEDEKTÖRÜ v2 ──────────────────────────
+        // Araştırma bazlı iyileştirmeler (2024):
+        // [1] Çift koşul zorunluluğu: fiyat VE hacim aynı anda anomali göstermeli
+        // [2] %400 hacim eşiği (araştırma standardı: ortalama hacmin 4x'i)
+        // [3] Dormancy (hareketsizlik) filtresi: uzun uyku sonrası spike daha güçlü sinyal
+        // [4] Piyasa değeri entegrasyonu: micro/small cap için eşik düşük
+        // pumpScore / dumpScore: 0-100 (eşik: 65+)
         var pumpScore = 0, dumpScore = 0, pumpDumpLabel = null, pumpDumpWarning = '';
+        var dormancyFlag = false, dormancyRatio = 0;
         (function() {
             if (closes.length < 5) return;
-            var last3closes = closes.slice(-4);
-            var price3DayChange = last3closes.length >= 2
-                ? ((last3closes[last3closes.length-1] - last3closes[0]) / last3closes[0]) * 100
-                : 0;
-            // ── Dinamik Pump/Dump Eşiği: 90 günlük bazal volatilite ──
-            // Bu varlığın kendi tipik 3 günlük hareketine göre eşik belirlenir
-            // BTC için normal +7% = pump sayılmaz; küçük altcoin için +5% pump olabilir
-            var baseline3DayVol = 0;
-            if (closes.length >= 30) {
-                var diffs = [];
-                var step = Math.max(1, Math.floor(closes.length / 30));
-                for (var bi = step * 3; bi < closes.length; bi += step) {
-                    var c3 = closes[bi], c0 = closes[bi - step * 3];
-                    if (c0 > 0) diffs.push(Math.abs((c3 - c0) / c0 * 100));
-                }
-                if (diffs.length >= 5) {
-                    diffs.sort(function(a,b){return a-b;});
-                    // Medyan → daha dayanıklı (outlier'ları etkisiz kılar)
-                    baseline3DayVol = diffs[Math.floor(diffs.length * 0.6)] || 0;
-                }
-            }
-            // Bazal volatilite hesaplanamadıysa NATR'ye dön
-            var pumpThreshold = baseline3DayVol > 0
-                ? Math.max(6, baseline3DayVol * 2.5)    // Bazal x2.5 = pump şüphesi
-                : (natrVal > 6 ? 15 : natrVal > 3 ? 10 : 7);
-            var dumpThreshold = baseline3DayVol > 0
-                ? Math.max(5, baseline3DayVol * 2.0)
-                : (natrVal > 6 ? 12 : natrVal > 3 ? 8  : 6);
 
-            // PUMP sinyalleri
-            if (price3DayChange > pumpThreshold)      pumpScore += 35;
-            else if (price3DayChange > pumpThreshold/2) pumpScore += 15;
-            if (volSpike > 3.5)  pumpScore += 25;
-            else if (volSpike > 2) pumpScore += 12;
-            if (rsi14 > 75)      pumpScore += 20;
-            else if (rsi14 > 65) pumpScore += 10;
-            if (macd && macd.hist > 0) {
-                // Histogram tepe: son bar < önceki bar (momentum tükeniyor)
-                // Yaklaşık test: macd.hist mevcut değeri var mı kontrol
-                pumpScore += 10;
+            // ── Fiyat değişimi (3 günlük) ──────────────────────────
+            var last4closes = closes.slice(-4);
+            var price3DayChange = last4closes.length >= 2
+                ? ((last4closes[last4closes.length-1] - last4closes[0]) / last4closes[0]) * 100
+                : 0;
+
+            // ── [1] Volatilite bazlı dinamik eşik ──────────────────
+            var pumpThreshold = natrVal > 6 ? 15 : natrVal > 3 ? 10 : 9;
+            var dumpThreshold = natrVal > 6 ? 12 : natrVal > 3 ? 8  : 6;
+
+            // ── [2] Hacim Analizi: 30g medyandan normalleştir ───────
+            // Araştırma: pump'ta aylık toplam hacmin 1/3'ü tek olayda oluşuyor
+            // Araştırma: %400 üzeri hacim artışı standart eşik
+            var volumes = candles.map(function(c) { return parseFloat(c.v || c.volume || 0); });
+            var vol30avg = 0;
+            if (volumes.length >= 30) {
+                var sorted30 = volumes.slice(-30).slice().sort(function(a,b){return a-b;});
+                vol30avg = sorted30[Math.floor(sorted30.length / 2)]; // medyan
+            } else if (volumes.length >= 7) {
+                vol30avg = volumes.slice(-7).reduce(function(a,b){return a+b;},0) / 7;
             }
-            if (bbAboveUpper)    pumpScore += 10;
+            var lastVol = volumes[volumes.length - 1] || 0;
+            var volRatio400 = vol30avg > 0 ? (lastVol / vol30avg) : 0;
+
+            // ── [3] Dormancy (Hareketsizlik) Filtresi ──────────────
+            // Araştırma: P&D hedeflerinin çoğu uzun hareketsizlik dönemine sahip
+            // Son 14g ortalama < son 90g ortalamasının %30'u → uyku sonu
+            if (volumes.length >= 90) {
+                var avg14 = volumes.slice(-14).reduce(function(a,b){return a+b;},0) / 14;
+                var avg90 = volumes.slice(-90).reduce(function(a,b){return a+b;},0) / 90;
+                dormancyRatio = avg90 > 0 ? (avg14 / avg90) : 1;
+                dormancyFlag = dormancyRatio < 0.30;
+            } else if (volumes.length >= 30) {
+                var avg14b = volumes.slice(-14).reduce(function(a,b){return a+b;},0) / 14;
+                var avg30b = volumes.slice(-30).reduce(function(a,b){return a+b;},0) / 30;
+                dormancyRatio = avg30b > 0 ? (avg14b / avg30b) : 1;
+                dormancyFlag = dormancyRatio < 0.30;
+            }
+
+            // ── [4] Piyasa değeri bazlı eşik ayarı ─────────────────
+            // Araştırma: P&D odağı <$60M piyasa değerli varlıklar
+            // Micro/small cap için eşikleri düşür (daha hassas algılama)
+            var mcapCategory = (window._assetMcapInfo && window._assetMcapInfo.category) || 'unknown';
+            var mcapMult = 1.0;
+            if (mcapCategory === 'micro_cap')  mcapMult = 0.65;
+            else if (mcapCategory === 'small_cap') mcapMult = 0.80;
+            pumpThreshold *= mcapMult;
+            dumpThreshold *= mcapMult;
+
+            // ── Çift Koşul Bayrakları ───────────────────────────────
+            var fiyatPumpVar   = price3DayChange > pumpThreshold;
+            var fiyatPumpZayif = price3DayChange > pumpThreshold * 0.5;
+            var fiyatDumpVar   = price3DayChange < -dumpThreshold;
+            var fiyatDumpZayif = price3DayChange < -(dumpThreshold * 0.5);
+            // [2] Araştırma standardı: 4x (%400) kesin, 2x (%200) şüpheli
+            var hacimGüçlü = volRatio400 >= 4.0;
+            var hacimOrta  = volRatio400 >= 2.0;
+            var hacimDump  = volRatio400 >= 3.0 && price3DayChange < 0;
+
+            // ── PUMP Skor ───────────────────────────────────────────
+            // Çift koşul: hem fiyat hem hacim gerekli — tek başına yetersiz
+            if      (fiyatPumpVar  && hacimGüçlü) pumpScore += 45;
+            else if (fiyatPumpVar  && hacimOrta)  pumpScore += 30;
+            else if (fiyatPumpZayif && hacimGüçlü) pumpScore += 22;
+            else if (fiyatPumpVar  && !hacimOrta) pumpScore += 10; // hacim yok → gerçek hareket olabilir
+            if (rsi14 > 78)       pumpScore += 20;
+            else if (rsi14 > 68)  pumpScore += 10;
+            if (bbAboveUpper)     pumpScore += 10;
+            if (macd && macd.hist > 0) pumpScore += 8;
+            // [3] Dormancy bonus: uyku sonrası spike çok daha şüpheli
+            if (dormancyFlag && hacimGüçlü) pumpScore += 15;
+            else if (dormancyFlag && hacimOrta) pumpScore += 8;
             pumpScore = Math.min(100, pumpScore);
 
-            // DUMP sinyalleri
-            if (price3DayChange < -dumpThreshold)         dumpScore += 35;
-            else if (price3DayChange < -dumpThreshold/2)  dumpScore += 15;
-            if (volSpike > 3.0 && price3DayChange < 0)   dumpScore += 25;
-            else if (volSpike > 1.8 && price3DayChange < 0) dumpScore += 12;
-            if (rsi14 < 25)      dumpScore += 20;
-            else if (rsi14 < 35) dumpScore += 10;
-            if (bbBelow)         dumpScore += 10;
+            // ── DUMP Skor ───────────────────────────────────────────
+            if      (fiyatDumpVar  && hacimDump) dumpScore += 45;
+            else if (fiyatDumpVar  && hacimOrta) dumpScore += 30;
+            else if (fiyatDumpZayif && hacimDump) dumpScore += 22;
+            else if (fiyatDumpVar  && !hacimOrta) dumpScore += 12;
+            if (rsi14 < 22)       dumpScore += 20;
+            else if (rsi14 < 32)  dumpScore += 10;
+            if (bbBelow)          dumpScore += 10;
             if (adxTrend === 'güçlü_düşüş') dumpScore += 10;
+            if (dormancyFlag && hacimDump) dumpScore += 12;
             dumpScore = Math.min(100, dumpScore);
 
-            // Etiketleme
+            // ── Etiketleme ──────────────────────────────────────────
+            var volRatioText = volRatio400.toFixed(1) + 'x';
+            var mcapUyarı = (mcapCategory === 'micro_cap' || mcapCategory === 'small_cap')
+                ? ' [Düşük piyasa değeri — manipülasyon riski yüksek]' : '';
+            var dormancyUyarı = dormancyFlag
+                ? ' ⚠️ Uzun hareketsizlik sonrası ani canlanma tespit edildi.' : '';
+
             if (pumpScore >= 65 && pumpScore > dumpScore) {
                 pumpDumpLabel = 'PUMP';
-                pumpDumpWarning = 'Son ' + Math.abs(price3DayChange).toFixed(1) + '% ani yükseliş + ' + volSpike.toFixed(1) + 'x hacim. Pump sinyali — momentum tükenebilir, aceleci alım yapmaktan kaçın.';
+                pumpDumpWarning = 'Son ' + Math.abs(price3DayChange).toFixed(1) + '% fiyat artışı + ' + volRatioText + ' hacim patlaması. Çift koşul doğrulandı — pump sinyali güçlü. Momentum tükenebilir, aceleci alım yapmaktan kaçın.' + mcapUyarı + dormancyUyarı;
             } else if (pumpScore >= 45 && pumpScore > dumpScore) {
                 pumpDumpLabel = 'PUMP_ŞÜPHELI';
-                pumpDumpWarning = 'Ani fiyat artışı + yüksek hacim tespit edildi. Doğrulama bekleniyor.';
+                pumpDumpWarning = 'Ani fiyat + hacim kombinasyonu şüpheli pump işaretliyor (' + volRatioText + ' hacim). Tam doğrulama beklenmiyor — 1-2 gün izle.' + mcapUyarı + dormancyUyarı;
             } else if (dumpScore >= 65 && dumpScore > pumpScore) {
                 pumpDumpLabel = 'DUMP';
-                pumpDumpWarning = 'Son ' + Math.abs(price3DayChange).toFixed(1) + '% sert düşüş + ' + volSpike.toFixed(1) + 'x hacim. Panik satışı başlamış olabilir — 3-5 gün stabilize olmasını bekle.';
+                pumpDumpWarning = 'Son ' + Math.abs(price3DayChange).toFixed(1) + '% sert düşüş + ' + volRatioText + ' hacim. Panik satışı başlamış olabilir — 3-5 gün stabilize olmasını bekle.' + mcapUyarı + dormancyUyarı;
             } else if (dumpScore >= 45 && dumpScore > pumpScore) {
                 pumpDumpLabel = 'DUMP_ŞÜPHELI';
-                pumpDumpWarning = 'Fiyat ve hacim kombinasyonu baskı satışına işaret ediyor. Giriş için stabilize sinyali bekle.';
+                pumpDumpWarning = 'Fiyat + hacim kombinasyonu baskı satışına işaret ediyor. Giriş için stabilize sinyali bekle.' + mcapUyarı + dormancyUyarı;
             }
         })();
 
@@ -33015,7 +32941,7 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource, asse
                         ? 'Panik dump tespit edildi. 3-5 gün bekleme periyodu — dust settle olduktan sonra tekrar değerlendir.'
                         : 'Teknik göstergeler zayıf. Yeni para koymak için daha iyi sinyal bekle.'
                 },
-                pumpDump:   { label: pumpDumpLabel, warning: pumpDumpWarning, pumpScore: pumpScore, dumpScore: dumpScore },
+                pumpDump:   { label: pumpDumpLabel, warning: pumpDumpWarning, pumpScore: pumpScore, dumpScore: dumpScore, dormancy: dormancyFlag, dormancyRatio: dormancyRatio },
                 adx:        { val: adxVal, plusDI: adxPlusDI, minusDI: adxMinusDI, trend: adxTrend },
                 cmf:        { val: cmfVal, signal: cmfSignal, div: cmfDiv },
                 natr:       { val: natrVal, label: natrLabel }
@@ -33129,18 +33055,6 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource, asse
         // RSI diverjans bonusu
         if (bullDiv) momScore = Math.min(100, momScore + 18);
 
-        // ── RSI Trend Uyarlaması (Araştırma Destekli) ────────────
-        // Güçlü yükseliş trendinde RSI 45 altı "oversold" sayılabilir
-        // (Trend piyasasında RSI 30 altına hiç düşmeyebilir — erken çıkış önlenir)
-        if (adxTrend === 'güçlü_yükseliş' && rsi14 < 45 && rsi14 > 30) {
-            // Adaptif oversold: trendin güçlü olduğu bağlamda 35-45 arası da fırsat
-            momScore = Math.min(100, momScore + 10);
-        }
-        // Güçlü düşüş trendinde RSI 55 üstü "overbought" sayılabilir
-        if (adxTrend === 'güçlü_düşüş' && rsi14 > 55 && rsi14 < 70) {
-            momScore = Math.max(0, momScore - 10);
-        }
-
         // ── KATMAN 3: HACİM (ağırlık: veri kalitesine göre) ─────
         // Volume Spike ratio entegrasyonu
         var volWeight = dataQuality === 'yüksek' ? 0.20 : dataQuality === 'orta' ? 0.10 : 0.05;
@@ -33217,11 +33131,6 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource, asse
         // Veri kalitesi çarpanı
         rawScore *= dqMult;
 
-        // ── Global Ceza: Dead Cat + Pump/Dump tüm katmanları etkiler ──
-        var deadCatActive = (rsi7 > 62 && rsi14 < 40 && !aboveSma50);
-        if (deadCatActive) rawScore = Math.max(0, rawScore - 15); // ⚠️ Dead cat sıçraması cezası
-        if (pumpScore >= 65) rawScore = Math.max(0, rawScore - 12); // 🚀 Pump sonrası alım tehlikeli
-
         var score = Math.max(0, Math.min(100, Math.round(rawScore)));
 
         // ── Sinyal / uyarı listesi (açıklama için) ───────────────
@@ -33232,9 +33141,6 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource, asse
         else if (momScore <= 22)   warnings.push('OVERBOUGHT_OR_DCB');
         if (stochRsi < 20 && rsi14 < 35 && wOversold) signals.push('TRIPLE_OVERSOLD');
         else if (stochRsi < 20 && rsi14 < 35)          signals.push('DOUBLE_OVERSOLD');
-        // ── StochRSI bağımsız sinyaller (kalibrasyon için kayıt) ──
-        if (stochRsi < 20) signals.push('STOCH_OVERSOLD');
-        else if (stochRsi > 80) warnings.push('STOCH_OVERBOUGHT');
         if (bullDiv)               signals.push('BULL_DIV');
         if (goldCross)             signals.push('GOLDEN_CROSS');
         if (deathCross)            warnings.push('DEATH_CROSS');
@@ -33345,6 +33251,23 @@ function generateBasicAnalysis(cost, current, src) {
         signalList: signals, warnList: warnings,
         signalCount: signals.length, warnCount: warnings.length,
         bbPosition: 'Veri Yok', stopNote: null, stopPrice: null,
+        // v6 fields — fallback defaults
+        adx: '0', adxPlusDI: '0', adxMinusDI: '0', adxTrend: 'trendsiz',
+        cmf: '0', cmfSignal: null, cmfDiv: false,
+        natr: '0', natrLabel: 'bilinmiyor',
+        pumpDump: null, scenarios: null,
+        volumeReliable: false,
+        williamsR: undefined,
+        macdBull: false, macdBear: false, macdAbove: false, macdAboveSignal: false,
+        goldCross: false, deathCross: false, rsiBullDiv: false,
+        bbSqueeze: false, bbBelow: false, bbAboveUpper: false,
+        obvTrend: null, atrPct: '0',
+        aboveSma200: undefined, belowSma200: undefined, sma200gap: '0',
+        volSpike: '0',
+        nearFibLevel: null, nearRoundNumber: false,
+        distToSupport: '0', distToResistance: '0',
+        nearSupport: false, atSupport: false, nearResistance: false,
+        supportLevel: 0, resistanceLevel: 0,
         layers: { trend: 20, momentum: 30, volume: 50, structure: 30, context: 30 }
     };
 }
@@ -33378,34 +33301,6 @@ function generateAiStrategy(assets, allocatedCash, totalPortfolioValue, macro, m
         if (drop > 0 && drop < 20) {
             a.metrics._noMargin = true;
         }
-
-        // ── Piyasa Değeri Zekası (DeepScan™ Yenilik) ────────────────
-        // Senaryo: Kullanıcı %40 zararda ama varlık yükseliş trendinde
-        // Büyük cap → toparlanma daha güvenilir, bütçe bonusu
-        // Micro cap → yüksek risk, toparlanma gecikmesi, bütçe kısıtı
-        var mc = a.mcap || {};
-        var mcCat = mc.category || 'unknown';
-        var isCrypto = (a.name||'').toUpperCase().includes('BINANCE:') || (a.name||'').toUpperCase().endsWith('USDT');
-        a.metrics.mcapCategory = mcCat;
-        a.metrics.mcapValue    = mc.marketCap || 0;
-        a.metrics.mcapRank     = mc.rank || 0;
-        a.metrics.mcapVolume24h= mc.volume24h || 0;
-
-        // Toparlanma hızı skoru — büyük cap varlıklar daha hızlı toparlanır
-        var mcapRecoveryScore = 0;
-        if      (mcCat === 'mega_cap' || mcCat === 'large_cap')  mcapRecoveryScore = +8;
-        else if (mcCat === 'mid_cap')                             mcapRecoveryScore = +3;
-        else if (mcCat === 'small_cap')                           mcapRecoveryScore = -3;
-        else if (mcCat === 'micro_cap')                           mcapRecoveryScore = -10; // Likit olmayan, pump/dump riski
-        a.metrics.score = Math.max(1, Math.min(100, a.metrics.score + mcapRecoveryScore));
-        a.metrics.mcapRecoveryScore = mcapRecoveryScore;
-
-        // ── Likidite Kalite Skoru — Vol/MCap oranı ──
-        // >10%: Çok likit (sağlıklı market)
-        // <1%: Düşük likidite (çıkış zor, slippage yüksek)
-        var liquidityRatio = (mc.marketCap > 0 && mc.volume24h > 0) ? (mc.volume24h / mc.marketCap * 100) : 0;
-        a.metrics.liquidityRatio = liquidityRatio;
-        a.metrics._lowLiquidity  = (mc.marketCap > 0 && liquidityRatio < 1.5);
     });
 
     function wScore(m) {
@@ -33429,6 +33324,14 @@ function generateAiStrategy(assets, allocatedCash, totalPortfolioValue, macro, m
         var allocation = totalScore > 0 ? (ws / totalScore) * allocatedCash : 0;
         var warningMsg = '';
 
+        // v6: Önce sinyal değişkenlerini hesapla (bütçe kısıtlamalarında kullanılacak)
+        var adxStrongUp   = a.metrics.adxTrend === 'güçlü_yükseliş' || a.metrics.adxTrend === 'yükseliş';
+        var adxStrongDown = a.metrics.adxTrend === 'güçlü_düşüş' || a.metrics.adxTrend === 'düşüş';
+        var cmfBull  = parseFloat(a.metrics.cmf||0) > 0.10;
+        var cmfBear  = parseFloat(a.metrics.cmf||0) < -0.10;
+        var isPump   = a.metrics.pumpDump && (a.metrics.pumpDump.label === 'PUMP' || a.metrics.pumpDump.label === 'PUMP_ŞÜPHELI');
+        var isDump   = a.metrics.pumpDump && (a.metrics.pumpDump.label === 'DUMP' || a.metrics.pumpDump.label === 'DUMP_ŞÜPHELI');
+
         if (allocation > allocatedCash * 0.40)        { allocation = allocatedCash * 0.40; warningMsg += ' [Bütçe koruması: maks %40]'; }
         if (totalPortfolioValue > 0) {
             var cv = a.amt * ((a.curr && a.curr > 0) ? a.curr : a.buy);
@@ -33449,20 +33352,6 @@ function generateAiStrategy(assets, allocatedCash, totalPortfolioValue, macro, m
         // v6: CMF güçlü dağıtım → bütçe kısıtla
         if (cmfBear && allocation > allocatedCash * 0.25)
             { allocation = allocatedCash * 0.25; warningMsg += ' [CMF dağıtım: maks %25]'; }
-        // DeepScan™: Micro cap → düşük likidite, maks %12
-        if (a.metrics.mcapCategory === 'micro_cap' && allocation > allocatedCash * 0.12)
-            { allocation = allocatedCash * 0.12; warningMsg += ' [Micro cap: maks %12]'; }
-        // DeepScan™: Düşük Vol/MCap likidite → maks %15 (çıkış zor)
-        if (a.metrics._lowLiquidity && allocation > allocatedCash * 0.15)
-            { allocation = allocatedCash * 0.15; warningMsg += ' [Düşük likidite: maks %15]'; }
-
-        // v6: ADX, CMF, Pump/Dump senaryolarını güçlü/zayıf sinyale dahil et
-        var adxStrongUp   = a.metrics.adxTrend === 'güçlü_yükseliş' || a.metrics.adxTrend === 'yükseliş';
-        var adxStrongDown = a.metrics.adxTrend === 'güçlü_düşüş' || a.metrics.adxTrend === 'düşüş';
-        var cmfBull  = parseFloat(a.metrics.cmf||0) > 0.10;
-        var cmfBear  = parseFloat(a.metrics.cmf||0) < -0.10;
-        var isPump   = a.metrics.pumpDump && (a.metrics.pumpDump.label === 'PUMP' || a.metrics.pumpDump.label === 'PUMP_ŞÜPHELI');
-        var isDump   = a.metrics.pumpDump && (a.metrics.pumpDump.label === 'DUMP' || a.metrics.pumpDump.label === 'DUMP_ŞÜPHELI');
 
         var strong = (a.metrics.macdBull && a.metrics.rsi < 40) ||
                      (a.metrics.bbBelow  && a.metrics.rsi < 35) ||
@@ -33620,13 +33509,27 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro, mo
         // Canlı fiyat önceliği: metrics.livePrice (son mum) > p.curr (portföy kaydı) > p.buy
         var curN  = (m.livePrice && m.livePrice > 0) ? m.livePrice
                   : (p.curr && p.curr > 0) ? p.curr : p.buy || 0;
-        if (isTRY && isUsd && buyN > 500)  { buyN /= usd; }
-        if (isTRY && isUsd && curN > 500)  { curN /= usd; }
+        // TRY/USD düzeltme: livePrice her zaman USD cinsinden gelir (API kaynaklı).
+        // Portföydeki buy/curr ise kullanıcı TRY modundaysa TRY olabilir.
+        // Güvenli heuristik: livePrice varsa onu referans al, yoksa oran kontrolü yap.
+        if (isTRY && isUsd) {
+            var refUsd = (m.livePrice && m.livePrice > 0) ? m.livePrice : 0;
+            if (refUsd > 0) {
+                // livePrice USD cinsinden — buy/curr TRY ise düzelt
+                if (buyN > refUsd * 1.5) { buyN /= usd; }
+                // curN zaten livePrice'tan geliyorsa dokunma
+                if (curN > refUsd * 1.5 && curN !== refUsd) { curN /= usd; }
+            } else {
+                // livePrice yok — eski yöntemi daha yüksek eşikle kullan
+                if (buyN > usd * 15) { buyN /= usd; }
+                if (curN > usd * 15) { curN /= usd; }
+            }
+        }
 
-        var newAmt = p.allocation > 0 && curN > 0 ? p.allocation / curN : 0;
-        if (isTRY && isUsd) newAmt = p.allocation > 0 && curN > 0 ? (p.allocation / usd) / curN : 0;
+        var newAmt = (p.allocation > 0 && curN > 0) ? p.allocation / curN : 0;
+        if (isTRY && isUsd && curN > 0) newAmt = p.allocation > 0 ? (p.allocation / usd) / curN : 0;
         var totalAmt = (p.amt || 0) + newAmt;
-        var newAvg   = totalAmt > 0 ? ((p.amt||0)*buyN + newAmt*curN) / totalAmt : buyN;
+        var newAvg   = totalAmt > 0 ? ((p.amt||0)*buyN + newAmt*curN) / totalAmt : (buyN > 0 ? buyN : curN);
 
         // ── Stop Loss & Take Profit — ATR Tabanlı (Araştırma Destekli v2) ────────────
         // Kural: GÜNCEL FİYAT (curN) bazlı hesap (maliyet değil)
@@ -33764,21 +33667,6 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro, mo
             v4chips += `<span style="display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:#94a3b8;border-color:rgba(148,163,184,.25);background:rgba(148,163,184,.08);">⚠️ Sınırlı Veri</span>`;
         }
 
-        // ── DeepScan™: Piyasa Değeri Chip ──────────────────────
-        if (m.mcapCategory && m.mcapCategory !== 'unknown') {
-            var mcNum   = m.mcapValue || 0;
-            var mcRank  = m.mcapRank  || 0;
-            var mcCatLabel = { mega_cap:'🏆 Mega Cap', large_cap:'🔵 Large Cap', mid_cap:'🟡 Mid Cap', small_cap:'🟠 Small Cap', micro_cap:'🔴 Micro Cap' }[m.mcapCategory] || m.mcapCategory;
-            var mcColor = { mega_cap:'#10b981', large_cap:'#34d399', mid_cap:'#f59e0b', small_cap:'#f97316', micro_cap:'#ef4444' }[m.mcapCategory] || '#94a3b8';
-            var mcStr   = mcNum >= 1e12 ? '$'+(mcNum/1e12).toFixed(2)+'T' : mcNum >= 1e9 ? '$'+(mcNum/1e9).toFixed(1)+'B' : mcNum >= 1e6 ? '$'+(mcNum/1e6).toFixed(0)+'M' : '';
-            var mcRankStr = mcRank > 0 ? ' #'+mcRank : '';
-            v4chips += `<span style="display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:${mcColor};border-color:${mcColor}33;background:${mcColor}10;">${mcCatLabel}${mcStr?(' '+mcStr):''}${mcRankStr}</span>`;
-            // Düşük likidite uyarısı
-            if (m._lowLiquidity) {
-                v4chips += `<span style="display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:#f97316;border-color:rgba(249,115,22,.25);background:rgba(249,115,22,.08);">💧 Düşük Likidite</span>`;
-            }
-        }
-
         // ── YENİ v6 CHIPLER: ADX + CMF + NATR + PUMP/DUMP ──
         // ADX chip
         if (m.adxTrend) {
@@ -33803,12 +33691,16 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro, mo
             var natrChipColor = natrNum > 8 ? '#ef4444' : natrNum > 5 ? '#f97316' : natrNum > 3 ? '#f59e0b' : '#64748b';
             v4chips += `<span style="display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:${natrChipColor};border-color:${natrChipColor}33;background:${natrChipColor}10;">🌪 NATR %${natrNum.toFixed(1)}</span>`;
         }
-        // PUMP/DUMP chip
+        // PUMP/DUMP chip (v2: dormancy + hacim oranı)
         if (m.pumpDump && m.pumpDump.label) {
             var pdLabel = m.pumpDump.label;
             var pdColor = pdLabel === 'PUMP' ? '#f97316' : pdLabel === 'PUMP_ŞÜPHELI' ? '#fbbf24' : pdLabel === 'DUMP' ? '#ef4444' : '#f87171';
             var pdIcon  = pdLabel === 'PUMP' ? '🚀 PUMP TESPİT' : pdLabel === 'PUMP_ŞÜPHELI' ? '⚠️ PUMP?' : pdLabel === 'DUMP' ? '💥 DUMP TESPİT' : '⚠️ DUMP?';
             v4chips += `<span style="display:inline-flex;align-items:center;padding:4px 9px;border-radius:6px;font-size:9px;font-weight:800;letter-spacing:.6px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:${pdColor};border-color:${pdColor}55;background:${pdColor}18;animation:coachLivePulse 2s ease infinite;">${pdIcon}</span>`;
+            // Dormancy (uyku sonu) chip — ekstra manipülasyon uyarısı
+            if (m.pumpDump.dormancy) {
+                v4chips += `<span style="display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:#fb923c;border-color:rgba(251,146,60,.35);background:rgba(251,146,60,.12);">😴 UYKU SONU</span>`;
+            }
         }
 
         // ATR stop notu
@@ -34334,56 +34226,7 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro, mo
                 paragraphs.push('📋 <strong>Veri Kalitesi Orta:</strong> ' + (m.dataSource === 'yahoo' ? 'Yahoo Finance' : m.dataSource) + ' üzerinden yeterli veri alındı ancak bazı göstergeler (özellikle hacim) eksik olabilir. Analiz %' + (confLbl === 'Yüksek' ? '80-90' : '60-75') + ' güven aralığında.');
             }
 
-            // ── BÖLÜM 9c: DeepScan™ Piyasa Değeri & Toparlanma Hızı ──
-            // Senaryo: Kullanıcı %X zararda, varlık yükseliş içinde
-            // Piyasa değeri bu analizin merkezinde — büyük cap → toparlanma daha güvenilir
-            (function() {
-                var mcCat  = m.mcapCategory;
-                var mcVal  = m.mcapValue || 0;
-                var mcRnk  = m.mcapRank  || 0;
-                var mcVol  = m.mcapVolume24h || 0;
-                var dropV  = m.drop || 0;
-                var mom7   = m.momentum7 ? parseFloat(m.momentum7) : 0;
-                var isRising = mom7 > 2 || m.isRecovering;
-                var liqdRatio = m.liquidityRatio || 0;
-
-                if (!mcCat || mcCat === 'unknown') return; // Veri yoksa atla
-
-                var mcStr = mcVal >= 1e12 ? '$'+(mcVal/1e12).toFixed(2)+'T' : mcVal >= 1e9 ? '$'+(mcVal/1e9).toFixed(1)+'B' : mcVal >= 1e6 ? '$'+(mcVal/1e6).toFixed(0)+'M' : '';
-                var rankStr = mcRnk > 0 ? ' (Rank #'+mcRnk+')' : '';
-
-                if (mcCat === 'mega_cap' || mcCat === 'large_cap') {
-                    if (isRising && dropV > 20) {
-                        // Kullanıcının senaryosu: %40 zararda, büyük cap, yükseliş trendi
-                        paragraphs.push('🏆 <strong>DeepScan™ Toparlanma Analizi — ' + mcStr + rankStr + ':</strong> Bu varlık piyasa değeri itibariyle en güvenilir sınıfta yer alıyor. %' + dropV.toFixed(1) + ' zararda olmanıza rağmen trend şu an yukarı döndü. <strong>Büyük cap varlıklarda düzeltme sonrası toparlanma istatistiksel olarak çok daha güçlü</strong> — kurumsal alıcılar bu seviyeleri izliyor. Günlük hacim ' + (mcVol >= 1e9 ? '$'+(mcVol/1e9).toFixed(1)+'B' : mcVol >= 1e6 ? '$'+(mcVol/1e6).toFixed(0)+'M' : '--') + ' ile yeterli likidite var. Eğer teknik sinyaller de yukarı yönü destekliyorsa, ekleme bütçenizin büyük bölümünü bu varlığa ayırmak mantıklı olabilir.');
-                    } else if (isRising) {
-                        paragraphs.push('🔵 <strong>DeepScan™ Büyük Cap Değerlendirmesi — ' + mcStr + rankStr + ':</strong> Piyasa büyüklüğü güvenilirliği artırıyor. Günlük hacim ' + (mcVol >= 1e9 ? '$'+(mcVol/1e9).toFixed(1)+'B' : mcVol >= 1e6 ? '$'+(mcVol/1e6).toFixed(0)+'M' : '--') + '. Trend yukarı dönerken büyük cap avantajı: Ani likidite krizi yaşanmaz, giriş/çıkış kolay. Teknik tabloya güven çarpanı yüksek.');
-                    } else {
-                        paragraphs.push('🔵 <strong>DeepScan™ Büyük Cap:</strong> ' + mcStr + rankStr + ' — Piyasa büyüklüğü olumlu ama trend henüz toparlanmadı. Büyük cap güvencesi var ancak sabır gerekiyor. Trend dönüşü gerçekleşmeden ekleme yapmak \'falling knife\' riski taşıyor.');
-                    }
-                } else if (mcCat === 'mid_cap') {
-                    if (isRising && dropV > 20) {
-                        paragraphs.push('🟡 <strong>DeepScan™ Mid Cap Toparlanma — ' + mcStr + rankStr + ':</strong> %' + dropV.toFixed(1) + ' zararda ve şu an trend yukarı döndü. Mid cap varlıklarda toparlanma büyük capten biraz daha uzun sürebilir — kurumsal ilgi daha az, bireysel yatırımcı etkisi daha fazla. Ancak ' + mcStr + ' piyasa büyüklüğüyle gerçek bir iflas riski düşük. Teknik doğrulama geliyorsa kademeli giriş mantıklı.');
-                    } else {
-                        paragraphs.push('🟡 <strong>DeepScan™ Mid Cap:</strong> ' + mcStr + rankStr + ' — Orta büyüklük varlık. Likit ama büyük capler kadar kurumsal destek yok. Toparlanma daha yavaş ve değişken olabilir. Pozisyon büyütme kararını teknik teyit olmadan verme.');
-                    }
-                } else if (mcCat === 'small_cap') {
-                    paragraphs.push('🟠 <strong>DeepScan™ Small Cap Uyarısı — ' + mcStr + rankStr + ':</strong> Küçük piyasa büyüklüğü, iki riskle gelir: (1) Ani likidite kuruması — büyük satış emirleri fiyatı dibe çeker. (2) Manipülasyon riski — büyük oyuncular küçük cap varlıkları pump/dump için tercih eder. ' + (isRising ? 'Şu an yükseliş var ama %' + dropV.toFixed(1) + ' zararda small cap varlığa ekleme yaparken pozisyon büyüklüğünü kısık tut.' : 'Trend henüz dönmedi — small cap varlıkta trend teyidi olmadan ekleme yapma.'));
-                } else if (mcCat === 'micro_cap') {
-                    paragraphs.push('🔴 <strong>DeepScan™ Micro Cap Kritik Uyarı — ' + mcStr + rankStr + ':</strong> Bu piyasa değeriyle ciddi riskler söz konusu: (%1) Çıkış yaparken alıcı bulamama — likidite çok düşük. (%2) Proje terk riski — geliştirici ekip projeyi bırakabilir. (%3) Pump/dump döngüleri — manipülasyon çok kolay. ' + (dropV > 30 ? '%' + dropV.toFixed(1) + ' zarardaki micro cap pozisyona ek para koymak son derece riskli — bu parayı kaybetmeye hazır değilseniz bekleyin.' : 'Bu kategoride teknik analiz bile yanıltıcı olabilir — ek para koyma kararını çok dikkatli değerlendirin.'));
-                }
-
-                // Likidite oranı yorumu
-                if (liqdRatio > 0 && mcVal > 0) {
-                    if (liqdRatio < 1.5) {
-                        paragraphs.push('💧 <strong>Düşük Likidite Uyarısı (Vol/MCap: %%' + liqdRatio.toFixed(1) + '):</strong> Günlük işlem hacmi piyasa değerinin %' + liqdRatio.toFixed(1) + '\'i kadar. Bu çok düşük — büyük pozisyon kapatırken fiyatı kendiniz düşürebilirsiniz (slippage). Ekleme kararında bu riski göz önünde bulundurun.');
-                    } else if (liqdRatio > 15) {
-                        paragraphs.push('💰 <strong>Yüksek Likidite (Vol/MCap: %%' + liqdRatio.toFixed(1) + '):</strong> Sağlıklı işlem hacmi. Pozisyon açıp kapatmada sorun yaşanmaz. Bu, teknik sinyallerin daha güvenilir çalışmasını sağlar.');
-                    }
-                }
-            })();
-
-            // ── BÖLÜM 9b: ADX Trend Gücü Yorumu ──
+            // ── BÖLÜM 9b: ADX Trend Gücü Yorumu (YENİ v6) ──
             if (m.adxTrend && m.adx) {
                 var adxNum2 = parseFloat(m.adx);
                 var pDI = parseFloat(m.adxPlusDI||25), mDI = parseFloat(m.adxMinusDI||25);
@@ -34966,7 +34809,7 @@ async function fetchCandleHistory(symbol, originalName, assetObj) {
                     }
                 } catch(stooqErr) { console.warn('Stooq BIST hatası:', stooqErr); }
             }
-            return { candles: bistCandles, source: 'yahoo', assetType: assetType, cgId: cgId };
+            return { candles: bistCandles, source: 'yahoo' };
         }
         return null;
     }
@@ -34989,7 +34832,7 @@ async function fetchCandleHistory(symbol, originalName, assetObj) {
                     if (pData.results && pData.results.length > 10) {
                         return { candles: pData.results.map(function(d){
                             return { open:d.o, high:d.h, low:d.l, close:d.c, volume:d.v };
-                        }), source: 'polygon', assetType: assetType, cgId: cgId };
+                        }), source: 'polygon' };
                     }
                 }
             }
@@ -35012,7 +34855,7 @@ async function fetchCandleHistory(symbol, originalName, assetObj) {
                                      low:  q1.low[i]||0,  close: q1.close[i]||0,
                                      volume: q1.volume[i]||0 };
                         }).filter(function(c){ return c.close > 0; });
-                        if (c1.length > 10) return { candles: c1, source: 'yahoo', assetType: assetType, cgId: cgId };
+                        if (c1.length > 10) return { candles: c1, source: 'yahoo' };
                     }
             }
         } catch(e) { console.warn('Yahoo US hatası:', e); }
@@ -36027,7 +35870,7 @@ const CompareApp = {
    │ Trader Karnesi                   │  ✗     │  ✓               │
    │ Maliyet Sihirbazı (auto-fill)    │  ✗     │  ✓               │
    │ İndikatör Alarmı (RSI)           │  1 ad  │  Sınırsız        │
-   │ DeepScan™                     │  1/gün │  Sınırsız        │
+   │ AI Kurtarıcı                     │  1/gün │  Sınırsız        │
    └──────────────────────────────────┴────────┴──────────────────┘
    ================================================================ */
 
@@ -36386,7 +36229,7 @@ window.saveAlarm = function(type) {
 if (!window.original_runDeepDiveAnalysis) window.original_runDeepDiveAnalysis = window.runDeepDiveAnalysis;
 window.runDeepDiveAnalysis = async function(mode) {
     if (!MembershipSystem.isPro()) {
-        if (!MembershipSystem.checkUsageLimit('aiRescue', 1, 'DeepScan™')) return;
+        if (!MembershipSystem.checkUsageLimit('aiRescue', 1, 'AI Kurtarıcı')) return;
     }
     if (typeof window.original_runDeepDiveAnalysis === 'function') await window.original_runDeepDiveAnalysis(mode);
 };
