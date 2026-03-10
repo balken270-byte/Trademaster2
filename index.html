@@ -14207,7 +14207,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div>
                 <div style="font-size:15px; font-weight:800; color:white; margin-bottom:6px;">DeepScan™ Analiz Motoru</div>
-                <div style="font-size:11px; color:#cbd5e1; line-height:1.5;">
+                <div style="font-size:11px; color:#cbd5e1; line-height:1.5;" id="aiRescueDesc">
                     Yapay zeka, varlıkların <b>son 180 günlük</b> verilerini tarar; RSI, Volatilite ve Trend analizi yaparak hangisinin "ölü yatırım" hangisinin "fırsat" olduğunu belirler.
                 </div>
             </div>
@@ -14218,9 +14218,14 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 
-    <button id="btnAiStart" class="lab-btn-primary emerald" onclick="runDeepDiveAnalysis()">
-        <i class="fas fa-microchip"></i> DETAYLI ANALİZİ BAŞLAT
-    </button>
+    <div id="btnAiStartGroup" style="display:flex; gap:8px; margin-top:0;">
+        <button id="btnAiStartLoss" class="lab-btn-primary" onclick="runDeepDiveAnalysis('loss')" style="flex:1; background:linear-gradient(135deg,#ef4444,#b91c1c); color:#fff; box-shadow:0 4px 15px -4px rgba(239,68,68,0.4);">
+            <i class="fas fa-arrow-trend-down" style="font-size:11px;"></i> ZARARLI
+        </button>
+        <button id="btnAiStartGain" class="lab-btn-primary" onclick="runDeepDiveAnalysis('gain')" style="flex:1; background:linear-gradient(135deg,#10b981,#065f46); color:#fff; box-shadow:0 4px 15px -4px rgba(16,185,129,0.4);">
+            <i class="fas fa-arrow-trend-up" style="font-size:11px;"></i> KARLI
+        </button>
+    </div>
 
     <div id="aiLoadingScreen" style="display:none; text-align:center; padding:30px 0;">
         <div style="width:50px; height:50px; border:3px solid rgba(16,185,129,0.1); border-top:3px solid #10b981; border-radius:50%; margin:0 auto 15px; animation:spin 1s linear infinite;"></div>
@@ -19380,7 +19385,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.0"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -31821,20 +31826,43 @@ async function _fetchWithProxy(targetUrl, timeoutMs) {
     return null;
 }
 
-async function runDeepDiveAnalysis() {
+async function runDeepDiveAnalysis(mode) {
+    // mode: 'loss' = zarardaki, 'gain' = kardaki (varsayılan: 'loss')
+    if (!mode) mode = 'loss';
+
     var asData = localStorage.getItem('myPF_final');
     var as = asData ? JSON.parse(asData) : [];
     var cashData = localStorage.getItem('tm_cash_balance');
     var cash = cashData ? parseFloat(cashData) : 0;
 
-    var btnStart   = document.getElementById('btnAiStart');
-    var screenLoad = document.getElementById('aiLoadingScreen');
-    var resultArea = document.getElementById('aiRescueResult');
-    var logText    = document.getElementById('aiLoadingText');
+    var btnGroupEl  = document.getElementById('btnAiStartGroup');
+    var screenLoad  = document.getElementById('aiLoadingScreen');
+    var resultArea  = document.getElementById('aiRescueResult');
+    var logText     = document.getElementById('aiLoadingText');
 
-    if (btnStart)   btnStart.style.display   = 'none';
-    if (screenLoad) screenLoad.style.display = 'block';
+    if (btnGroupEl) btnGroupEl.style.display  = 'none';
+    if (screenLoad) screenLoad.style.display  = 'block';
     if (resultArea) resultArea.style.display  = 'none';
+
+    // Rapor başlığını analiz moduna göre güncelle
+    var raporBaslik = document.querySelector('#aiRescueResult .lab-section-label span');
+    if (raporBaslik) {
+        if (mode === 'gain') {
+            raporBaslik.innerHTML = '<i class="fas fa-chart-line"></i> KAR OPTİMİZASYON RAPORU';
+        } else {
+            raporBaslik.innerHTML = '<i class="fas fa-clipboard-check"></i> STRATEJİ RAPORU';
+        }
+    }
+
+    // Açıklama metnini moda göre güncelle
+    var descEl = document.getElementById('aiRescueDesc');
+    if (descEl) {
+        if (mode === 'gain') {
+            descEl.innerHTML = 'Yapay zeka, kârdaki varlıkların <b>son 180 günlük</b> teknik verilerini inceler; RSI aşırı alım, trend zayıflama ve momentum analizi ile <b>kâr realizasyonu</b> veya <b>elde tutma</b> tavsiyesi verir.';
+        } else {
+            descEl.innerHTML = 'Yapay zeka, varlıkların <b>son 180 günlük</b> verilerini tarar; RSI, Volatilite ve Trend analizi yaparak hangisinin "ölü yatırım" hangisinin "fırsat" olduğunu belirler.';
+        }
+    }
 
     function updateLog(msg) { if (logText) logText.innerText = msg; }
 
@@ -31842,14 +31870,25 @@ async function runDeepDiveAnalysis() {
     updateLog('Piyasa geneli değerlendiriliyor...');
     var macro = await _fetchMacroContext();
 
-    var losers = as.filter(function(a) {
-        var price = (a.curr && a.curr > 0) ? a.curr : a.buy;
-        return price < a.buy;
-    });
-
-    if (losers.length === 0) {
-        finishAiAnalysis([], cash, 'Zararda varlık yok — tebrikler!', null, macro);
-        return;
+    var losers;
+    if (mode === 'gain') {
+        losers = as.filter(function(a) {
+            var price = (a.curr && a.curr > 0) ? a.curr : a.buy;
+            return price > a.buy;
+        });
+        if (losers.length === 0) {
+            finishAiAnalysis([], cash, 'Karda varlık bulunamadı.', null, macro, mode);
+            return;
+        }
+    } else {
+        losers = as.filter(function(a) {
+            var price = (a.curr && a.curr > 0) ? a.curr : a.buy;
+            return price < a.buy;
+        });
+        if (losers.length === 0) {
+            finishAiAnalysis([], cash, 'Zararda varlık yok — tebrikler!', null, macro, mode);
+            return;
+        }
     }
 
     // Trader profili
@@ -32150,8 +32189,8 @@ async function runDeepDiveAnalysis() {
     }
 
     updateLog('Yapay zeka portföy yoğunluğunu ve piyasa bağlamını analiz ediyor...');
-    var finalPlan = generateAiStrategy(analyzedAssets, allowedCash, totalPortfolioValue, macro);
-    finishAiAnalysis(finalPlan, cash, '', traderProfile, macro);
+    var finalPlan = generateAiStrategy(analyzedAssets, allowedCash, totalPortfolioValue, macro, mode);
+    finishAiAnalysis(finalPlan, cash, '', traderProfile, macro, mode);
 }
 
 
@@ -33154,7 +33193,8 @@ function generateBasicAnalysis(cost, current, src) {
 }
 
 
-function generateAiStrategy(assets, allocatedCash, totalPortfolioValue, macro) {
+function generateAiStrategy(assets, allocatedCash, totalPortfolioValue, macro, mode) {
+    // mode: 'loss' = zarardaki (varsayılan), 'gain' = kardaki
     // Makro çarpanını hesapla
     var macroMult = 1.0;
     if (macro) {
@@ -33245,11 +33285,24 @@ function generateAiStrategy(assets, allocatedCash, totalPortfolioValue, macro) {
 
         var color, label;
         var s = a.metrics.score;
-        if      (s >= 68 || (s >= 60 && strong))  { color='#10b981'; label='💎 GÜÇLÜ AL'; }
-        else if (s >= 47 || (s >= 40 && strong))  { color='#3b82f6'; label='📈 KADEMELİ AL'; }
-        else if (s >= 32 && !weak)                { color='#f59e0b'; label='👁 İZLE'; allocation *= 0.5; }
-        else if (s >= 32 && weak)                 { color='#f97316'; label='⚠️ DİKKATLİ İZLE'; allocation *= 0.3; warningMsg += ' [Negatif teknik sinyal]'; }
-        else                                      { color='#ef4444'; label='🛑 BEKLE'; allocation = 0; }
+
+        if (mode === 'gain') {
+            // Kardaki varlıklar: Realizasyon / Elde Tut / Artır kararları
+            var profitPct = a.buy > 0 ? ((((a.curr && a.curr > 0) ? a.curr : a.buy) - a.buy) / a.buy * 100) : 0;
+            var rsiOverbought = a.metrics.rsi > 70;
+            var rsiNeutral    = a.metrics.rsi >= 50 && a.metrics.rsi <= 70;
+            if      (rsiOverbought || (weak && profitPct > 30))   { color='#f59e0b'; label='💰 KAR AL'; }
+            else if (s >= 60 && strong && !rsiOverbought)         { color='#10b981'; label='🚀 ARTIRIM FIRSATI'; }
+            else if (s >= 40 && !weak)                            { color='#3b82f6'; label='🏆 ELDE TUT'; allocation = 0; }
+            else if (weak || s < 40)                              { color='#f97316'; label='⚠️ KISMI KAR AL'; allocation *= 0.5; }
+            else                                                  { color='#64748b'; label='👁 İZLE'; allocation = 0; }
+        } else {
+            if      (s >= 68 || (s >= 60 && strong))  { color='#10b981'; label='💎 GÜÇLÜ AL'; }
+            else if (s >= 47 || (s >= 40 && strong))  { color='#3b82f6'; label='📈 KADEMELİ AL'; }
+            else if (s >= 32 && !weak)                { color='#f59e0b'; label='👁 İZLE'; allocation *= 0.5; }
+            else if (s >= 32 && weak)                 { color='#f97316'; label='⚠️ DİKKATLİ İZLE'; allocation *= 0.3; warningMsg += ' [Negatif teknik sinyal]'; }
+            else                                      { color='#ef4444'; label='🛑 BEKLE'; allocation = 0; }
+        }
 
         remainingCash = Math.max(0, remainingCash - allocation);
 
@@ -33273,21 +33326,23 @@ function toggleRescueCard(bodyId, cardId) {
 }
 
 
-function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro) {
-    var screenLoad = document.getElementById('aiLoadingScreen');
-    var resultArea = document.getElementById('aiRescueResult');
-    var btnStart   = document.getElementById('btnAiStart');
+function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro, mode) {
+    var screenLoad  = document.getElementById('aiLoadingScreen');
+    var resultArea  = document.getElementById('aiRescueResult');
+    var btnGroupEl  = document.getElementById('btnAiStartGroup');
 
     if (screenLoad) screenLoad.style.display = 'none';
     if (resultArea) resultArea.style.display  = 'block';
-    if (btnStart) {
-
-    // ── Analitik: analizi global havuza kaydet (async, UI'ı bloklamaz) ──
-    if (plan && plan.length > 0 && typeof TradeViaAnalytics !== 'undefined') {
-        TradeViaAnalytics.recordAnalysis(plan, macro).catch(function(){});
-    }
-        btnStart.style.display = 'flex';
-        btnStart.innerHTML = '<i class="fas fa-redo" style="font-size:11px;margin-right:7px;"></i>YENİDEN HESAPLA';
+    if (btnGroupEl) {
+        // ── Analitik: analizi global havuza kaydet (async, UI'ı bloklamaz) ──
+        if (plan && plan.length > 0 && typeof TradeViaAnalytics !== 'undefined') {
+            TradeViaAnalytics.recordAnalysis(plan, macro).catch(function(){});
+        }
+        btnGroupEl.style.display = 'flex';
+        var btnLoss = document.getElementById('btnAiStartLoss');
+        var btnGain = document.getElementById('btnAiStartGain');
+        if (btnLoss) btnLoss.innerHTML = '<i class="fas fa-redo" style="font-size:10px;"></i> ZARARLI';
+        if (btnGain) btnGain.innerHTML = '<i class="fas fa-redo" style="font-size:10px;"></i> KARLI';
     }
 
     var container = document.getElementById('aiRescueList');
@@ -33575,6 +33630,313 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro) {
             var confLbl   = m.confidence || 'Orta';
             var dqLbl     = m.dataQuality || 'orta';
 
+            // ══════════════════════════════════════════════════
+            // KARLI VARLIK MODU — tamamen farklı yorum seti
+            // ══════════════════════════════════════════════════
+            if (mode === 'gain') {
+                var rsiNum    = parseFloat(rsiVal);
+                var profitPct = p.buy > 0 ? (((curN - p.buy) / p.buy) * 100) : 0;
+                var profitStr = profitPct.toFixed(1);
+
+                // ── BÖLÜM 1: Genel tablo özeti (skor bazlı, kâr perspektifinden) ──
+                if (score >= 68) {
+                    var contReasons = [];
+                    if (sl.includes('GOLDEN_CROSS'))    contReasons.push('Golden Cross aktif');
+                    if (sl.includes('MACD_BULL'))        contReasons.push('MACD bullish crossover');
+                    if (sl.includes('VOL_CONFIRM') || sl.includes('VOL_SURGE')) contReasons.push('hacim teyidi');
+                    if (m.adxTrend === 'güçlü_yükseliş') contReasons.push('ADX güçlü trend');
+                    var reasonStr = contReasons.length > 0 ? ' (' + contReasons.join(', ') + ')' : '';
+                    paragraphs.push('Bu varlık +%' + profitStr + ' kârda ve teknik tablo <strong style="color:#34d399;">devam sinyali</strong> veriyor' + reasonStr + '. Skor ' + score + '/100 — birden fazla bağımsız gösterge yukarı yönü destekliyor. Erken çıkmak bu hareketi kaçırmak anlamına gelebilir. Trailing stop ile pozisyonu koruyarak üst harekete katılım sürdürülebilir.');
+                } else if (score >= 47) {
+                    var posCount = sl.length, negCount = wl.length;
+                    paragraphs.push('+%' + profitStr + ' kârlı bu pozisyonda teknik tablo <strong style="color:#60a5fa;">karışık sinyal</strong> veriyor: ' + posCount + ' olumlu, ' + negCount + ' olumsuz gösterge. Skor ' + score + '/100 — ne güçlü devam ne de kesin çıkış noktasında. Kısmi realizasyon (mevcut pozisyonun %30-40\'ı) hem kârı güvenceye alır hem de devam hareketine katılımı sürdürür.');
+                } else if (score >= 32) {
+                    var posCount = sl.length, negCount = wl.length;
+                    paragraphs.push('+%' + profitStr + ' kâr mevcut ama teknik tablo <strong style="color:#fbbf24;">zayıflama sinyali</strong> veriyor: ' + negCount + ' olumsuz sinyale karşı yalnızca ' + posCount + ' olumlu. Skor ' + score + '/100 — momentum giderek azalıyor. Bu tabloda kâr koruma önceliğini almalı.');
+                } else {
+                    var exitReason = '';
+                    if (wl.includes('DEATH_CROSS'))    exitReason = 'Death Cross aktif, trend dönüşü gerçekleşti';
+                    else if (wl.includes('MACD_BEAR')) exitReason = 'MACD bearish crossover, momentum düşüşe geçti';
+                    else if (wl.includes('VOL_SELLING')) exitReason = 'Yükselen hacimle birlikte fiyat baskısı';
+                    else                               exitReason = 'Teknik göstergeler belirgin şekilde zayıfladı';
+                    paragraphs.push('+%' + profitStr + ' kâr tehdit altında. <strong style="color:#f87171;">Kâr realize etme zamanı.</strong> Temel neden: ' + exitReason + '. Skor ' + score + '/100 — bu tabloda pozisyonu tutmak kazanılan kârı eritme riski taşır.');
+                }
+
+                // ── BÖLÜM 2: RSI + StochRSI detaylı analizi (kâr perspektifinden) ──
+                if (rsiNum > 80) {
+                    var stochNote = stochVal ? (parseInt(stochVal) > 80 ? ' StochRSI da ' + stochVal + ' ile aşırı alım bölgesinde — çift teyit, momentum tükeniyor.' : ' StochRSI ' + stochVal + ' nispeten ılımlı.') : '';
+                    paragraphs.push('📈 <strong>RSI ' + rsiVal + ' — Kritik Aşırı Alım:</strong> Momentum son derece gerildi.' + stochNote + ' Tarihsel olarak RSI 80+ bölgesi kısa vadeli geri çekilmelerin en sık tetiklendiği seviyedir. Bu noktada kâr realizasyonu için teknik zemin son derece uygun — tüm pozisyonu değil, %40-60\'ını realize etmek mantıklı.');
+                } else if (rsiNum > 70) {
+                    var stochNote = stochVal ? (parseInt(stochVal) > 80 ? ' StochRSI da ' + stochVal + ' ile aşırı alım teyiti veriyor.' : ' StochRSI ' + stochVal + ' henüz kritik değil.') : '';
+                    paragraphs.push('📈 <strong>RSI ' + rsiVal + ' — Aşırı Alım Bölgesi:</strong> Alıcılar aşırı agresif hareket ediyor.' + stochNote + ' Kârlı pozisyon için stop-loss\'u yukarı taşımak ve kısmi satış değerlendirmek gerekiyor. Trend güçlüyse devam edebilir ama risk/ödül oranı giderek kötüleşiyor.');
+                } else if (rsiNum > 60) {
+                    var stochNote2 = stochVal ? ' StochRSI ' + stochVal + ' ile birlikte' : '';
+                    paragraphs.push('📊 <strong>RSI ' + rsiVal + ' — Güçlü Bölge:</strong> Alıcılar kontrolde, momentum devam ediyor.' + stochNote2 + ' aşırı alım sınırına henüz ulaşılmadı — trend devam potansiyeli var. Trailing stop ile pozisyonu korumak en uygun strateji.');
+                } else if (rsiNum < 40) {
+                    var stochNote3 = stochVal ? ' StochRSI ' + stochVal + ' ile birlikte' : '';
+                    paragraphs.push('📉 <strong>RSI ' + rsiVal + ' — Momentum Zayıflıyor:</strong> Kârlı pozisyon olmasına rağmen RSI düşük seyrediyorsa' + stochNote3 + ' trend yorgunluğu başlamış demektir. Alım momentumu taşımıyor — stop-loss\'u maliyetin belirgin üzerine taşı, kâr eriyor olabilir.');
+                } else {
+                    var stochNote4 = stochVal ? ' StochRSI ' + stochVal + ' de nötr bölgede.' : '';
+                    paragraphs.push('📊 <strong>RSI ' + rsiVal + ' — Nötr:</strong>' + stochNote4 + ' Momentum ne zirveye ne dibe yakın. Trend devam edebilir ama büyük hareket için katalizör gerekiyor. Pozisyonu stop-loss ile güvenceye al, açgözlülük yapmadan bekle.');
+                }
+
+                // ── BÖLÜM 3: Trend göstergesi (EMA/MACD + SMA200) ──
+                if (m.aboveSma200 !== undefined) {
+                    var smaGapStr = m.sma200gap ? Math.abs(parseFloat(m.sma200gap)).toFixed(1) : '?';
+                    if (m.aboveSma200) {
+                        var gapNote = parseFloat(m.sma200gap) < 5 ? ' Fiyat bu kritik seviyeyi yakın zamanda geçti — trendin henüz başında olabilir.' : ' Fiyat bu seviyenin %' + smaGapStr + ' üzerinde seyrediyor.';
+                        if (sl.includes('GOLDEN_CROSS')) {
+                            paragraphs.push('✨ <strong>Golden Cross + SMA200 Üstü:</strong> 21 günlük ortalama 50 günlüğü geçti ve fiyat 200 günlük ortalamanın da üstünde.' + gapNote + ' Bu üçlü uyum, orta vadeli yükselişlerin en güçlü teknik onayı — kârlı pozisyonda erken çıkmak bu hareketi kaçırabilir. Trailing stop ile devam et.');
+                        } else {
+                            paragraphs.push('📈 <strong>SMA200 Üstünde (+%' + smaGapStr + '):</strong> Büyük resim pozitif.' + gapNote + ' Uzun vadeli trend destekliyor — kısa vadeli geri çekilmelerde paniklemek yerine stop-loss güncelle ve bekle.');
+                        }
+                    } else {
+                        var gapNote2 = parseFloat(m.sma200gap) > -5 ? ' Fiyat bu seviyeyi yakın zamanda kırdı — trend dönüşünün ilk ciddi sinyali.' : ' Fiyat bu seviyenin %' + smaGapStr + ' altında.';
+                        if (wl.includes('DEATH_CROSS')) {
+                            paragraphs.push('💀 <strong>Death Cross + SMA200 Altı — Ciddi Uyarı:</strong> Kârlı olsan da orta vadeli tablo bozuldu.' + gapNote2 + ' Bu tabloda kârın erimesi an meselesi olabilir. Pozisyonun en az yarısını realize etmek güçlü bir gerekçeye sahip.');
+                        } else {
+                            paragraphs.push('⚠️ <strong>SMA200 Altına Düşüldü (-%' + smaGapStr + '):</strong> Kârlı pozisyon olsa da uzun vadeli trend artık desteklemiyor.' + gapNote2 + ' Bu kopuş genellikle kâr erozyonunun başlangıcıdır. Stop-loss\'u güncelle veya kısmi realize değerlendir.');
+                        }
+                    }
+                } else if (sl.includes('GOLDEN_CROSS')) {
+                    paragraphs.push('✨ <strong>Golden Cross Aktif:</strong> 21 günlük ortalama 50 günlüğün üzerine çıktı. Kârlı pozisyon için bu güçlü bir "devam et" sinyali — trend daha uzun süre devam edebilir. Erken çıkmak yerine trailing stop ile pozisyonu koru.');
+                } else if (wl.includes('DEATH_CROSS')) {
+                    paragraphs.push('💀 <strong>Death Cross Aktif:</strong> Kısa vadeli ortalama uzun vadeli ortalamanın altına indi. Kârlı olsan bile bu sinyal önemli — Death Cross sonrası piyasalar genellikle haftalarca daha baskı altında kalır. Kâr realizasyonu için teknik açıdan geç kalmadan hareket zamanı.');
+                } else if (sl.includes('MACD_BULL')) {
+                    paragraphs.push('⚡ <strong>MACD Bullish Crossover:</strong> Momentum yukarı yönde devam ediyor. ' + (rsiNum < 60 ? 'RSI ' + rsiVal + ' ile birlikte değerlendirildiğinde trendin hâlâ erken aşamada olduğu söylenebilir — pozisyonu korumak mantıklı.' : 'RSI ' + rsiVal + ' zaten yüksek bölgede, dikkatli olunmalı.'));
+                } else if (wl.includes('MACD_BEAR')) {
+                    paragraphs.push('🔻 <strong>MACD Bearish Crossover:</strong> Momentum yön değiştirdi — aşağı baskı güçleniyor. ' + (rsiNum > 60 ? 'RSI ' + rsiVal + ' hâlâ yüksek bölgede; düşüşün erken aşamasındayız. Stop-loss güncelle ve kısmi realize düşün.' : 'RSI ' + rsiVal + ' ile birleşince satış baskısı derinleşebilir — aksiyona geç.'));
+                } else if (m.macdAboveSignal) {
+                    paragraphs.push('📊 <strong>Trend Nötr-Pozitif:</strong> MACD sinyal çizgisinin üzerinde ama crossover yok. Kârlı pozisyonu korumak için yeterli sinyal — büyük çıkış için tetikleyici henüz oluşmadı.');
+                } else {
+                    paragraphs.push('📊 <strong>Trend Nötr-Negatif:</strong> EMA ve MACD net yön sinyali vermiyor. Kârlı olmak seni korumaz — trenden destek gelmiyorsa kâr yavaş yavaş erir. Stop-loss\'u sıkılaştır.');
+                }
+
+                // ── BÖLÜM 4: Bollinger Bantları (kâr perspektifinden) ──
+                if (m.bbAboveUpper) {
+                    paragraphs.push('📈 <strong>Bollinger Üst Bandı Aşıldı:</strong> Fiyat istatistiksel üst sınırın dışına çıktı — fiyatların %95\'i bantlar içinde kalır. Bu noktada olmak hem güçlü momentum hem de geri çekilme riski anlamına geliyor. Stop-loss\'u güncelle, kademeli realizasyon planı yap. Trendin devam edip etmeyeceğini hacim belirleyecek.');
+                } else if (sl.includes('BB_SQUEEZE')) {
+                    paragraphs.push('🔀 <strong>Bollinger Sıkışması (Squeeze):</strong> Bantlar daraldı — büyük hareket yaklaşıyor. Kârlı pozisyon için kritik: Sıkışma yukarı kırılırsa kâr büyür, aşağı kırılırsa kâr erir. Breakout yönü netleşene kadar stop-loss\'u sıkıştır.');
+                } else if (m.bbAboveUpper === false && !m.bbBelow) {
+                    paragraphs.push('📊 <strong>Bollinger Orta Band Üstünde:</strong> Fiyat bantların içinde sağlıklı seyrediyor. Kârlı pozisyon için olumlu — ne aşırı gerilme ne aşırı sıkışma var. Trend devam potansiyeli mevcut.');
+                }
+
+                // ── BÖLÜM 3b: Williams %R (kâr perspektifinden) ──
+                if (m.williamsR !== undefined) {
+                    var wR = m.williamsR;
+                    var wRStr = wR.toFixed(0);
+                    if (wR > -20) {
+                        var tripleNote = stochVal && parseInt(stochVal) > 80 ? ' StochRSI ' + stochVal + ' ile birlikte' : '';
+                        paragraphs.push('📈 <strong>Williams %R ' + wRStr + ' — Aşırı Alım Teyidi:</strong> Williams %R -20\'nin üzerinde — RSI\'dan daha hızlı tepki veren bu gösterge geri çekilme uyarısı veriyor.' + tripleNote + ' RSI ile birlikte iki bağımsız göstergeden aşırı alım teyiti geldi. Kâr realizasyonu için teknik gerekçe güçlü.');
+                    } else if (wR > -40) {
+                        paragraphs.push('📊 <strong>Williams %R ' + wRStr + ':</strong> Güçlü alıcı bölgesinde (%R -40 ile -20 arası). Momentum devam ediyor, aşırı alım eşiğine henüz ulaşılmadı. Kârlı pozisyon için olumlu — trailing stop ile devam et.');
+                    } else if (wR < -80) {
+                        paragraphs.push('📉 <strong>Williams %R ' + wRStr + ' — Dikkat:</strong> Kârlı pozisyonda Williams %R -80 altı görülüyorsa fiyat hızla düşmüş demektir. Kâr erozyonunun başladığını gösterebilir — stop-loss seviyeni kontrol et.');
+                    } else {
+                        paragraphs.push('📊 <strong>Williams %R ' + wRStr + ':</strong> Nötr bölgede. Net aşırı alım/satım sinyali yok. Kârlı pozisyon için trend desteğiyle birlikte değerlendir.');
+                    }
+                }
+
+                // ── BÖLÜM 4b: Destek / Direnç (kâr perspektifinden) ──
+                if (wl.includes('NEAR_RESISTANCE') && m.resistanceLevel > 0) {
+                    var fibNote = m.nearFibLevel ? ' Bu seviye aynı zamanda Fibonacci %' + m.nearFibLevel.label + ' retracement ile örtüşüyor — direnç iki katına çıkıyor.' : '';
+                    var roundNote = m.nearRoundNumber ? ' Psikolojik round-number seviyesine yakın.' : '';
+                    paragraphs.push('🚧 <strong>Güçlü Direnç Yakınında ($' + parseFloat(m.resistanceLevel).toFixed(4) + ', +%' + m.distToResistance + '):</strong> Fiyat geçmişte bu seviyede defalarca satıcıyla karşılaştı.' + fibNote + roundNote + ' Kırılırsa güçlü yükseliş devam eder. Kırılamazsa geri dönüş kaçınılmaz. Bu seviyeye yakın %25-30 kısmi realizasyon hem güvence hem de katılım sağlar.');
+                } else if (sl.includes('AT_SUPPORT') && m.supportLevel > 0) {
+                    var fibNote2 = m.nearFibLevel ? ' Fibonacci %' + m.nearFibLevel.label + ' desteği ile örtüşüyor.' : '';
+                    paragraphs.push('🧱 <strong>Güçlü Destek Üstünde ($' + parseFloat(m.supportLevel).toFixed(4) + '):</strong> Fiyat sağlam bir taban üstünde.' + fibNote2 + ' Bu destek korunduğu sürece kârlı pozisyon güvende. Stop-loss\'u bu seviyenin hemen altına koy.');
+                } else if (sl.includes('NEAR_SUPPORT') && m.supportLevel > 0) {
+                    var fibNote3 = m.nearFibLevel ? ' Fibonacci %' + m.nearFibLevel.label + ' yakınında.' : '';
+                    paragraphs.push('🧱 <strong>Destek Yakınında ($' + parseFloat(m.supportLevel).toFixed(4) + '):</strong>' + fibNote3 + ' Kârlı pozisyon için önemli: Destek kırılırsa trend tersine döner ve kârın büyük bölümü erir. Stop-loss bu seviyenin altına konulmalı.');
+                } else if (m.nearFibLevel) {
+                    var fibDir = m.nearFibLevel.price < curN ? 'destek' : 'direnç';
+                    paragraphs.push('📐 <strong>Fibonacci %' + m.nearFibLevel.label + ' Seviyesi Yakın ($' + parseFloat(m.nearFibLevel.price).toFixed(4) + '):</strong> Kritik bir Fibonacci ' + fibDir + ' seviyesine %' + (Math.abs(curN - m.nearFibLevel.price)/curN*100).toFixed(1) + ' uzaklıkta. ' + (fibDir === 'direnç' ? 'Geçemezse geri dönüş — kısmi realizasyon değerlendir.' : 'Kırılırsa düşüş derinleşir — stop-loss bu seviyenin altına al.'));
+                } else if (m.nearRoundNumber) {
+                    paragraphs.push('🔢 <strong>Psikolojik Seviye Yakınında:</strong> Büyük oyuncular bu seviyelerde yoğun emir yığar. Kârlı pozisyon için bu seviyenin üzerinde tutunmak kritik — kırılırsa hızlı hareket beklenebilir.');
+                }
+
+                // ── BÖLÜM 5: Hacim analizi (kâr perspektifinden) ──
+                var volSpikeNum = m.volSpike ? parseFloat(m.volSpike) : 1.0;
+                var volUnreliable = m.volumeReliable === false;
+                if (volUnreliable) {
+                    paragraphs.push('📊 <strong>Hacim Verisi Sınırlı:</strong> Hacim kaydı eksik — OBV ve hacim spike hesaplamaları devre dışı. Fiyat ve momentum sinyalleri tam çalışıyor. Hacim doğrulaması için TradingView\'ı kontrol et.');
+                } else if (sl.includes('VOL_SURGE') && rsiNum > 50) {
+                    paragraphs.push('🔥 <strong>Hacim Patlaması ile Yükseliş (' + volSpikeNum.toFixed(1) + 'x):</strong> Fiyat yükselirken hacim patlaması — güçlü, güvenilir momentum işareti. Kârlı pozisyon için en güçlü "tut" sinyali. OBV ' + (sl.includes('OBV_UP') ? 'de yükselen trend gösteriyor — çift teyit.' : 'takibini sürdür.'));
+                } else if (sl.includes('VOL_CONFIRM')) {
+                    paragraphs.push('📊 <strong>Hacim Teyidi (' + volSpikeNum.toFixed(1) + 'x):</strong> Yükseliş hacimle doğrulandı. Hacim desteği olmayan hareketler kalıcı olmaz — bu teyit mevcut yükselişin daha güvenilir olduğunu gösteriyor. Trailing stop ile devam mantıklı.');
+                } else if (wl.includes('VOL_PANIC')) {
+                    paragraphs.push('🚨 <strong>Kârlı Pozisyonda Panik Satışı (' + volSpikeNum.toFixed(1) + 'x):</strong> Hacimli satış baskısı var. Kârlı olsan da bu sinyal panik dalgasının başladığına işaret edebilir. Stop-loss tetiklenmeden önce kısmi realize değerlendir.');
+                } else if (wl.includes('VOL_SELLING')) {
+                    paragraphs.push('⚠️ <strong>Hacimli Satış Baskısı (' + volSpikeNum.toFixed(1) + 'x):</strong> Fiyat yüksekte seyrederken satış yönünde hacim artıyor. Büyük oyuncuların sessizce çıkış yaptığının klasik göstergesi. Kâr realizasyonu için güçlü gerekçe.');
+                } else if (sl.includes('OBV_UP')) {
+                    paragraphs.push('📊 <strong>OBV Yükseliyor (' + volSpikeNum.toFixed(1) + 'x):</strong> On-Balance Volume artarken fiyat da yukarıda — bu uyum sağlıklı trendin işareti. Pozisyonu korumak için ek gerekçe.');
+                } else if (wl.includes('OBV_DOWN')) {
+                    paragraphs.push('📊 <strong>OBV Düşüyor (' + volSpikeNum.toFixed(1) + 'x):</strong> Fiyat yüksekte görünse bile arka planda satış baskısı birikiyorsa OBV önce bunu gösterir. Kâr erozyonu başlamadan stop-loss\'u sıkılaştır.');
+                }
+
+                // ── BÖLÜM 6: Kâr büyüklüğü ve süre analizi ──
+                if (profitPct >= 100) {
+                    paragraphs.push('💰 <strong>+%' + profitStr + ' — 2 Kat Kâr Noktası:</strong> Maliyetini ikiye katladın. Matematiksel gerçek: Başlangıç yatırımının tamamını çoktan geri aldın. Kalan pozisyonu "sıfır maliyetli" olarak düşünebilirsin. "Evi kazanan para ile oyna" stratejisi bu noktada geçerli — bir kısmını realize et, kalanını trende bırak.');
+                } else if (profitPct >= 50) {
+                    paragraphs.push('💰 <strong>+%' + profitStr + ' Güçlü Kâr:</strong> Maliyetinin yarısını aştı. Maliyete dönmek için fiyatın %' + (profitPct / (1 + profitPct/100)).toFixed(0) + ' düşmesi gerekiyor — bu tampon güçlü ama piyasa bunu hızla silebilir. Stop-loss güncelle ve trailing stop kur.');
+                } else if (profitPct >= 20) {
+                    paragraphs.push('📊 <strong>+%' + profitStr + ' Orta Vadeli Kâr:</strong> Sağlam tampon oluştu. Ani %' + (profitPct * 0.6).toFixed(0) + ' düşüş kârın büyük bölümünü siler. Stop-loss\'u maliyetin en az %10 üzerine taşımak kâr güvencesi için kritik adım.');
+                } else {
+                    paragraphs.push('📊 <strong>+%' + profitStr + ' Erken Kâr:</strong> Henüz küçük tampon var. Ani geri dönüş hızla eriteebilir. Stop-loss\'u maliyete yakın tut — minimum kâr güvencesi olmadan pozisyon tutmak risk büyütür.');
+                }
+
+                // ── BÖLÜM 7: Momentum ve kısa vadeli ivme ──
+                if (wl.includes('DEAD_CAT')) {
+                    paragraphs.push('⚠️ <strong>Dead Cat Bounce Riski:</strong> Kısa vadeli göstergeler olumlu görünse de 50 günlük ortalama hâlâ yukarıda. Bu hareket geçici sıçrama olabilir. Trend teyidi gelmeden pozisyonu büyütme — varsa kısmi realize yap.');
+                } else if (sl.includes('BULL_DIV')) {
+                    paragraphs.push('↗️ <strong>Bullish RSI Diverjansı — Güçlenme Sinyali:</strong> Fiyat güçlü seyrederken RSI de yüksek dip yapıyor — momentum devam ediyor. Kârlı pozisyon için olumlu: trend devam potansiyeli var. Trailing stop ile katılımı sürdür.');
+                }
+
+                if (mom7Val) {
+                    var momNum = parseFloat(mom7Val);
+                    if (momNum > 5) {
+                        paragraphs.push('🚀 <strong>7 Günlük Momentum +%' + mom7Val + ':</strong> Güçlü ivmelenme — kâr büyüme hızında. Stop-loss\'u agresif yukarı taşı ve trenden maksimum faydalanmaya çalış. Ani düşüşe karşı trailing stop zorunlu.');
+                    } else if (momNum < -5) {
+                        paragraphs.push('📉 <strong>7 Günlük Momentum -%' + Math.abs(momNum).toFixed(1) + ':</strong> Hız kaybı yaşanıyor. Kârlı pozisyon için erken uyarı — bu ivme kaybı devam ederse kâr erimesi başlayabilir. Stop-loss\'u güncelle ve kısmi realizasyon değerlendir.');
+                    }
+                }
+
+                // ── BÖLÜM 8: Volatilite ve risk yönetimi ──
+                if (atrPctVal && parseFloat(atrPctVal) > 6) {
+                    paragraphs.push('🌪️ <strong>Yüksek Volatilite — Günlük %' + atrPctVal + ':</strong> Bu varlık günde ortalama %' + atrPctVal + ' hareket ediyor. Kârlı pozisyon için bu iki anlama gelir: (1) Kâr hızla büyüyebilir, (2) Kâr aynı hızla erir. ATR\'nin en az 2 katı mesafeye stop koy — dar stop gürültüde tetiklenir. Yüksek volatilitede kâr hedeflerini agresif belirle.');
+                } else if (atrPctVal && parseFloat(atrPctVal) > 3) {
+                    paragraphs.push('📊 <strong>Orta Volatilite — Günlük %' + atrPctVal + ':</strong> Makul oynaklık seviyesi. Trailing stop planlaması için yeterli alan var — çok dar stop koyma. Mevcut volatilite trailing stop kullanımına uygun.');
+                }
+
+                // ── BÖLÜM 9: Veri kalitesi şeffaflığı ──
+                if (dqLbl === 'düşük') {
+                    paragraphs.push('📋 <strong>Veri Kalitesi Düşük — Dikkat:</strong> Yeterli geçmiş veri bulunamadı (' + (m.dataSource || 'bilinmiyor') + ' kaynağından sınırlı veri). Kâr optimize etme analizleri eksik veriyle yapıldı — yanıltıcı olabilir. TradingView\'da grafiği kendin incele.');
+                } else if (dqLbl === 'orta') {
+                    paragraphs.push('📋 <strong>Veri Kalitesi Orta:</strong> ' + (m.dataSource === 'yahoo' ? 'Yahoo Finance' : m.dataSource) + ' üzerinden yeterli veri alındı. Analiz %' + (confLbl === 'Yüksek' ? '80-90' : '60-75') + ' güven aralığında. Özellikle hacim verileri için ek kaynak kontrol edilebilir.');
+                }
+
+                // ── BÖLÜM 9b: ADX Trend Gücü (kâr perspektifinden) ──
+                if (m.adxTrend && m.adx) {
+                    var adxNum2 = parseFloat(m.adx);
+                    var pDI = parseFloat(m.adxPlusDI||25), mDI = parseFloat(m.adxMinusDI||25);
+                    if (m.adxTrend === 'güçlü_yükseliş') {
+                        paragraphs.push('💪 <strong>ADX ' + adxNum2.toFixed(0) + ' — Güçlü Yükseliş Trendi Onaylandı:</strong> +DI (' + pDI.toFixed(0) + ') -DI (' + mDI.toFixed(0) + ') üzerinde ve ADX çok yüksek. Trend son derece güçlü — kârlı pozisyonda erken çıkmak bu hareketi kaçırır. Trailing stop\'u agresif şekilde yukarı taşı ve trende güven.');
+                    } else if (m.adxTrend === 'yükseliş') {
+                        paragraphs.push('📈 <strong>ADX ' + adxNum2.toFixed(0) + ' — Yükseliş Trendi:</strong> +DI (' + pDI.toFixed(0) + ') -DI (' + mDI.toFixed(0) + ') üzerinde. Trend destekliyor ama güç orta seviyede. Kârlı pozisyon için devam sinyali — trailing stop ile takip et.');
+                    } else if (m.adxTrend === 'güçlü_düşüş') {
+                        paragraphs.push('💀 <strong>ADX ' + adxNum2.toFixed(0) + ' — Güçlü Düşüş Trendi — Kritik Uyarı:</strong> Kârlı pozisyon olsa da -DI (' + mDI.toFixed(0) + ') +DI (' + pDI.toFixed(0) + ') üzerinde ve ADX yüksek. Düşüş trendi hızlanıyor — kârı korumak için hızlı hareket şart. En az %50 realizasyon acil değerlendirilmeli.');
+                    } else if (m.adxTrend === 'düşüş') {
+                        paragraphs.push('📉 <strong>ADX ' + adxNum2.toFixed(0) + ' — Düşüş Trendi:</strong> -DI (' + mDI.toFixed(0) + ') +DI (' + pDI.toFixed(0) + ') üzerinde. Kârlı pozisyon için uyarı — trend yön değiştirdi. Stop-loss\'u yukarı çek, kısmi realize değerlendir.');
+                    } else if (m.adxTrend === 'trendsiz') {
+                        paragraphs.push('〰️ <strong>ADX ' + adxNum2.toFixed(0) + ' — Trendsiz / Konsolidasyon:</strong> Trend gücü zayıf — piyasa yataya geçmiş. Kârlı pozisyon için hem iyi (kâr korunuyor) hem risk (büyük hareket yaklaşıyor olabilir). Breakout yönünü bekle, stop-loss sıkıştır.');
+                    }
+                }
+
+                // ── BÖLÜM 9c: CMF Para Akışı (kâr perspektifinden) ──
+                if (m.cmfSignal && m.cmf !== undefined) {
+                    var cmfNum2 = parseFloat(m.cmf);
+                    if (m.cmfSignal === 'güçlü_birikim') {
+                        paragraphs.push('💰 <strong>CMF +' + (cmfNum2*100).toFixed(0) + '% — Güçlü Para Girişi:</strong> Büyük oyuncular bu varlıkta aktif alım yapıyor. Kârlı pozisyon için en güçlü "tut" sinyallerinden biri — kurumlar çıkmıyor, giriyorsa senin de çıkman için sebep yok. Trailing stop ile devam et.');
+                    } else if (m.cmfSignal === 'hafif_birikim') {
+                        paragraphs.push('📈 <strong>CMF +' + (cmfNum2*100).toFixed(0) + '% — Hafif Para Girişi:</strong> Küçük ölçekli birikim devam ediyor. Kârlı pozisyon için olumlu arka plan — büyük çıkış sinyali yok. Pozisyonu korumak için ek gerekçe.');
+                    } else if (m.cmfSignal === 'güçlü_dağıtım') {
+                        paragraphs.push('🔴 <strong>CMF ' + (cmfNum2*100).toFixed(0) + '% — Güçlü Para Çıkışı:</strong> Büyük oyuncular bu varlıktan çıkıyor. Kârlı pozisyon için en tehlikeli sinyal — kurumlar satarken retail\'in tutması klasik tuzaktır. Acil %40-60 realizasyon değerlendir.');
+                    } else if (m.cmfSignal === 'hafif_dağıtım') {
+                        paragraphs.push('📉 <strong>CMF ' + (cmfNum2*100).toFixed(0) + '% — Hafif Para Çıkışı:</strong> Küçük ölçekli dağıtım başladı. Henüz alarm değil ama yön değişiyor. Diğer sinyallerle birlikte değerlendir — stop-loss sıkılaştır.');
+                    }
+                    if (m.cmfDiv) {
+                        paragraphs.push('💧 <strong>CMF Bearish Diverjans:</strong> Fiyat yeni zirve yaparken CMF daha düşük zirve yaptı — alıcı gücü zayıflıyor. Kârlı pozisyon için erken uyarı sinyali: Devam hareketinin gücü azalıyor. Kademeli realizasyon planlamak mantıklı.');
+                    }
+                }
+
+                // ── BÖLÜM 9d: Pump & Dump (kâr perspektifinden) ──
+                if (m.pumpDump && m.pumpDump.label) {
+                    var pdLbl = m.pumpDump.label;
+                    var pdWrn = m.pumpDump.warning || '';
+                    if (pdLbl === 'PUMP') {
+                        paragraphs.push('🚀 <strong>PUMP TESPİT — Acil Kâr Realizasyonu:</strong> ' + pdWrn + ' Pump hareketleri 1-5 gün içinde sert düzelir. Kârlı pozisyondayken pump görüyorsan bu an realize etmek için altın fırsattır. "Daha da çıkar" düşüncesi pump\'un en tehlikeli yanıdır. En az %50-70 realizasyon şiddetle tavsiye edilir.');
+                    } else if (pdLbl === 'PUMP_ŞÜPHELI') {
+                        paragraphs.push('⚠️ <strong>Şüpheli Pump Sinyali:</strong> ' + pdWrn + ' Kârlı pozisyon için: %20-30 kısmi realize yap, kalanı için stop-loss\'u agresif yukarı taşı.');
+                    } else if (pdLbl === 'DUMP') {
+                        paragraphs.push('💥 <strong>DUMP TESPİT — Kâr Eriyor:</strong> ' + pdWrn + ' Dump sırasında tutmak kârı hızla siler. Kârlıyken çıkmak için bu sinyali kullan — dump sakinleşene kadar pozisyonun en az yarısından çık.');
+                    } else if (pdLbl === 'DUMP_ŞÜPHELI') {
+                        paragraphs.push('⚠️ <strong>Şüpheli Baskı Satışı:</strong> ' + pdWrn + ' Stop-loss\'u derhal güncelle ve gelişmeleri yakın takip et.');
+                    }
+                }
+
+                // ── BÖLÜM 10: Makro bağlam ──
+                if (m.macroMult && m.macroMult < 0.88 && isCrypto) {
+                    var btcStr = m.macroBtc7 ? m.macroBtc7.toFixed(1) : '?';
+                    var fgStr  = m.macroFg   ? m.macroFg : '?';
+                    paragraphs.push('🌍 <strong>Makro Baskı — Kâr Risk Altında:</strong> Bitcoin bu hafta %' + btcStr + ' düştü. Fear & Greed endeksi ' + fgStr + '/100 — piyasada korku hakim. Genel kripto baskısı kârlı altcoin pozisyonlarını da etkiler. Bu ortamda kâr realizasyonu ertelemek büyük risk — bütçe kısıtlaması uygulandı.');
+                } else if (m.macroMult && m.macroMult > 1.04 && isCrypto) {
+                    var btcStr = m.macroBtc7 ? m.macroBtc7.toFixed(1) : '?';
+                    paragraphs.push('🌍 <strong>Makro Destek:</strong> Bitcoin bu hafta +%' + btcStr + ' yükseldi — kripto risk iştahı yüksek. Bu ortamda kârlı pozisyonlar daha uzun süre devam edebilir. Trailing stop ile üst harekete katılım sürdürülebilir.');
+                } else if (isBIST) {
+                    paragraphs.push('🌍 <strong>BIST Bağlamı:</strong> Türk hisselerinde döviz kuru (USD/TRY), TCMB faiz kararları ve enflasyon verileri teknik tabloyu bir gecede değiştirebilir. Kârlı pozisyon için bu makro riskler göz ardı edilemez — önemli veri açıklamaları öncesi kısmi realize düşünülebilir.');
+                } else if (!isCrypto && !isBIST) {
+                    paragraphs.push('🌍 <strong>ABD Piyasa Bağlamı:</strong> Fed faiz kararları, CPI/PCE verileri ve sektörel haberler bu hissenin teknik tablosunu doğrudan etkiler. Kârlı pozisyon için önemli veri açıklamaları öncesi stop-loss güncellemek kritik.');
+                }
+
+                // ── BÖLÜM 11: ANALİZCİ NET GÖRÜŞÜ — sebep-sonuç zinciri ──
+                var posSignals = 0, negSignals = 0;
+                if (score >= 60) posSignals += 2; else if (score >= 47) posSignals += 1; else if (score < 32) negSignals += 2; else negSignals += 1;
+                if (rsiNum > 70) negSignals++; else if (rsiNum > 55) posSignals++;
+                if (wl.includes('DEATH_CROSS') || wl.includes('MACD_BEAR')) negSignals++;
+                if (sl.includes('GOLDEN_CROSS') || sl.includes('MACD_BULL')) posSignals++;
+                if (m.adxTrend === 'güçlü_yükseliş') posSignals++;
+                if (m.adxTrend === 'güçlü_düşüş') negSignals += 2;
+                if (m.cmfSignal === 'güçlü_dağıtım') negSignals++;
+                if (m.cmfSignal === 'güçlü_birikim') posSignals++;
+                if (m.pumpDump && m.pumpDump.label === 'PUMP') negSignals++;
+                if (m.williamsR !== undefined && m.williamsR > -20) negSignals++;
+                if (m.bbAboveUpper) negSignals++;
+
+                var verdictColor, verdictIcon, verdictBody;
+                if (posSignals >= negSignals + 2) {
+                    verdictColor = '#34d399'; verdictIcon = '🟢';
+                    var reason = 'Teknik tablo ağırlıklı olarak yukarı yönü destekliyor (' + posSignals + ' olumlu / ' + negSignals + ' olumsuz sinyal). ';
+                    reason += score >= 60 ? 'Skor ' + score + '/100 ile güçlü bölgede. ' : '';
+                    reason += sl.includes('GOLDEN_CROSS') ? 'Golden Cross trend desteği sağlıyor. ' : '';
+                    reason += m.adxTrend === 'güçlü_yükseliş' ? 'ADX güçlü trend onaylıyor. ' : '';
+                    reason += m.cmfSignal === 'güçlü_birikim' ? 'CMF kurumsal alım varlığını gösteriyor. ' : '';
+                    reason += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: Stop-loss\'u agresif yukarı taşı, trailing stop kur. Tümünü satma — trende güven ama koru.</em>';
+                    verdictBody = 'DEVAM ET (Trailing Stop ile)<br><span style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.7);">' + reason + '</span>';
+                } else if (negSignals >= posSignals + 2) {
+                    verdictColor = '#ef4444'; verdictIcon = '🔴';
+                    var reason = 'Teknik tablo ağırlıklı olarak aşağı baskıyı işaret ediyor (' + negSignals + ' olumsuz / ' + posSignals + ' olumlu sinyal). ';
+                    reason += wl.includes('DEATH_CROSS') ? 'Death Cross trend dönüşünü onaylıyor. ' : '';
+                    reason += m.adxTrend === 'güçlü_düşüş' ? 'ADX güçlü düşüş trendi gösteriyor. ' : '';
+                    reason += m.cmfSignal === 'güçlü_dağıtım' ? 'CMF kurumsal çıkışa işaret ediyor. ' : '';
+                    reason += rsiNum > 75 ? 'RSI ' + rsiVal + ' kritik aşırı alım bölgesinde. ' : '';
+                    reason += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: Pozisyonun en az %50\'sini realize et. Kalanı için stop-loss\'u sıkılaştır. Kâr beklerken eritmek en yaygın hatalardan biridir.</em>';
+                    verdictBody = 'KÂR REALIZE ET<br><span style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.7);">' + reason + '</span>';
+                } else {
+                    verdictColor = '#f59e0b'; verdictIcon = '🟡';
+                    var reason = 'Teknik tablo dengede (' + posSignals + ' olumlu / ' + negSignals + ' olumsuz sinyal). Net yön sinyali yok. ';
+                    reason += profitPct >= 30 ? 'Kâr %' + profitStr + ' ile tatmin edici — kısmi realize mantıklı. ' : 'Henüz küçük kâr — stop-loss maliyete yakın tut. ';
+                    reason += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: %25-30 kısmi realize yap, stop-loss\'u maliyetin üzerine taşı, kalanı trailing stop ile koru.</em>';
+                    verdictBody = 'KISMİ REALIZE + BEKLE<br><span style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.7);">' + reason + '</span>';
+                }
+
+                var rgbMap = {'#34d399':'16,185,129','#ef4444':'239,68,68','#f59e0b':'245,158,11'};
+                var rgbVal = rgbMap[verdictColor] || '16,185,129';
+                paragraphs.push('<div style="background:rgba(' + rgbVal + ',0.1);border:1px solid ' + verdictColor + '44;border-radius:12px;padding:12px 14px;margin-top:4px;">'
+                    + '<div style="font-size:10px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:' + verdictColor + ';margin-bottom:6px;">' + verdictIcon + ' ANALİZCİ NET GÖRÜŞÜ</div>'
+                    + '<div style="font-size:12px;font-weight:700;color:' + verdictColor + ';">' + verdictBody + '</div>'
+                    + '</div>');
+
+                var text = paragraphs.map(function(pg) {
+                    return '<p style="margin:0 0 12px 0;">' + pg + '</p>';
+                }).join('');
+                return '<div style="font-size:12px;line-height:1.8;color:rgba(255,255,255,0.78);padding:14px 0 4px;border-top:1px solid rgba(255,255,255,0.07);margin-top:8px;">'
+                    + '<span style="font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:rgba(16,185,129,0.85);display:block;margin-bottom:10px;">📝 KÂR OPTİMİZASYON YORUMU</span>'
+                    + text + '</div>';
+            }
+            // ══════════════════════════════════════════════════
+            // ZARARDA VARLIK MODU — orijinal yorum seti
+            // ══════════════════════════════════════════════════
+
             // ── BÖLÜM 1: Genel tablonun özeti (sayısal destekli) ──
             if (score >= 68) {
                 var strongReasons = [];
@@ -33841,6 +34203,56 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro) {
             } else {
                 paragraphs.push('🔑 <strong>Ne yapmalısın?</strong> Sinyaller güçlü — ama "güçlü sinyal = kesin kâr" değildir. Önerilen alım planını takip et, stop-loss seviyesini kartın alt bölümündeki değere koy. Risk/ödül oranı uygunsa pozisyon aç; sürpriz kötü haber veya genel piyasa sarsıntısı her zaman olasılık dahilinde.');
             }
+
+            // ── BÖLÜM 12: ANALİZCİ NET GÖRÜŞÜ — zarardaki varlık için sebep-sonuç ──
+            var lPosSignals = 0, lNegSignals = 0;
+            if (score >= 60) lPosSignals += 2; else if (score >= 47) lPosSignals += 1; else if (score < 32) lNegSignals += 2; else lNegSignals += 1;
+            if (rsiNum < 30) lPosSignals += 2; else if (rsiNum < 40) lPosSignals++;
+            if (rsiNum > 65) lNegSignals++;
+            if (sl.includes('GOLDEN_CROSS') || sl.includes('MACD_BULL') || sl.includes('BULL_DIV')) lPosSignals++;
+            if (wl.includes('DEATH_CROSS') || wl.includes('MACD_BEAR')) lNegSignals++;
+            if (m.adxTrend === 'güçlü_yükseliş') lPosSignals++;
+            if (m.adxTrend === 'güçlü_düşüş') lNegSignals += 2;
+            if (m.cmfSignal === 'güçlü_birikim' || m.cmfDiv) lPosSignals++;
+            if (m.cmfSignal === 'güçlü_dağıtım') lNegSignals++;
+            if (m.pumpDump && (m.pumpDump.label === 'DUMP' || m.pumpDump.label === 'PUMP')) lNegSignals++;
+            if (daysVal > 90) lNegSignals++;
+            if (dropVal && parseFloat(dropVal) > 50) lNegSignals++;
+
+            var lVerdictColor, lVerdictIcon, lVerdictBody;
+            if (lPosSignals >= lNegSignals + 2) {
+                lVerdictColor = '#34d399'; lVerdictIcon = '🟢';
+                var lReason = 'Zarardaki varlık olmasına rağmen teknik tablo güçlü geri dönüş sinyali veriyor (' + lPosSignals + ' olumlu / ' + lNegSignals + ' olumsuz sinyal). ';
+                lReason += score >= 60 ? 'Skor ' + score + '/100 ile güçlü bölgede. ' : '';
+                lReason += sl.includes('GOLDEN_CROSS') ? 'Golden Cross trend dönüşünü onaylıyor. ' : '';
+                lReason += rsiNum < 35 ? 'RSI ' + rsiVal + ' aşırı satım bölgesinde — dip yakın olabilir. ' : '';
+                lReason += m.cmfSignal === 'güçlü_birikim' ? 'CMF kurumsal alım girişine işaret ediyor. ' : '';
+                lReason += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: Önerilen bütçeyi kademeli uygula (3 parçaya böl). Stop-loss belirle ve disiplinli kal.</em>';
+                lVerdictBody = 'GÜÇLÜ GERİ DÖNÜŞ FIRSATI<br><span style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.7);">' + lReason + '</span>';
+            } else if (lNegSignals >= lPosSignals + 2) {
+                lVerdictColor = '#ef4444'; lVerdictIcon = '🔴';
+                var lReason = 'Teknik tablo ağırlıklı olarak düşüş yönünü destekliyor (' + lNegSignals + ' olumsuz / ' + lPosSignals + ' olumlu sinyal). ';
+                lReason += wl.includes('DEATH_CROSS') ? 'Death Cross düşüş trendini onaylıyor. ' : '';
+                lReason += m.adxTrend === 'güçlü_düşüş' ? 'ADX güçlü düşüş momentumu gösteriyor. ' : '';
+                lReason += daysVal > 90 ? daysVal + ' gündür maliyet altında — kronik kayıp. ' : '';
+                lReason += dropVal && parseFloat(dropVal) > 50 ? '%' + dropVal + ' değer kaybı — kurtarma matematiksel olarak zorlu. ' : '';
+                lReason += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: Yeni alım yapma. Mevcut pozisyon için stop-loss belirle. Piyasanın net dönüş sinyali vermesini bekle.</em>';
+                lVerdictBody = 'BEKLE — YENİ PARA KOYMA<br><span style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.7);">' + lReason + '</span>';
+            } else {
+                lVerdictColor = '#f59e0b'; lVerdictIcon = '🟡';
+                var lReason = 'Teknik tablo dengede (' + lPosSignals + ' olumlu / ' + lNegSignals + ' olumsuz sinyal). Net bir alım veya kaçış sinyali yok. ';
+                lReason += score >= 40 ? 'Skor ' + score + '/100 — potansiyel var ama onay bekleniyor. ' : '';
+                lReason += dropVal ? '%' + dropVal + ' değer kaybıyla mevcut risk seviyesi orta. ' : '';
+                lReason += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: Çok küçük test alımı yapılabilir (önerilen bütçenin en fazla %30\'u). Tablonun netleşmesini bekle.</em>';
+                lVerdictBody = 'DİKKATLİ İZLE — KÜÇÜK TEST<br><span style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.7);">' + lReason + '</span>';
+            }
+
+            var lRgbMap = {'#34d399':'16,185,129','#ef4444':'239,68,68','#f59e0b':'245,158,11'};
+            var lRgbVal = lRgbMap[lVerdictColor] || '245,158,11';
+            paragraphs.push('<div style="background:rgba(' + lRgbVal + ',0.1);border:1px solid ' + lVerdictColor + '44;border-radius:12px;padding:12px 14px;margin-top:4px;">'
+                + '<div style="font-size:10px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:' + lVerdictColor + ';margin-bottom:6px;">' + lVerdictIcon + ' ANALİZCİ NET GÖRÜŞÜ</div>'
+                + '<div style="font-size:12px;font-weight:700;color:' + lVerdictColor + ';">' + lVerdictBody + '</div>'
+                + '</div>');
 
             var text = paragraphs.map(function(pg) {
                 return '<p style="margin:0 0 12px 0;">' + pg + '</p>';
@@ -35717,11 +36129,11 @@ window.saveAlarm = function(type) {
 
 /* ── 8. AI KURTARICI  [ FREE: 1/gün | PRO: Sınırsız ] ────── */
 if (!window.original_runDeepDiveAnalysis) window.original_runDeepDiveAnalysis = window.runDeepDiveAnalysis;
-window.runDeepDiveAnalysis = async function() {
+window.runDeepDiveAnalysis = async function(mode) {
     if (!MembershipSystem.isPro()) {
         if (!MembershipSystem.checkUsageLimit('aiRescue', 1, 'AI Kurtarıcı')) return;
     }
-    if (typeof window.original_runDeepDiveAnalysis === 'function') await window.original_runDeepDiveAnalysis();
+    if (typeof window.original_runDeepDiveAnalysis === 'function') await window.original_runDeepDiveAnalysis(mode);
 };
 
 
