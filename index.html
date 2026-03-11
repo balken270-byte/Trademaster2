@@ -19501,7 +19501,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.5"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -31732,8 +31732,10 @@ function renderActiveAlarmsList() {
                     + '<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;">'
                     + '<span style="font-size:15px;font-weight:800;color:#fff;letter-spacing:0.3px;">' + sym + '</span>'
                     + '<span style="font-size:9px;font-weight:700;color:' + color + ';background:' + bg + ';border:1px solid ' + color + '30;border-radius:6px;padding:2px 6px;letter-spacing:0.5px;">' + badge + '</span></div>'
-                    + '<div style="font-size:12px;color:rgba(255,255,255,0.45);margin-bottom:5px;">' + label + '</div>'
+                    + '<div style="font-size:12px;color:rgba(255,255,255,0.45);margin-bottom:5px;">' + label + (o.trailingUpdates > 0 ? ' <span style="color:#C9A84C;font-size:9px;">📈 TRAILING AKTİF</span>' : '') + '</div>'
                     + '<div style="font-size:12px;color:rgba(255,255,255,0.6);">Hedef: <span style="color:' + color + ';font-weight:700;font-size:14px;">' + o.priceSym + o.targetPrice.toLocaleString(undefined,{maximumFractionDigits:4}) + '</span>'
+                    + (o.highestPrice && o.highestPrice > o.entryPrice ? ' · Zirve: <span style="color:#34d399;font-size:10px;font-weight:600;">' + o.priceSym + o.highestPrice.toLocaleString(undefined,{maximumFractionDigits:4}) + '</span>' : '')
+                    + (o.tpReached ? ' · <span style="color:#10b981;font-size:9px;font-weight:700;">✓ HEDEFE ULAŞTI</span>' : '')
                     + ' · <span style="color:#64748b;font-size:10px;">Skor ' + o.score + ' · ' + timeStr + '</span></div></div>'
                     + '<button onclick="TVOrderManager.cancelOrder(\'' + o.id + '\');renderActiveAlarmsList();" style="flex-shrink:0;width:36px;height:36px;border-radius:12px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);color:#f87171;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;">'
                     + '<i class="fas fa-times" style="font-size:13px;"></i></button>';
@@ -36227,6 +36229,16 @@ var TVOrderManager = (function() {
             triggeredAt: null,
             triggerPrice: null,        // Tetiklendiğindeki gerçek fiyat
             autoSold: false,           // Otomatik satış yapıldı mı
+            // ── Trailing Stop / Trailing TP ──────────────────
+            highestPrice: currentPrice,    // Görülen en yüksek fiyat (trailing stop için)
+            lowestPrice: currentPrice,     // Görülen en düşük fiyat
+            originalTarget: price,         // İlk hedef fiyat (değişmez referans)
+            trailingPct: type === 'STOP_LOSS'
+                ? Math.abs((currentPrice - price) / currentPrice)   // Stop yüzde mesafesi
+                : Math.abs((price - currentPrice) / currentPrice),  // TP yüzde mesafesi
+            tpReached: false,              // Hedef fiyata ilk ulaşıldı mı (TP trailing başlangıcı)
+            tpTrailingDropPct: 0.03,       // TP ulaşıldıktan sonra %3 geri çekilmede sat
+            trailingUpdates: 0,            // Kaç kez trailing güncelleme yapıldı
             analysisVersion: 'v6.2'
         };
 
@@ -36457,25 +36469,110 @@ var TVOrderManager = (function() {
     async function checkOrders(priceMap) {
         // priceMap: { BTC: 62500, ETH: 3100, ... }
         var triggered = [];
+        var updated = false;
+
         _orders.forEach(function(order) {
             if (order.status !== 'PENDING') return;
             var currentPrice = priceMap[order.symbol];
-            if (!currentPrice) return;
+            if (!currentPrice || currentPrice <= 0) return;
 
             order.currentPrice = currentPrice;
-
             var isTriggered = false;
             var triggerType = '';
 
-            if (order.type === 'STOP_LOSS' && currentPrice <= order.targetPrice) {
-                isTriggered = true;
-                triggerType = 'STOP_LOSS';
-            }
-            else if (order.type === 'TAKE_PROFIT' && currentPrice >= order.targetPrice) {
-                isTriggered = true;
-                triggerType = 'TAKE_PROFIT';
+            // ════════════════════════════════════════════════════════
+            //  TRAILING STOP LOSS
+            //  Fiyat yükseldikçe stop yukarı kayar, asla geri inmez
+            //  Fiyat geri çekilip yeni stop'a düşünce tetiklenir
+            // ════════════════════════════════════════════════════════
+            if (order.type === 'STOP_LOSS') {
+
+                // Yeni ATH (All Time High) gördük mü?
+                if (currentPrice > (order.highestPrice || order.entryPrice)) {
+                    var oldHighest = order.highestPrice || order.entryPrice;
+                    order.highestPrice = currentPrice;
+
+                    // Trailing stop: yeni zirve × (1 - trailing yüzde)
+                    var trailPct = order.trailingPct || 0.20;
+                    var newStop = currentPrice * (1 - trailPct);
+
+                    // Stop sadece yukarı kayar, asla aşağı inmez
+                    if (newStop > order.targetPrice) {
+                        order.targetPrice = parseFloat(newStop.toFixed(6));
+                        order.trailingUpdates = (order.trailingUpdates || 0) + 1;
+                        order.updatedAt = Date.now();
+                        updated = true;
+
+                        // Her %10 yükselişte bildirim gönder (spam önleme)
+                        var pctGain = ((currentPrice - order.entryPrice) / order.entryPrice * 100);
+                        if (order.trailingUpdates === 1 || pctGain % 10 < 2) {
+                            if (typeof addNotification === 'function') {
+                                addNotification('info', '📈 Trailing Stop Güncellendi',
+                                    order.symbol + ' yeni zirve: ' + order.priceSym + currentPrice.toLocaleString(undefined,{maximumFractionDigits:4}) +
+                                    ' → Stop: ' + order.priceSym + order.targetPrice.toLocaleString(undefined,{maximumFractionDigits:4}));
+                            }
+                        }
+                    }
+                }
+
+                // Fiyat stop'a düştü mü?
+                if (currentPrice <= order.targetPrice) {
+                    isTriggered = true;
+                    triggerType = 'STOP_LOSS';
+                }
             }
 
+            // ════════════════════════════════════════════════════════
+            //  TRAILING TAKE PROFIT
+            //  Hedef fiyata ulaşınca hemen satmaz!
+            //  Fiyat yükselmeye devam ederse takip eder
+            //  Zirveden %3 (tpTrailingDropPct) geri çekilince satar
+            //  Böylece kâr maksimize edilir
+            // ════════════════════════════════════════════════════════
+            else if (order.type === 'TAKE_PROFIT') {
+
+                // Hedef fiyata ilk kez ulaşıldı mı?
+                if (!order.tpReached && currentPrice >= order.targetPrice) {
+                    order.tpReached = true;
+                    order.highestPrice = currentPrice;
+                    order.tpReachedAt = Date.now();
+                    order.updatedAt = Date.now();
+                    updated = true;
+
+                    if (typeof addNotification === 'function') {
+                        addNotification('success', '🎯 Hedefe Ulaşıldı! Trailing Aktif',
+                            order.symbol + ' ' + order.priceSym + order.targetPrice.toLocaleString(undefined,{maximumFractionDigits:4}) +
+                            ' hedefine ulaştı! Fiyat yükselmeye devam ederse takip edecek, geri çekilince satacak.');
+                    }
+                }
+
+                // Hedef geçildikten sonra: fiyat yükselmeye devam ediyor mu?
+                if (order.tpReached) {
+                    // Yeni zirve güncelle
+                    if (currentPrice > (order.highestPrice || order.targetPrice)) {
+                        order.highestPrice = currentPrice;
+                        order.trailingUpdates = (order.trailingUpdates || 0) + 1;
+                        order.updatedAt = Date.now();
+                        updated = true;
+                    }
+
+                    // Zirveden geri çekilme kontrolü
+                    var dropPct = order.tpTrailingDropPct || 0.03;
+                    var tpTriggerLevel = order.highestPrice * (1 - dropPct);
+
+                    if (currentPrice <= tpTriggerLevel) {
+                        // Zirveden %3+ geri çekildi → kârı realize et
+                        isTriggered = true;
+                        triggerType = 'TAKE_PROFIT';
+                    }
+                }
+                // Hedef fiyata ulaşılmadan altına düşerse (ters hareket)
+                // → bu durumda stop loss devreye girmeli, TP tetiklenmez
+            }
+
+            // ════════════════════════════════════════════════════════
+            //  TETİKLENME
+            // ════════════════════════════════════════════════════════
             if (isTriggered) {
                 order.status = 'TRIGGERED';
                 order.triggeredAt = Date.now();
@@ -36487,44 +36584,55 @@ var TVOrderManager = (function() {
                 // Global havuza tetiklenme kaydı
                 _writeGlobalPool(order, 'TRIGGERED');
 
-                // ── OTOMATİK SATIŞ: Cüzdandaki varlığı sat ──────────
+                // ── OTOMATİK SATIŞ ──────────────────────────────
                 var autoSold = _autoSellFromWallet(order.symbol, currentPrice, triggerType);
                 order.autoSold = autoSold;
 
-                // ── DOĞRULUK KAYDI (Sistem İyileştirme) ──────────────
-                // Stop Loss tetiklendi: fiyat düştü, stop doğru çalıştı
-                // Take Profit tetiklendi: fiyat yükseldi, hedef tuttu
-                // Ayrıca: stop'tan ne kadar sapma var? Hedeften ne kadar sapma var?
-                var entryPrice = order.entryPrice || order.currentPrice;
+                // ── DOĞRULUK KAYDI ──────────────────────────────
+                var entryPrice = order.entryPrice || currentPrice;
                 var pnlPct = ((currentPrice - entryPrice) / entryPrice * 100);
-                var deviationPct = ((currentPrice - order.targetPrice) / order.targetPrice * 100); // Hedeften sapma
+                var deviationPct = ((currentPrice - order.originalTarget) / order.originalTarget * 100);
 
                 recordAccuracy(order.symbol, order.score, triggerType, 'TRIGGERED', pnlPct, {
-                    targetPrice: order.targetPrice,
+                    targetPrice: order.originalTarget,
+                    trailedTarget: order.targetPrice,
                     triggerPrice: currentPrice,
+                    highestPrice: order.highestPrice,
                     deviationPct: parseFloat(deviationPct.toFixed(2)),
                     autoSold: autoSold,
                     daysToTrigger: Math.round((Date.now() - order.createdAt) / 86400000),
+                    trailingUpdates: order.trailingUpdates || 0,
+                    tpReached: order.tpReached || false,
                     dataSource: order.dataSource || ''
                 });
 
-                // ── BİLDİRİM ─────────────────────────────────────────
+                // ── BİLDİRİM ────────────────────────────────────
                 if (typeof addNotification === 'function') {
+                    var highP = order.highestPrice || currentPrice;
+                    var savedPct = entryPrice > 0 ? ((currentPrice - entryPrice) / entryPrice * 100).toFixed(1) : '0';
                     if (triggerType === 'STOP_LOSS') {
-                        addNotification('danger', '🛡 Stop Loss Tetiklendi!',
-                            order.symbol + ' fiyatı ' + order.priceSym + currentPrice.toLocaleString(undefined,{maximumFractionDigits:4}) +
-                            ' seviyesine düştü.' + (autoSold ? ' Otomatik satış yapıldı.' : ' Cüzdanda bulunamadı.'));
+                        var trailNote = (order.trailingUpdates || 0) > 0
+                            ? ' Trailing stop ' + (order.trailingUpdates) + ' kez güncellendi. Zirve: ' + order.priceSym + highP.toLocaleString(undefined,{maximumFractionDigits:4})
+                            : '';
+                        addNotification('danger', '🛡 Trailing Stop Tetiklendi!',
+                            order.symbol + ' ' + order.priceSym + currentPrice.toLocaleString(undefined,{maximumFractionDigits:4}) +
+                            ' → PnL: %' + savedPct + '.' + trailNote +
+                            (autoSold ? ' Otomatik satış yapıldı.' : ''));
                     } else {
-                        addNotification('success', '🎯 Hedef Fiyata Ulaşıldı!',
-                            order.symbol + ' fiyatı ' + order.priceSym + currentPrice.toLocaleString(undefined,{maximumFractionDigits:4}) +
-                            ' hedefine ulaştı!' + (autoSold ? ' Otomatik kâr realizasyonu yapıldı.' : ' Cüzdanda bulunamadı.'));
+                        addNotification('success', '🎯 Kâr Realize Edildi!',
+                            order.symbol + ' zirve ' + order.priceSym + highP.toLocaleString(undefined,{maximumFractionDigits:4}) +
+                            ', satış ' + order.priceSym + currentPrice.toLocaleString(undefined,{maximumFractionDigits:4}) +
+                            ' → Kâr: %' + savedPct + '.' +
+                            (autoSold ? ' Otomatik satış yapıldı.' : ''));
                     }
                 }
             }
         });
 
-        if (triggered.length > 0) {
+        if (triggered.length > 0 || updated) {
             _saveLocal();
+        }
+        if (triggered.length > 0) {
             _renderPendingOrders();
         }
         return triggered;
