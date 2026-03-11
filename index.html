@@ -19501,7 +19501,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.4"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -32477,6 +32477,40 @@ async function runDeepDiveAnalysis(mode) {
         var metrics = calculateTechnicalMetrics(candles, asset.buy,
             (asset.curr && asset.curr > 0) ? asset.curr : asset.buy, source);
 
+        // ── FUNDAMENTAL ANALİZ: Kripto (CoinGecko) + ABD Hisse (Polygon) ──
+        var _cached = window._cryptoIdCache ? window._cryptoIdCache[rawSym] : null;
+        var isCryptoAsset = asset.category === 'kripto' || (asset.name||'').includes('BINANCE:') ||
+                            (asset.name||'').toUpperCase().endsWith('USDT') ||
+                            (_cached && _cached.type === 'CRYPTO');
+        var isUSStock = (_cached && _cached.type === 'US') ||
+                        (asset.category === 'borsa' && !(asset.name||'').includes('.IS') && !(asset.name||'').includes('BIST:'));
+
+        if (isCryptoAsset || isUSStock) {
+            try {
+                var fundLabel = isCryptoAsset ? 'tokenomics' : 'finansal veri';
+                updateLog((i + 1) + '/' + losers.length + ' — ' + rawSym + ' ' + fundLabel + ' çekiliyor...');
+                var fundTimeout = new Promise(function(res){ setTimeout(function(){ res(null); }, 5000); });
+                var assetType = isUSStock ? 'US' : 'CRYPTO';
+                var fundFetch = _fetchFundamentalData(rawSym, _cached ? _cached.cgId : null, assetType);
+                var fundData = await Promise.race([fundFetch, fundTimeout]);
+                if (fundData) {
+                    metrics.fundamental = fundData;
+                    var fundScore = fundData.score || 50;
+                    var techScore = metrics.score;
+                    metrics.score = Math.max(1, Math.min(100, Math.round(techScore * 0.85 + fundScore * 0.15)));
+                    metrics.techScoreRaw = techScore;
+                    metrics.fundamentalScore = fundScore;
+
+                    if (fundData.signals) {
+                        fundData.signals.forEach(function(s) { metrics.signalList.push(s); });
+                    }
+                    if (fundData.warnings) {
+                        fundData.warnings.forEach(function(w) { metrics.warnList.push(w); });
+                    }
+                }
+            } catch(fe) { console.warn('[DeepScan] Fundamental veri hatası:', rawSym, fe); }
+        }
+
         // Teknik analiz tamamlandı → bu varlık için global geçmişi çek
         // 2 saniye timeout — Firebase yoksa veya yavaşsa analizi bloklamaz
         if (typeof TradeViaAnalytics !== 'undefined' && !_pastRecords[rawSym]) {
@@ -32748,6 +32782,509 @@ async function runDeepDiveAnalysis(mode) {
 //  - Stochastic RSI eklendi
 //  - Veri kalitesi skoru
 // ============================================================
+// ════════════════════════════════════════════════════════════════
+//  FUNDAMENTAL ANALİZ MOTORU v2
+//  KRİPTO: CoinGecko API (tokenomics, topluluk, geliştirici)
+//  ABD HİSSE: Polygon.io API (şirket bilgisi, finansallar, piyasa)
+//  6 saat cache — skor 0-100, teknik skora %15 ağırlıkla eklenir
+// ════════════════════════════════════════════════════════════════
+
+window._fundamentalCache = window._fundamentalCache || {};
+
+async function _fetchFundamentalData(symbol, cgId, assetType) {
+    var cacheKey = 'fund_' + symbol;
+    var cached = window._fundamentalCache[cacheKey];
+    if (cached && (Date.now() - cached.ts) < 21600000) return cached.data;
+
+    try {
+        var lsCached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+        if (lsCached && (Date.now() - lsCached.ts) < 21600000) {
+            window._fundamentalCache[cacheKey] = lsCached;
+            return lsCached.data;
+        }
+    } catch(e) {}
+
+    var result = null;
+
+    if (assetType === 'US') {
+        result = await _fetchUSStockFundamentals(symbol);
+    } else {
+        result = await _fetchCryptoFundamentals(symbol, cgId);
+    }
+
+    if (result) {
+        var cacheObj = { data: result, ts: Date.now() };
+        window._fundamentalCache[cacheKey] = cacheObj;
+        try { localStorage.setItem(cacheKey, JSON.stringify(cacheObj)); } catch(e) {}
+    }
+
+    return result;
+}
+
+// ── ABD HİSSE: Polygon.io Fundamental Analiz ──────────────────
+async function _fetchUSStockFundamentals(symbol) {
+    var POLY_KEY = (typeof polyApiKey !== 'undefined' && polyApiKey) ? polyApiKey : '';
+    if (!POLY_KEY) return null;
+
+    try {
+        // 1. Ticker Details — şirket bilgisi
+        var detailUrl = 'https://api.polygon.io/v3/reference/tickers/' + symbol + '?apiKey=' + POLY_KEY;
+        var detResp = await fetch(detailUrl);
+        if (!detResp.ok) return null;
+        var detData = await detResp.json();
+        var det = detData.results || {};
+
+        // 2. Previous Day — son işlem verisi
+        var prevUrl = 'https://api.polygon.io/v2/aggs/ticker/' + symbol + '/prev?adjusted=true&apiKey=' + POLY_KEY;
+        var prevResp = await fetch(prevUrl);
+        var prevData = prevResp.ok ? await prevResp.json() : {};
+        var prev = (prevData.results && prevData.results[0]) ? prevData.results[0] : {};
+
+        // 3. Financials (eğer varsa)
+        var finUrl = 'https://api.polygon.io/vX/reference/financials?ticker=' + symbol + '&limit=4&sort=period_of_report_date&order=desc&apiKey=' + POLY_KEY;
+        var finResp = await fetch(finUrl);
+        var finData = finResp.ok ? await finResp.json() : {};
+        var financials = (finData.results && finData.results.length > 0) ? finData.results : [];
+
+        // ── Veri çıkarma ─────────────────────────────────────
+        var mcap = det.market_cap || 0;
+        var shareCount = det.share_class_shares_outstanding || det.weighted_shares_outstanding || 0;
+        var sic = det.sic_code || '';
+        var sicDesc = det.sic_description || '';
+        var companyName = det.name || symbol;
+        var listDate = det.list_date || null;
+        var locale = det.locale || 'us';
+        var marketType = det.market || '';
+        var primaryExchange = det.primary_exchange || '';
+
+        var price = prev.c || 0;
+        var vol24h = prev.v || 0;
+        var dayChange = prev.c && prev.o ? ((prev.c - prev.o) / prev.o * 100) : 0;
+
+        // Finansal veriler (son çeyrek)
+        var revenue = 0, netIncome = 0, totalAssets = 0, totalLiabilities = 0, eps = 0;
+        var revenueGrowth = 0;
+        if (financials.length > 0) {
+            var latest = financials[0];
+            var inc = latest.financials && latest.financials.income_statement;
+            var bal = latest.financials && latest.financials.balance_sheet;
+
+            if (inc) {
+                revenue = (inc.revenues && inc.revenues.value) || 0;
+                netIncome = (inc.net_income_loss && inc.net_income_loss.value) || 0;
+                eps = (inc.basic_earnings_per_share && inc.basic_earnings_per_share.value) || 0;
+            }
+            if (bal) {
+                totalAssets = (bal.assets && bal.assets.value) || 0;
+                totalLiabilities = (bal.liabilities && bal.liabilities.value) || 0;
+            }
+
+            // Gelir büyümesi (son 2 çeyrek karşılaştırma)
+            if (financials.length >= 2) {
+                var prevInc = financials[1].financials && financials[1].financials.income_statement;
+                var prevRev = prevInc ? ((prevInc.revenues && prevInc.revenues.value) || 0) : 0;
+                if (prevRev > 0 && revenue > 0) {
+                    revenueGrowth = ((revenue - prevRev) / prevRev) * 100;
+                }
+            }
+        }
+
+        // P/E oranı
+        var peRatio = (eps > 0 && price > 0) ? (price / eps) : 0;
+
+        // Debt/Equity
+        var equity = totalAssets - totalLiabilities;
+        var debtEquity = (equity > 0 && totalLiabilities > 0) ? (totalLiabilities / equity) : 0;
+
+        // Profit margin
+        var profitMargin = (revenue > 0) ? (netIncome / revenue * 100) : 0;
+
+        var signals = [];
+        var warnings = [];
+
+        // ── SKOR HESAPLAMA ─────────────────────────────────
+
+        // 1. Değerleme Skoru (P/E, MCap)
+        var valuationScore = 50;
+        if (peRatio > 0) {
+            if (peRatio <= 15)       { valuationScore += 20; signals.push('LOW_PE'); }
+            else if (peRatio <= 25)  valuationScore += 10;
+            else if (peRatio <= 40)  valuationScore += 0;
+            else if (peRatio <= 60)  { valuationScore -= 10; warnings.push('HIGH_PE'); }
+            else                     { valuationScore -= 20; warnings.push('VERY_HIGH_PE'); }
+        }
+        if (mcap >= 200e9)           { valuationScore += 10; signals.push('MEGA_CAP'); }
+        else if (mcap >= 10e9)       valuationScore += 5;
+        else if (mcap < 2e9)         { valuationScore -= 5; warnings.push('SMALL_CAP'); }
+        valuationScore = Math.max(0, Math.min(100, valuationScore));
+
+        // 2. Karlılık Skoru
+        var profitScore = 50;
+        if (profitMargin > 20)        { profitScore += 25; signals.push('HIGH_MARGIN'); }
+        else if (profitMargin > 10)   profitScore += 15;
+        else if (profitMargin > 0)    profitScore += 5;
+        else if (profitMargin < -10)  { profitScore -= 20; warnings.push('LOSING_MONEY'); }
+        else if (profitMargin < 0)    profitScore -= 10;
+
+        if (netIncome > 0) signals.push('PROFITABLE');
+        else warnings.push('UNPROFITABLE');
+
+        profitScore = Math.max(0, Math.min(100, profitScore));
+
+        // 3. Büyüme Skoru
+        var growthScore = 50;
+        if (revenueGrowth > 30)       { growthScore += 25; signals.push('HIGH_GROWTH'); }
+        else if (revenueGrowth > 15)  growthScore += 15;
+        else if (revenueGrowth > 5)   growthScore += 8;
+        else if (revenueGrowth > 0)   growthScore += 3;
+        else if (revenueGrowth < -10) { growthScore -= 15; warnings.push('REVENUE_DECLINE'); }
+        else if (revenueGrowth < 0)   growthScore -= 8;
+        growthScore = Math.max(0, Math.min(100, growthScore));
+
+        // 4. Finansal Sağlık Skoru
+        var healthScore = 50;
+        if (debtEquity > 0) {
+            if (debtEquity < 0.5)      { healthScore += 20; signals.push('LOW_DEBT'); }
+            else if (debtEquity < 1.0) healthScore += 10;
+            else if (debtEquity < 2.0) healthScore += 0;
+            else if (debtEquity < 4.0) { healthScore -= 10; warnings.push('HIGH_DEBT'); }
+            else                       { healthScore -= 20; warnings.push('VERY_HIGH_DEBT'); }
+        }
+        // Likidite
+        var volMcapRatio = (mcap > 0 && vol24h > 0) ? (vol24h * price / mcap) : 0;
+        if (volMcapRatio >= 0.01) healthScore += 10;
+        else if (volMcapRatio < 0.001) { healthScore -= 10; warnings.push('LOW_STOCK_LIQUIDITY'); }
+        healthScore = Math.max(0, Math.min(100, healthScore));
+
+        // 5. Olgunluk Skoru
+        var maturityScore = 50;
+        if (listDate) {
+            var ageYears = (Date.now() - new Date(listDate).getTime()) / (365.25 * 86400000);
+            if (ageYears >= 20)       { maturityScore += 20; signals.push('ESTABLISHED'); }
+            else if (ageYears >= 10)  maturityScore += 15;
+            else if (ageYears >= 5)   maturityScore += 8;
+            else if (ageYears < 2)    { maturityScore -= 10; warnings.push('NEW_LISTING'); }
+        }
+        // Exchange bonusu
+        if (primaryExchange && (primaryExchange.includes('XNYS') || primaryExchange.includes('XNAS'))) {
+            maturityScore += 8; // NYSE veya NASDAQ
+        }
+        maturityScore = Math.max(0, Math.min(100, maturityScore));
+
+        // ── TOPLAM SKOR ─────────────────────────────────────
+        var fundamentalScore = Math.round(
+            valuationScore * 0.25 +
+            profitScore    * 0.25 +
+            growthScore    * 0.20 +
+            healthScore    * 0.15 +
+            maturityScore  * 0.15
+        );
+        fundamentalScore = Math.max(0, Math.min(100, fundamentalScore));
+
+        return {
+            score: fundamentalScore,
+            type: 'US_STOCK',
+            signals: signals,
+            warnings: warnings,
+            layers: {
+                valuation: valuationScore,
+                profit: profitScore,
+                growth: growthScore,
+                health: healthScore,
+                maturity: maturityScore
+            },
+            data: {
+                companyName: companyName,
+                mcap: mcap,
+                peRatio: parseFloat(peRatio.toFixed(1)),
+                eps: parseFloat(eps.toFixed(2)),
+                profitMargin: parseFloat(profitMargin.toFixed(1)),
+                revenueGrowth: parseFloat(revenueGrowth.toFixed(1)),
+                debtEquity: parseFloat(debtEquity.toFixed(2)),
+                revenue: revenue,
+                netIncome: netIncome,
+                vol24h: vol24h,
+                listDate: listDate,
+                primaryExchange: primaryExchange,
+                sicDescription: sicDesc,
+                categories: [sicDesc]
+            }
+        };
+
+    } catch(e) {
+        console.warn('[Fundamental] Polygon veri çekme hatası:', symbol, e);
+        return null;
+    }
+}
+
+// ── KRİPTO: CoinGecko Fundamental Analiz ──────────────────────
+async function _fetchCryptoFundamentals(symbol, cgId) {
+    var CG_KEY = (typeof coingeckoApiKey !== 'undefined' && coingeckoApiKey) ? coingeckoApiKey : '';
+    var coinId = cgId;
+
+    if (!coinId) {
+        try {
+            var searchUrl = 'https://api.coingecko.com/api/v3/search?query=' + encodeURIComponent(symbol);
+            if (CG_KEY) searchUrl += '&x_cg_demo_api_key=' + CG_KEY;
+            var sr = await fetch(searchUrl);
+            if (sr.ok) {
+                var sd = await sr.json();
+                if (sd.coins && sd.coins.length > 0) {
+                    var exact = sd.coins.find(function(c){ return c.symbol.toUpperCase() === symbol.toUpperCase(); });
+                    coinId = (exact || sd.coins[0]).id;
+                }
+            }
+        } catch(e) {}
+    }
+    if (!coinId) return null;
+
+    // CoinGecko detay API — tek çağrıda tüm veri
+    try {
+        var url = 'https://api.coingecko.com/api/v3/coins/' + coinId +
+            '?localization=false&tickers=false&market_data=true&community_data=true&developer_data=true&sparkline=false';
+        if (CG_KEY) url += '&x_cg_demo_api_key=' + CG_KEY;
+
+        var resp = await fetch(url);
+        if (!resp.ok) return null;
+        var coin = await resp.json();
+
+        // ── Veri çıkarma ─────────────────────────────────────────
+        var md = coin.market_data || {};
+        var cd = coin.community_data || {};
+        var dd = coin.developer_data || {};
+
+        // Tokenomics
+        var circSupply = md.circulating_supply || 0;
+        var totalSupply = md.total_supply || 0;
+        var maxSupply = md.max_supply || 0;
+        var mcap = md.market_cap ? (md.market_cap.usd || 0) : 0;
+        var fdv = md.fully_diluted_valuation ? (md.fully_diluted_valuation.usd || 0) : 0;
+        var mcapFdvRatio = (fdv > 0 && mcap > 0) ? (mcap / fdv) : 1;
+        var supplyRatio = (totalSupply > 0 && circSupply > 0) ? (circSupply / totalSupply) : 1;
+
+        // Fiyat verileri
+        var ath = md.ath ? (md.ath.usd || 0) : 0;
+        var athChange = md.ath_change_percentage ? (md.ath_change_percentage.usd || 0) : 0;
+        var price = md.current_price ? (md.current_price.usd || 0) : 0;
+        var vol24h = md.total_volume ? (md.total_volume.usd || 0) : 0;
+        var mcapRank = coin.market_cap_rank || 999;
+        var priceChange30d = md.price_change_percentage_30d || 0;
+        var priceChange1y = md.price_change_percentage_1y || 0;
+
+        // Topluluk
+        var twitterFollowers = cd.twitter_followers || 0;
+        var redditSubs = cd.reddit_subscribers || 0;
+        var redditActive = cd.reddit_accounts_active_48h || 0;
+        var telegramUsers = cd.telegram_channel_user_count || 0;
+
+        // Geliştirici aktivitesi
+        var ghStars = dd.stars || 0;
+        var ghForks = dd.forks || 0;
+        var ghSubscribers = dd.subscribers || 0;
+        var commitCount4w = (dd.commit_count_4_weeks || 0);
+        var codeAdditions4w = (dd.code_additions_deletions_4_weeks)
+            ? (dd.code_additions_deletions_4_weeks.additions || 0) : 0;
+        var codeDeletions4w = (dd.code_additions_deletions_4_weeks)
+            ? Math.abs(dd.code_additions_deletions_4_weeks.deletions || 0) : 0;
+
+        // Proje bilgisi
+        var categories = coin.categories || [];
+        var genesisDate = coin.genesis_date || null;
+        var sentiment = coin.sentiment_votes_up_percentage || 50;
+
+        // ── SKOR HESAPLAMA (6 alt katman) ─────────────────────────
+
+        var signals = [];
+        var warnings = [];
+
+        // 1. Tokenomics Skoru (0-100)
+        var tokenScore = 50;
+
+        // Dolaşım oranı: %80+ iyi, %30- kötü (enflasyon riski)
+        if (supplyRatio >= 0.80)      tokenScore += 15;
+        else if (supplyRatio >= 0.60) tokenScore += 8;
+        else if (supplyRatio <= 0.30) { tokenScore -= 20; warnings.push('LOW_CIRC_SUPPLY'); }
+        else if (supplyRatio <= 0.50) { tokenScore -= 10; warnings.push('MED_CIRC_SUPPLY'); }
+
+        // MCap/FDV oranı: 1'e yakınsa iyi (çoğu token zaten dolaşımda)
+        if (mcapFdvRatio >= 0.80)      tokenScore += 10;
+        else if (mcapFdvRatio <= 0.30) { tokenScore -= 15; warnings.push('HIGH_FDV_RISK'); }
+        else if (mcapFdvRatio <= 0.50) tokenScore -= 5;
+
+        // Max supply var mı (enflasyonsuz = iyi)
+        if (maxSupply > 0 && maxSupply === totalSupply) { tokenScore += 8; signals.push('FIXED_SUPPLY'); }
+        else if (maxSupply === 0 || maxSupply === null) { tokenScore -= 5; warnings.push('INFINITE_SUPPLY'); }
+
+        // Market cap rank
+        if (mcapRank <= 20)       { tokenScore += 12; signals.push('TOP20_MCAP'); }
+        else if (mcapRank <= 50)  tokenScore += 8;
+        else if (mcapRank <= 100) tokenScore += 4;
+        else if (mcapRank > 500)  { tokenScore -= 10; warnings.push('LOW_MCAP_RANK'); }
+
+        tokenScore = Math.max(0, Math.min(100, tokenScore));
+
+        // 2. Topluluk Skoru (0-100)
+        var communityScore = 40;
+
+        if (twitterFollowers >= 1000000)      { communityScore += 25; signals.push('HUGE_COMMUNITY'); }
+        else if (twitterFollowers >= 500000)  communityScore += 18;
+        else if (twitterFollowers >= 100000)  communityScore += 12;
+        else if (twitterFollowers >= 10000)   communityScore += 5;
+        else if (twitterFollowers < 1000)     { communityScore -= 15; warnings.push('TINY_COMMUNITY'); }
+
+        if (redditSubs >= 500000)       communityScore += 15;
+        else if (redditSubs >= 100000)  communityScore += 8;
+        else if (redditSubs >= 10000)   communityScore += 3;
+
+        // Reddit aktif kullanıcı oranı (topluluk canlılığı)
+        if (redditSubs > 0 && redditActive > 0) {
+            var activeRatio = redditActive / redditSubs;
+            if (activeRatio > 0.01)      communityScore += 10;
+            else if (activeRatio > 0.005) communityScore += 5;
+            else if (activeRatio < 0.001) communityScore -= 5;
+        }
+
+        if (telegramUsers >= 100000)     communityScore += 8;
+        else if (telegramUsers >= 10000) communityScore += 3;
+
+        // Sentiment
+        if (sentiment >= 75)      communityScore += 10;
+        else if (sentiment >= 60) communityScore += 5;
+        else if (sentiment <= 30) { communityScore -= 10; warnings.push('NEG_SENTIMENT'); }
+
+        communityScore = Math.max(0, Math.min(100, communityScore));
+
+        // 3. Geliştirici Aktivitesi Skoru (0-100)
+        var devScore = 30;
+
+        // Commit aktivitesi (son 4 hafta)
+        if (commitCount4w >= 100)       { devScore += 30; signals.push('HIGH_DEV_ACTIVITY'); }
+        else if (commitCount4w >= 50)   devScore += 20;
+        else if (commitCount4w >= 20)   devScore += 12;
+        else if (commitCount4w >= 5)    devScore += 5;
+        else if (commitCount4w === 0)   { devScore -= 20; warnings.push('NO_DEV_ACTIVITY'); }
+
+        // Kod değişikliği hacmi
+        var codeChurn = codeAdditions4w + codeDeletions4w;
+        if (codeChurn >= 10000)       devScore += 15;
+        else if (codeChurn >= 5000)   devScore += 10;
+        else if (codeChurn >= 1000)   devScore += 5;
+
+        // GitHub yıldız/fork (proje popülerliği)
+        if (ghStars >= 10000)       devScore += 15;
+        else if (ghStars >= 5000)   devScore += 10;
+        else if (ghStars >= 1000)   devScore += 5;
+        else if (ghStars < 100)     devScore -= 5;
+
+        devScore = Math.max(0, Math.min(100, devScore));
+
+        // 4. Piyasa Sağlığı Skoru (0-100)
+        var healthScore = 50;
+
+        // Volume/MCap oranı (likidite)
+        var volMcapRatio = (mcap > 0 && vol24h > 0) ? (vol24h / mcap) : 0;
+        if (volMcapRatio >= 0.15)       { healthScore += 15; signals.push('HIGH_LIQUIDITY'); }
+        else if (volMcapRatio >= 0.05)  healthScore += 8;
+        else if (volMcapRatio < 0.01)   { healthScore -= 15; warnings.push('LOW_LIQUIDITY'); }
+
+        // ATH'den uzaklık
+        if (athChange > -20)        healthScore += 10;  // ATH yakınında
+        else if (athChange > -50)   healthScore += 5;
+        else if (athChange < -90)   { healthScore -= 15; warnings.push('ATH_90_DROP'); }
+        else if (athChange < -80)   healthScore -= 8;
+
+        // 30 günlük trend
+        if (priceChange30d > 20)        healthScore += 10;
+        else if (priceChange30d > 5)    healthScore += 5;
+        else if (priceChange30d < -30)  healthScore -= 10;
+        else if (priceChange30d < -15)  healthScore -= 5;
+
+        // 1 yıllık trend
+        if (priceChange1y > 100)        healthScore += 10;
+        else if (priceChange1y > 20)    healthScore += 5;
+        else if (priceChange1y < -70)   { healthScore -= 10; warnings.push('1Y_HEAVY_LOSS'); }
+
+        healthScore = Math.max(0, Math.min(100, healthScore));
+
+        // 5. Proje Olgunluğu Skoru (0-100)
+        var maturityScore = 50;
+
+        if (genesisDate) {
+            var ageYears = (Date.now() - new Date(genesisDate).getTime()) / (365.25 * 86400000);
+            if (ageYears >= 5)       { maturityScore += 20; signals.push('MATURE_PROJECT'); }
+            else if (ageYears >= 3)  maturityScore += 12;
+            else if (ageYears >= 1)  maturityScore += 5;
+            else if (ageYears < 0.5) { maturityScore -= 10; warnings.push('VERY_NEW_PROJECT'); }
+        }
+
+        // Kategori bonusları
+        var catStr = categories.join(' ').toLowerCase();
+        if (catStr.includes('layer 1') || catStr.includes('layer-1'))    maturityScore += 8;
+        if (catStr.includes('defi'))                                      maturityScore += 5;
+        if (catStr.includes('stablecoin'))                               { maturityScore += 15; signals.push('STABLECOIN'); }
+        if (catStr.includes('meme'))                                     { maturityScore -= 15; warnings.push('MEME_COIN'); }
+
+        maturityScore = Math.max(0, Math.min(100, maturityScore));
+
+        // ── TOPLAM FUNDAMENTAL SKOR ─────────────────────────────
+        // Ağırlıklar: Tokenomics %25, Topluluk %20, Geliştirici %20, Sağlık %20, Olgunluk %15
+        var fundamentalScore = Math.round(
+            tokenScore     * 0.25 +
+            communityScore * 0.20 +
+            devScore       * 0.20 +
+            healthScore    * 0.20 +
+            maturityScore  * 0.15
+        );
+        fundamentalScore = Math.max(0, Math.min(100, fundamentalScore));
+
+        var result = {
+            score: fundamentalScore,
+            signals: signals,
+            warnings: warnings,
+            layers: {
+                tokenomics: tokenScore,
+                community: communityScore,
+                developer: devScore,
+                health: healthScore,
+                maturity: maturityScore
+            },
+            data: {
+                mcap: mcap,
+                fdv: fdv,
+                mcapFdvRatio: parseFloat(mcapFdvRatio.toFixed(2)),
+                mcapRank: mcapRank,
+                supplyRatio: parseFloat(supplyRatio.toFixed(2)),
+                maxSupply: maxSupply,
+                vol24h: vol24h,
+                volMcapRatio: parseFloat(volMcapRatio.toFixed(3)),
+                athChange: parseFloat(athChange.toFixed(1)),
+                priceChange30d: parseFloat(priceChange30d.toFixed(1)),
+                priceChange1y: parseFloat(priceChange1y.toFixed(1)),
+                twitterFollowers: twitterFollowers,
+                redditSubs: redditSubs,
+                telegramUsers: telegramUsers,
+                commitCount4w: commitCount4w,
+                ghStars: ghStars,
+                sentiment: sentiment,
+                categories: categories.slice(0, 5),
+                genesisDate: genesisDate
+            }
+        };
+
+        // Cache'e kaydet
+        var cacheObj = { data: result, ts: Date.now() };
+        window._fundamentalCache[cacheKey] = cacheObj;
+        try { localStorage.setItem(cacheKey, JSON.stringify(cacheObj)); } catch(e) {}
+
+        return result;
+
+    } catch(e) {
+        console.warn('[Fundamental] CoinGecko veri çekme hatası:', symbol, e);
+        return null;
+    }
+}
+
+
 function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource) {
     var src = dataSource || 'yok';
 
@@ -34262,6 +34799,64 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro, mo
                         + '</div>';
         }
 
+        // ── FUNDAMENTAL CHIPLER ──────────────────────────────────
+        if (m.fundamental) {
+            var fund = m.fundamental;
+            var fl = fund.layers || {};
+            var fd = fund.data || {};
+
+            // Fundamental toplam skor chip
+            var fScoreColor = fund.score >= 65 ? '#10b981' : fund.score >= 45 ? '#f59e0b' : '#ef4444';
+            v4chips += '<span style="display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:' + fScoreColor + ';border-color:' + fScoreColor + '33;background:' + fScoreColor + '10;">🏛 TEMEL ' + fund.score + '/100</span>';
+
+            if (fund.type === 'US_STOCK') {
+                // ── ABD HİSSE CHİPLERİ ──
+                // P/E
+                if (fd.peRatio > 0) {
+                    var peColor = fd.peRatio <= 20 ? '#34d399' : fd.peRatio <= 40 ? '#f59e0b' : '#f87171';
+                    v4chips += '<span style="display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:' + peColor + ';border-color:' + peColor + '33;background:' + peColor + '10;">📊 P/E ' + fd.peRatio + '</span>';
+                }
+                // Kârlılık
+                if (fd.profitMargin !== undefined && fd.profitMargin !== 0) {
+                    var pmColor = fd.profitMargin > 10 ? '#34d399' : fd.profitMargin > 0 ? '#f59e0b' : '#f87171';
+                    v4chips += '<span style="display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:' + pmColor + ';border-color:' + pmColor + '33;background:' + pmColor + '10;">💰 Kâr %' + fd.profitMargin + '</span>';
+                }
+                // Gelir büyümesi
+                if (fd.revenueGrowth !== undefined && fd.revenueGrowth !== 0) {
+                    var rgColor = fd.revenueGrowth > 10 ? '#34d399' : fd.revenueGrowth > 0 ? '#f59e0b' : '#f87171';
+                    v4chips += '<span style="display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:' + rgColor + ';border-color:' + rgColor + '33;background:' + rgColor + '10;">📈 Gelir ' + (fd.revenueGrowth > 0 ? '+' : '') + fd.revenueGrowth + '%</span>';
+                }
+                // Borç/Özsermaye
+                if (fd.debtEquity > 0) {
+                    var deColor = fd.debtEquity < 1 ? '#34d399' : fd.debtEquity < 2.5 ? '#f59e0b' : '#f87171';
+                    v4chips += '<span style="display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:' + deColor + ';border-color:' + deColor + '33;background:' + deColor + '10;">🏦 B/Ö ' + fd.debtEquity + '</span>';
+                }
+                // MCap
+                if (fd.mcap > 0) {
+                    var mcapStr = fd.mcap >= 1e12 ? (fd.mcap/1e12).toFixed(1) + 'T' : fd.mcap >= 1e9 ? (fd.mcap/1e9).toFixed(0) + 'B' : (fd.mcap/1e6).toFixed(0) + 'M';
+                    v4chips += '<span style="display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:#C9A84C;border-color:rgba(201,168,76,.25);background:rgba(201,168,76,.08);">👑 $' + mcapStr + '</span>';
+                }
+            } else {
+                // ── KRİPTO CHİPLERİ ──
+                if (fd.mcapRank && fd.mcapRank <= 100) {
+                    v4chips += '<span style="display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:#C9A84C;border-color:rgba(201,168,76,.25);background:rgba(201,168,76,.08);">👑 #' + fd.mcapRank + '</span>';
+                }
+                if (fd.supplyRatio !== undefined && fd.supplyRatio < 0.50) {
+                    v4chips += '<span style="display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:#f87171;border-color:rgba(248,113,113,.25);background:rgba(248,113,113,.08);">🔓 Arz %' + Math.round(fd.supplyRatio*100) + '</span>';
+                }
+                if (fd.commitCount4w >= 50) {
+                    v4chips += '<span style="display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:#34d399;border-color:rgba(52,211,153,.25);background:rgba(52,211,153,.08);">💻 ' + fd.commitCount4w + ' Commit</span>';
+                } else if (fd.commitCount4w === 0) {
+                    v4chips += '<span style="display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:#f87171;border-color:rgba(248,113,113,.25);background:rgba(248,113,113,.08);">⚠️ Geliştirme Yok</span>';
+                }
+                if (fd.sentiment >= 70) {
+                    v4chips += '<span style="display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:#34d399;border-color:rgba(52,211,153,.25);background:rgba(52,211,153,.08);">😊 %' + Math.round(fd.sentiment) + ' Pozitif</span>';
+                } else if (fd.sentiment <= 35) {
+                    v4chips += '<span style="display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;line-height:1.2;font-family:inherit;color:#f87171;border-color:rgba(248,113,113,.25);background:rgba(248,113,113,.08);">😟 %' + Math.round(fd.sentiment) + ' Negatif</span>';
+                }
+            }
+        }
+
         // ── ANALİZCİ YORUMU — Sade Türkçe, jargonsuz ────────────
         var analystComment = (function() {
             var sl = m.signalList || [];
@@ -35722,6 +36317,16 @@ var TradeViaAnalytics = (function() {
                         return ga.accuracy || null;
                     } catch(e){ return null; }
                 })(),
+
+                // ── Fundamental veriler ───────────────────────
+                fundamentalScore:    m.fundamentalScore || null,
+                techScoreRaw:        m.techScoreRaw || m.score,
+                fundamentalLayers:   m.fundamental ? m.fundamental.layers : null,
+                mcapRank:            m.fundamental && m.fundamental.data ? m.fundamental.data.mcapRank : null,
+                mcapFdvRatio:        m.fundamental && m.fundamental.data ? m.fundamental.data.mcapFdvRatio : null,
+                supplyRatio:         m.fundamental && m.fundamental.data ? m.fundamental.data.supplyRatio : null,
+                commitCount4w:       m.fundamental && m.fundamental.data ? m.fundamental.data.commitCount4w : null,
+                sentiment:           m.fundamental && m.fundamental.data ? m.fundamental.data.sentiment : null,
 
                 // ── 30 gün sonra kontrol için işaret ───────────
                 checkAt:    ts + (30 * 24 * 60 * 60 * 1000),
