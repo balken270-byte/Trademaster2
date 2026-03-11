@@ -19501,7 +19501,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.3"; 
+    const CURRENT_VERSION = "1.5"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -32614,23 +32614,33 @@ async function runDeepDiveAnalysis(mode) {
                 }
             }
 
-            // ── Katman 6: Emir Doğruluk Geri Beslemesi ─────────────────
-            // TVOrderManager'dan gelen asset_accuracy verileri
-            // Kullanıcının geçmiş emir sonuçlarına göre skor ayarlaması
+            // ── Katman 6: Global Emir Doğruluk Geri Beslemesi ─────────
+            // Global havuzdan (tüm kullanıcılar) gelen emir sonuçları
+            // Kişisel değil, sistemin genel başarısına göre skor ayarlaması
+            // + Sembol bazlı global veri: bu varlıkta sistem ne kadar isabetli?
             var orderAccDelta = 0;
             try {
-                var userAccRaw = localStorage.getItem('tv_user_accuracy');
-                if (userAccRaw) {
-                    var userAcc = JSON.parse(userAccRaw);
-                    if (userAcc.total >= 5) { // En az 5 emir sonucu gerekli
-                        // Doğruluk > %70: sistem iyi çalışıyor, güvenle devam
-                        // Doğruluk < %40: skor tahmini sorunlu, daha konservatif ol
-                        if      (userAcc.accuracy >= 75) orderAccDelta =  2; // Yüksek başarı → skorlara güven
-                        else if (userAcc.accuracy >= 60) orderAccDelta =  1;
-                        else if (userAcc.accuracy <= 35) orderAccDelta = -3; // Düşük başarı → konservatif
-                        else if (userAcc.accuracy <= 45) orderAccDelta = -1;
-                        // avgPnl negatifse ek ceza
-                        if (userAcc.avgPnl < -5 && userAcc.total >= 10) orderAccDelta -= 1;
+                // 1. Genel sistem doğruluğu
+                var globalAccRaw = localStorage.getItem('tv_global_accuracy');
+                if (globalAccRaw) {
+                    var globalAcc = JSON.parse(globalAccRaw);
+                    if (globalAcc.total >= 10) { // Global en az 10 emir sonucu
+                        if      (globalAcc.accuracy >= 75) orderAccDelta =  2;
+                        else if (globalAcc.accuracy >= 60) orderAccDelta =  1;
+                        else if (globalAcc.accuracy <= 35) orderAccDelta = -3;
+                        else if (globalAcc.accuracy <= 45) orderAccDelta = -1;
+                        if (globalAcc.avgPnl < -5 && globalAcc.total >= 20) orderAccDelta -= 1;
+                    }
+                }
+                // 2. Sembol bazlı global doğruluk (bu varlık için özel ayar)
+                var symAccRaw = localStorage.getItem('tv_global_sym_' + rawSym);
+                if (symAccRaw) {
+                    var symAcc = JSON.parse(symAccRaw);
+                    if (symAcc.total >= 5) {
+                        // Bu varlıkta sapma yüksekse → ek ceza
+                        if (symAcc.avgDeviation > 10) orderAccDelta -= 1;
+                        // Bu varlıkta PnL sürekli pozitifse → ek bonus
+                        if (symAcc.avgPnl > 5) orderAccDelta += 1;
                     }
                 }
             } catch(e) {}
@@ -32639,9 +32649,9 @@ async function runDeepDiveAnalysis(mode) {
             // recentDelta: anlık piyasa değişimi (Katman 1)
             // signalLearnDelta: öğrenilmiş sinyal doğruluğu (Katman 2)
             // communityMomentum + rsiPenalty + consistencyBonus: doğrulanmış geçmiş (Katman 3)
-            // orderAccDelta: emir sonuçlarından geri bildirim (Katman 4)
+            // orderAccDelta: GLOBAL emir sonuçlarından geri bildirim (Katman 4)
             var calibDelta = recentDelta + communityMomentum + rsiReliabilityPenalty + consistencyBonus + signalLearnDelta + orderAccDelta;
-            calibDelta = Math.max(-12, Math.min(12, calibDelta)); // Emir katmanı eklendi → limit genişledi
+            calibDelta = Math.max(-12, Math.min(12, calibDelta));
 
             // Skora uygula (0-100 sınırları koru)
             var rawScore  = metrics.score;
@@ -35645,11 +35655,11 @@ var TradeViaAnalytics = (function() {
                     } catch(e){ return false; }
                 })(),
 
-                // ── Emir doğruluk profili ─────────────────────
-                userAccuracy: (function(){
+                // ── Global sistem doğruluk profili ───────────
+                globalAccuracy: (function(){
                     try {
-                        var ua = JSON.parse(localStorage.getItem('tv_user_accuracy')||'{}');
-                        return ua.accuracy || null;
+                        var ga = JSON.parse(localStorage.getItem('tv_global_accuracy')||'{}');
+                        return ga.accuracy || null;
                     } catch(e){ return null; }
                 })(),
 
@@ -35942,37 +35952,64 @@ var TradeViaAnalytics = (function() {
                 }
             } catch(oe) { console.warn('[Analytics] Order feedback hatası:', oe); }
 
-            // ── ACCURACY VERİLERİNİ SKOR KALİBRASYONUNA KATKI ────────────
-            // asset_accuracy'den doğruluk istatistiklerini oku
-            // ve ai_signal_stats'a ek bağlam olarak ekle
+            // ── GLOBAL HAVUZDAN KALİBRASYON VERİSİ ÇEK ──────────────
+            // global_accuracy_pool'dan tüm kullanıcıların emir sonuçlarını oku
+            // global_system_stats'tan toplam ve sembol bazlı istatistikleri cache'le
             try {
-                var uid = _getAnonId();
-                var accSnap = await fbDb.collection('asset_accuracy')
-                    .where('uid', '==', uid)
-                    .where('ts', '>=', now - (90 * 86400000))  // Son 90 gün
-                    .orderBy('ts', 'desc')
-                    .limit(100).get();
+                // 1. Global toplam istatistik
+                var globalTotalsSnap = await fbDb.collection('global_system_stats').doc('totals').get();
+                if (globalTotalsSnap.exists) {
+                    var gt = globalTotalsSnap.data();
+                    var gTotal = gt.totalOrders || 0;
+                    var gTriggered = gt.triggeredCount || 0;
+                    var gPnl = gt.totalPnl || 0;
+                    var gDeviation = gt.totalDeviationAbs || 0;
+                    var gAccuracy = gTotal > 0 ? Math.round((gTriggered / gTotal) * 100) : 50;
+                    var gAvgPnl = gTotal > 0 ? gPnl / gTotal : 0;
+                    var gAvgDev = gTotal > 0 ? gDeviation / gTotal : 0;
 
-                if (!accSnap.empty) {
-                    var accDocs = [];
-                    accSnap.forEach(function(doc){ accDocs.push(doc.data()); });
-
-                    var totalAcc  = accDocs.length;
-                    var correctAcc = accDocs.filter(function(a){ return a.outcome === 'CORRECT'; }).length;
-                    var userAccuracy = totalAcc > 0 ? Math.round((correctAcc / totalAcc) * 100) : 50;
-                    var avgPnl = totalAcc > 0 ? accDocs.reduce(function(s,a){ return s + (a.pnlPct||0); }, 0) / totalAcc : 0;
-
-                    // Kullanıcının genel doğruluk profilini kaydet
-                    // Bu veri sonraki analizlerde bütçe önerisini ayarlamak için kullanılabilir
-                    localStorage.setItem('tv_user_accuracy', JSON.stringify({
-                        total: totalAcc,
-                        correct: correctAcc,
-                        accuracy: userAccuracy,
-                        avgPnl: parseFloat(avgPnl.toFixed(2)),
+                    localStorage.setItem('tv_global_accuracy', JSON.stringify({
+                        total: gTotal,
+                        triggered: gTriggered,
+                        accuracy: gAccuracy,
+                        avgPnl: parseFloat(gAvgPnl.toFixed(2)),
+                        avgDeviation: parseFloat(gAvgDev.toFixed(2)),
                         lastUpdate: now
                     }));
                 }
-            } catch(ae) { console.warn('[Analytics] Accuracy feedback hatası:', ae); }
+
+                // 2. Sembol bazlı global istatistikler (en aktif 30 sembol)
+                var symSnap = await fbDb.collection('global_system_stats')
+                    .where('symbol', '!=', null)
+                    .limit(30).get();
+                if (!symSnap.empty) {
+                    symSnap.forEach(function(doc) {
+                        var sd = doc.data();
+                        if (!sd.symbol) return;
+                        var sTotal = sd.totalOrders || 0;
+                        var sPnl = sd.totalPnl || 0;
+                        var sDev = sd.totalDeviation || 0;
+                        localStorage.setItem('tv_global_sym_' + sd.symbol, JSON.stringify({
+                            total: sTotal,
+                            avgPnl: sTotal > 0 ? parseFloat((sPnl / sTotal).toFixed(2)) : 0,
+                            avgDeviation: sTotal > 0 ? parseFloat((sDev / sTotal).toFixed(2)) : 0,
+                            lastUpdate: now
+                        }));
+                    });
+                }
+
+                // 3. Skor aralığı istatistikleri
+                var buckets = ['score_0_31', 'score_32_46', 'score_47_67', 'score_68_100'];
+                for (var bi = 0; bi < buckets.length; bi++) {
+                    try {
+                        var bSnap = await fbDb.collection('global_system_stats').doc(buckets[bi]).get();
+                        if (bSnap.exists) {
+                            localStorage.setItem('tv_global_' + buckets[bi], JSON.stringify(bSnap.data()));
+                        }
+                    } catch(be) {}
+                }
+
+            } catch(ae) { console.warn('[Analytics] Global accuracy feedback hatası:', ae); }
 
         } catch(e) { console.warn('[Analytics] checkPastOutcomes hatasi:', e); }
     }
@@ -36130,17 +36167,20 @@ if (document.readyState === 'loading') {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  TVOrderManager — Aktif Emir Yönetimi & Cüzdan Bağlantısı
+//  TVOrderManager — Aktif Emir Yönetimi & Global Havuz
 //  • Stop Loss / Take Profit emirlerini yönetir
-//  • Firebase'de varlık bazlı grup oluşturur (asset_orders)
-//  • Bildirimler sayfasında bekleyen emirleri gösterir
-//  • Analiz güncellenince emirleri otomatik günceller
-//  • Doğruluk takibi: ne kadar doğru/yanlış sonuçlar
+//  • Kullanıcı emirleri: asset_orders (otomatik satış için)
+//  • Global havuz: global_order_pool (tüm kullanıcıların sonuçları)
+//  • Global doğruluk: global_accuracy_pool (sistem iyileştirme)
+//  • Kalibrasyon global havuzdan beslenir — kişisel değil
 // ════════════════════════════════════════════════════════════════
 var TVOrderManager = (function() {
 
     var COLLECTION = 'asset_orders';
     var ACCURACY_COLLECTION = 'asset_accuracy';
+    var GLOBAL_ORDER_POOL = 'global_order_pool';
+    var GLOBAL_ACCURACY_POOL = 'global_accuracy_pool';
+    var GLOBAL_STATS = 'global_system_stats';
     var _orders = [];
     var _initialized = false;
 
@@ -36206,8 +36246,11 @@ var TVOrderManager = (function() {
         _orders.push(order);
         _saveLocal();
 
-        // Firebase'e yaz
+        // Firebase'e yaz (kullanıcıya özel — otomatik satış için)
         _fbWriteOrder(order);
+
+        // Global havuza yaz (anonim — sistem iyileştirme için)
+        _writeGlobalPool(order, 'PLACED');
 
         // Firebase'de varlık grubu oluştur/güncelle
         _updateAssetGroup(symbol, order);
@@ -36229,13 +36272,39 @@ var TVOrderManager = (function() {
         return order;
     }
 
-    // ── Firebase'e emir yaz ──
+    // ── Firebase'e emir yaz (kullanıcıya özel) ──
     async function _fbWriteOrder(order) {
         var db = _db();
         if (!db) return;
         try {
             await db.collection(COLLECTION).doc(order.id).set(order, { merge: true });
         } catch(e) { console.warn('[OrderManager] Firebase yazma hatası:', e.message); }
+    }
+
+    // ── Global havuza yaz (anonim — tüm kullanıcılar) ──
+    async function _writeGlobalPool(order, event) {
+        var db = _db();
+        if (!db) return;
+        try {
+            var poolRecord = {
+                symbol:       order.symbol,
+                type:         order.type,
+                targetPrice:  order.targetPrice,
+                entryPrice:   order.entryPrice || order.currentPrice,
+                score:        order.score,
+                dataSource:   order.dataSource || '',
+                event:        event,              // PLACED | TRIGGERED | CANCELLED | UPDATED
+                status:       order.status,
+                triggerPrice: order.triggerPrice || null,
+                autoSold:     order.autoSold || false,
+                createdAt:    order.createdAt,
+                triggeredAt:  order.triggeredAt || null,
+                ts:           Date.now(),
+                engineVersion: order.analysisVersion || 'v6.2'
+            };
+            var docId = order.symbol + '_' + order.type + '_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+            await db.collection(GLOBAL_ORDER_POOL).doc(docId).set(poolRecord);
+        } catch(e) { console.warn('[OrderManager] Global pool yazma hatası:', e.message); }
     }
 
     async function _fbUpdateOrder(order) {
@@ -36291,24 +36360,22 @@ var TVOrderManager = (function() {
         var ts = Date.now();
 
         var record = {
-            uid: uid,
             symbol: symbol,
             score: analysisScore,
-            recommendation: recommendation,  // 'STOP_LOSS' | 'TAKE_PROFIT'
-            outcome: actualOutcome,           // 'TRIGGERED' | 'EXPIRED' | 'CANCELLED'
+            recommendation: recommendation,
+            outcome: actualOutcome,
             pnlPct: pnlPct,
             ts: ts,
             date: new Date(ts).toISOString().split('T')[0],
             engineVersion: 'v6.2'
         };
 
-        // Ek meta veri (hedeften sapma, tetiklenme süresi vb.)
         if (extraMeta) {
             record.targetPrice    = extraMeta.targetPrice    || null;
             record.triggerPrice   = extraMeta.triggerPrice   || null;
-            record.deviationPct   = extraMeta.deviationPct   || 0;    // Hedeften sapma %
-            record.autoSold       = extraMeta.autoSold       || false; // Otomatik satış yapıldı mı
-            record.daysToTrigger  = extraMeta.daysToTrigger  || 0;    // Kaç günde tetiklendi
+            record.deviationPct   = extraMeta.deviationPct   || 0;
+            record.autoSold       = extraMeta.autoSold       || false;
+            record.daysToTrigger  = extraMeta.daysToTrigger  || 0;
             record.dataSource     = extraMeta.dataSource     || '';
         }
 
@@ -36320,16 +36387,36 @@ var TVOrderManager = (function() {
             localStorage.setItem('tv_accuracy_log', JSON.stringify(acc));
         } catch(e) {}
 
-        // Firebase'e yaz
         if (db) {
             try {
+                // 1. Kullanıcıya özel kayıt (asset_accuracy)
                 var docId = uid + '_' + symbol + '_' + ts;
+                record.uid = uid;
                 await db.collection(ACCURACY_COLLECTION).doc(docId).set(record);
 
-                // Toplam istatistikleri güncelle
-                var statsDoc = uid + '_stats';
-                await db.collection(ACCURACY_COLLECTION).doc(statsDoc).set({
-                    totalAnalyses:     firebase.firestore.FieldValue.increment(1),
+                // 2. GLOBAL HAVUZ — tüm kullanıcıların verileri (uid yok, anonim)
+                var globalRecord = {
+                    symbol: symbol,
+                    score: analysisScore,
+                    recommendation: recommendation,
+                    outcome: actualOutcome,
+                    pnlPct: pnlPct,
+                    targetPrice:   (extraMeta && extraMeta.targetPrice)   || null,
+                    triggerPrice:  (extraMeta && extraMeta.triggerPrice)  || null,
+                    deviationPct:  (extraMeta && extraMeta.deviationPct)  || 0,
+                    daysToTrigger: (extraMeta && extraMeta.daysToTrigger) || 0,
+                    autoSold:      (extraMeta && extraMeta.autoSold)      || false,
+                    dataSource:    (extraMeta && extraMeta.dataSource)    || '',
+                    ts: ts,
+                    date: new Date(ts).toISOString().split('T')[0],
+                    engineVersion: 'v6.2'
+                };
+                var globalDocId = symbol + '_' + ts + '_' + Math.random().toString(36).slice(2,6);
+                await db.collection(GLOBAL_ACCURACY_POOL).doc(globalDocId).set(globalRecord);
+
+                // 3. GLOBAL SİSTEM İSTATİSTİKLERİ — tek doküman, tüm sayaçlar
+                await db.collection(GLOBAL_STATS).doc('totals').set({
+                    totalOrders:       firebase.firestore.FieldValue.increment(1),
                     triggeredCount:    actualOutcome === 'TRIGGERED' ? firebase.firestore.FieldValue.increment(1) : firebase.firestore.FieldValue.increment(0),
                     stopLossCount:     recommendation === 'STOP_LOSS' ? firebase.firestore.FieldValue.increment(1) : firebase.firestore.FieldValue.increment(0),
                     takeProfitCount:   recommendation === 'TAKE_PROFIT' ? firebase.firestore.FieldValue.increment(1) : firebase.firestore.FieldValue.increment(0),
@@ -36339,19 +36426,29 @@ var TVOrderManager = (function() {
                     lastUpdate: ts
                 }, { merge: true });
 
-                // Sembol bazlı istatistik (hangi varlıkta ne kadar isabetliyiz)
-                var symStatsDoc = 'sym_' + symbol;
-                await db.collection(ACCURACY_COLLECTION).doc(symStatsDoc).set({
+                // 4. GLOBAL SEMBOL BAZLI — hangi varlıkta ne kadar isabetliyiz (herkes dahil)
+                await db.collection(GLOBAL_STATS).doc('sym_' + symbol).set({
                     symbol: symbol,
                     totalOrders:       firebase.firestore.FieldValue.increment(1),
                     stopLossTriggered: (recommendation === 'STOP_LOSS' && actualOutcome === 'TRIGGERED') ? firebase.firestore.FieldValue.increment(1) : firebase.firestore.FieldValue.increment(0),
                     tpTriggered:       (recommendation === 'TAKE_PROFIT' && actualOutcome === 'TRIGGERED') ? firebase.firestore.FieldValue.increment(1) : firebase.firestore.FieldValue.increment(0),
                     totalPnl:          firebase.firestore.FieldValue.increment(pnlPct || 0),
-                    avgDeviation:      firebase.firestore.FieldValue.increment(Math.abs((extraMeta && extraMeta.deviationPct) || 0)),
+                    totalDeviation:    firebase.firestore.FieldValue.increment(Math.abs((extraMeta && extraMeta.deviationPct) || 0)),
                     lastUpdate: ts
                 }, { merge: true });
 
-            } catch(e) {}
+                // 5. GLOBAL SKOR ARALIĞI — hangi skor aralığında ne kadar başarılıyız
+                var scoreBucket = analysisScore >= 68 ? 'score_68_100' : analysisScore >= 47 ? 'score_47_67' : analysisScore >= 32 ? 'score_32_46' : 'score_0_31';
+                await db.collection(GLOBAL_STATS).doc(scoreBucket).set({
+                    bucket: scoreBucket,
+                    totalOrders:    firebase.firestore.FieldValue.increment(1),
+                    triggeredCount: actualOutcome === 'TRIGGERED' ? firebase.firestore.FieldValue.increment(1) : firebase.firestore.FieldValue.increment(0),
+                    totalPnl:       firebase.firestore.FieldValue.increment(pnlPct || 0),
+                    totalDeviation: firebase.firestore.FieldValue.increment(Math.abs((extraMeta && extraMeta.deviationPct) || 0)),
+                    lastUpdate: ts
+                }, { merge: true });
+
+            } catch(e) { console.warn('[OrderManager] Global pool hatası:', e.message); }
         }
         return record;
     }
@@ -36383,11 +36480,16 @@ var TVOrderManager = (function() {
                 order.status = 'TRIGGERED';
                 order.triggeredAt = Date.now();
                 order.triggerPrice = currentPrice;
+                order.autoSold = false;
                 triggered.push(order);
                 _fbUpdateOrder(order);
 
+                // Global havuza tetiklenme kaydı
+                _writeGlobalPool(order, 'TRIGGERED');
+
                 // ── OTOMATİK SATIŞ: Cüzdandaki varlığı sat ──────────
                 var autoSold = _autoSellFromWallet(order.symbol, currentPrice, triggerType);
+                order.autoSold = autoSold;
 
                 // ── DOĞRULUK KAYDI (Sistem İyileştirme) ──────────────
                 // Stop Loss tetiklendi: fiyat düştü, stop doğru çalıştı
