@@ -19143,6 +19143,13 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
 .rc6-stp-label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px;}
 .rc6-stp-val{font-size:14px;font-weight:900;}
 .rc6-stp-pct{font-size:9px;font-weight:600;margin-top:2px;opacity:.7;}
+
+/* ── Aktif Emir Butonu Stilleri ── */
+.order-active{animation:orderPulse 2s ease infinite;position:relative;}
+.order-active::before{content:'✓ EMİR AKTİF';position:absolute;top:4px;right:4px;font-size:7px;font-weight:800;color:#fff;background:rgba(16,185,129,.85);padding:2px 5px;border-radius:4px;letter-spacing:.5px;z-index:2;}
+.order-active::after{content:'';position:absolute;inset:0;background:rgba(16,185,129,.06);border-radius:12px;pointer-events:none;}
+@keyframes orderPulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.3);}50%{box-shadow:0 0 0 6px rgba(16,185,129,0);}}
+.order-pending-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border-radius:6px;font-size:8px;font-weight:700;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);color:#C9A84C;}
 .rc6-analysis{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);}
 .rc6-analysis-scroll{max-height:420px;overflow-y:auto;overscroll-behavior:contain;padding-right:4px;}
 .rc6-analysis-scroll::-webkit-scrollbar{width:3px;}
@@ -19494,7 +19501,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.3"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -20756,6 +20763,16 @@ async function loadPF(refreshData = false) {
         as = updatedAssets;
         lastMassiveUpdate = Date.now();
         document.getElementById('totalWallet').style.opacity = "1";
+
+        // ── Emir kontrolü: Güncel fiyatlarla bekleyen emirleri kontrol et ──
+        if (typeof TVOrderManager !== 'undefined') {
+            var priceMap = {};
+            as.forEach(function(a) {
+                var sym = (a.name || '').replace('BINANCE:','').replace('USDT','').replace('.IS','').replace('BIST:','').trim().toUpperCase();
+                if (sym && a.curr > 0) priceMap[sym] = a.curr;
+            });
+            TVOrderManager.checkOrders(priceMap).catch(function(){});
+        }
     }
     renderPortfolioHTML(as);
 }
@@ -31666,7 +31683,77 @@ function renderActiveAlarmsList() {
     list.innerHTML = '';
     list.style.cssText = 'list-style:none;padding:4px 0;margin:0;display:flex;flex-direction:column;gap:10px;';
 
-    if (alarms.length === 0) {
+    // ── ÖNCE: Bekleyen DeepScan Emirlerini Göster ──────────────────
+    if (typeof TVOrderManager !== 'undefined') {
+        var pendingOrders = JSON.parse(localStorage.getItem('tv_active_orders') || '[]')
+            .filter(function(o) { return o.status === 'PENDING'; });
+
+        if (pendingOrders.length > 0) {
+            // Başlık
+            var orderHeader = document.createElement('li');
+            orderHeader.style.cssText = 'list-style:none;padding:0 4px;';
+            orderHeader.innerHTML = '<div style="font-size:10px;font-weight:800;color:#C9A84C;text-transform:uppercase;letter-spacing:.8px;padding:8px 10px 4px;display:flex;align-items:center;gap:6px;">'
+                + '<i class="fas fa-clock" style="font-size:10px;"></i> Bekleyen Emirler '
+                + '<span style="display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:8px;background:#C9A84C;color:#000;font-size:9px;font-weight:800;padding:0 4px;">' + pendingOrders.length + '</span></div>';
+            list.appendChild(orderHeader);
+
+            pendingOrders.forEach(function(o, oidx) {
+                var isStop = o.type === 'STOP_LOSS';
+                var icon = isStop ? 'fa-shield-halved' : 'fa-bullseye';
+                var color = isStop ? '#ef4444' : '#10b981';
+                var glow = isStop ? 'rgba(239,68,68,0.18)' : 'rgba(16,185,129,0.18)';
+                var bg = isStop ? 'rgba(239,68,68,0.08)' : 'rgba(16,185,129,0.08)';
+                var label = isStop ? 'Stop Loss Emri' : 'Hedef Fiyat Emri';
+                var badge = isStop ? '🛡 STOP LOSS' : '🎯 HEDEF';
+                var sym = (o.symbol || '?');
+                var initials = sym.slice(0,2);
+                var timeDiff = Date.now() - o.createdAt;
+                var hours = Math.floor(timeDiff / 3600000);
+                var timeStr = hours < 1 ? 'Az önce' : hours < 24 ? hours + ' saat önce' : Math.floor(hours/24) + ' gün önce';
+
+                var li = document.createElement('li');
+                li.style.cssText = 'position:relative;overflow:hidden;'
+                    + 'background:linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%);'
+                    + 'border:1px solid rgba(255,255,255,0.07);'
+                    + 'border-left:3px solid ' + color + ';'
+                    + 'border-radius:18px;'
+                    + 'padding:14px 14px 14px 16px;'
+                    + 'display:flex;align-items:center;gap:13px;'
+                    + 'animation:alarmCardIn 0.35s cubic-bezier(0.34,1.3,0.64,1) ' + (oidx*0.06) + 's both;'
+                    + 'transition:transform 0.18s,box-shadow 0.18s;';
+
+                li.innerHTML = ''
+                    + '<div style="position:absolute;top:-20px;left:-20px;width:80px;height:80px;background:radial-gradient(circle,' + glow + ',transparent 70%);pointer-events:none;"></div>'
+                    + '<div style="flex-shrink:0;width:43px;height:43px;border-radius:15px;background:' + bg + ';border:1px solid ' + color + '30;display:flex;align-items:center;justify-content:center;position:relative;">'
+                    + '<div style="font-size:10px;font-weight:900;color:' + color + ';letter-spacing:-0.5px;line-height:1;">' + initials + '</div>'
+                    + '<div style="position:absolute;bottom:-5px;right:-5px;width:18px;height:18px;border-radius:7px;background:#0f1420;border:1.5px solid ' + color + '50;display:flex;align-items:center;justify-content:center;">'
+                    + '<i class="fas ' + icon + '" style="font-size:8px;color:' + color + ';"></i></div></div>'
+                    + '<div style="flex:1;min-width:0;">'
+                    + '<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;">'
+                    + '<span style="font-size:15px;font-weight:800;color:#fff;letter-spacing:0.3px;">' + sym + '</span>'
+                    + '<span style="font-size:9px;font-weight:700;color:' + color + ';background:' + bg + ';border:1px solid ' + color + '30;border-radius:6px;padding:2px 6px;letter-spacing:0.5px;">' + badge + '</span></div>'
+                    + '<div style="font-size:12px;color:rgba(255,255,255,0.45);margin-bottom:5px;">' + label + '</div>'
+                    + '<div style="font-size:12px;color:rgba(255,255,255,0.6);">Hedef: <span style="color:' + color + ';font-weight:700;font-size:14px;">' + o.priceSym + o.targetPrice.toLocaleString(undefined,{maximumFractionDigits:4}) + '</span>'
+                    + ' · <span style="color:#64748b;font-size:10px;">Skor ' + o.score + ' · ' + timeStr + '</span></div></div>'
+                    + '<button onclick="TVOrderManager.cancelOrder(\'' + o.id + '\');renderActiveAlarmsList();" style="flex-shrink:0;width:36px;height:36px;border-radius:12px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);color:#f87171;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;">'
+                    + '<i class="fas fa-times" style="font-size:13px;"></i></button>';
+
+                list.appendChild(li);
+            });
+
+            // Ayırıcı
+            if (alarms.length > 0) {
+                var sep = document.createElement('li');
+                sep.style.cssText = 'height:1px;background:rgba(255,255,255,0.06);margin:4px 12px;list-style:none;';
+                list.appendChild(sep);
+            }
+        }
+    }
+    // ── Alarmlar boşsa ve emir de yoksa ──
+    var pendingCount = 0;
+    try { pendingCount = JSON.parse(localStorage.getItem('tv_active_orders') || '[]').filter(function(o){ return o.status === 'PENDING'; }).length; } catch(e){}
+
+    if (alarms.length === 0 && pendingCount === 0) {
         list.innerHTML = `
             <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:52px 20px;gap:12px;">
                 <div style="width:56px;height:56px;border-radius:18px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;">
@@ -31676,6 +31763,8 @@ function renderActiveAlarmsList() {
             </div>`;
         return;
     }
+
+    if (alarms.length === 0) return;
 
     alarms.forEach((alarm, idx) => {
         // ── Tip konfigürasyonu ──────────────────────────────────────────
@@ -32525,12 +32614,34 @@ async function runDeepDiveAnalysis(mode) {
                 }
             }
 
+            // ── Katman 6: Emir Doğruluk Geri Beslemesi ─────────────────
+            // TVOrderManager'dan gelen asset_accuracy verileri
+            // Kullanıcının geçmiş emir sonuçlarına göre skor ayarlaması
+            var orderAccDelta = 0;
+            try {
+                var userAccRaw = localStorage.getItem('tv_user_accuracy');
+                if (userAccRaw) {
+                    var userAcc = JSON.parse(userAccRaw);
+                    if (userAcc.total >= 5) { // En az 5 emir sonucu gerekli
+                        // Doğruluk > %70: sistem iyi çalışıyor, güvenle devam
+                        // Doğruluk < %40: skor tahmini sorunlu, daha konservatif ol
+                        if      (userAcc.accuracy >= 75) orderAccDelta =  2; // Yüksek başarı → skorlara güven
+                        else if (userAcc.accuracy >= 60) orderAccDelta =  1;
+                        else if (userAcc.accuracy <= 35) orderAccDelta = -3; // Düşük başarı → konservatif
+                        else if (userAcc.accuracy <= 45) orderAccDelta = -1;
+                        // avgPnl negatifse ek ceza
+                        if (userAcc.avgPnl < -5 && userAcc.total >= 10) orderAccDelta -= 1;
+                    }
+                }
+            } catch(e) {}
+
             // ── Toplam kalibrasyon delta ───────────────────────────────
             // recentDelta: anlık piyasa değişimi (Katman 1)
             // signalLearnDelta: öğrenilmiş sinyal doğruluğu (Katman 2)
-            // communityMomentum + rsiPenalty + consistencyBonus: doğrulanmış geçmiş (Katman 2)
-            var calibDelta = recentDelta + communityMomentum + rsiReliabilityPenalty + consistencyBonus + signalLearnDelta;
-            calibDelta = Math.max(-10, Math.min(10, calibDelta)); // 2 katman olduğu için limit biraz genişledi
+            // communityMomentum + rsiPenalty + consistencyBonus: doğrulanmış geçmiş (Katman 3)
+            // orderAccDelta: emir sonuçlarından geri bildirim (Katman 4)
+            var calibDelta = recentDelta + communityMomentum + rsiReliabilityPenalty + consistencyBonus + signalLearnDelta + orderAccDelta;
+            calibDelta = Math.max(-12, Math.min(12, calibDelta)); // Emir katmanı eklendi → limit genişledi
 
             // Skora uygula (0-100 sınırları koru)
             var rawScore  = metrics.score;
@@ -32545,6 +32656,7 @@ async function runDeepDiveAnalysis(mode) {
                 consistencyBonus:   consistencyBonus,
                 signalLearnDelta:   signalLearnDelta,
                 recentDelta:        recentDelta,
+                orderAccDelta:      orderAccDelta,
                 dataPoints:         verifiedData.length,
                 allDataPoints:      pastData.length,
                 uniqueUsers:        new Set(pastData.map(function(r){ return r.anonId; })).size,
@@ -33793,6 +33905,10 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro, mo
         // ── Analitik: analizi global havuza kaydet (async, UI'ı bloklamaz) ──
         if (plan && plan.length > 0 && typeof TradeViaAnalytics !== 'undefined') {
             TradeViaAnalytics.recordAnalysis(plan, macro).catch(function(){});
+            // Emirleri yeni analiz sonuçlarına göre otomatik güncelle
+            if (typeof TVOrderManager !== 'undefined') {
+                TVOrderManager.updateOrdersFromAnalysis(plan).catch(function(){});
+            }
         }
         btnGroupEl.style.display = 'flex';
         var btnLoss = document.getElementById('btnAiStartLoss');
@@ -34868,38 +34984,52 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro, mo
 
         // ── Detay bölümü ─────────────────────────────────────────
         var assetKind = isCrypto ? 'Kripto' : isBIST ? 'BIST Hisse' : 'ABD Hisse';
-        var detailInner = '';
-        if (score < 32) {
-            detailInner = `
-            <div style="padding:0 14px 14px;"><div class="rc6-analysis-scroll">${analystComment}</div></div>
-            ${atrStopHtml}
-            <div style="height:6px;"></div>`;
-        } else {
-            detailInner = `
+        // ── Aktif Emir Butonları (Stop Loss & Hedef Fiyat) ──
+        var orderBtnId = 'orderBtn_' + sym + '_' + idx;
+        var slOrderId  = 'slOrder_' + sym + '_' + idx;
+        var tpOrderId  = 'tpOrder_' + sym + '_' + idx;
+
+        var activeOrderBtns = `
+            <div style="display:flex;gap:8px;margin:10px 12px 6px;" onclick="event.stopPropagation()">
+                <button id="${slOrderId}" onclick="TVOrderManager.placeOrder('${sym}','STOP_LOSS',${stopLoss},'${pSym}',${curN},${score},'${m.dataSource||''}');this.classList.add('order-active');"
+                    style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 8px;border-radius:12px;border:1.5px solid rgba(239,68,68,.35);background:rgba(239,68,68,.08);cursor:pointer;transition:all .3s;position:relative;overflow:hidden;">
+                    <div style="font-size:8px;font-weight:800;color:#f87171;text-transform:uppercase;letter-spacing:.6px;">Stop Loss Emri</div>
+                    <div style="font-size:16px;font-weight:900;color:#ef4444;">${pSym}${fp(stopLoss)}</div>
+                    <div style="font-size:9px;color:rgba(239,68,68,.6);font-weight:600;">-%${rrRisk.toFixed(1)}</div>
+                    <div style="font-size:8px;color:rgba(239,68,68,.45);margin-top:2px;"><i class="fas fa-bolt" style="font-size:7px;"></i> Emri Aktifle</div>
+                </button>
+                <button id="${tpOrderId}" onclick="TVOrderManager.placeOrder('${sym}','TAKE_PROFIT',${takeProfit},'${pSym}',${curN},${score},'${m.dataSource||''}');this.classList.add('order-active');"
+                    style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 8px;border-radius:12px;border:1.5px solid ${acBorder};background:${acDim};cursor:pointer;transition:all .3s;position:relative;overflow:hidden;">
+                    <div style="font-size:8px;font-weight:800;color:${animColor};text-transform:uppercase;letter-spacing:.6px;">Hedef Fiyat Emri</div>
+                    <div style="font-size:16px;font-weight:900;color:${animColor};">${pSym}${fp(takeProfit)}</div>
+                    <div style="font-size:9px;color:${animColor}88;font-weight:600;">+%${rrReward.toFixed(1)}</div>
+                    <div style="font-size:8px;color:${animColor}66;margin-top:2px;"><i class="fas fa-bolt" style="font-size:7px;"></i> Emri Aktifle</div>
+                </button>
+            </div>
             <div class="rc6-rr-bar-wrap">
                 <div class="rc6-rr-header"><span class="rc6-rr-title">Risk / Ödül Oranı</span><span class="rc6-rr-ratio" style="color:${animColor};">1 : ${rrRatio}</span></div>
                 <div class="rc6-rr-track"><div class="rc6-rr-loss" style="width:${rrLossW}%;"></div><div class="rc6-rr-gain" style="width:${rrGainW}%;background:linear-gradient(90deg,${acDark},${animColor});"></div></div>
                 <div class="rc6-rr-labels"><span class="rc6-rr-lbl" style="color:#ef4444;">Risk -%${rrRisk.toFixed(1)}</span><span class="rc6-rr-lbl" style="color:${animColor};">Ödül +%${rrReward.toFixed(1)}</span></div>
-            </div>
-            <div class="rc6-stp-row">
-                <div class="rc6-stp-box" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);">
-                    <div class="rc6-stp-label" style="color:#f87171;">Stop Loss</div>
-                    <div class="rc6-stp-val" style="color:#ef4444;">${pSym}${fp(stopLoss)}</div>
-                    <div class="rc6-stp-pct" style="color:rgba(239,68,68,.6);">-%${rrRisk.toFixed(1)}</div>
-                </div>
-                <div class="rc6-stp-box" style="background:${acDim};border:1px solid ${acBorder};">
-                    <div class="rc6-stp-label" style="color:${animColor};">Hedef Fiyat</div>
-                    <div class="rc6-stp-val" style="color:${animColor};">${pSym}${fp(takeProfit)}</div>
-                    <div class="rc6-stp-pct" style="color:${animColor};">+%${rrReward.toFixed(1)}</div>
-                </div>
-            </div>
+            </div>`;
+
+        var detailInner = '';
+        if (score < 32) {
+            detailInner = `
+            ${activeOrderBtns}
+            ${atrStopHtml}
+            ${scenarioHTML}
+            <div style="padding:0 14px 14px;"><div class="rc6-analysis-scroll">${analystComment}</div></div>
+            <div style="height:6px;"></div>`;
+        } else {
+            detailInner = `
+            ${activeOrderBtns}
+            ${atrStopHtml}
+            ${scenarioHTML}
+            ${planHTML}
             <div class="rc6-analysis">
                 <div class="rc6-analysis-src"><span>${srcI} ${srcN}</span><span style="margin-left:auto;color:#374151;">Skor ${score}/100 · ${m.dataQuality||'?'} veri</span></div>
                 <div class="rc6-analysis-scroll">${analystComment}</div>
             </div>
-            ${atrStopHtml}
-            ${scenarioHTML}
-            ${planHTML}
             <div style="display:block;margin:10px 12px 14px;padding:9px 11px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:10px;font-size:10px;font-weight:400;color:rgba(245,158,11,.6);line-height:1.55;box-sizing:border-box;">
                 <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:rgba(245,158,11,.8);margin-bottom:4px;">⚠️ Kapsam Dışı</div>
                 Bu kart teknik analiz yapar. Proje temeli, yönetim, tokenomics, sektör döngüsü ve makro faktörler değerlendirilmez. Yatırım tavsiyesi değildir.
@@ -35505,6 +35635,23 @@ var TradeViaAnalytics = (function() {
                 // ── Öneri bütçesi & stop/TP ─────────────────────
                 suggestedBudget: p.allocation || 0,
                 stopLoss:    m.stopPrice || 0,
+                takeProfit:  m.tpPrice || 0,
+
+                // ── Aktif emir durumu ─────────────────────────
+                hasActiveOrder: (function(){
+                    try {
+                        var orders = JSON.parse(localStorage.getItem('tv_active_orders')||'[]');
+                        return orders.some(function(o){ return o.symbol === (p.cleanSym||(p.name||'?')) && o.status === 'PENDING'; });
+                    } catch(e){ return false; }
+                })(),
+
+                // ── Emir doğruluk profili ─────────────────────
+                userAccuracy: (function(){
+                    try {
+                        var ua = JSON.parse(localStorage.getItem('tv_user_accuracy')||'{}');
+                        return ua.accuracy || null;
+                    } catch(e){ return null; }
+                })(),
 
                 // ── 30 gün sonra kontrol için işaret ───────────
                 checkAt:    ts + (30 * 24 * 60 * 60 * 1000),
@@ -35513,7 +35660,7 @@ var TradeViaAnalytics = (function() {
                 outcomeCorrect: null,
 
                 // ── Versiyon ────────────────────────────────────
-                engineVersion: 'v6.1',
+                engineVersion: 'v6.2',
                 calibration: m._calibration || null
             };
 
@@ -35738,6 +35885,95 @@ var TradeViaAnalytics = (function() {
 
             if (processed > 0) console.log('[Analytics] ' + processed + ' analiz sonucu güncellendi.');
 
+            // ── EMİR SONUÇLARINI KALİBRASYONA GERİ BESLE ────────────────
+            // asset_orders'taki TRIGGERED emirlerin sonuçlarını ai_signal_stats'a yansıt
+            // Bu sayede stop loss/take profit doğruluğu da sinyal kalibrasyon döngüsüne girer
+            try {
+                var orderSnap = await fbDb.collection('asset_orders')
+                    .where('status', '==', 'TRIGGERED')
+                    .where('createdAt', '>=', now - (60 * 86400000))  // Son 60 gün
+                    .limit(50).get();
+
+                if (!orderSnap.empty) {
+                    var orderDocs = [];
+                    orderSnap.forEach(function(doc){ orderDocs.push({ id: doc.id, data: doc.data() }); });
+
+                    for (var oi = 0; oi < orderDocs.length; oi++) {
+                        var od = orderDocs[oi].data;
+                        if (!od.symbol || od._feedbackDone) continue;
+
+                        // Emir sonucu: Stop Loss tetiklendi = düşüş tahmini doğruydu
+                        //               Take Profit tetiklendi = yükseliş tahmini doğruydu
+                        // Bu bilgiyi ai_signal_stats'taki ilgili sinyallere bonus/ceza olarak yansıt
+
+                        // Bu emrin ait olduğu analiz kaydını bul
+                        var relatedAnalysis = null;
+                        try {
+                            var anaSnap = await fbDb.collection('ai_analysis_logs')
+                                .where('symbol', '==', od.symbol)
+                                .where('ts', '<=', od.createdAt)
+                                .orderBy('ts', 'desc')
+                                .limit(1).get();
+                            if (!anaSnap.empty) {
+                                anaSnap.forEach(function(ad){ relatedAnalysis = ad.data(); });
+                            }
+                        } catch(ae) {}
+
+                        if (relatedAnalysis && relatedAnalysis.signals) {
+                            var orderSigs = relatedAnalysis.signals.split(',').filter(Boolean);
+                            var orderCorrect = true; // Emir tetiklendi = tahmin çalıştı
+
+                            for (var osi = 0; osi < orderSigs.length; osi++) {
+                                var oSig = orderSigs[osi];
+                                if (!oSig) continue;
+                                fbDb.collection('ai_signal_stats').doc(oSig).set({
+                                    orderOutcomes: firebase.firestore.FieldValue.increment(1),
+                                    orderCorrect:  firebase.firestore.FieldValue.increment(orderCorrect ? 1 : 0),
+                                    lastOrderAt:   od.triggeredAt || now
+                                }, { merge: true }).catch(function(){});
+                            }
+                        }
+
+                        // İşlendi olarak işaretle
+                        fbDb.collection('asset_orders').doc(orderDocs[oi].id).update({
+                            _feedbackDone: true
+                        }).catch(function(){});
+                    }
+                }
+            } catch(oe) { console.warn('[Analytics] Order feedback hatası:', oe); }
+
+            // ── ACCURACY VERİLERİNİ SKOR KALİBRASYONUNA KATKI ────────────
+            // asset_accuracy'den doğruluk istatistiklerini oku
+            // ve ai_signal_stats'a ek bağlam olarak ekle
+            try {
+                var uid = _getAnonId();
+                var accSnap = await fbDb.collection('asset_accuracy')
+                    .where('uid', '==', uid)
+                    .where('ts', '>=', now - (90 * 86400000))  // Son 90 gün
+                    .orderBy('ts', 'desc')
+                    .limit(100).get();
+
+                if (!accSnap.empty) {
+                    var accDocs = [];
+                    accSnap.forEach(function(doc){ accDocs.push(doc.data()); });
+
+                    var totalAcc  = accDocs.length;
+                    var correctAcc = accDocs.filter(function(a){ return a.outcome === 'CORRECT'; }).length;
+                    var userAccuracy = totalAcc > 0 ? Math.round((correctAcc / totalAcc) * 100) : 50;
+                    var avgPnl = totalAcc > 0 ? accDocs.reduce(function(s,a){ return s + (a.pnlPct||0); }, 0) / totalAcc : 0;
+
+                    // Kullanıcının genel doğruluk profilini kaydet
+                    // Bu veri sonraki analizlerde bütçe önerisini ayarlamak için kullanılabilir
+                    localStorage.setItem('tv_user_accuracy', JSON.stringify({
+                        total: totalAcc,
+                        correct: correctAcc,
+                        accuracy: userAccuracy,
+                        avgPnl: parseFloat(avgPnl.toFixed(2)),
+                        lastUpdate: now
+                    }));
+                }
+            } catch(ae) { console.warn('[Analytics] Accuracy feedback hatası:', ae); }
+
         } catch(e) { console.warn('[Analytics] checkPastOutcomes hatasi:', e); }
     }
 
@@ -35891,6 +36127,564 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function(){ TradeViaAnalytics.init(); });
 } else {
     setTimeout(function(){ TradeViaAnalytics.init(); }, 1000);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  TVOrderManager — Aktif Emir Yönetimi & Cüzdan Bağlantısı
+//  • Stop Loss / Take Profit emirlerini yönetir
+//  • Firebase'de varlık bazlı grup oluşturur (asset_orders)
+//  • Bildirimler sayfasında bekleyen emirleri gösterir
+//  • Analiz güncellenince emirleri otomatik günceller
+//  • Doğruluk takibi: ne kadar doğru/yanlış sonuçlar
+// ════════════════════════════════════════════════════════════════
+var TVOrderManager = (function() {
+
+    var COLLECTION = 'asset_orders';
+    var ACCURACY_COLLECTION = 'asset_accuracy';
+    var _orders = [];
+    var _initialized = false;
+
+    // ── Firebase referans ──
+    function _db() { return typeof fbDb !== 'undefined' ? fbDb : null; }
+    function _uid() {
+        if (typeof fbAuth !== 'undefined' && fbAuth.currentUser) return fbAuth.currentUser.uid;
+        return localStorage.getItem('tv_anon_id') || 'guest';
+    }
+
+    // ── Emirleri localStorage'dan yükle ──
+    function _loadLocal() {
+        try {
+            _orders = JSON.parse(localStorage.getItem('tv_active_orders') || '[]');
+        } catch(e) { _orders = []; }
+        return _orders;
+    }
+    function _saveLocal() {
+        try {
+            localStorage.setItem('tv_active_orders', JSON.stringify(_orders));
+        } catch(e) {}
+    }
+
+    // ── Emir ver ──────────────────────────────────────────────
+    async function placeOrder(symbol, type, price, priceSym, currentPrice, score, dataSource) {
+        var uid = _uid();
+        var ts = Date.now();
+        var orderId = uid + '_' + symbol + '_' + type + '_' + ts;
+
+        var order = {
+            id: orderId,
+            uid: uid,
+            symbol: symbol,
+            type: type,               // 'STOP_LOSS' | 'TAKE_PROFIT'
+            targetPrice: price,
+            currentPrice: currentPrice,
+            entryPrice: currentPrice,  // Emir verildiği andaki fiyat (PnL hesabı için)
+            priceSym: priceSym,
+            score: score,
+            dataSource: dataSource,
+            status: 'PENDING',         // PENDING | TRIGGERED | CANCELLED | UPDATED
+            createdAt: ts,
+            updatedAt: ts,
+            triggeredAt: null,
+            triggerPrice: null,        // Tetiklendiğindeki gerçek fiyat
+            autoSold: false,           // Otomatik satış yapıldı mı
+            analysisVersion: 'v6.2'
+        };
+
+        // Aynı sembol + tip için eski emri güncelle
+        var existingIdx = _orders.findIndex(function(o) {
+            return o.symbol === symbol && o.type === type && o.status === 'PENDING';
+        });
+        if (existingIdx !== -1) {
+            var oldOrder = _orders[existingIdx];
+            oldOrder.status = 'UPDATED';
+            oldOrder.updatedAt = ts;
+            // Firebase'de eski emri güncelle
+            _fbUpdateOrder(oldOrder);
+            _orders.splice(existingIdx, 1);
+        }
+
+        _orders.push(order);
+        _saveLocal();
+
+        // Firebase'e yaz
+        _fbWriteOrder(order);
+
+        // Firebase'de varlık grubu oluştur/güncelle
+        _updateAssetGroup(symbol, order);
+
+        // Bildirim ekle
+        var typeLabel = type === 'STOP_LOSS' ? 'Stop Loss' : 'Hedef Fiyat';
+        var typeIcon = type === 'STOP_LOSS' ? '🛡' : '🎯';
+        if (typeof addNotification === 'function') {
+            addNotification('info', typeIcon + ' ' + typeLabel + ' Emri', symbol + ' için ' + priceSym + price.toLocaleString(undefined, {maximumFractionDigits: 4}) + ' seviyesinde ' + typeLabel.toLowerCase() + ' emri aktifleştirildi.');
+        }
+
+        // Bildirimlerde bekleyen emirleri güncelle
+        _renderPendingOrders();
+
+        // Buton durumunu güncelle
+        _updateButtonStates(symbol);
+
+        console.log('[OrderManager] Emir verildi:', symbol, type, price);
+        return order;
+    }
+
+    // ── Firebase'e emir yaz ──
+    async function _fbWriteOrder(order) {
+        var db = _db();
+        if (!db) return;
+        try {
+            await db.collection(COLLECTION).doc(order.id).set(order, { merge: true });
+        } catch(e) { console.warn('[OrderManager] Firebase yazma hatası:', e.message); }
+    }
+
+    async function _fbUpdateOrder(order) {
+        var db = _db();
+        if (!db) return;
+        try {
+            await db.collection(COLLECTION).doc(order.id).update({
+                status: order.status,
+                updatedAt: order.updatedAt,
+                triggeredAt: order.triggeredAt || null,
+                targetPrice: order.targetPrice
+            });
+        } catch(e) {}
+    }
+
+    // ── Varlık bazlı Firebase grubu ──────────────────────────
+    async function _updateAssetGroup(symbol, latestOrder) {
+        var db = _db();
+        if (!db) return;
+        var uid = _uid();
+        var docId = uid + '_' + symbol;
+        try {
+            var snap = await db.collection('asset_groups').doc(docId).get();
+            var existing = snap.exists ? snap.data() : {};
+
+            var updated = {
+                uid: uid,
+                symbol: symbol,
+                lastAnalysisScore: latestOrder.score,
+                lastAnalysisTs: latestOrder.createdAt,
+                stopLoss: latestOrder.type === 'STOP_LOSS' ? latestOrder.targetPrice : (existing.stopLoss || null),
+                takeProfit: latestOrder.type === 'TAKE_PROFIT' ? latestOrder.targetPrice : (existing.takeProfit || null),
+                currentPrice: latestOrder.currentPrice,
+                totalOrders: (existing.totalOrders || 0) + 1,
+                updatedAt: Date.now(),
+                analysisHistory: firebase.firestore.FieldValue.arrayUnion({
+                    score: latestOrder.score,
+                    price: latestOrder.currentPrice,
+                    ts: latestOrder.createdAt,
+                    type: latestOrder.type,
+                    target: latestOrder.targetPrice
+                })
+            };
+
+            await db.collection('asset_groups').doc(docId).set(updated, { merge: true });
+        } catch(e) { console.warn('[OrderManager] Asset group hatası:', e.message); }
+    }
+
+    // ── Doğruluk Takibi — Sonuçları Firebase'e kaydet ──────
+    async function recordAccuracy(symbol, analysisScore, recommendation, actualOutcome, pnlPct, extraMeta) {
+        var db = _db();
+        var uid = _uid();
+        var ts = Date.now();
+
+        var record = {
+            uid: uid,
+            symbol: symbol,
+            score: analysisScore,
+            recommendation: recommendation,  // 'STOP_LOSS' | 'TAKE_PROFIT'
+            outcome: actualOutcome,           // 'TRIGGERED' | 'EXPIRED' | 'CANCELLED'
+            pnlPct: pnlPct,
+            ts: ts,
+            date: new Date(ts).toISOString().split('T')[0],
+            engineVersion: 'v6.2'
+        };
+
+        // Ek meta veri (hedeften sapma, tetiklenme süresi vb.)
+        if (extraMeta) {
+            record.targetPrice    = extraMeta.targetPrice    || null;
+            record.triggerPrice   = extraMeta.triggerPrice   || null;
+            record.deviationPct   = extraMeta.deviationPct   || 0;    // Hedeften sapma %
+            record.autoSold       = extraMeta.autoSold       || false; // Otomatik satış yapıldı mı
+            record.daysToTrigger  = extraMeta.daysToTrigger  || 0;    // Kaç günde tetiklendi
+            record.dataSource     = extraMeta.dataSource     || '';
+        }
+
+        // localStorage'a kaydet
+        try {
+            var acc = JSON.parse(localStorage.getItem('tv_accuracy_log') || '[]');
+            acc.push(record);
+            if (acc.length > 500) acc = acc.slice(-500);
+            localStorage.setItem('tv_accuracy_log', JSON.stringify(acc));
+        } catch(e) {}
+
+        // Firebase'e yaz
+        if (db) {
+            try {
+                var docId = uid + '_' + symbol + '_' + ts;
+                await db.collection(ACCURACY_COLLECTION).doc(docId).set(record);
+
+                // Toplam istatistikleri güncelle
+                var statsDoc = uid + '_stats';
+                await db.collection(ACCURACY_COLLECTION).doc(statsDoc).set({
+                    totalAnalyses:     firebase.firestore.FieldValue.increment(1),
+                    triggeredCount:    actualOutcome === 'TRIGGERED' ? firebase.firestore.FieldValue.increment(1) : firebase.firestore.FieldValue.increment(0),
+                    stopLossCount:     recommendation === 'STOP_LOSS' ? firebase.firestore.FieldValue.increment(1) : firebase.firestore.FieldValue.increment(0),
+                    takeProfitCount:   recommendation === 'TAKE_PROFIT' ? firebase.firestore.FieldValue.increment(1) : firebase.firestore.FieldValue.increment(0),
+                    autoSoldCount:     (extraMeta && extraMeta.autoSold) ? firebase.firestore.FieldValue.increment(1) : firebase.firestore.FieldValue.increment(0),
+                    totalPnl:          firebase.firestore.FieldValue.increment(pnlPct || 0),
+                    totalDeviationAbs: firebase.firestore.FieldValue.increment(Math.abs((extraMeta && extraMeta.deviationPct) || 0)),
+                    lastUpdate: ts
+                }, { merge: true });
+
+                // Sembol bazlı istatistik (hangi varlıkta ne kadar isabetliyiz)
+                var symStatsDoc = 'sym_' + symbol;
+                await db.collection(ACCURACY_COLLECTION).doc(symStatsDoc).set({
+                    symbol: symbol,
+                    totalOrders:       firebase.firestore.FieldValue.increment(1),
+                    stopLossTriggered: (recommendation === 'STOP_LOSS' && actualOutcome === 'TRIGGERED') ? firebase.firestore.FieldValue.increment(1) : firebase.firestore.FieldValue.increment(0),
+                    tpTriggered:       (recommendation === 'TAKE_PROFIT' && actualOutcome === 'TRIGGERED') ? firebase.firestore.FieldValue.increment(1) : firebase.firestore.FieldValue.increment(0),
+                    totalPnl:          firebase.firestore.FieldValue.increment(pnlPct || 0),
+                    avgDeviation:      firebase.firestore.FieldValue.increment(Math.abs((extraMeta && extraMeta.deviationPct) || 0)),
+                    lastUpdate: ts
+                }, { merge: true });
+
+            } catch(e) {}
+        }
+        return record;
+    }
+
+    // ── Emirleri kontrol et (fiyat güncelleme ile) ────────────
+    async function checkOrders(priceMap) {
+        // priceMap: { BTC: 62500, ETH: 3100, ... }
+        var triggered = [];
+        _orders.forEach(function(order) {
+            if (order.status !== 'PENDING') return;
+            var currentPrice = priceMap[order.symbol];
+            if (!currentPrice) return;
+
+            order.currentPrice = currentPrice;
+
+            var isTriggered = false;
+            var triggerType = '';
+
+            if (order.type === 'STOP_LOSS' && currentPrice <= order.targetPrice) {
+                isTriggered = true;
+                triggerType = 'STOP_LOSS';
+            }
+            else if (order.type === 'TAKE_PROFIT' && currentPrice >= order.targetPrice) {
+                isTriggered = true;
+                triggerType = 'TAKE_PROFIT';
+            }
+
+            if (isTriggered) {
+                order.status = 'TRIGGERED';
+                order.triggeredAt = Date.now();
+                order.triggerPrice = currentPrice;
+                triggered.push(order);
+                _fbUpdateOrder(order);
+
+                // ── OTOMATİK SATIŞ: Cüzdandaki varlığı sat ──────────
+                var autoSold = _autoSellFromWallet(order.symbol, currentPrice, triggerType);
+
+                // ── DOĞRULUK KAYDI (Sistem İyileştirme) ──────────────
+                // Stop Loss tetiklendi: fiyat düştü, stop doğru çalıştı
+                // Take Profit tetiklendi: fiyat yükseldi, hedef tuttu
+                // Ayrıca: stop'tan ne kadar sapma var? Hedeften ne kadar sapma var?
+                var entryPrice = order.entryPrice || order.currentPrice;
+                var pnlPct = ((currentPrice - entryPrice) / entryPrice * 100);
+                var deviationPct = ((currentPrice - order.targetPrice) / order.targetPrice * 100); // Hedeften sapma
+
+                recordAccuracy(order.symbol, order.score, triggerType, 'TRIGGERED', pnlPct, {
+                    targetPrice: order.targetPrice,
+                    triggerPrice: currentPrice,
+                    deviationPct: parseFloat(deviationPct.toFixed(2)),
+                    autoSold: autoSold,
+                    daysToTrigger: Math.round((Date.now() - order.createdAt) / 86400000),
+                    dataSource: order.dataSource || ''
+                });
+
+                // ── BİLDİRİM ─────────────────────────────────────────
+                if (typeof addNotification === 'function') {
+                    if (triggerType === 'STOP_LOSS') {
+                        addNotification('danger', '🛡 Stop Loss Tetiklendi!',
+                            order.symbol + ' fiyatı ' + order.priceSym + currentPrice.toLocaleString(undefined,{maximumFractionDigits:4}) +
+                            ' seviyesine düştü.' + (autoSold ? ' Otomatik satış yapıldı.' : ' Cüzdanda bulunamadı.'));
+                    } else {
+                        addNotification('success', '🎯 Hedef Fiyata Ulaşıldı!',
+                            order.symbol + ' fiyatı ' + order.priceSym + currentPrice.toLocaleString(undefined,{maximumFractionDigits:4}) +
+                            ' hedefine ulaştı!' + (autoSold ? ' Otomatik kâr realizasyonu yapıldı.' : ' Cüzdanda bulunamadı.'));
+                    }
+                }
+            }
+        });
+
+        if (triggered.length > 0) {
+            _saveLocal();
+            _renderPendingOrders();
+        }
+        return triggered;
+    }
+
+    // ── Cüzdandan Otomatik Satış ────────────────────────────────
+    function _autoSellFromWallet(symbol, sellPrice, triggerType) {
+        try {
+            var as = JSON.parse(localStorage.getItem('myPF_final')) || [];
+            // Sembolü cüzdanda bul
+            var assetIdx = -1;
+            for (var i = 0; i < as.length; i++) {
+                var assetSym = (as[i].name || '')
+                    .replace('BINANCE:','').replace('USDT','')
+                    .replace('.IS','').replace('BIST:','').trim().toUpperCase();
+                if (assetSym === symbol.toUpperCase()) {
+                    assetIdx = i;
+                    break;
+                }
+            }
+            if (assetIdx === -1) return false; // Cüzdanda yok
+
+            var asset = as[assetIdx];
+            var sellAmt = asset.amt; // Tamamını sat
+            if (!sellAmt || sellAmt <= 0) return false;
+
+            var globalUsdRate = (typeof usdTryRate !== 'undefined' && usdTryRate > 0) ? usdTryRate : 36.5;
+
+            // Maliyet hesabı
+            var buyCost = parseFloat(asset.buy) || 0;
+            var transactionCurrency = asset.origin || 'USD';
+
+            // Kâr/Zarar hesapla
+            var totalRevenue = sellAmt * sellPrice;
+            var totalCost = sellAmt * buyCost;
+            var tradePnL = totalRevenue - totalCost;
+            var plPercent = buyCost > 0 ? ((sellPrice - buyCost) / buyCost * 100) : 0;
+
+            // Kasaya ekle
+            var cashToAdd = totalRevenue;
+            var appCurr = (typeof appSettings !== 'undefined' && appSettings.currency) ? appSettings.currency : 'USD';
+            if (appCurr === 'TRY' && transactionCurrency === 'USD') {
+                cashToAdd = totalRevenue * globalUsdRate;
+                tradePnL = tradePnL * globalUsdRate;
+            } else if (appCurr === 'USD' && transactionCurrency === 'TRY') {
+                cashToAdd = totalRevenue / globalUsdRate;
+                tradePnL = tradePnL / globalUsdRate;
+            }
+
+            if (typeof cashBalance !== 'undefined') {
+                cashBalance += cashToAdd;
+                localStorage.setItem('tm_cash_balance', cashBalance);
+            }
+            if (typeof realizedPnL !== 'undefined') {
+                realizedPnL += tradePnL;
+                localStorage.setItem('tm_realized_pnl', realizedPnL);
+            }
+
+            // İşlem geçmişine kaydet
+            var triggerLabel = triggerType === 'STOP_LOSS' ? 'Stop Loss Otomatik Satış' : 'Hedef Fiyat Otomatik Satış';
+            var detailObj = {
+                avgCost: buyCost,
+                plPercent: plPercent,
+                usdRateAtSell: globalUsdRate,
+                note: triggerLabel + ' — ' + (tradePnL >= 0 ? 'Kâr' : 'Zarar') + ': %' + plPercent.toFixed(2),
+                autoTrigger: triggerType
+            };
+            if (typeof logHistory === 'function') {
+                logHistory('SATIM', asset.name, sellAmt, sellPrice, '', transactionCurrency, tradePnL, detailObj);
+            }
+
+            // Portföyden sil
+            as.splice(assetIdx, 1);
+            localStorage.setItem('myPF_final', JSON.stringify(as));
+
+            // UI güncelle
+            if (typeof loadPF === 'function') { try { loadPF(false); } catch(e){} }
+            if (typeof renderHistory === 'function') { try { renderHistory(); } catch(e){} }
+
+            console.log('[OrderManager] Otomatik satış: ' + symbol + ' x' + sellAmt + ' @ ' + sellPrice + ' (' + triggerType + ')');
+            return true;
+
+        } catch(e) {
+            console.warn('[OrderManager] Otomatik satış hatası:', e);
+            return false;
+        }
+    }
+
+    // ── Analiz güncellenince emirleri otomatik güncelle ──────
+    async function updateOrdersFromAnalysis(plan) {
+        if (!plan || plan.length === 0) return;
+        var updated = 0;
+
+        plan.forEach(function(p) {
+            var m = p.metrics || {};
+            var sym = p.cleanSym || (p.name||'???').replace('BINANCE:','').replace('USDT','').replace('.IS','');
+            var curN = (m.livePrice && m.livePrice > 0) ? m.livePrice : (p.curr && p.curr > 0) ? p.curr : p.buy || 0;
+
+            // ATR-bazlı yeni stop/TP hesapla
+            var atrVal = (m.atrPct && parseFloat(m.atrPct) > 0) ? parseFloat(m.atrPct) / 100 : 0;
+            var isCrypto = p.category === 'kripto' || (p.name||'').includes('BINANCE:');
+            var stopPct, tpPct;
+            if (atrVal > 0) {
+                var sm = atrVal > 0.08 ? 2.5 : atrVal < 0.02 ? 1.5 : 2.0;
+                var tm = atrVal > 0.08 ? 3.5 : atrVal < 0.02 ? 2.5 : 3.0;
+                stopPct = Math.min(atrVal * sm, 0.20);
+                tpPct = atrVal * tm;
+            } else {
+                var vg = isCrypto ? 0.08 : 0.06;
+                stopPct = vg * 2.0;
+                tpPct = vg * 3.0;
+            }
+            stopPct = Math.max(0.03, Math.min(0.20, stopPct));
+            tpPct = Math.max(0.04, Math.min(0.50, tpPct));
+            var newSL = curN * (1 - stopPct);
+            var newTP = curN * (1 + tpPct);
+
+            // Mevcut bekleyen emirleri güncelle
+            _orders.forEach(function(order) {
+                if (order.symbol === sym && order.status === 'PENDING') {
+                    var oldTarget = order.targetPrice;
+                    if (order.type === 'STOP_LOSS') {
+                        order.targetPrice = newSL;
+                    } else if (order.type === 'TAKE_PROFIT') {
+                        order.targetPrice = newTP;
+                    }
+                    order.score = m.score || order.score;
+                    order.currentPrice = curN;
+                    order.updatedAt = Date.now();
+                    _fbUpdateOrder(order);
+
+                    if (Math.abs(oldTarget - order.targetPrice) / oldTarget > 0.02) {
+                        updated++;
+                        if (typeof addNotification === 'function') {
+                            var lbl = order.type === 'STOP_LOSS' ? 'Stop Loss' : 'Hedef Fiyat';
+                            addNotification('info', '🔄 ' + lbl + ' Güncellendi', sym + ' emri güncellendi: ' + order.priceSym + order.targetPrice.toLocaleString(undefined,{maximumFractionDigits:4}));
+                        }
+                    }
+                }
+            });
+        });
+
+        if (updated > 0) {
+            _saveLocal();
+            _renderPendingOrders();
+        }
+    }
+
+    // ── Emri iptal et ──
+    function cancelOrder(orderId) {
+        var order = _orders.find(function(o) { return o.id === orderId; });
+        if (!order) return;
+        order.status = 'CANCELLED';
+        order.updatedAt = Date.now();
+        _saveLocal();
+        _fbUpdateOrder(order);
+        _renderPendingOrders();
+        _updateButtonStates(order.symbol);
+        if (typeof addNotification === 'function') {
+            var lbl = order.type === 'STOP_LOSS' ? 'Stop Loss' : 'Hedef Fiyat';
+            addNotification('warn', '❌ Emir İptal', order.symbol + ' ' + lbl + ' emri iptal edildi.');
+        }
+    }
+
+    // ── Bekleyen emirleri bildirimler sayfasına render et ────
+    function _renderPendingOrders() {
+        // renderActiveAlarmsList zaten emirleri de render ediyor
+        if (typeof renderActiveAlarmsList === 'function') {
+            try { renderActiveAlarmsList(); } catch(e) {}
+        }
+    }
+
+    // ── Buton durumlarını güncelle ──
+    function _updateButtonStates(symbol) {
+        var pending = _orders.filter(function(o) { return o.symbol === symbol && o.status === 'PENDING'; });
+        // DOM'da tüm bu sembol için butonları bul ve aktif olanları işaretle
+        document.querySelectorAll('[id^="slOrder_' + symbol + '"]').forEach(function(btn) {
+            var hasSL = pending.some(function(o) { return o.type === 'STOP_LOSS'; });
+            btn.classList.toggle('order-active', hasSL);
+        });
+        document.querySelectorAll('[id^="tpOrder_' + symbol + '"]').forEach(function(btn) {
+            var hasTP = pending.some(function(o) { return o.type === 'TAKE_PROFIT'; });
+            btn.classList.toggle('order-active', hasTP);
+        });
+    }
+
+    // ── Bekleyen emir sayısını getir ──
+    function getPendingCount() {
+        return _orders.filter(function(o) { return o.status === 'PENDING'; }).length;
+    }
+
+    // ── Doğruluk istatistiklerini getir ──
+    function getAccuracyStats() {
+        try {
+            var acc = JSON.parse(localStorage.getItem('tv_accuracy_log') || '[]');
+            var total = acc.length;
+            var correct = acc.filter(function(a) { return a.outcome === 'CORRECT'; }).length;
+            var wrong = acc.filter(function(a) { return a.outcome === 'WRONG'; }).length;
+            var avgPnl = total > 0 ? acc.reduce(function(s,a){ return s + (a.pnlPct||0); }, 0) / total : 0;
+            return {
+                total: total,
+                correct: correct,
+                wrong: wrong,
+                accuracy: total > 0 ? Math.round(correct / total * 100) : 0,
+                avgPnl: avgPnl.toFixed(2)
+            };
+        } catch(e) { return { total:0, correct:0, wrong:0, accuracy:0, avgPnl:'0' }; }
+    }
+
+    // ── Firebase'den emirleri sync et ──
+    async function syncFromFirebase() {
+        var db = _db();
+        if (!db) return;
+        var uid = _uid();
+        try {
+            var snap = await db.collection(COLLECTION)
+                .where('uid', '==', uid)
+                .where('status', '==', 'PENDING')
+                .get();
+            if (!snap.empty) {
+                var fbOrders = [];
+                snap.forEach(function(doc) { fbOrders.push(doc.data()); });
+                // Merge: Firebase'deki yeni emirleri localStorage'a ekle
+                fbOrders.forEach(function(fo) {
+                    if (!_orders.some(function(lo) { return lo.id === fo.id; })) {
+                        _orders.push(fo);
+                    }
+                });
+                _saveLocal();
+                _renderPendingOrders();
+            }
+        } catch(e) {}
+    }
+
+    // ── Init ──
+    function init() {
+        _loadLocal();
+        _renderPendingOrders();
+        // Firebase sync (background)
+        setTimeout(function() { syncFromFirebase(); }, 5000);
+        _initialized = true;
+        console.log('[OrderManager] Başlatıldı. Bekleyen emir:', getPendingCount());
+    }
+
+    return {
+        init: init,
+        placeOrder: placeOrder,
+        cancelOrder: cancelOrder,
+        checkOrders: checkOrders,
+        updateOrdersFromAnalysis: updateOrdersFromAnalysis,
+        recordAccuracy: recordAccuracy,
+        getAccuracyStats: getAccuracyStats,
+        getPendingCount: getPendingCount,
+        syncFromFirebase: syncFromFirebase
+    };
+})();
+
+// TVOrderManager başlat
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ TVOrderManager.init(); });
+} else {
+    setTimeout(function(){ TVOrderManager.init(); }, 1500);
 }
 
 
