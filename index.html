@@ -19501,7 +19501,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.4"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -34555,6 +34555,16 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro, mo
         return;
     }
 
+    // ── SKORA GÖRE SIRALA ─────────────────────────────────────
+    // Kâr modu: düşük skor önce (en acil satılması gereken)
+    // Zarar modu: yüksek skor önce (en iyi fırsat)
+    plan.sort(function(a, b) {
+        var sa = (a.metrics && a.metrics.score) || 0;
+        var sb = (b.metrics && b.metrics.score) || 0;
+        if (mode === 'gain') return sa - sb; // Düşük skor önce (acil sat)
+        return sb - sa; // Yüksek skor önce (en iyi fırsat)
+    });
+
     var liveUsdRate = (typeof usdTryRate !== 'undefined' && usdTryRate > 0) ? usdTryRate : 36.5;
 
     window._rtoggle = function(id) {
@@ -34687,10 +34697,23 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro, mo
                 : `<span style="font-weight:900;font-size:13px;color:${rsiC};">${sym.substring(0,2)}</span>`;
 
         var animColor, acDark, acGlow, acDim, acBorder, topBg, animLabel, animPd, animBars;
-        if (score>=68)      { animColor='#10b981';acDark='#059669';acGlow='rgba(16,185,129,.3)';acDim='rgba(16,185,129,.12)';acBorder='rgba(16,185,129,.25)';animLabel='💎 GÜÇLÜ AL';animPd='1.8s';topBg='linear-gradient(145deg,#052416 0%,#041810 45%,#050810 100%)';animBars=[0.36,0.64,1,0.82,0.5,0.72,1,0.55,0.45,0.68,0.5,0.82,0.62,1]; }
-        else if (score>=47) { animColor='#3b82f6';acDark='#1d4ed8';acGlow='rgba(59,130,246,.35)';acDim='rgba(59,130,246,.12)';acBorder='rgba(59,130,246,.25)';animLabel='📈 KADEMELİ AL';animPd='2.2s';topBg='linear-gradient(145deg,#040f28 0%,#030918 45%,#050810 100%)';animBars=[0.32,0.55,0.82,0.63,0.41,0.74,0.93,0.6,0.45,0.7,0.51,0.83,0.63,0.88]; }
-        else if (score>=32) { animColor='#f59e0b';acDark='#d97706';acGlow='rgba(245,158,11,.3)';acDim='rgba(245,158,11,.12)';acBorder='rgba(245,158,11,.25)';animLabel='👁 İZLE';animPd='2.5s';topBg='linear-gradient(145deg,#1c1003 0%,#120b02 45%,#070608 100%)';animBars=[0.42,0.36,0.54,0.41,0.5,0.37,0.46,0.42,0.55,0.43,0.38,0.51,0.4,0.48]; }
-        else                { animColor='#ef4444';acDark='#b91c1c';acGlow='rgba(239,68,68,.3)';acDim='rgba(239,68,68,.12)';acBorder='rgba(239,68,68,.25)';animLabel='🛑 BEKLE';animPd='2.8s';topBg='linear-gradient(145deg,#1a0404 0%,#100303 45%,#080610 100%)';animBars=[0.5,0.36,0.32,0.44,0.28,0.4,0.33,0.47,0.36,0.4,0.32,0.44,0.36,0.4]; }
+
+        // ── KÂR MODUNDA FARKLI ETİKETLER ──────────────────────────
+        // Kârdaki varlık: düşük skor = "kârını koru, sat", yüksek skor = "devam et"
+        // Zarardaki varlık: düşük skor = "bekle", yüksek skor = "al"
+        if (mode === 'gain') {
+            // KÂR MODU ETİKETLERİ
+            if (score>=68)      { animColor='#10b981';acDark='#059669';acGlow='rgba(16,185,129,.3)';acDim='rgba(16,185,129,.12)';acBorder='rgba(16,185,129,.25)';animLabel='🚀 DEVAM ET';animPd='1.8s';topBg='linear-gradient(145deg,#052416 0%,#041810 45%,#050810 100%)';animBars=[0.36,0.64,1,0.82,0.5,0.72,1,0.55,0.45,0.68,0.5,0.82,0.62,1]; }
+            else if (score>=47) { animColor='#3b82f6';acDark='#1d4ed8';acGlow='rgba(59,130,246,.35)';acDim='rgba(59,130,246,.12)';acBorder='rgba(59,130,246,.25)';animLabel='🔒 KISMİ REALIZE';animPd='2.2s';topBg='linear-gradient(145deg,#040f28 0%,#030918 45%,#050810 100%)';animBars=[0.32,0.55,0.82,0.63,0.41,0.74,0.93,0.6,0.45,0.7,0.51,0.83,0.63,0.88]; }
+            else if (score>=32) { animColor='#f59e0b';acDark='#d97706';acGlow='rgba(245,158,11,.3)';acDim='rgba(245,158,11,.12)';acBorder='rgba(245,158,11,.25)';animLabel='⚠️ KÂRI KORU';animPd='2.5s';topBg='linear-gradient(145deg,#1c1003 0%,#120b02 45%,#070608 100%)';animBars=[0.42,0.36,0.54,0.41,0.5,0.37,0.46,0.42,0.55,0.43,0.38,0.51,0.4,0.48]; }
+            else                { animColor='#ef4444';acDark='#b91c1c';acGlow='rgba(239,68,68,.3)';acDim='rgba(239,68,68,.12)';acBorder='rgba(239,68,68,.25)';animLabel='🔴 GÜÇLÜ SAT';animPd='2.8s';topBg='linear-gradient(145deg,#1a0404 0%,#100303 45%,#080610 100%)';animBars=[0.5,0.36,0.32,0.44,0.28,0.4,0.33,0.47,0.36,0.4,0.32,0.44,0.36,0.4]; }
+        } else {
+            // ZARAR MODU ETİKETLERİ (mevcut)
+            if (score>=68)      { animColor='#10b981';acDark='#059669';acGlow='rgba(16,185,129,.3)';acDim='rgba(16,185,129,.12)';acBorder='rgba(16,185,129,.25)';animLabel='💎 GÜÇLÜ AL';animPd='1.8s';topBg='linear-gradient(145deg,#052416 0%,#041810 45%,#050810 100%)';animBars=[0.36,0.64,1,0.82,0.5,0.72,1,0.55,0.45,0.68,0.5,0.82,0.62,1]; }
+            else if (score>=47) { animColor='#3b82f6';acDark='#1d4ed8';acGlow='rgba(59,130,246,.35)';acDim='rgba(59,130,246,.12)';acBorder='rgba(59,130,246,.25)';animLabel='📈 KADEMELİ AL';animPd='2.2s';topBg='linear-gradient(145deg,#040f28 0%,#030918 45%,#050810 100%)';animBars=[0.32,0.55,0.82,0.63,0.41,0.74,0.93,0.6,0.45,0.7,0.51,0.83,0.63,0.88]; }
+            else if (score>=32) { animColor='#f59e0b';acDark='#d97706';acGlow='rgba(245,158,11,.3)';acDim='rgba(245,158,11,.12)';acBorder='rgba(245,158,11,.25)';animLabel='👁 İZLE';animPd='2.5s';topBg='linear-gradient(145deg,#1c1003 0%,#120b02 45%,#070608 100%)';animBars=[0.42,0.36,0.54,0.41,0.5,0.37,0.46,0.42,0.55,0.43,0.38,0.51,0.4,0.48]; }
+            else                { animColor='#ef4444';acDark='#b91c1c';acGlow='rgba(239,68,68,.3)';acDim='rgba(239,68,68,.12)';acBorder='rgba(239,68,68,.25)';animLabel='🛑 BEKLE';animPd='2.8s';topBg='linear-gradient(145deg,#1a0404 0%,#100303 45%,#080610 100%)';animBars=[0.5,0.36,0.32,0.44,0.28,0.4,0.33,0.47,0.36,0.4,0.32,0.44,0.36,0.4]; }
+        }
 
         if (p.label && p.label.includes('DİKKATLİ')) { animColor='#f97316'; animLabel='⚠️ DİKKATLİ İZLE'; }
 
@@ -35169,6 +35192,45 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro, mo
                     + '<div style="font-size:12px;font-weight:700;color:' + verdictColor + ';">' + verdictBody + '</div>'
                     + '</div>');
 
+                // ── EĞİTİCİ BİRLEŞTİRİCİ ÖZET ─────────────────────
+                var eduParagraph = '';
+                var fundNote = '';
+                if (m.fundamental && m.fundamental.data) {
+                    var ffd = m.fundamental.data;
+                    if (m.fundamental.type === 'US_STOCK') {
+                        fundNote = ffd.peRatio > 0 ? ' Şirketin P/E oranı ' + ffd.peRatio + ' — ' + (ffd.peRatio < 20 ? 'bu makul bir değerleme, temel analiz teknik tabloyu destekliyor.' : ffd.peRatio < 40 ? 'ortalama bir değerleme.' : 'yüksek değerleme, dikkatli ol.') : '';
+                        if (ffd.profitMargin) fundNote += ' Kâr marjı %' + ffd.profitMargin + (ffd.profitMargin > 15 ? ' — şirket sağlıklı para kazanıyor.' : ffd.profitMargin > 0 ? '.' : ' — şirket zarar ediyor, bu teknik yükselişin sürdürülebilirliğini sorgulatır.');
+                    } else {
+                        if (ffd.mcapRank) fundNote += ' Market cap sıralaması #' + ffd.mcapRank + (ffd.mcapRank <= 50 ? ' — büyük ve güvenilir bir proje.' : ffd.mcapRank <= 200 ? ' — orta büyüklükte.' : ' — küçük ve riskli.');
+                        if (ffd.commitCount4w > 0) fundNote += ' Son 4 haftada ' + ffd.commitCount4w + ' commit' + (ffd.commitCount4w >= 50 ? ' — geliştirici ekibi çok aktif, bu projenin arkasında gerçek iş var.' : ffd.commitCount4w >= 10 ? ' — makul düzeyde aktif.' : ' — geliştirme yavaş, dikkat.');
+                        if (ffd.supplyRatio && ffd.supplyRatio < 0.5) fundNote += ' Dolaşımdaki arz sadece %' + Math.round(ffd.supplyRatio*100) + ' — ileride token kilitleri açılınca satış baskısı oluşabilir.';
+                    }
+                }
+
+                if (profitPct >= 50) {
+                    eduParagraph = '<div style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:12px 14px;margin-top:6px;">'
+                        + '<div style="font-size:9px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:#818cf8;margin-bottom:6px;">💡 BİLMENİ İSTERİM</div>'
+                        + '<div style="font-size:11.5px;color:rgba(255,255,255,0.7);line-height:1.7;">%' + profitStr + ' kâr ciddi bir başarı. Ama piyasaların doğası gereği, kâr kağıt üzerinde kalabilir — realize etmediğin kâr gerçek değildir. '
+                        + 'Profesyonel yatırımcılar genellikle bu noktada pozisyonun %30-50\'sini realize eder ve kalanı trailing stop ile korur. Böylece hem kârdan pay alır hem de devam potansiyelini kaçırmaz.'
+                        + fundNote
+                        + ' <strong style="color:#a5b4fc;">Kural:</strong> Açgözlülük en çok kazanan pozisyonlarda zarara yol açar.</div></div>';
+                } else if (profitPct >= 10) {
+                    eduParagraph = '<div style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:12px 14px;margin-top:6px;">'
+                        + '<div style="font-size:9px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:#818cf8;margin-bottom:6px;">💡 BİLMENİ İSTERİM</div>'
+                        + '<div style="font-size:11.5px;color:rgba(255,255,255,0.7);line-height:1.7;">%' + profitStr + ' kâr iyi bir başlangıç. Bu noktada en önemli şey stop-loss\'u maliyetin üzerine taşımak — böylece en kötü ihtimalle bile kayıpsız çıkarsın. '
+                        + 'Trailing stop sistemi senin için bunu otomatik yapıyor, ama manuel olarak da kontrol etmen faydalı.'
+                        + fundNote
+                        + ' <strong style="color:#a5b4fc;">Kural:</strong> Kârdayken öncelik sermayeyi korumaktır, daha fazla kazanmak değil.</div></div>';
+                } else {
+                    eduParagraph = '<div style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:12px 14px;margin-top:6px;">'
+                        + '<div style="font-size:9px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:#818cf8;margin-bottom:6px;">💡 BİLMENİ İSTERİM</div>'
+                        + '<div style="font-size:11.5px;color:rgba(255,255,255,0.7);line-height:1.7;">Küçük bir kâr var ama teknik tablo zayıf. Bu durumda iki seçenek var: 1) Kârı realize edip sermayeyi koru, 2) Stop-loss\'u maliyetin hemen üstüne koy ve bekle. '
+                        + 'Hangisini seçersen seç, asla "biraz daha bekleyeyim belki döner" tuzağına düşme — bu düşünce çoğu yatırımcının kârını zarara çevirir.'
+                        + fundNote
+                        + ' <strong style="color:#a5b4fc;">Kural:</strong> Zayıf teknik tabloda küçük kâr, büyük kayıptan her zaman iyidir.</div></div>';
+                }
+                paragraphs.push(eduParagraph);
+
                 var text = paragraphs.map(function(pg) {
                     return '<p style="margin:0 0 12px 0;">' + pg + '</p>';
                 }).join('');
@@ -35496,6 +35558,47 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro, mo
                 + '<div style="font-size:10px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:' + lVerdictColor + ';margin-bottom:6px;">' + lVerdictIcon + ' ANALİZCİ NET GÖRÜŞÜ</div>'
                 + '<div style="font-size:12px;font-weight:700;color:' + lVerdictColor + ';">' + lVerdictBody + '</div>'
                 + '</div>');
+
+            // ── EĞİTİCİ BİRLEŞTİRİCİ ÖZET (ZARAR MODU) ────────────
+            var lEduNote = '';
+            var lFundNote = '';
+            if (m.fundamental && m.fundamental.data) {
+                var lfd = m.fundamental.data;
+                if (m.fundamental.type === 'US_STOCK') {
+                    if (lfd.profitMargin < 0) lFundNote += ' Şirket zarar ediyor (kâr marjı %' + lfd.profitMargin + ') — teknik toparlanma olsa bile temeller zayıf.';
+                    else if (lfd.profitMargin > 15) lFundNote += ' Şirketin kâr marjı %' + lfd.profitMargin + ' — sağlam bir iş modeli var, bu düşüş kalıcı olmayabilir.';
+                    if (lfd.revenueGrowth < -10) lFundNote += ' Gelir %' + lfd.revenueGrowth + ' düştü — bu sadece fiyat değil, iş dünyasında da sorun var demektir.';
+                } else {
+                    if (lfd.commitCount4w === 0) lFundNote += ' GitHub\'da 0 commit — geliştirici ekibi aktif değil, proje terk edilmiş olabilir.';
+                    else if (lfd.commitCount4w >= 50) lFundNote += ' Son 4 haftada ' + lfd.commitCount4w + ' commit — geliştirme aktif, proje canlı.';
+                    if (lfd.sentiment && lfd.sentiment < 35) lFundNote += ' Topluluk duyarlılığı %' + Math.round(lfd.sentiment) + ' — yatırımcılar kaçıyor.';
+                }
+            }
+
+            if (score >= 60) {
+                lEduNote = '<div style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:12px 14px;margin-top:6px;">'
+                    + '<div style="font-size:9px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:#818cf8;margin-bottom:6px;">💡 BİLMENİ İSTERİM</div>'
+                    + '<div style="font-size:11.5px;color:rgba(255,255,255,0.7);line-height:1.7;">Skor ' + score + '/100 güçlü bir toparlanma sinyali veriyor. Ama unutma: zarardaki bir varlığa ek para koymak psikolojik olarak en zor karardır. '
+                    + 'Bu yüzden "tamamını bir anda al" yerine kademeli alım yap — önerilen bütçeyi 3 parçaya böl. Eğer ilk alımdan sonra fiyat düşmeye devam ederse, ikinci ve üçüncü kademeler maliyetini daha da düşürür.'
+                    + lFundNote
+                    + ' <strong style="color:#a5b4fc;">Kural:</strong> Ortalama düşürmek ancak teknik tablo destekliyorsa işe yarar — körü körüne ekleme yapma.</div></div>';
+            } else if (score >= 40) {
+                lEduNote = '<div style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:12px 14px;margin-top:6px;">'
+                    + '<div style="font-size:9px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:#818cf8;margin-bottom:6px;">💡 BİLMENİ İSTERİM</div>'
+                    + '<div style="font-size:11.5px;color:rgba(255,255,255,0.7);line-height:1.7;">Tablo karışık — ne güçlü bir alım sinyali var ne de net bir çıkış noktası. Bu durumda en iyi strateji sabırdır. '
+                    + 'Küçük bir test alımı yapıp trendi takip etmek mantıklı olabilir, ama asıl büyük hamleyi tablonun netleşmesine bırak.'
+                    + lFundNote
+                    + ' <strong style="color:#a5b4fc;">Kural:</strong> Emin olmadığın pozisyonda en iyi hamle genellikle hiçbir şey yapmamaktır.</div></div>';
+            } else {
+                lEduNote = '<div style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:12px 14px;margin-top:6px;">'
+                    + '<div style="font-size:9px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:#818cf8;margin-bottom:6px;">💡 BİLMENİ İSTERİM</div>'
+                    + '<div style="font-size:11.5px;color:rgba(255,255,255,0.7);line-height:1.7;">Teknik tablo zayıf ve düşüş baskısı güçlü. Bu noktada yeni para koymak, batan gemiye su atmak gibidir. '
+                    + 'En yaygın hata "bu kadar düştü daha ne kadar düşecek" düşüncesidir — piyasa her zaman daha fazla düşebilir. '
+                    + 'Eğer bu varlığa hâlâ inanıyorsan, fiyatın dip yapıp teknik göstergelerin dönüş sinyali vermesini bekle. Acele etme.'
+                    + lFundNote
+                    + ' <strong style="color:#a5b4fc;">Kural:</strong> Düşen bıçağı tutmaya çalışma — önce yere düşsün, sonra al.</div></div>';
+            }
+            paragraphs.push(lEduNote);
 
             var text = paragraphs.map(function(pg) {
                 return '<p style="margin:0 0 12px 0;">' + pg + '</p>';
