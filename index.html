@@ -19501,7 +19501,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.9"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -36555,6 +36555,7 @@ var TVOrderManager = (function() {
         // priceMap: { BTC: 62500, ETH: 3100, ... }
         var triggered = [];
         var updated = false;
+        var now = Date.now();
 
         _orders.forEach(function(order) {
             if (order.status !== 'PENDING') return;
@@ -36565,42 +36566,89 @@ var TVOrderManager = (function() {
             var isTriggered = false;
             var triggerType = '';
 
+            var entryP = order.entryPrice || currentPrice;
+            var currentPnlPct = ((currentPrice - entryP) / entryP) * 100;
+            var lastUpdateAge = (now - (order.updatedAt || order.createdAt)) / 3600000;
+
+            // ════════════════════════════════════════════════════════
+            //  OTOMATİK KORUMA (Kullanıcı analizi unutsa bile çalışır)
+            // ════════════════════════════════════════════════════════
+
+            if (order.type === 'STOP_LOSS') {
+
+                // ── Koruma 1: Kâr Kilidi — kâr arttıkça trailing daralır ──
+                if (!order._lastAdaptCheck || (now - order._lastAdaptCheck) > 3600000) {
+                    order._lastAdaptCheck = now;
+                    var basePct = order.trailingPct || 0.20;
+                    if (currentPnlPct >= 100)     order.trailingPct = Math.min(basePct, 0.08);
+                    else if (currentPnlPct >= 50)  order.trailingPct = Math.min(basePct, 0.12);
+                    else if (currentPnlPct >= 20)  order.trailingPct = Math.min(basePct, 0.15);
+                }
+
+                // ── Koruma 2: Ani Düşüş — %10+ düşüşte acil sıkılaştır ──
+                if (order._lastCheckPrice) {
+                    var dropSince = ((order._lastCheckPrice - currentPrice) / order._lastCheckPrice) * 100;
+                    if (dropSince >= 10) {
+                        order.trailingPct = Math.min(order.trailingPct || 0.20, 0.05);
+                        var emergStop = currentPrice * 0.95;
+                        if (emergStop > order.targetPrice) {
+                            order.targetPrice = parseFloat(emergStop.toFixed(6));
+                            order.updatedAt = now;
+                            updated = true;
+                            if (typeof addNotification === 'function') {
+                                addNotification('danger', '🚨 Acil Koruma!',
+                                    order.symbol + ' ani -%' + dropSince.toFixed(1) + ' düşüş! Stop sıkılaştırıldı: ' +
+                                    order.priceSym + order.targetPrice.toLocaleString(undefined,{maximumFractionDigits:4}));
+                            }
+                        }
+                    }
+                }
+                order._lastCheckPrice = currentPrice;
+
+                // ── Koruma 3: Bayat Emir — 7 gün güncellenmemişse kâr kilitle ──
+                if (lastUpdateAge > 168 && currentPnlPct > 5) {
+                    var breakEven = entryP * 1.02;
+                    if (breakEven > order.targetPrice) {
+                        order.targetPrice = parseFloat(breakEven.toFixed(6));
+                        order.updatedAt = now;
+                        updated = true;
+                        if (typeof addNotification === 'function') {
+                            addNotification('info', '🔒 Kâr Kilidi',
+                                order.symbol + ' 7 gündür güncellenmedi. Stop kayıpsız seviyeye taşındı: ' +
+                                order.priceSym + order.targetPrice.toLocaleString(undefined,{maximumFractionDigits:4}));
+                        }
+                    }
+                }
+            }
+
             // ════════════════════════════════════════════════════════
             //  TRAILING STOP LOSS
-            //  Fiyat yükseldikçe stop yukarı kayar, asla geri inmez
-            //  Fiyat geri çekilip yeni stop'a düşünce tetiklenir
             // ════════════════════════════════════════════════════════
             if (order.type === 'STOP_LOSS') {
 
-                // Yeni ATH (All Time High) gördük mü?
                 if (currentPrice > (order.highestPrice || order.entryPrice)) {
-                    var oldHighest = order.highestPrice || order.entryPrice;
                     order.highestPrice = currentPrice;
-
-                    // Trailing stop: yeni zirve × (1 - trailing yüzde)
                     var trailPct = order.trailingPct || 0.20;
                     var newStop = currentPrice * (1 - trailPct);
 
-                    // Stop sadece yukarı kayar, asla aşağı inmez
                     if (newStop > order.targetPrice) {
                         order.targetPrice = parseFloat(newStop.toFixed(6));
                         order.trailingUpdates = (order.trailingUpdates || 0) + 1;
-                        order.updatedAt = Date.now();
+                        order.updatedAt = now;
                         updated = true;
 
-                        // Her %10 yükselişte bildirim gönder (spam önleme)
                         var pctGain = ((currentPrice - order.entryPrice) / order.entryPrice * 100);
                         if (order.trailingUpdates === 1 || pctGain % 10 < 2) {
                             if (typeof addNotification === 'function') {
                                 addNotification('info', '📈 Trailing Stop Güncellendi',
-                                    order.symbol + ' yeni zirve: ' + order.priceSym + currentPrice.toLocaleString(undefined,{maximumFractionDigits:4}) +
-                                    ' → Stop: ' + order.priceSym + order.targetPrice.toLocaleString(undefined,{maximumFractionDigits:4}));
+                                    order.symbol + ' zirve: ' + order.priceSym + currentPrice.toLocaleString(undefined,{maximumFractionDigits:4}) +
+                                    ' → Stop: ' + order.priceSym + order.targetPrice.toLocaleString(undefined,{maximumFractionDigits:4}) +
+                                    ' (trailing %' + ((order.trailingPct||0.20)*100).toFixed(0) + ')');
                             }
                         }
                     }
                 }
 
-                // Fiyat stop'a düştü mü?
                 if (currentPrice <= order.targetPrice) {
                     isTriggered = true;
                     triggerType = 'STOP_LOSS';
@@ -36608,51 +36656,41 @@ var TVOrderManager = (function() {
             }
 
             // ════════════════════════════════════════════════════════
-            //  TRAILING TAKE PROFIT
-            //  Hedef fiyata ulaşınca hemen satmaz!
-            //  Fiyat yükselmeye devam ederse takip eder
-            //  Zirveden %3 (tpTrailingDropPct) geri çekilince satar
-            //  Böylece kâr maksimize edilir
+            //  TRAILING TAKE PROFIT (Adaptif geri çekilme)
             // ════════════════════════════════════════════════════════
             else if (order.type === 'TAKE_PROFIT') {
 
-                // Hedef fiyata ilk kez ulaşıldı mı?
                 if (!order.tpReached && currentPrice >= order.targetPrice) {
                     order.tpReached = true;
                     order.highestPrice = currentPrice;
-                    order.tpReachedAt = Date.now();
-                    order.updatedAt = Date.now();
+                    order.tpReachedAt = now;
+                    order.updatedAt = now;
                     updated = true;
-
                     if (typeof addNotification === 'function') {
                         addNotification('success', '🎯 Hedefe Ulaşıldı! Trailing Aktif',
                             order.symbol + ' ' + order.priceSym + order.targetPrice.toLocaleString(undefined,{maximumFractionDigits:4}) +
-                            ' hedefine ulaştı! Fiyat yükselmeye devam ederse takip edecek, geri çekilince satacak.');
+                            ' hedefine ulaştı! Takip başladı.');
                     }
                 }
 
-                // Hedef geçildikten sonra: fiyat yükselmeye devam ediyor mu?
                 if (order.tpReached) {
-                    // Yeni zirve güncelle
                     if (currentPrice > (order.highestPrice || order.targetPrice)) {
                         order.highestPrice = currentPrice;
                         order.trailingUpdates = (order.trailingUpdates || 0) + 1;
-                        order.updatedAt = Date.now();
+                        order.updatedAt = now;
                         updated = true;
                     }
 
-                    // Zirveden geri çekilme kontrolü
-                    var dropPct = order.tpTrailingDropPct || 0.03;
+                    // Adaptif geri çekilme: kâr arttıkça sıkılaş
+                    var tpPnl = ((order.highestPrice - entryP) / entryP) * 100;
+                    var dropPct = tpPnl >= 100 ? 0.03 : tpPnl >= 50 ? 0.04 : 0.05;
                     var tpTriggerLevel = order.highestPrice * (1 - dropPct);
 
                     if (currentPrice <= tpTriggerLevel) {
-                        // Zirveden %3+ geri çekildi → kârı realize et
                         isTriggered = true;
                         triggerType = 'TAKE_PROFIT';
                     }
                 }
-                // Hedef fiyata ulaşılmadan altına düşerse (ters hareket)
-                // → bu durumda stop loss devreye girmeli, TP tetiklenmez
             }
 
             // ════════════════════════════════════════════════════════
