@@ -20075,7 +20075,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.8"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -32919,7 +32919,7 @@ const BinanceConnect = {
     // ── CLOUDFLARE WORKER URL ────────────────────────────────────────────────
     // Deploy sonrası Worker URL'ini buraya yapıştır:
     // Örn: 'https://tradavia-binance.seninkullaniciadin.workers.dev'
-    _WORKER_URL: 'https://crimson-smoke-c84a.balken444.workers.dev/',
+    _WORKER_URL: 'https://crimson-smoke-c84a.balken444.workers.dev',
 
     _apiBase: null,
     _apiBases: [
@@ -33137,16 +33137,24 @@ const BinanceConnect = {
             await this._findWorkingBase();
             document.getElementById('bncLoadingSub').textContent = (this._useProxy ? 'Proxy üzerinden bağlanıldı' : 'Direkt bağlantı') + ' — hesap sorgulanıyor...';
             const data = await this._apiRequest('GET', '/api/v3/account', '');
-            const balances = (data.balances || []).filter(b => (parseFloat(b.free) + parseFloat(b.locked)) > 0);
+            const balances = (data.balances || []).filter(b => (parseFloat(b.free) + parseFloat(b.locked)) > 0.000000001);
 
             document.getElementById('bncLoadingSub').textContent = balances.length + ' varlık, fiyatlar çekiliyor...';
 
-            const priceUrl = this._buildUrl('/api/v3/ticker/price');
-            const priceRes = await fetch(priceUrl);
-            const pricesRaw = await priceRes.json();
+            // Fiyatları çek
             this._priceMap = {};
-            const pricesArr = Array.isArray(pricesRaw) ? pricesRaw : [];
-            pricesArr.forEach(p => { if (p && p.symbol) this._priceMap[p.symbol] = parseFloat(p.price); });
+            try {
+                let priceUrl = this._useWorker
+                    ? this._WORKER_URL + '/binance/api/v3/ticker/price'
+                    : this._buildUrl('/api/v3/ticker/price');
+                let priceRes = await fetch(priceUrl);
+                let pricesRaw = await priceRes.json();
+                let pricesArr = Array.isArray(pricesRaw) ? pricesRaw : [];
+                pricesArr.forEach(p => { if (p && p.symbol) this._priceMap[p.symbol] = parseFloat(p.price); });
+                console.log('[Binance] Fiyat sayisi:', pricesArr.length);
+            } catch(priceErr) {
+                console.warn('[Binance] Fiyat hatasi:', priceErr.message);
+            }
 
 
 
