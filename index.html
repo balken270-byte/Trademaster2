@@ -20075,7 +20075,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.3"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -32915,37 +32915,79 @@ const BinanceConnect = {
         return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
     },
 
-    // Binance API base URL'leri (Türkiye fallback dahil)
+    // Binance API base URL'leri (Türkiye + CORS fallback)
     _apiBase: null,
     _apiBases: [
-        'https://api.binance.com',
         'https://api1.binance.com',
         'https://api2.binance.com',
         'https://api3.binance.com',
-        'https://api4.binance.com'
+        'https://api4.binance.com',
+        'https://api.binance.com'
+    ],
+    _corsProxies: [
+        'https://corsproxy.io/?url=',
+        'https://api.allorigins.win/raw?url='
     ],
 
     // Çalışan base URL'i bul ve cache'le
     _findWorkingBase: async function() {
         if (this._apiBase) return this._apiBase;
+        
+        // 1. Direkt endpoint'leri dene
         for (let i = 0; i < this._apiBases.length; i++) {
             try {
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), 4000);
                 const res = await fetch(this._apiBases[i] + '/api/v3/ping', { 
-                    signal: AbortSignal.timeout(5000) 
+                    signal: controller.signal 
                 });
+                clearTimeout(timer);
                 if (res.ok) {
+                    const data = await res.json();
                     this._apiBase = this._apiBases[i];
-                    console.log('[Binance] Çalışan endpoint bulundu:', this._apiBase);
+                    this._useProxy = false;
+                    console.log('[Binance] Direkt endpoint bulundu:', this._apiBase);
                     return this._apiBase;
                 }
             } catch(e) { continue; }
         }
-        // Hiçbiri çalışmadıysa varsayılanı dön
+        
+        // 2. CORS proxy ile dene
+        for (let p = 0; p < this._corsProxies.length; p++) {
+            for (let i = 0; i < this._apiBases.length; i++) {
+                try {
+                    const testUrl = this._corsProxies[p] + encodeURIComponent(this._apiBases[i] + '/api/v3/ping');
+                    const controller = new AbortController();
+                    const timer = setTimeout(() => controller.abort(), 5000);
+                    const res = await fetch(testUrl, { signal: controller.signal });
+                    clearTimeout(timer);
+                    if (res.ok) {
+                        this._apiBase = this._apiBases[i];
+                        this._useProxy = true;
+                        this._activeProxy = this._corsProxies[p];
+                        console.log('[Binance] Proxy endpoint bulundu:', this._activeProxy + this._apiBase);
+                        return this._apiBase;
+                    }
+                } catch(e) { continue; }
+            }
+        }
+        
+        // Hiçbiri çalışmadı
         this._apiBase = this._apiBases[0];
+        this._useProxy = false;
         return this._apiBase;
     },
 
-    // Signed API request (çoklu endpoint fallback)
+    // URL oluştur (proxy varsa proxy üzerinden)
+    _buildUrl: function(endpoint) {
+        const fullUrl = this._apiBase + endpoint;
+        if (this._useProxy && this._activeProxy) {
+            return this._activeProxy + encodeURIComponent(fullUrl);
+        }
+        return fullUrl;
+    },
+
+    // Signed API request (çoklu endpoint + CORS proxy fallback)
     _apiRequest: async function(method, endpoint, params) {
         const { apiKey, secretKey } = this._getKeys();
         if (!apiKey || !secretKey) throw new Error('API Key gerekli');
@@ -32955,28 +32997,57 @@ const BinanceConnect = {
         let qs = 'timestamp=' + timestamp + '&recvWindow=10000';
         if (params) qs += '&' + params;
         const signature = await this._sign(secretKey, qs);
-        const url = base + endpoint + '?' + qs + '&signature=' + signature;
-        const opts = { method: method, headers: { 'X-MBX-APIKEY': apiKey } };
+        
+        const fullEndpoint = endpoint + '?' + qs + '&signature=' + signature;
+        const fullUrl = base + fullEndpoint;
+        
+        // İstek seçenekleri
+        const headers = { 'X-MBX-APIKEY': apiKey };
         
         let res;
         try {
-            res = await fetch(url, opts);
-        } catch(networkErr) {
-            // İlk endpoint başarısızsa diğerlerini dene
-            console.warn('[Binance] Endpoint hatası:', base, networkErr.message);
-            this._apiBase = null; // Cache'i temizle
-            const newBase = await this._findWorkingBase();
-            if (newBase !== base) {
-                // Yeni timestamp ile tekrar imzala (süre geçmiş olabilir)
-                const ts2 = Date.now();
-                let qs2 = 'timestamp=' + ts2 + '&recvWindow=10000';
-                if (params) qs2 += '&' + params;
-                const sig2 = await this._sign(secretKey, qs2);
-                const url2 = newBase + endpoint + '?' + qs2 + '&signature=' + sig2;
-                res = await fetch(url2, { method: method, headers: { 'X-MBX-APIKEY': apiKey } });
+            // Önce direkt dene
+            if (!this._useProxy) {
+                res = await fetch(fullUrl, { method: method, headers: headers });
             } else {
-                throw new Error('Binance sunucularına bağlanılamıyor. VPN kullanmayı deneyin.');
+                // Proxy ile — header gönderilemez, query param olarak ekle
+                // Binance aslında API key'i query param olarak da kabul eder (bazı endpoint'ler)
+                // Ama imzalı isteklerde header gerekli, bu yüzden önce direkt denemeliyiz
+                const proxyUrl = this._activeProxy + encodeURIComponent(fullUrl);
+                res = await fetch(proxyUrl, { method: method });
             }
+        } catch(networkErr) {
+            // Başarısız — cache temizle, diğer yolu dene
+            console.warn('[Binance] Endpoint hatası:', networkErr.message);
+            const wasProxy = this._useProxy;
+            this._apiBase = null;
+            
+            // Eğer direkt denediyse proxy dene, proxy denediyse direkt dene
+            if (!wasProxy) {
+                // Proxy üzerinden dene
+                for (let p = 0; p < this._corsProxies.length; p++) {
+                    try {
+                        const proxyUrl = this._corsProxies[p] + encodeURIComponent(fullUrl);
+                        res = await fetch(proxyUrl, { method: method });
+                        if (res) {
+                            this._useProxy = true;
+                            this._activeProxy = this._corsProxies[p];
+                            this._apiBase = base;
+                            break;
+                        }
+                    } catch(e) { continue; }
+                }
+            }
+            
+            if (!res) throw new Error('Binance sunucularına bağlanılamıyor. Lütfen internet bağlantınızı kontrol edin veya daha sonra tekrar deneyin.');
+        }
+
+        // HTML yanıt kontrolü (CORS hatası / engellenme durumu)
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('text/html')) {
+            // HTML döndü — muhtemelen engelleniyor
+            this._apiBase = null; // Cache temizle
+            throw new Error('Binance API erişim engeli. Lütfen VPN deneyin veya PC\'den Firebase çözümünü kullanın.');
         }
 
         if (!res.ok) {
@@ -33019,13 +33090,17 @@ const BinanceConnect = {
         this.setStatus('loading', 'Bağlanıyor...');
 
         try {
-            document.getElementById('bncLoadingSub').textContent = 'Spot hesap sorgulanıyor...';
+            document.getElementById('bncLoadingSub').textContent = 'Binance sunucuları aranıyor...';
+            // Önce çalışan endpoint bul
+            await this._findWorkingBase();
+            document.getElementById('bncLoadingSub').textContent = (this._useProxy ? 'Proxy üzerinden bağlanıldı' : 'Direkt bağlantı') + ' — hesap sorgulanıyor...';
             const data = await this._apiRequest('GET', '/api/v3/account', '');
             const balances = (data.balances || []).filter(b => (parseFloat(b.free) + parseFloat(b.locked)) > 0);
 
             document.getElementById('bncLoadingSub').textContent = balances.length + ' varlık, fiyatlar çekiliyor...';
             const priceBase = await this._findWorkingBase();
-            const priceRes = await fetch(priceBase + '/api/v3/ticker/price');
+            const priceUrl = this._buildUrl('/api/v3/ticker/price');
+            const priceRes = await fetch(priceUrl);
             const prices = await priceRes.json();
             this._priceMap = {};
             prices.forEach(p => { this._priceMap[p.symbol] = parseFloat(p.price); });
@@ -33049,7 +33124,12 @@ const BinanceConnect = {
             document.getElementById('bncLoading').style.display = 'none';
             document.getElementById('bncFormSection').style.display = 'block';
             this.setStatus('disconnected', 'Bağlantı Başarısız');
-            if (typeof showToast === 'function') showToast('danger', 'Binance Hatası', err.message);
+            var errMsg = err.message || 'Bilinmeyen hata';
+            // Unexpected token hatası = HTML döndü = CORS/engel
+            if (errMsg.includes('Unexpected token') || errMsg.includes('unexpected')) {
+                errMsg = 'Binance API\'ye erişilemiyor (Türkiye engeli). PC\'den Firebase çözümünü kullanın veya farklı bir VPN deneyin.';
+            }
+            if (typeof showToast === 'function') showToast('danger', 'Binance Hatası', errMsg);
         }
     },
 
@@ -33106,7 +33186,8 @@ const BinanceConnect = {
 
             try {
                 const symBase = await this._findWorkingBase();
-                const res = await fetch(symBase + '/api/v3/ticker/price?symbol=' + sym);
+                const symUrl = this._buildUrl('/api/v3/ticker/price?symbol=' + sym);
+                const res = await fetch(symUrl);
                 if (res.ok) {
                     const d = await res.json();
                     this._priceMap[sym] = parseFloat(d.price);
