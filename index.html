@@ -20075,7 +20075,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -32915,17 +32915,70 @@ const BinanceConnect = {
         return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
     },
 
-    // Signed API request
+    // Binance API base URL'leri (Türkiye fallback dahil)
+    _apiBase: null,
+    _apiBases: [
+        'https://api.binance.com',
+        'https://api1.binance.com',
+        'https://api2.binance.com',
+        'https://api3.binance.com',
+        'https://api4.binance.com'
+    ],
+
+    // Çalışan base URL'i bul ve cache'le
+    _findWorkingBase: async function() {
+        if (this._apiBase) return this._apiBase;
+        for (let i = 0; i < this._apiBases.length; i++) {
+            try {
+                const res = await fetch(this._apiBases[i] + '/api/v3/ping', { 
+                    signal: AbortSignal.timeout(5000) 
+                });
+                if (res.ok) {
+                    this._apiBase = this._apiBases[i];
+                    console.log('[Binance] Çalışan endpoint bulundu:', this._apiBase);
+                    return this._apiBase;
+                }
+            } catch(e) { continue; }
+        }
+        // Hiçbiri çalışmadıysa varsayılanı dön
+        this._apiBase = this._apiBases[0];
+        return this._apiBase;
+    },
+
+    // Signed API request (çoklu endpoint fallback)
     _apiRequest: async function(method, endpoint, params) {
         const { apiKey, secretKey } = this._getKeys();
         if (!apiKey || !secretKey) throw new Error('API Key gerekli');
+        
+        const base = await this._findWorkingBase();
         const timestamp = Date.now();
         let qs = 'timestamp=' + timestamp + '&recvWindow=10000';
         if (params) qs += '&' + params;
         const signature = await this._sign(secretKey, qs);
-        const url = 'https://api.binance.com' + endpoint + '?' + qs + '&signature=' + signature;
+        const url = base + endpoint + '?' + qs + '&signature=' + signature;
         const opts = { method: method, headers: { 'X-MBX-APIKEY': apiKey } };
-        const res = await fetch(url, opts);
+        
+        let res;
+        try {
+            res = await fetch(url, opts);
+        } catch(networkErr) {
+            // İlk endpoint başarısızsa diğerlerini dene
+            console.warn('[Binance] Endpoint hatası:', base, networkErr.message);
+            this._apiBase = null; // Cache'i temizle
+            const newBase = await this._findWorkingBase();
+            if (newBase !== base) {
+                // Yeni timestamp ile tekrar imzala (süre geçmiş olabilir)
+                const ts2 = Date.now();
+                let qs2 = 'timestamp=' + ts2 + '&recvWindow=10000';
+                if (params) qs2 += '&' + params;
+                const sig2 = await this._sign(secretKey, qs2);
+                const url2 = newBase + endpoint + '?' + qs2 + '&signature=' + sig2;
+                res = await fetch(url2, { method: method, headers: { 'X-MBX-APIKEY': apiKey } });
+            } else {
+                throw new Error('Binance sunucularına bağlanılamıyor. VPN kullanmayı deneyin.');
+            }
+        }
+
         if (!res.ok) {
             const err = await res.json().catch(() => ({}));
             let msg = 'Binance hatası: ';
@@ -32971,7 +33024,8 @@ const BinanceConnect = {
             const balances = (data.balances || []).filter(b => (parseFloat(b.free) + parseFloat(b.locked)) > 0);
 
             document.getElementById('bncLoadingSub').textContent = balances.length + ' varlık, fiyatlar çekiliyor...';
-            const priceRes = await fetch('https://api.binance.com/api/v3/ticker/price');
+            const priceBase = await this._findWorkingBase();
+            const priceRes = await fetch(priceBase + '/api/v3/ticker/price');
             const prices = await priceRes.json();
             this._priceMap = {};
             prices.forEach(p => { this._priceMap[p.symbol] = parseFloat(p.price); });
@@ -33051,7 +33105,8 @@ const BinanceConnect = {
             if (sym.length < 3) { badge.style.display = 'none'; return; }
 
             try {
-                const res = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=' + sym);
+                const symBase = await this._findWorkingBase();
+                const res = await fetch(symBase + '/api/v3/ticker/price?symbol=' + sym);
                 if (res.ok) {
                     const d = await res.json();
                     this._priceMap[sym] = parseFloat(d.price);
@@ -38760,7 +38815,9 @@ var TVOrderManager = (function() {
             var sig = await crypto.subtle.sign('HMAC', cryptoKey, msgData);
             var signature = Array.from(new Uint8Array(sig)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
 
-            var url = 'https://api.binance.com/api/v3/order?' + params + '&signature=' + signature;
+            var url = (typeof BinanceConnect !== 'undefined' && BinanceConnect._apiBase) 
+                ? BinanceConnect._apiBase + '/api/v3/order?' + params + '&signature=' + signature
+                : 'https://api1.binance.com/api/v3/order?' + params + '&signature=' + signature;
 
             var response = await fetch(url, {
                 method: 'POST',
