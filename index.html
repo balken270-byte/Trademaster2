@@ -6945,8 +6945,12 @@ document.addEventListener('DOMContentLoaded', function() {
             <i class="fas fa-chart-bar"></i> İstatistik
         </button>
 
-        <button class="hero-btn action-btn btn-gold" onclick="openPortfolioModal()">
-            <i class="fas fa-exchange-alt"></i> Cüzdan
+        <button class="hero-btn action-btn btn-gold" onclick="openPortfolioModal()" id="heroWalletBtn" style="position:relative;overflow:hidden;">
+            <span id="heroWalletBncBg" style="display:none;position:absolute;inset:0;opacity:0.15;pointer-events:none;display:flex;align-items:center;justify-content:center;">
+                <svg viewBox="0 0 126.61 126.61" width="38" height="38" xmlns="http://www.w3.org/2000/svg"><g fill="#F0B90B"><path d="M38.73 53.2L63.3 28.63l24.59 24.59 14.3-14.3L63.3 0 24.43 38.9z"/><path d="M0 63.31l14.3-14.3 14.3 14.3-14.3 14.29z"/><path d="M38.73 73.41L63.3 97.98l24.59-24.57 14.3 14.28-38.89 38.92-38.87-38.9z"/><path d="M98.01 63.31l14.3-14.3 14.3 14.3-14.3 14.29z"/><path d="M77.83 63.3L63.3 48.78 52.59 59.49l-1.27 1.27-2.62 2.54 14.6 14.6 14.53-14.6z"/></g></svg>
+            </span>
+            <span id="heroWalletIcon"><i class="fas fa-exchange-alt"></i></span>
+            <span id="heroWalletLabel">Cüzdan</span>
         </button>
 
     </div>
@@ -16834,8 +16838,8 @@ function openLabFullscreen() {
                 <div class="ps-section-label">Bağlı Hesaplar</div>
                 <div class="ps-menu-list">
                     <div class="ps-menu-item" onclick="openSubPage('connections')">
-                        <div class="ps-menu-icon" style="background:linear-gradient(135deg,rgba(240,185,11,0.18),rgba(240,185,11,0.06));border:1px solid rgba(240,185,11,0.25);">
-                            <i class="fab fa-bitcoin" style="color:#F0B90B;"></i>
+                        <div class="ps-menu-icon" style="background:linear-gradient(135deg,#F3BA2F,#F0A500);border:1px solid rgba(243,186,47,0.5);">
+                            <svg width="22" height="22" viewBox="0 0 126.61 126.61" xmlns="http://www.w3.org/2000/svg"><g fill="white"><path d="M38.73 53.2L63.3 28.63l24.59 24.59 14.3-14.3L63.3 0 24.43 38.9z"/><path d="M0 63.31l14.3-14.3 14.3 14.3-14.3 14.29z"/><path d="M38.73 73.41L63.3 97.98l24.59-24.57 14.3 14.28-38.89 38.92-38.87-38.9z"/><path d="M98.01 63.31l14.3-14.3 14.3 14.3-14.3 14.29z"/><path d="M77.83 63.3L63.3 48.78 52.59 59.49l-1.27 1.27-2.62 2.54 14.6 14.6 14.53-14.6z"/></g></svg>
                         </div>
                         <div class="ps-menu-text">
                             <div class="ps-menu-title">Borsa Bağlantıları</div>
@@ -17781,8 +17785,8 @@ function openLabFullscreen() {
 
                     <!-- Binance Kartı -->
                     <div class="conn-exchange-card" id="connBinanceCard" onclick="toggleBinanceForm()">
-                        <div class="conn-exchange-logo" style="background:linear-gradient(135deg,rgba(240,185,11,0.15),rgba(240,185,11,0.05));border:1px solid rgba(240,185,11,0.3);">
-                            <i class="fab fa-bitcoin" style="color:#F0B90B;font-size:22px;"></i>
+                        <div class="conn-exchange-logo" style="background:linear-gradient(135deg,#F3BA2F,#F0A500);border:1px solid rgba(243,186,47,0.6);">
+                            <svg width="26" height="26" viewBox="0 0 126.61 126.61" xmlns="http://www.w3.org/2000/svg"><g fill="white"><path d="M38.73 53.2L63.3 28.63l24.59 24.59 14.3-14.3L63.3 0 24.43 38.9z"/><path d="M0 63.31l14.3-14.3 14.3 14.3-14.3 14.29z"/><path d="M38.73 73.41L63.3 97.98l24.59-24.57 14.3 14.28-38.89 38.92-38.87-38.9z"/><path d="M98.01 63.31l14.3-14.3 14.3 14.3-14.3 14.29z"/><path d="M77.83 63.3L63.3 48.78 52.59 59.49l-1.27 1.27-2.62 2.54 14.6 14.6 14.53-14.6z"/></g></svg>
                         </div>
                         <div class="conn-exchange-info">
                             <div class="conn-exchange-name">Binance</div>
@@ -20160,7 +20164,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.0"; 
+    const CURRENT_VERSION = "2.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -21524,6 +21528,25 @@ async function loadPF(refreshData = false) {
 
     /* --- GÜNCELLENMİŞ CÜZDAN GÖRÜNÜMÜ (KAYNAK ETİKETLİ) --- */
 function renderPortfolioHTML(as) {
+    // Binance aktif cüzdanında nakit = USDT bakiyesi (otomatik)
+    try {
+        var _db = JSON.parse(localStorage.getItem('tm_all_portfolios') || '{}');
+        if ((_db.activeID || '').startsWith('pf_bnc_') && typeof BinanceConnect !== 'undefined') {
+            var _usdt = (BinanceConnect._fetchedAssets || []).find(function(a){ return a.asset === 'USDT' || a.asset === 'BUSD' || a.asset === 'FDUSD'; });
+            if (_usdt) {
+                var _usdtVal = _usdt.usdValue || _usdt.free || 0;
+                // Kur farkı (TRY mi USD mi?)
+                var _bnCash = (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY' && typeof usdTryRate !== 'undefined')
+                    ? _usdtVal * usdTryRate : _usdtVal;
+                cashBalance = _bnCash;
+                localStorage.setItem('tm_cash_balance', String(_bnCash));
+            } else if (BinanceConnect._fetchedAssets && BinanceConnect._fetchedAssets.length > 0) {
+                // Bağlı ama USDT yok
+                cashBalance = 0;
+                localStorage.setItem('tm_cash_balance', '0');
+            }
+        }
+    } catch(e) {}
     let l = document.getElementById('portfolioList'); 
     if(!l) return;
     
@@ -21742,7 +21765,9 @@ checkAllAlarms();
     function updateHeaderTotals(totalVal, totalUnrealizedPnL, chartData) {
         let sym = appSettings.currency==='TRY'?'₺':'$';
         let grandTotal = totalVal + cashBalance; 
-        document.getElementById('totalWallet').innerText = sym + grandTotal.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0}); 
+        // Negatif değeri de göster (Math.max kaldırıldı)
+        let grandTotalStr = (grandTotal < 0 ? '-' : '') + sym + Math.abs(grandTotal).toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        document.getElementById('totalWallet').innerText = grandTotalStr;
         document.getElementById('cashBalance').innerText = sym + cashBalance.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0}); 
         document.getElementById('realizedPnLVal').innerText = sym + realizedPnL.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
         const hero = document.querySelector('.balance-hero'); 
@@ -21757,6 +21782,26 @@ checkAllAlarms();
         var _privIDs = ["totalWallet","cashBalance","realizedPnLVal"];
         _privIDs.forEach(function(id){ var el=document.getElementById(id); if(el){ el.classList.toggle("privacy-blur", isPrivacyMode); } });
         document.querySelectorAll(".asset-pnl").forEach(function(el){ el.classList.toggle("privacy-blur", isPrivacyMode); });
+
+        // Cüzdan butonu — Binance aktifse logo göster
+        try {
+            var _db = JSON.parse(localStorage.getItem('tm_all_portfolios') || '{}');
+            var _isBnc = (_db.activeID || '').startsWith('pf_bnc_');
+            var _wBtn = document.getElementById('heroWalletBtn');
+            var _wBg = document.getElementById('heroWalletBncBg');
+            var _wLabel = document.getElementById('heroWalletLabel');
+            if (_wBtn && _wBg) {
+                _wBg.style.display = _isBnc ? 'flex' : 'none';
+                if (_wLabel) _wLabel.textContent = _isBnc ? 'Binance' : 'Cüzdan';
+                if (_isBnc) {
+                    _wBtn.style.borderColor = 'rgba(240,185,11,0.5)';
+                    _wBtn.style.background = 'rgba(240,185,11,0.12)';
+                } else {
+                    _wBtn.style.borderColor = '';
+                    _wBtn.style.background = '';
+                }
+            }
+        } catch(e) {}
     }
     
     function setTradeSearchMode(mode, btn) {
@@ -22084,6 +22129,14 @@ function logHistory(type, s, a, p, desc='', curr = null, pnl = 0, details = {}) 
     // --- NAKİT İŞLEMLERİ ---
     function modifyCash(m) { openCashModal(); }
     function openCashModal(defaultType) {
+        // Binance cüzdanında nakit ekleme/çıkarma engellendi
+        try {
+            var _db = JSON.parse(localStorage.getItem('tm_all_portfolios') || '{}');
+            if ((_db.activeID || '').startsWith('pf_bnc_')) {
+                if (typeof showToast === 'function') showToast('warning', 'Binance Cüzdanı', 'Nakit eklenemez. Bakiye otomatik Binance üzerinden hesaplanır.');
+                return;
+            }
+        } catch(e) {}
         var t = defaultType || 'in';
         document.getElementById('cashModal').style.display = 'flex';
         document.getElementById('cashAmountInput').value = '';
@@ -23534,31 +23587,29 @@ async function checkAllAlarms() {
         let asset = as[i];
         if(!asset) return;
 
-        // ── BİNANCE CÜZDANIYSA: Modal açma, direkt Hızlı İşlem'e yönlendir ──
+        // ── BİNANCE CÜZDANIYSA: Satış modalını aç, onaylayınca Binance API'ye git ──
         try {
             const db = JSON.parse(localStorage.getItem('tm_all_portfolios') || '{}');
             const activeID = db.activeID || '';
             if (activeID.startsWith('pf_bnc_') && typeof BinanceConnect !== 'undefined') {
-                const sym = (asset.name || '').replace('USDT','').replace('BUSD','') + 'USDT';
-                const amt = asset.amt;
-                var htSym = document.getElementById('htSymbol');
-                var htQ = document.getElementById('htQty');
-                if (htSym) htSym.value = sym;
-                if (htQ) htQ.value = amt;
-                _htCurrentPrice = asset.curr || asset.buy || 0;
-                htCalcTotal();
-                var tc = document.getElementById('tradeContent');
-                if (tc && tc.classList.contains('collapsed')) toggleTradeMenu();
-                var tradeCard = document.getElementById('tradeCard');
-                if (tradeCard) tradeCard.scrollIntoView({behavior:'smooth', block:'start'});
-                BinanceConnect.subTab('trade', document.querySelectorAll('.bnc-sub-tab')[1]);
-                var symInp = document.getElementById('bncTradeSymbol');
-                var qtyInp = document.getElementById('bncTradeQty');
-                if (symInp) symInp.value = sym;
-                if (qtyInp) qtyInp.value = amt;
-                BinanceConnect.onSymbolInput(sym);
-                BinanceConnect.calcTradeTotal();
-                showToast('info', 'Binance Satış', sym + ' Hızlı İşlem\'e yüklendi. SAT butonuna bas.');
+                const sym = (asset.name || '').replace(/USDT$|BUSD$/,'') + 'USDT';
+                // Satış modalını aç - fiyatı $'a çevir
+                document.getElementById('sellIdx').value = i;
+                document.getElementById('sellMaxAmt').innerText = asset.amt;
+                document.getElementById('sellAmt').value = '';
+                exitCurrency = 'USD';
+                var btn = document.getElementById('sellCurrencyToggle');
+                if (btn) { btn.innerText = '$'; btn.className = 'currency-toggle-btn active-usd'; }
+                var currentP = asset.curr || asset.buy || 0;
+                // Fiyat TRY'deyse USD'ye çevir
+                if (asset.origin === 'TRY' && typeof usdTryRate !== 'undefined') currentP = currentP / usdTryRate;
+                document.getElementById('sellPrice').value = currentP.toFixed(6);
+                document.getElementById('sellSummaryBox').style.display = 'none';
+                // Başlığa sembol ekle
+                var hdr = document.querySelector('#sellModal .card-title');
+                if (hdr) hdr.textContent = 'SATIŞ EMRİ — ' + sym.replace('USDT','');
+                document.getElementById('sellModal').style.display = 'flex';
+                calcSellPreview();
                 return;
             }
         } catch(e) { console.warn('openSell Binance check:', e); }
@@ -23566,14 +23617,16 @@ async function checkAllAlarms() {
         // Normal portföy → sellModal aç
         document.getElementById('sellIdx').value = i;
         document.getElementById('sellMaxAmt').innerText = asset.amt;
-        document.getElementById('sellAmt').value = "";
+        document.getElementById('sellAmt').value = '';
         exitCurrency = asset.origin;
-        let btn = document.getElementById('sellCurrencyToggle');
-        if(exitCurrency === 'TRY') { btn.innerText = '₺'; btn.className = 'currency-toggle-btn active-try'; }
-        else { btn.innerText = '$'; btn.className = 'currency-toggle-btn active-usd'; }
-        let currentP = asset.curr || asset.buy;
+        var btnSell = document.getElementById('sellCurrencyToggle');
+        if(exitCurrency === 'TRY') { btnSell.innerText = '₺'; btnSell.className = 'currency-toggle-btn active-try'; }
+        else { btnSell.innerText = '$'; btnSell.className = 'currency-toggle-btn active-usd'; }
+        var currentP = asset.curr || asset.buy;
         document.getElementById('sellPrice').value = currentP.toFixed(2);
         document.getElementById('sellSummaryBox').style.display = 'none';
+        var hdrSell = document.querySelector('#sellModal .card-title');
+        if (hdrSell) hdrSell.textContent = 'SATIŞ EMRİ';
         document.getElementById('sellModal').style.display = 'flex';
         calcSellPreview();
     }
@@ -23605,31 +23658,62 @@ function confirmSell() {
         const activeID = db.activeID || '';
         if (activeID.startsWith('pf_bnc_') && typeof BinanceConnect !== 'undefined') {
             document.getElementById('sellModal').style.display = 'none';
-            // Sembolü al (TRUMPUSDT → TRUMP için)
-            const sym = (ast.name || '').replace('USDT','').replace('BUSD','') + 'USDT';
-            // Binance AL/SAT paneline yönlendir
-            BinanceConnect.subTab('trade', document.querySelectorAll('.bnc-sub-tab')[1]);
-            const symInp = document.getElementById('bncTradeSymbol');
-            const qtyInp = document.getElementById('bncTradeQty');
-            if (symInp) symInp.value = sym;
-            if (qtyInp) qtyInp.value = amt;
-            BinanceConnect.onSymbolInput(sym);
-            BinanceConnect.calcTradeTotal();
-            // Portföy panelini aç
-            if (typeof MultiPortfolio !== 'undefined') MultiPortfolio.open();
-            // Hızlı İşlem paneline sembol ve miktarı doldur
+            const sym = (ast.name || '').replace(/USDT$|BUSD$/,'') + 'USDT';
+            // Hızlı İşleme de doldur (görsel feedback)
             var htSym = document.getElementById('htSymbol');
             var htQ = document.getElementById('htQty');
             if (htSym) htSym.value = sym;
             if (htQ) htQ.value = amt;
             _htCurrentPrice = ast.curr || ast.buy || 0;
-            htCalcTotal();
-            // Hızlı İşlem'i aç ve scroll et
-            var tc = document.getElementById('tradeContent');
-            if (tc && tc.classList.contains('collapsed')) toggleTradeMenu();
-            var tradeCard = document.getElementById('tradeCard');
-            if (tradeCard) tradeCard.scrollIntoView({behavior:'smooth', block:'start'});
-            showToast('info', 'Binance Satış', sym + ' Hızlı İşlem\'e yüklendi. SAT butonuna bas.');
+            if (typeof htCalcTotal === 'function') htCalcTotal();
+            // Doğrudan Binance market satış emri gönder
+            showToast('info', 'Binance', sym + ' satış emri gönderiliyor...');
+            (async function() {
+                try {
+                    // Miktar hassasiyeti için önce lot size bilgisi al
+                    var infoUrl = BinanceConnect._WORKER_URL + '/binance/api/v3/exchangeInfo?symbol=' + sym;
+                    var infoRes = await fetch(infoUrl);
+                    var quantity = parseFloat(amt);
+                    if (infoRes.ok) {
+                        var info = await infoRes.json();
+                        var filters = (info.symbols && info.symbols[0] && info.symbols[0].filters) || [];
+                        var lotFilter = filters.find(function(f){ return f.filterType === 'LOT_SIZE'; });
+                        if (lotFilter) {
+                            var stepSize = parseFloat(lotFilter.stepSize);
+                            var precision = stepSize.toString().indexOf('.') >= 0 ? stepSize.toString().split('.')[1].replace(/0+$/,'').length : 0;
+                            quantity = parseFloat(quantity.toFixed(precision));
+                        }
+                    }
+                    var keys = await BinanceConnect._getKeys();
+                    if (!keys.apiKey || !keys.secretKey) {
+                        showToast('danger', 'Binance Hata', 'API anahtarı bulunamadı. Ayarlar → Borsa Bağlantıları');
+                        return;
+                    }
+                    var ts = Date.now();
+                    var params = 'symbol=' + sym + '&side=SELL&type=MARKET&quantity=' + quantity + '&timestamp=' + ts;
+                    var sig = await BinanceConnect._hmac(params, keys.secretKey);
+                    params += '&signature=' + sig;
+                    var orderUrl = BinanceConnect._WORKER_URL + '/binance/api/v3/order';
+                    var orderRes = await fetch(orderUrl, {
+                        method: 'POST',
+                        headers: { 'X-MBX-APIKEY': keys.apiKey, 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: params
+                    });
+                    var orderData = await orderRes.json();
+                    if (orderRes.ok && orderData.orderId) {
+                        showToast('success', '✅ Binance Satış', sym + ' ' + quantity + ' adet market emri verildi. #' + orderData.orderId);
+                        // Portföyü güncelle
+                        setTimeout(function(){ BinanceConnect.connect(); }, 2000);
+                    } else {
+                        var errMsg = orderData.msg || orderData.message || JSON.stringify(orderData);
+                        showToast('danger', '❌ Binance Hata', sym + ': ' + errMsg);
+                        console.error('[Binance Satış Hatası]', orderData);
+                    }
+                } catch(orderErr) {
+                    showToast('danger', '❌ Bağlantı Hatası', orderErr.message || 'Bilinmeyen hata');
+                    console.error('[Binance Satış]', orderErr);
+                }
+            })();
             return;
         }
     } catch(e) { console.warn('Binance sell check:', e); } 
@@ -32761,8 +32845,11 @@ function renderActiveAlarmsList() {
     // ── Alarmlar boşsa ve emir de yoksa ──
     var pendingCount = 0;
     try { pendingCount = JSON.parse(localStorage.getItem('tv_active_orders') || '[]').filter(function(o){ return o.status === 'PENDING'; }).length; } catch(e){}
+    // Binance bağlıysa boş mesaj gösterme (emirler async yüklenecek)
+    var hasBnc = false;
+    try { var _bCfg = JSON.parse(localStorage.getItem('tm_binance_config')||'{}'); hasBnc = !!((_bCfg.apiKey && _bCfg.uid)); } catch(e) {}
 
-    if (alarms.length === 0 && pendingCount === 0) {
+    if (alarms.length === 0 && pendingCount === 0 && !hasBnc) {
         list.innerHTML = `
             <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:52px 20px;gap:12px;">
                 <div style="width:56px;height:56px;border-radius:18px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;">
@@ -32874,6 +32961,93 @@ function renderActiveAlarmsList() {
         `;
         list.appendChild(li);
     });
+
+    // ── SON: Binance Açık Emirleri ──────────────────────────────────
+    _renderBinanceOpenOrders(list);
+}
+
+// Binance açık emirlerini bildirim listesine ekle
+async function _renderBinanceOpenOrders(list) {
+    try {
+        var cfg = JSON.parse(localStorage.getItem('tm_binance_config') || '{}');
+        if (!cfg || !cfg.apiKey || !cfg.uid) return;
+        if (typeof BinanceConnect === 'undefined') return;
+
+        // Önce placeholder göster
+        var placeholder = document.createElement('li');
+        placeholder.id = 'bncOrdersPlaceholder';
+        placeholder.style.cssText = 'list-style:none;';
+        placeholder.innerHTML = '<div style="font-size:10px;font-weight:800;color:#F0B90B;text-transform:uppercase;letter-spacing:.8px;padding:8px 10px 4px;display:flex;align-items:center;gap:6px;">'
+            + '<svg width="11" height="11" viewBox="0 0 32 32" fill="none"><path d="M12.116 13.884L16 10l3.886 3.886 2.263-2.263L16 5.474l-6.149 6.147 2.265 2.263zM5.474 16l2.263-2.263 2.263 2.263-2.263 2.263L5.474 16zm6.642 2.116L16 22l3.886-3.886 2.264 2.262L16 26.526l-6.149-6.147-.002-.002 2.267-2.261zm10.147-2.116 2.263-2.263 2.263 2.263-2.263 2.263-2.263-2.263zm-3.857-.002-2.406-2.408-.002.002-.002-.002L14 15.588l-.001.002-.001-.002-2.406 2.408L16 22.412l4.406-4.414z" fill="#F0B90B"/></svg>'
+            + ' Binance Emirleri <span style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:7px;background:#F0B90B;color:#000;font-size:9px;font-weight:800;"><i class="fas fa-spinner fa-spin" style="font-size:7px;"></i></span></div>';
+        list.appendChild(placeholder);
+
+        // API'den emirleri çek
+        var orders = await BinanceConnect._apiRequest('GET', '/api/v3/openOrders', '');
+        
+        // Placeholder'ı kaldır
+        var ph = document.getElementById('bncOrdersPlaceholder');
+        if (ph) ph.remove();
+
+        if (!orders || orders.length === 0) return;
+
+        // Başlık
+        var header = document.createElement('li');
+        header.style.cssText = 'list-style:none;padding:0 4px;';
+        header.innerHTML = '<div style="font-size:10px;font-weight:800;color:#F0B90B;text-transform:uppercase;letter-spacing:.8px;padding:8px 10px 4px;display:flex;align-items:center;gap:6px;">'
+            + '<svg width="11" height="11" viewBox="0 0 32 32" fill="none"><path d="M12.116 13.884L16 10l3.886 3.886 2.263-2.263L16 5.474l-6.149 6.147 2.265 2.263zM5.474 16l2.263-2.263 2.263 2.263-2.263 2.263L5.474 16zm6.642 2.116L16 22l3.886-3.886 2.264 2.262L16 26.526l-6.149-6.147-.002-.002 2.267-2.261zm10.147-2.116 2.263-2.263 2.263 2.263-2.263 2.263-2.263-2.263zm-3.857-.002-2.406-2.408-.002.002-.002-.002L14 15.588l-.001.002-.001-.002-2.406 2.408L16 22.412l4.406-4.414z" fill="#F0B90B"/></svg>'
+            + ' Binance Emirleri <span style="display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:8px;background:#F0B90B;color:#000;font-size:9px;font-weight:800;padding:0 4px;">' + orders.length + '</span></div>';
+        list.appendChild(header);
+
+        // Emirleri render et
+        orders.forEach(function(o, idx) {
+            var isBuy = o.side === 'BUY';
+            var sym = (o.symbol || '').replace('USDT','').replace('BUSD','');
+            var initials = sym.slice(0, 2).toUpperCase();
+            var date = new Date(o.time).toLocaleString('tr-TR', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
+            var typeLabel = o.type === 'LIMIT' ? 'LİMİT' : o.type === 'STOP_LOSS_LIMIT' ? 'STOP LİMİT' : o.type;
+
+            var li = document.createElement('li');
+            li.style.cssText = 'position:relative;overflow:hidden;'
+                + 'background:linear-gradient(135deg,rgba(240,185,11,0.06) 0%,rgba(255,255,255,0.02) 100%);'
+                + 'border:1px solid rgba(240,185,11,0.2);'
+                + 'border-left:3px solid ' + (isBuy ? '#10b981' : '#ef4444') + ';'
+                + 'border-radius:18px;padding:12px 14px;'
+                + 'animation:alarmCardIn 0.35s cubic-bezier(0.34,1.3,0.64,1) ' + (idx*0.06) + 's both;';
+
+            li.innerHTML = '<div style="display:flex;align-items:center;gap:10px;">'
+                + '<div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,rgba(240,185,11,0.2),rgba(240,185,11,0.06));border:1px solid rgba(240,185,11,0.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#F0B90B;flex-shrink:0;">' + initials + '</div>'
+                + '<div style="flex:1;min-width:0;">'
+                    + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">'
+                        + '<span style="font-size:14px;font-weight:800;color:#fff;">' + o.symbol + '</span>'
+                        + '<span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:6px;background:' + (isBuy ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)') + ';color:' + (isBuy ? '#10b981' : '#ef4444') + ';border:1px solid ' + (isBuy ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)') + ';">' + (isBuy ? 'AL' : 'SAT') + '</span>'
+                        + '<span style="font-size:9px;font-weight:600;padding:1px 5px;border-radius:5px;background:rgba(240,185,11,0.1);color:#F0B90B;border:1px solid rgba(240,185,11,0.2);">BİNANCE</span>'
+                        + '<span style="font-size:9px;color:var(--text-sub);">' + typeLabel + '</span>'
+                    + '</div>'
+                    + '<div style="font-size:11px;color:var(--text-sub);">Miktar: <b style="color:#e5e7eb;">' + parseFloat(o.origQty).toLocaleString('en-US',{maximumFractionDigits:6}) + '</b> @ <b style="color:#F0B90B;">$' + parseFloat(o.price||0).toLocaleString('en-US',{maximumFractionDigits:6}) + '</b> · ' + date + '</div>'
+                + '</div>'
+                + '<button onclick="BinanceConnect.cancelOrder(\'' + o.symbol + '\',' + o.orderId + ');this.closest(\'li\').remove();" '
+                    + 'style="width:32px;height:32px;border-radius:10px;border:1px solid rgba(239,68,68,0.25);background:rgba(239,68,68,0.08);color:#ef4444;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;" '
+                    + 'title="İptal et">'
+                    + '<i class="fas fa-times" style="font-size:12px;"></i></button>'
+                + '</div>';
+
+            list.appendChild(li);
+        });
+
+        // Bekleyen emir sayacını güncelle
+        var badge = document.querySelector('.notif-badge, #pendingBadge, [id*="pending"]');
+        try {
+            var existingCount = parseInt(document.querySelector('[id*="pendingCount"]')?.textContent || '0');
+            // Toplam sayıyı güncelle varsa
+        } catch(e) {}
+
+    } catch(err) {
+        // Bağlantı yoksa veya hata varsa sessizce geç
+        var ph = document.getElementById('bncOrdersPlaceholder');
+        if (ph) ph.remove();
+        console.log('[Binance Orders]', err.message);
+    }
 }
 
 // 3. Alarm Silme — onaysız, parçalama animasyonuyla
@@ -33028,20 +33202,25 @@ const MultiPortfolio = {
             let checkHtml = isActive
                 ? `<div class="pf-wallet-check checked"><i class="fas fa-check" style="font-size:10px;color:white;"></i></div>`
                 : `<div class="pf-wallet-check"></div>`;
-            const isBnc = key.startsWith('pf_bnc_');
-            const bncBgOverlay = isBnc ? `
+            const _exReg = (typeof ExchangeRegistry !== 'undefined') ? ExchangeRegistry : null;
+            const _ex = _exReg ? _exReg.getByPrefix(key) : null;
+            const isBnc = !!_ex;
+            const _exColor = _ex ? _ex.color : null;
+            const _exRgb = (_ex && _exReg) ? _exReg._hexToRgb(_ex.color) : '240,185,11';
+            const exBgOverlay = _ex ? `
                 <div style="position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none;z-index:0;">
-                    <svg style="position:absolute;right:-18px;bottom:-18px;opacity:0.07;width:130px;height:130px;" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12.116 13.884L16 10l3.886 3.886 2.263-2.263L16 5.474l-6.149 6.147 2.265 2.263zM5.474 16l2.263-2.263 2.263 2.263-2.263 2.263L5.474 16zm6.642 2.116L16 22l3.886-3.886 2.264 2.262L16 26.526l-6.149-6.147-.002-.002 2.267-2.261zm10.147-2.116 2.263-2.263 2.263 2.263-2.263 2.263-2.263-2.263zm-3.857-.002-2.406-2.408-.002.002-.002-.002L14 15.588l-.001.002-.001-.002-2.406 2.408L16 22.412l4.406-4.414z" fill="#F0B90B"/>
-                    </svg>
-                    <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(240,185,11,0.06) 0%,transparent 60%);border-radius:inherit;"></div>
+                    <div style="position:absolute;right:-15px;bottom:-15px;opacity:0.08;width:110px;height:110px;">${_ex.getSvg(110, _exColor)}</div>
+                    <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(${_exRgb},0.07) 0%,transparent 60%);border-radius:inherit;"></div>
                 </div>` : '';
+            const _avatarBg = _ex ? 'background:linear-gradient(135deg,' + _exColor + ',' + _exColor + 'cc)' : 'background:linear-gradient(135deg,'+p.color+'33,'+p.color+'11)';
+            const _avatarBorder = _ex ? 'border:1.5px solid rgba(' + _exRgb + ',0.7)' : 'border:1.5px solid '+p.color+'44';
+            const _avatarContent = _ex ? _ex.getSvg(44, 'white') : p.emoji;
             html += `
-            <div class="pf-wallet-card ${isActive?'active-wallet':''}" onclick="MultiPortfolio.switch('${key}')" style="${isBnc ? 'border-color:rgba(240,185,11,0.25);position:relative;' : 'position:relative;'}">
-                ${bncBgOverlay}
+            <div class="pf-wallet-card ${isActive?'active-wallet':''}" onclick="MultiPortfolio.switch('${key}')" style="${_ex && isActive ? 'background:linear-gradient(135deg,rgba('+_exRgb+',0.14),rgba('+_exRgb+',0.04));border-color:rgba('+_exRgb+',0.55);box-shadow:0 6px 28px rgba('+_exRgb+',0.25);' : _ex ? 'border-color:rgba('+_exRgb+',0.3);' : ''}position:relative;">
+                ${exBgOverlay}
                 <div class="pf-wallet-glow" style="background:radial-gradient(circle,${p.color}22 0%,transparent 70%)"></div>
                 <div class="pf-wallet-top" style="position:relative;z-index:1;">
-                    <div class="pf-wallet-avatar" style="background:linear-gradient(135deg,${p.color}33,${p.color}11);border:1.5px solid ${p.color}44;">${isBnc ? '<svg width="52" height="52" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="0" fill="#F3BA2F"/><path d="M12.116 13.884L16 10l3.886 3.886 2.263-2.263L16 5.474l-6.149 6.147 2.265 2.263zM5.474 16l2.263-2.263 2.263 2.263-2.263 2.263L5.474 16zm6.642 2.116L16 22l3.886-3.886 2.264 2.262L16 26.526l-6.149-6.147-.002-.002 2.267-2.261zm10.147-2.116 2.263-2.263 2.263 2.263-2.263 2.263-2.263-2.263zm-3.857-.002-2.406-2.408-.002.002-.002-.002L14 15.588l-.001.002-.001-.002-2.406 2.408L16 22.412l4.406-4.414z" fill="white"/></svg>' : p.emoji}</div>
+                    <div class="pf-wallet-avatar" style="${_avatarBg};${_avatarBorder};">${_avatarContent}</div>
                     <div class="pf-wallet-info">
                         <div class="pf-wallet-name">${p.name}${isActive?'<span class="pf-wallet-badge">AKTİF</span>':''}</div>
                         <div class="pf-wallet-meta">${hist.length} işlem geçmişi</div>
@@ -33239,6 +33418,127 @@ document.addEventListener('DOMContentLoaded', function() {
     if (pModal) pModal.addEventListener('click', function(e) { if (e.target === pModal) MultiPortfolio.close(); });
     MultiPortfolio.init();
 });
+
+// ============================================================
+//  EXCHANGE REGISTRY — Çoklu Borsa Altyapısı
+//  Yeni borsa eklemek için bu registry'e kayıt yeterli
+// ============================================================
+const ExchangeRegistry = {
+    exchanges: {
+        binance: {
+            id: 'binance',
+            name: 'Binance',
+            prefix: 'pf_bnc_',          // localStorage cüzdan prefix
+            color: '#F3BA2F',
+            currency: 'USD',             // işlem para birimi
+            stables: ['USDT','BUSD','USDC','FDUSD','TUSD','DAI'],
+            isConnected: function() {
+                try { var c = JSON.parse(localStorage.getItem('tm_binance_config')||'{}'); return !!(c.apiKey && c.uid); } catch(e){ return false; }
+            },
+            getConfig: function() {
+                try { return JSON.parse(localStorage.getItem('tm_binance_config')||'{}'); } catch(e){ return {}; }
+            },
+            disconnect: function() { localStorage.removeItem('tm_binance_config'); },
+            module: null,  // BinanceConnect referansı (aşağıda atanacak)
+            // SVG logosu - beyaz paths, viewBox 0 0 126.61 126.61
+            svgPaths: 'M38.73 53.2L63.3 28.63l24.59 24.59 14.3-14.3L63.3 0 24.43 38.9zM0 63.31l14.3-14.3 14.3 14.3-14.3 14.29zM38.73 73.41L63.3 97.98l24.59-24.57 14.3 14.28-38.89 38.92-38.87-38.9zM98.01 63.31l14.3-14.3 14.3 14.3-14.3 14.29zM77.83 63.3L63.3 48.78 52.59 59.49l-1.27 1.27-2.62 2.54 14.6 14.6 14.53-14.6z',
+            getSvg: function(size, fillColor) {
+                size = size || 44; fillColor = fillColor || 'white';
+                return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 126.61 126.61" xmlns="http://www.w3.org/2000/svg"><g fill="' + fillColor + '"><path d="M38.73 53.2L63.3 28.63l24.59 24.59 14.3-14.3L63.3 0 24.43 38.9z"/><path d="M0 63.31l14.3-14.3 14.3 14.3-14.3 14.29z"/><path d="M38.73 73.41L63.3 97.98l24.59-24.57 14.3 14.28-38.89 38.92-38.87-38.9z"/><path d="M98.01 63.31l14.3-14.3 14.3 14.3-14.3 14.29z"/><path d="M77.83 63.3L63.3 48.78 52.59 59.49l-1.27 1.27-2.62 2.54 14.6 14.6 14.53-14.6z"/></g></svg>';
+            }
+        },
+        // ── Yakında: OKX ──────────────────────────────────────
+        okx: {
+            id: 'okx', name: 'OKX', prefix: 'pf_okx_',
+            color: '#FFFFFF', currency: 'USD', stables: ['USDT','USDC'],
+            isConnected: function() { return false; },
+            getConfig: function() { return {}; },
+            disconnect: function() {},
+            module: null,
+            getSvg: function(size, fillColor) {
+                size = size || 44; fillColor = fillColor || 'white';
+                return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="35" y="35" width="30" height="30" rx="4" fill="' + fillColor + '"/><rect x="5" y="35" width="25" height="25" rx="4" fill="' + fillColor + '" opacity="0.7"/><rect x="70" y="35" width="25" height="25" rx="4" fill="' + fillColor + '" opacity="0.7"/><rect x="35" y="5" width="25" height="25" rx="4" fill="' + fillColor + '" opacity="0.7"/><rect x="35" y="70" width="25" height="25" rx="4" fill="' + fillColor + '" opacity="0.7"/></svg>';
+            }
+        },
+        // ── Yakında: Bybit ─────────────────────────────────────
+        bybit: {
+            id: 'bybit', name: 'Bybit', prefix: 'pf_bybit_',
+            color: '#F7A600', currency: 'USD', stables: ['USDT','USDC'],
+            isConnected: function() { return false; },
+            getConfig: function() { return {}; },
+            disconnect: function() {},
+            module: null,
+            getSvg: function(size, fillColor) {
+                size = size || 44; fillColor = fillColor || 'white';
+                return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M10 20h35c15 0 25 8 25 20s-10 20-25 20H10V20z" fill="' + fillColor + '" opacity="0.9"/><path d="M10 62h40c15 0 25 8 25 21s-10 17-25 17H10V62z" fill="' + fillColor + '"/></svg>';
+            }
+        },
+        // ── Yakında: BIST ──────────────────────────────────────
+        bist: {
+            id: 'bist', name: 'BIST', prefix: 'pf_bist_',
+            color: '#E30613', currency: 'TRY', stables: [],
+            isConnected: function() { return false; },
+            getConfig: function() { return {}; },
+            disconnect: function() {},
+            module: null,
+            getSvg: function(size, fillColor) {
+                size = size || 44; fillColor = fillColor || 'white';
+                return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 10L61 38H91L67 56L77 84L50 67L23 84L33 56L9 38H39Z" fill="' + fillColor + '"/></svg>';
+            }
+        },
+        // ── Yakında: Coinbase ──────────────────────────────────
+        coinbase: {
+            id: 'coinbase', name: 'Coinbase', prefix: 'pf_cb_',
+            color: '#1652F0', currency: 'USD', stables: ['USDC','USDT'],
+            isConnected: function() { return false; },
+            getConfig: function() { return {}; },
+            disconnect: function() {},
+            module: null,
+            getSvg: function(size, fillColor) {
+                size = size || 44; fillColor = fillColor || 'white';
+                return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="45" fill="none" stroke="' + fillColor + '" stroke-width="8"/><path d="M67 38a22 22 0 1 0 0 24" stroke="' + fillColor + '" stroke-width="8" fill="none" stroke-linecap="round"/></svg>';
+            }
+        }
+    },
+
+    // Prefix'ten exchange bul
+    getByPrefix: function(prefix) {
+        return Object.values(this.exchanges).find(function(e){ return prefix && prefix.startsWith(e.prefix); }) || null;
+    },
+
+    // Aktif cüzdanın exchange'ini bul
+    getActiveExchange: function() {
+        try {
+            var db = JSON.parse(localStorage.getItem('tm_all_portfolios') || '{}');
+            return this.getByPrefix(db.activeID || '');
+        } catch(e) { return null; }
+    },
+
+    // Aktif cüzdan bir exchange cüzdanı mı?
+    isExchangeWallet: function() {
+        return this.getActiveExchange() !== null;
+    },
+
+    // Cüzdan kartı için SVG avatar HTML'i üret
+    getAvatarHtml: function(walletKey, size) {
+        var ex = this.getByPrefix(walletKey);
+        if (!ex) return null;
+        return ex.getSvg(size || 44, 'white');
+    },
+
+    // Cüzdan kartı için arka plan stili üret
+    getCardStyle: function(walletKey) {
+        var ex = this.getByPrefix(walletKey);
+        if (!ex) return '';
+        return 'border-color:rgba(' + this._hexToRgb(ex.color) + ',0.3);background:linear-gradient(135deg,rgba(' + this._hexToRgb(ex.color) + ',0.08),rgba(0,0,0,0));';
+    },
+
+    // Hex rengi RGB'ye çevir
+    _hexToRgb: function(hex) {
+        var r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+        return r + ',' + g + ',' + b;
+    }
+};
 
 // ============================================================
 //  BINANCE BAĞLANTI MODÜLÜ — v2.0 (TRADE ENABLED)
@@ -34401,7 +34701,13 @@ const BinanceConnect = {
 
 // Binance init
 document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(function() { BinanceConnect.init(); }, 500);
+    setTimeout(function() {
+        BinanceConnect.init();
+        // ExchangeRegistry'ye BinanceConnect modülünü bağla
+        if (typeof ExchangeRegistry !== 'undefined') {
+            ExchangeRegistry.exchanges.binance.module = BinanceConnect;
+        }
+    }, 500);
 });
 
 // ═══ BİNANCE HIZLI İŞLEM (Inline Trade Panel) ═══
@@ -34423,6 +34729,18 @@ function htTogglePanels() {
     if (!normal || !bnc) return;
     normal.style.display = isBnc ? 'none' : 'block';
     bnc.style.display = isBnc ? 'block' : 'none';
+
+    // Binance aktifken giriş para birimi otomatik USD olsun
+    if (isBnc && typeof setEntryCurrency === 'function') {
+        setEntryCurrency('USD');
+    }
+    // Satış para birimi de USD
+    if (isBnc && typeof exitCurrency !== 'undefined') {
+        var sellBtn = document.getElementById('sellCurrencyToggle');
+        if (sellBtn && exitCurrency === 'TRY') {
+            if (typeof toggleExitCurrency === 'function') toggleExitCurrency();
+        }
+    }
 }
 
 function htSetMode(mode, el) {
