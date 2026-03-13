@@ -20114,7 +20114,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.0"; 
+    const CURRENT_VERSION = "1.8"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -33499,7 +33499,7 @@ const BinanceConnect = {
             await this._findWorkingBase();
             document.getElementById('bncLoadingSub').textContent = (this._useProxy ? 'Proxy üzerinden bağlanıldı' : 'Direkt bağlantı') + ' — hesap sorgulanıyor...';
             const data = await this._apiRequest('GET', '/api/v3/account', '');
-            const balances = (data.balances || []).filter(b => (parseFloat(b.free) + parseFloat(b.locked)) > 0.000000001);
+            const balances = (data.balances || []).filter(b => (parseFloat(b.free) + parseFloat(b.locked)) > 0.000000001 && !b.asset.startsWith('LD'));
 
             document.getElementById('bncLoadingSub').textContent = balances.length + ' varlık, fiyatlar çekiliyor...';
 
@@ -39477,6 +39477,9 @@ var TVOrderManager = (function() {
                     if (dropSince >= 10) {
                         order.trailingPct = Math.min(order.trailingPct || 0.20, 0.05);
                         var emergStop = currentPrice * 0.95;
+                        // Floor: acil stop da ilk stopun altına inemez
+                        var emergFloor = order.originalTarget || 0;
+                        if (emergStop < emergFloor) emergStop = emergFloor;
                         if (emergStop > order.targetPrice) {
                             order.targetPrice = parseFloat(emergStop.toFixed(6));
                             order.updatedAt = now;
@@ -39516,6 +39519,10 @@ var TVOrderManager = (function() {
                     order.highestPrice = currentPrice;
                     var trailPct = order.trailingPct || 0.20;
                     var newStop = currentPrice * (1 - trailPct);
+
+                    // ── FLOOR KURALI: Stop asla ilk stopun altına düşemez ──
+                    var floorStop = order.originalTarget || 0;
+                    if (newStop < floorStop) newStop = floorStop;
 
                     if (newStop > order.targetPrice) {
                         order.targetPrice = parseFloat(newStop.toFixed(6));
@@ -39691,8 +39698,21 @@ var TVOrderManager = (function() {
             try { binanceCfg = JSON.parse(localStorage.getItem('tm_binance_config')); } catch(e){}
 
             if (binanceCfg && binanceCfg.apiKey && binanceCfg.secretKey && asset.source === 'BINANCE') {
-                // Binance'de gerçek satış emri (async — arka planda çalışır)
-                _executeBinanceSell(symbol, sellAmt, sellPrice, triggerType, binanceCfg, asset);
+                // Şifreli ise çöz, sonra Binance'e gönder
+                (async function() {
+                    try {
+                        var resolvedKey = binanceCfg.encrypted
+                            ? await BinanceConnect._decrypt(binanceCfg.apiKey)
+                            : binanceCfg.apiKey;
+                        var resolvedSecret = binanceCfg.encrypted
+                            ? await BinanceConnect._decrypt(binanceCfg.secretKey)
+                            : binanceCfg.secretKey;
+                        var resolvedCfg = Object.assign({}, binanceCfg, { apiKey: resolvedKey, secretKey: resolvedSecret });
+                        _executeBinanceSell(symbol, sellAmt, sellPrice, triggerType, resolvedCfg, asset);
+                    } catch(decErr) {
+                        console.warn('[Binance] Key çözme hatası:', decErr.message);
+                    }
+                })();
             }
 
             // ═══════════════════════════════════════════════════════════
