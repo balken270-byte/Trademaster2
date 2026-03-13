@@ -18974,9 +18974,12 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
 }
 .pf-wallet-top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .pf-wallet-avatar {
-    width: 46px; height: 46px; border-radius: 15px;
+    width: 52px; height: 52px; border-radius: 16px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 23px; flex-shrink: 0;
+    font-size: 26px; flex-shrink: 0; overflow: hidden;
+}
+.pf-wallet-avatar svg, .pf-wallet-avatar img {
+    width: 52px; height: 52px; border-radius: 16px; display: block;
 }
 .pf-wallet-info { flex: 1; min-width: 0; }
 .pf-wallet-name {
@@ -19698,10 +19701,8 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
                         <button class="bnc-eye-btn" onclick="BinanceConnect.toggleSecret()"><i class="fas fa-eye" id="bncEyeIcon"></i></button>
                     </div>
 
-                    <div class="bnc-target-label" style="margin-top:12px;">
-                        <i class="fas fa-wallet"></i> Hedef Cüzdan
-                    </div>
-                    <select id="bncTargetWallet" class="pf-inp" style="appearance:none; -webkit-appearance:none; cursor:pointer; padding-right:36px; background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22%234b5563%22><path d=%22M7 10l5 5 5-5H7z%22/></svg>'); background-repeat:no-repeat; background-position:right 12px center;">
+                    <select id="bncTargetWallet" style="display:none;">
+                        <option value="__new__">Yeni</option>
                     </select>
 
                     <button class="bnc-connect-btn" onclick="BinanceConnect.connect()">
@@ -20113,7 +20114,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.0"; 
+    const CURRENT_VERSION = "1.6"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -32795,7 +32796,7 @@ const MultiPortfolio = {
             <div class="pf-wallet-card ${isActive?'active-wallet':''}" onclick="MultiPortfolio.switch('${key}')">
                 <div class="pf-wallet-glow" style="background:radial-gradient(circle,${p.color}22 0%,transparent 70%)"></div>
                 <div class="pf-wallet-top">
-                    <div class="pf-wallet-avatar" style="background:linear-gradient(135deg,${p.color}33,${p.color}11);border:1.5px solid ${p.color}44;">${key.startsWith('pf_bnc_') ? '<img src=\'https://cryptologos.cc/logos/binance-coin-bnb-logo.png\' style=\'width:28px;height:28px;object-fit:contain;border-radius:50%;\' onerror=\'this.outerHTML=String.fromCharCode(8383)\'>' : p.emoji}</div>
+                    <div class="pf-wallet-avatar" style="background:linear-gradient(135deg,${p.color}33,${p.color}11);border:1.5px solid ${p.color}44;">${key.startsWith('pf_bnc_') ? '<svg width="52" height="52" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="0" fill="#F3BA2F"/><path d="M12.116 13.884L16 10l3.886 3.886 2.263-2.263L16 5.474l-6.149 6.147 2.265 2.263zM5.474 16l2.263-2.263 2.263 2.263-2.263 2.263L5.474 16zm6.642 2.116L16 22l3.886-3.886 2.264 2.262L16 26.526l-6.149-6.147-.002-.002 2.267-2.261zm10.147-2.116 2.263-2.263 2.263 2.263-2.263 2.263-2.263-2.263zm-3.857-.002-2.406-2.408-.002.002-.002-.002L14 15.588l-.001.002-.001-.002-2.406 2.408L16 22.412l4.406-4.414z" fill="white"/></svg>' : p.emoji}</div>
                     <div class="pf-wallet-info">
                         <div class="pf-wallet-name">${p.name}${isActive?'<span class="pf-wallet-badge">AKTİF</span>':''}</div>
                         <div class="pf-wallet-meta">${hist.length} işlem geçmişi</div>
@@ -33731,23 +33732,28 @@ const BinanceConnect = {
     // ── IMPORT TO WALLET ──
     importToWallet: async function() {
         if (!this._fetchedAssets.length) { if (typeof showToast === 'function') showToast('warning', 'Uyarı', 'Aktarılacak varlık yok.'); return; }
-        const targetVal = document.getElementById('bncTargetWallet').value;
 
-        if (targetVal === '__new__') {
+        // Mevcut Binance cüzdanı var mı kontrol et
+        const db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
+        const existingBnc = Object.keys(db.list).find(k => k.startsWith('pf_bnc_'));
+
+        if (existingBnc) {
+            // Zaten Binance cüzdanı var → o cüzdana güncelle
+            if (db.activeID !== existingBnc) MultiPortfolio.switch(existingBnc);
+        } else {
+            // Yok → otomatik yeni Binance cüzdanı oluştur
             MultiPortfolio.syncCurrentToStorage();
-            const db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
+            const db2 = JSON.parse(localStorage.getItem('tm_all_portfolios'));
             const newID = 'pf_bnc_' + Date.now();
-            db.list[newID] = { name: 'Binance Spot', data: '[]', cash: '0', emoji: '₿', color: '#f0b90b', history: [], tradeHistory: '[]' };
+            db2.list[newID] = { name: 'Binance Spot', data: '[]', cash: '0', emoji: '₿', color: '#f0b90b', history: [], tradeHistory: '[]' };
             const cPF = localStorage.getItem('myPF_final') || '[]';
             const cCash = localStorage.getItem('tm_cash_balance') || '0';
             const cHist = localStorage.getItem('tm_full_trade_history') || '[]';
-            db.list[db.activeID].data = cPF; db.list[db.activeID].cash = cCash; db.list[db.activeID].tradeHistory = cHist;
-            db.activeID = newID;
-            localStorage.setItem('tm_all_portfolios', JSON.stringify(db));
+            db2.list[db2.activeID].data = cPF; db2.list[db2.activeID].cash = cCash; db2.list[db2.activeID].tradeHistory = cHist;
+            db2.activeID = newID;
+            localStorage.setItem('tm_all_portfolios', JSON.stringify(db2));
             localStorage.setItem('myPF_final', '[]'); localStorage.setItem('tm_cash_balance', '0'); localStorage.setItem('tm_full_trade_history', '[]');
             if (typeof cashBalance !== 'undefined') cashBalance = 0;
-        } else if (targetVal !== '__active__') {
-            MultiPortfolio.switch(targetVal);
         }
 
         const stables = ['USDT', 'BUSD', 'USDC', 'FDUSD', 'TUSD', 'DAI'];
