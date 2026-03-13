@@ -20164,7 +20164,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.3"; 
+    const CURRENT_VERSION = "1.6"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -32730,6 +32730,15 @@ function renderActiveAlarmsList() {
 
     // ── ÖNCE: Bekleyen DeepScan Emirlerini Göster ──────────────────
     if (typeof TVOrderManager !== 'undefined') {
+        // Akıllı fiyat formatlama
+        function _fmtPrice(price, priceSym) {
+            if (!price || price <= 0) return null;
+            var sym = priceSym || '$';
+            if (price >= 1) return sym + price.toLocaleString(undefined, {maximumFractionDigits: 4});
+            if (price >= 0.0001) return sym + price.toFixed(6);
+            if (price >= 0.00000001) return sym + price.toFixed(8);
+            return sym + price.toExponential(4);
+        }
         var pendingOrders = JSON.parse(localStorage.getItem('tv_active_orders') || '[]')
             .filter(function(o) { return o.status === 'PENDING'; });
 
@@ -32836,10 +32845,10 @@ function renderActiveAlarmsList() {
                         + '<div style="display:flex;gap:6px;">'
                         + '<div style="flex:1;padding:7px 8px;border-radius:10px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);">'
                         + '<div style="font-size:8px;font-weight:700;color:#f87171;margin-bottom:2px;">🛡 STOP LOSS</div>'
-                        + '<div style="font-size:13px;font-weight:900;color:#ef4444;">' + o.priceSym + slOrder.targetPrice.toLocaleString(undefined,{maximumFractionDigits:4}) + '</div></div>'
+                        + '<div style="font-size:13px;font-weight:900;color:#ef4444;">' + (_fmtPrice(slOrder.targetPrice, o.priceSym) || '<span style="color:rgba(255,100,100,0.5);font-size:10px;">Veri yok</span>') + '</div></div>'
                         + '<div style="flex:1;padding:7px 8px;border-radius:10px;background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.15);">'
                         + '<div style="font-size:8px;font-weight:700;color:#34d399;margin-bottom:2px;">🎯 HEDEF</div>'
-                        + '<div style="font-size:13px;font-weight:900;color:#10b981;">' + o.priceSym + tpOrder.targetPrice.toLocaleString(undefined,{maximumFractionDigits:4}) + '</div></div></div>'
+                        + '<div style="font-size:13px;font-weight:900;color:#10b981;">' + (_fmtPrice(tpOrder.targetPrice, o.priceSym) || '<span style="color:rgba(100,200,150,0.5);font-size:10px;">Veri yok</span>') + '</div></div></div>'
                         + highestNote;
                 } else {
                     // ── TEKLİ KART (paired değil) ──
@@ -32859,7 +32868,7 @@ function renderActiveAlarmsList() {
                         + '<span style="font-size:15px;font-weight:800;color:#fff;">' + sym + '</span>'
                         + '<span style="font-size:8px;font-weight:700;color:' + color + ';background:' + color + '10;border:1px solid ' + color + '30;border-radius:5px;padding:1px 5px;">' + badge + '</span>'
                         + _walletBadge + trailingBadge + tpReachedBadge + '</div>'
-                        + '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:3px;">Hedef: <span style="color:' + color + ';font-weight:700;">' + o.priceSym + o.targetPrice.toLocaleString(undefined,{maximumFractionDigits:4}) + '</span>'
+                        + '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:3px;">Hedef: <span style="color:' + color + ';font-weight:700;">' + (_fmtPrice(o.targetPrice, o.priceSym) || '<span style="color:rgba(255,255,255,0.3);">Veri yok</span>') + '</span>'
                         + ' · <span style="color:#64748b;font-size:10px;">' + timeStr + '</span></div>'
                         + highestNote + '</div>'
                         + '<button onclick="TVOrderManager.cancelOrder(\'' + o.id + '\');renderActiveAlarmsList();" style="flex-shrink:0;width:32px;height:32px;border-radius:10px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);color:#f87171;cursor:pointer;display:flex;align-items:center;justify-content:center;">'
@@ -34827,9 +34836,17 @@ function htUpdateBal(sym) {
 function htSetPct(pct) {
     var sym = (document.getElementById('htSymbol').value || '').toUpperCase().trim();
     var fullSym = sym.includes('USDT') ? sym : sym + 'USDT';
-    var usdt = BinanceConnect._fetchedAssets ? BinanceConnect._fetchedAssets.find(function(a){return a.asset==='USDT';}) : null;
-    if (usdt && _htCurrentPrice > 0) {
-        var qty = (usdt.free * (pct/100)) / _htCurrentPrice;
+    var base = fullSym.replace('USDT','').replace('BUSD','');
+    var assets = BinanceConnect._fetchedAssets || [];
+    var usdt = assets.find(function(a){ return a.asset === 'USDT'; });
+    var coin = assets.find(function(a){ return a.asset === base; });
+    // SAT tarafı: coin varsa coin bakiyesi, yoksa USDT ile AL hesabı
+    if (coin && coin.free > 0) {
+        var qty = coin.free * (pct / 100);
+        document.getElementById('htQty').value = qty.toFixed(6);
+        htCalcTotal();
+    } else if (usdt && _htCurrentPrice > 0) {
+        var qty = (usdt.free * (pct / 100)) / _htCurrentPrice;
         document.getElementById('htQty').value = qty.toFixed(6);
         htCalcTotal();
     }
@@ -39596,6 +39613,18 @@ var TVOrderManager = (function() {
     function _loadLocal() {
         try {
             _orders = JSON.parse(localStorage.getItem('tv_active_orders') || '[]');
+            // ── Bozuk emirleri temizle: targetPrice=0 olan PENDING emirleri sil ──
+            var before = _orders.length;
+            _orders = _orders.filter(function(o) {
+                if (o.status !== 'PENDING') return true;
+                // Sadece tam sıfır olanları sil, küçük fiyatlı coinler (0.000001 vb.) geçerli
+                if (o.targetPrice === 0 || o.targetPrice === null || o.targetPrice === undefined) return false;
+                return true;
+            });
+            if (_orders.length < before) {
+                localStorage.setItem('tv_active_orders', JSON.stringify(_orders));
+                console.log('[OrderManager] ' + (before - _orders.length) + ' bozuk emir temizlendi.');
+            }
         } catch(e) { _orders = []; }
         return _orders;
     }
@@ -39704,6 +39733,19 @@ var TVOrderManager = (function() {
 
     // ── Birleşik Emir: Stop Loss + Take Profit tek tıkla ──────
     async function placeCombinedOrder(symbol, stopPrice, tpPrice, priceSym, currentPrice, score, dataSource) {
+        // ── $0 koruması: geçersiz fiyat gelirse currentPrice'dan hesapla ──
+        if (!stopPrice || stopPrice <= 0) {
+            stopPrice = currentPrice > 0 ? parseFloat((currentPrice * 0.92).toFixed(8)) : 0;
+        }
+        if (!tpPrice || tpPrice <= 0) {
+            tpPrice = currentPrice > 0 ? parseFloat((currentPrice * 1.15).toFixed(8)) : 0;
+        }
+        if ((!stopPrice || stopPrice <= 0) || (!tpPrice || tpPrice <= 0)) {
+            if (typeof addNotification === 'function') {
+                addNotification('warn', '⚠️ Emir Oluşturulamadı', symbol + ' için geçerli fiyat bilgisi alınamadı. Lütfen varlığı yenileyip tekrar deneyin.');
+            }
+            return null;
+        }
         // Her ikisini aynı anda yerleştir
         var slOrder = await placeOrder(symbol, 'STOP_LOSS', stopPrice, priceSym, currentPrice, score, dataSource);
         var tpOrder = await placeOrder(symbol, 'TAKE_PROFIT', tpPrice, priceSym, currentPrice, score, dataSource);
