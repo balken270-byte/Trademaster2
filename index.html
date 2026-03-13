@@ -20114,7 +20114,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.3"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -33151,18 +33151,11 @@ const BinanceConnect = {
             if (saved) {
                 try {
                     const c = JSON.parse(saved);
-                    // UID kontrolü: kayıt hangi kullanıcıya aitse sadece o kullanabilir
                     const currentUid = (typeof fbAuth !== 'undefined' && fbAuth.currentUser) ? fbAuth.currentUser.uid : null;
                     if (c.uid && currentUid && c.uid !== currentUid) {
                         console.warn('[Binance] API key başka hesaba ait, temizleniyor.');
                         localStorage.removeItem('tm_binance_config');
                         return { apiKey: '', secretKey: '' };
-                    }
-                    // Şifreli kayıt ise çöz
-                    if (c.encrypted) {
-                        const decApiKey = await this._decrypt(c.apiKey);
-                        const decSecretKey = await this._decrypt(c.secretKey);
-                        return { apiKey: decApiKey, secretKey: decSecretKey };
                     }
                     return { apiKey: c.apiKey, secretKey: c.secretKey };
                 } catch(e){}
@@ -33171,62 +33164,7 @@ const BinanceConnect = {
         return { apiKey, secretKey };
     },
 
-    // ── AES-GCM Şifreleme ────────────────────────────────────────────────────
-    // Şifreleme anahtarı: Firebase UID + sabit tuz (cihaza özgü değil, hesaba özgü)
-    _getCryptoKey: async function() {
-        // Firebase Auth hazır değilse bekle (max 5sn)
-        const uid = await new Promise(function(resolve) {
-            if (typeof fbAuth === 'undefined') { resolve('tradevia_default'); return; }
-            if (fbAuth.currentUser) { resolve(fbAuth.currentUser.uid); return; }
-            var timeout = setTimeout(function() { resolve('tradevia_default'); }, 5000);
-            var unsub = fbAuth.onAuthStateChanged(function(user) {
-                clearTimeout(timeout);
-                unsub();
-                resolve(user ? user.uid : 'tradevia_default');
-            });
-        });
-        const salt = 'TradeVia_BNC_2025_' + uid;
-        const enc = new TextEncoder();
-        const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(salt), { name: 'PBKDF2' }, false, ['deriveKey']);
-        return crypto.subtle.deriveKey(
-            { name: 'PBKDF2', salt: enc.encode('tv_salt_v1'), iterations: 100000, hash: 'SHA-256' },
-            keyMaterial,
-            { name: 'AES-GCM', length: 256 },
-            false,
-            ['encrypt', 'decrypt']
-        );
-    },
 
-    _encrypt: async function(text) {
-        try {
-            const key = await this._getCryptoKey();
-            const iv = crypto.getRandomValues(new Uint8Array(12));
-            const enc = new TextEncoder();
-            const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(text));
-            const combined = new Uint8Array(iv.length + encrypted.byteLength);
-            combined.set(iv, 0);
-            combined.set(new Uint8Array(encrypted), iv.length);
-            return btoa(String.fromCharCode(...combined));
-        } catch(e) {
-            console.warn('[Crypto] Şifreleme başarısız:', e.message);
-            return text; // fallback: plain text
-        }
-    },
-
-    _decrypt: async function(encText) {
-        try {
-            const combined = Uint8Array.from(atob(encText), c => c.charCodeAt(0));
-            const iv = combined.slice(0, 12);
-            const data = combined.slice(12);
-            const key = await this._getCryptoKey();
-            const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data);
-            return new TextDecoder().decode(decrypted);
-        } catch(e) {
-            console.warn('[Crypto] Çözme başarısız:', e.message);
-            return encText; // fallback: plain text
-        }
-    },
-    // ─────────────────────────────────────────────────────────────────────────
 
     // API Key hash (SHA-256) — Firestore'da plain text saklamak yerine hash kullan
     _hashKey: async function(key) {
@@ -33461,18 +33399,7 @@ const BinanceConnect = {
             return;
         }
 
-        // ── Eski şifresiz localStorage kaydını temizle ──
-        try {
-            const _oldCfg = localStorage.getItem('tm_binance_config');
-            if (_oldCfg) {
-                const _oldParsed = JSON.parse(_oldCfg);
-                // Şifrelenmemiş eski kayıt varsa sil, yeni bağlantıda şifreli kaydedilecek
-                if (!_oldParsed.encrypted) {
-                    localStorage.removeItem('tm_binance_config');
-                    console.log('[Binance] Eski şifresiz kayıt temizlendi.');
-                }
-            }
-        } catch(e) {}
+
 
         // ── API Key tekil kullanım kontrolü (Firestore) ──
         try {
@@ -33557,9 +33484,7 @@ const BinanceConnect = {
                 if (typeof showToast === 'function') showToast('danger', 'Giriş Gerekli', 'Binance bağlantısı için lütfen önce giriş yapın.');
                 throw new Error('Giriş yapmadan Binance bağlantısı kurulamaz.');
             }
-            const _encApiKey = await this._encrypt(apiKey);
-            const _encSecretKey = await this._encrypt(secretKey);
-            localStorage.setItem('tm_binance_config', JSON.stringify({ apiKey: _encApiKey, secretKey: _encSecretKey, encrypted: true, lastSync: syncTime, assetCount: this._fetchedAssets.length, uid: _bncUid }));
+            localStorage.setItem('tm_binance_config', JSON.stringify({ apiKey, secretKey, lastSync: syncTime, assetCount: this._fetchedAssets.length, uid: _bncUid }));
 
             // ── Firestore'a key hash kaydet (tekil kullanım için) ──
             try {
@@ -34284,13 +34209,8 @@ const BinanceConnect = {
         try {
             const cfg = JSON.parse(localStorage.getItem('tm_binance_config') || '{}');
             if (cfg.apiKey) {
-                const _resolveKey = cfg.encrypted
-                    ? this._decrypt(cfg.apiKey)
-                    : Promise.resolve(cfg.apiKey);
-                _resolveKey.then(plainKey => {
-                    this._hashKey(plainKey).then(h => {
-                        fbDb.collection('binance_keys').doc(h).delete().catch(()=>{});
-                    });
+                this._hashKey(cfg.apiKey).then(h => {
+                    fbDb.collection('binance_keys').doc(h).delete().catch(()=>{});
                 });
             }
         } catch(e) {}
@@ -39708,21 +39628,7 @@ var TVOrderManager = (function() {
             try { binanceCfg = JSON.parse(localStorage.getItem('tm_binance_config')); } catch(e){}
 
             if (binanceCfg && binanceCfg.apiKey && binanceCfg.secretKey && asset.source === 'BINANCE') {
-                // Şifreli ise çöz, sonra Binance'e gönder
-                (async function() {
-                    try {
-                        var resolvedKey = binanceCfg.encrypted
-                            ? await BinanceConnect._decrypt(binanceCfg.apiKey)
-                            : binanceCfg.apiKey;
-                        var resolvedSecret = binanceCfg.encrypted
-                            ? await BinanceConnect._decrypt(binanceCfg.secretKey)
-                            : binanceCfg.secretKey;
-                        var resolvedCfg = Object.assign({}, binanceCfg, { apiKey: resolvedKey, secretKey: resolvedSecret });
-                        _executeBinanceSell(symbol, sellAmt, sellPrice, triggerType, resolvedCfg, asset);
-                    } catch(decErr) {
-                        console.warn('[Binance] Key çözme hatası:', decErr.message);
-                    }
-                })();
+                _executeBinanceSell(symbol, sellAmt, sellPrice, triggerType, binanceCfg, asset);
             }
 
             // ═══════════════════════════════════════════════════════════
