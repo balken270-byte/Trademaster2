@@ -20114,7 +20114,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.4"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -21316,12 +21316,78 @@ async function fetchMassiveQuotes(symbolsArray) {
 
 
 /* --- CANLI GÜNCELLEME (MEVCUT KOD) --- */
+// ── BİNANCE WEBSOCKET ANLLIK FİYAT AKIŞI ──
+window._bncWs = null;
+window._bncWsSymbols = [];
+window._bncWsReconnectTimer = null;
+window._wsRenderPending = false;
+
+function startBinanceStream(symbols) {
+    if (!symbols || !symbols.length) return;
+    stopBinanceStream();
+    const streams = symbols.map(s => s.toLowerCase() + 'usdt@miniTicker').join('/');
+    const url = 'wss://stream.binance.com:9443/stream?streams=' + streams;
+    window._bncWs = new WebSocket(url);
+    window._bncWsSymbols = symbols;
+    window._bncWs.onmessage = function(e) {
+        try {
+            const msg = JSON.parse(e.data);
+            const d = msg.data || msg;
+            if (!d || !d.s) return;
+            const sym = d.s.replace('USDT','').replace('BUSD','').toUpperCase();
+            const price = parseFloat(d.c);
+            if (!price || isNaN(price)) return;
+            let pf = JSON.parse(localStorage.getItem('myPF_final') || '[]');
+            let changed = false;
+            pf.forEach(a => {
+                if (a.source !== 'BINANCE') return;
+                const base = (a.name||'').replace('USDT','').replace('BUSD','').toUpperCase();
+                if (base === sym && Math.abs((a.curr||0) - price) / price > 0.0001) {
+                    a.curr = price;
+                    changed = true;
+                }
+            });
+            if (changed) {
+                localStorage.setItem('myPF_final', JSON.stringify(pf));
+                if (!window._wsRenderPending) {
+                    window._wsRenderPending = true;
+                    setTimeout(() => {
+                        window._wsRenderPending = false;
+                        const db = JSON.parse(localStorage.getItem('tm_all_portfolios') || '{}');
+                        if (!db.activeID || !db.activeID.startsWith('pf_bnc_')) return;
+                        renderPortfolioHTML(JSON.parse(localStorage.getItem('myPF_final') || '[]'));
+                        if (typeof MultiPortfolio !== 'undefined') MultiPortfolio.updateHeader();
+                    }, 150);
+                }
+            }
+        } catch(ex) {}
+    };
+    window._bncWs.onclose = function() {
+        clearTimeout(window._bncWsReconnectTimer);
+        window._bncWsReconnectTimer = setTimeout(() => {
+            if (window._bncWsSymbols.length) startBinanceStream(window._bncWsSymbols);
+        }, 5000);
+    };
+    window._bncWs.onerror = function() { window._bncWs.close(); };
+    console.log('[WS] Binance stream başladı:', symbols.length + ' sembol');
+}
+
+function stopBinanceStream() {
+    clearTimeout(window._bncWsReconnectTimer);
+    if (window._bncWs) {
+        window._bncWs.onclose = null;
+        window._bncWs.close();
+        window._bncWs = null;
+    }
+    window._bncWsSymbols = [];
+}
+
 function startLiveUpdates() {
     if(liveUpdateInterval) clearInterval(liveUpdateInterval);
     liveUpdateInterval = setInterval(async () => {
         if(!document.getElementById('page-portfolio').classList.contains('active')) return;
-        loadPF(true); // Basitçe mevcut fonksiyonu çağır
-    }, 60000); 
+        loadPF(true);
+    }, 60000);
 }
 
 /* --- YÖNETİCİ: CÜZDAN YENİLEME (SIRALI VE GARANTİLİ MOD) --- */
@@ -32968,6 +33034,7 @@ const MultiPortfolio = {
         if (targetID.startsWith('pf_bnc_') && typeof BinanceConnect !== 'undefined') {
             const bncCfg = localStorage.getItem('tm_binance_config');
             if (bncCfg) { setTimeout(() => { BinanceConnect.connect(); }, 600); }
+            else { stopBinanceStream(); }
         }
     },
 
@@ -33082,10 +33149,27 @@ const BinanceConnect = {
         if (!apiKey || !secretKey) {
             const saved = localStorage.getItem('tm_binance_config');
             if (saved) {
-                try { const c = JSON.parse(saved); return { apiKey: c.apiKey, secretKey: c.secretKey }; } catch(e){}
+                try {
+                    const c = JSON.parse(saved);
+                    // UID kontrolü: kayıt hangi kullanıcıya aitse sadece o kullanabilir
+                    const currentUid = (typeof fbAuth !== 'undefined' && fbAuth.currentUser) ? fbAuth.currentUser.uid : null;
+                    if (c.uid && currentUid && c.uid !== currentUid) {
+                        console.warn('[Binance] API key başka hesaba ait, temizleniyor.');
+                        localStorage.removeItem('tm_binance_config');
+                        return { apiKey: '', secretKey: '' };
+                    }
+                    return { apiKey: c.apiKey, secretKey: c.secretKey };
+                } catch(e){}
             }
         }
         return { apiKey, secretKey };
+    },
+
+    // API Key hash (SHA-256) — Firestore'da plain text saklamak yerine hash kullan
+    _hashKey: async function(key) {
+        const enc = new TextEncoder();
+        const buf = await crypto.subtle.digest('SHA-256', enc.encode(key));
+        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
     },
 
     // HMAC-SHA256 imzalama
@@ -33307,6 +33391,39 @@ const BinanceConnect = {
             return;
         }
 
+        // ── Giriş zorunluluğu ──
+        const _connectUid = (typeof fbAuth !== 'undefined' && fbAuth.currentUser) ? fbAuth.currentUser.uid : null;
+        if (!_connectUid) {
+            if (typeof showToast === 'function') showToast('danger', 'Giriş Gerekli', 'Binance bağlantısı için önce giriş yapın.');
+            return;
+        }
+
+        // ── API Key tekil kullanım kontrolü (Firestore) ──
+        try {
+            const keyHash = await this._hashKey(apiKey);
+            let keyDoc;
+            try {
+                keyDoc = await fbDb.collection('binance_keys').doc(keyHash).get();
+            } catch(readErr) {
+                // permission-denied = bu key başka bir UID'ye ait → reddet
+                if (readErr.code === 'permission-denied') {
+                    this.setStatus('disconnected', 'Bağlantı Reddedildi');
+                    if (typeof showToast === 'function') showToast('danger', '🔒 Güvenlik Hatası', 'Bu API Key başka bir hesapta kayıtlı.');
+                    return;
+                }
+                // Diğer hatalar (offline vb.) → devam et
+                console.warn('[Binance] Key kontrolü atlandı:', readErr.message);
+                keyDoc = null;
+            }
+            if (keyDoc && keyDoc.exists && keyDoc.data().uid !== _connectUid) {
+                this.setStatus('disconnected', 'Bağlantı Reddedildi');
+                if (typeof showToast === 'function') showToast('danger', '🔒 Güvenlik Hatası', 'Bu API Key başka bir hesapta kayıtlı.');
+                return;
+            }
+        } catch(fsErr) {
+            console.warn('[Binance] Key kontrolü atlandı:', fsErr.message);
+        }
+
         document.getElementById('bncFormSection').style.display = 'none';
         document.getElementById('bncResult').style.display = 'none';
         document.getElementById('bncLoading').style.display = 'block';
@@ -33361,9 +33478,27 @@ const BinanceConnect = {
             }).sort((a, b) => b.usdValue - a.usdValue);
 
             const syncTime = new Date().toLocaleString('tr-TR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
-            localStorage.setItem('tm_binance_config', JSON.stringify({ apiKey, secretKey, lastSync: syncTime, assetCount: this._fetchedAssets.length }));
+            const _bncUid = (typeof fbAuth !== 'undefined' && fbAuth.currentUser) ? fbAuth.currentUser.uid : null;
+            if (!_bncUid) {
+                if (typeof showToast === 'function') showToast('danger', 'Giriş Gerekli', 'Binance bağlantısı için lütfen önce giriş yapın.');
+                throw new Error('Giriş yapmadan Binance bağlantısı kurulamaz.');
+            }
+            localStorage.setItem('tm_binance_config', JSON.stringify({ apiKey, secretKey, lastSync: syncTime, assetCount: this._fetchedAssets.length, uid: _bncUid }));
+
+            // ── Firestore'a key hash kaydet (tekil kullanım için) ──
+            try {
+                const _kh = await this._hashKey(apiKey);
+                await fbDb.collection('binance_keys').doc(_kh).set({ uid: _bncUid, ts: Date.now() });
+            } catch(e) { console.warn('[Binance] Key hash kaydedilemedi:', e.message); }
             this._lastSync = syncTime;
             this.renderResult();
+
+            // ── WebSocket stream başlat ──
+            const stables2 = ['USDT','BUSD','USDC','FDUSD','TUSD','DAI'];
+            const wsSyms = (this._fetchedAssets || [])
+                .filter(a => !stables2.includes(a.asset) && a.total > 0)
+                .map(a => a.asset.toUpperCase());
+            if (wsSyms.length) startBinanceStream(wsSyms);
 
             // ── CoinGecko'dan logo çek (sync tamamlandıktan sonra) ──
             // 1.5sn bekle: otomatik sync ve loadPF tamamlansın
@@ -34068,6 +34203,16 @@ const BinanceConnect = {
 
     // ── DISCONNECT ──
     disconnect: function() {
+        stopBinanceStream();
+        // Firestore'dan key hash'i sil (disconnect olunca başkası kullanabilsin)
+        try {
+            const cfg = JSON.parse(localStorage.getItem('tm_binance_config') || '{}');
+            if (cfg.apiKey) {
+                this._hashKey(cfg.apiKey).then(h => {
+                    fbDb.collection('binance_keys').doc(h).delete().catch(()=>{});
+                });
+            }
+        } catch(e) {}
         localStorage.removeItem('tm_binance_config');
         this._fetchedAssets = [];
         this._priceMap = {};
