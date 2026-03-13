@@ -20114,7 +20114,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.8"; 
+    const CURRENT_VERSION = "1.3"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -33174,7 +33174,17 @@ const BinanceConnect = {
     // ── AES-GCM Şifreleme ────────────────────────────────────────────────────
     // Şifreleme anahtarı: Firebase UID + sabit tuz (cihaza özgü değil, hesaba özgü)
     _getCryptoKey: async function() {
-        const uid = (typeof fbAuth !== 'undefined' && fbAuth.currentUser) ? fbAuth.currentUser.uid : 'tradevia_default';
+        // Firebase Auth hazır değilse bekle (max 5sn)
+        const uid = await new Promise(function(resolve) {
+            if (typeof fbAuth === 'undefined') { resolve('tradevia_default'); return; }
+            if (fbAuth.currentUser) { resolve(fbAuth.currentUser.uid); return; }
+            var timeout = setTimeout(function() { resolve('tradevia_default'); }, 5000);
+            var unsub = fbAuth.onAuthStateChanged(function(user) {
+                clearTimeout(timeout);
+                unsub();
+                resolve(user ? user.uid : 'tradevia_default');
+            });
+        });
         const salt = 'TradeVia_BNC_2025_' + uid;
         const enc = new TextEncoder();
         const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(salt), { name: 'PBKDF2' }, false, ['deriveKey']);
