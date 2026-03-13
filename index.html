@@ -6962,8 +6962,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 <button id="currencyToggle" class="currency-toggle-btn active-try" onclick="event.stopPropagation(); toggleEntryCurrency()">₺</button>
             </div>
             <div id="tradeContent" class="collapsible-content collapsed">
-    <div style="padding-top:10px;">
-        
+
+    <!-- Normal Hızlı İşlem (Binance dışı cüzdanlar) -->
+    <div id="normalTradePanel" style="padding-top:10px;">
         <div class="trade-mode-switch">
             <button class="tm-switch-btn mode-crypto active" onclick="setTradeSearchMode('CRYPTO', this)">
                 <i class="fab fa-bitcoin"></i> KRİPTO
@@ -6977,7 +6978,6 @@ document.addEventListener('DOMContentLoaded', function() {
             <i class="fas fa-search input-icon"></i>
             <input type="text" id="addSymbol" class="trade-input" style="text-transform:uppercase;" placeholder="Sembol (BTC, ETH...)" onkeyup="debouncedPreview(this.value); calcDca();">
         </div>
-        
         <div id="liveInfo" style="font-size:11px; color:var(--text-sub); margin-bottom:10px; height:15px; padding-left:5px; font-weight:600;"></div>
         <div class="input-row">
             <div class="trade-input-group"><i class="fas fa-layer-group input-icon"></i><input type="number" id="addAmount" class="trade-input" placeholder="Adet" onkeyup="calcDca(); calcLiveTotal();"></div>
@@ -6987,6 +6987,45 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="trade-summary-box"><span class="ts-label">TOPLAM TUTAR</span><span class="ts-val" id="liveTradeTotal">0.00</span></div>
         <button class="add-btn-pro" onclick="addToPortfolio()" data-lang="add_btn">PORTFÖYE EKLE</button>
     </div>
+
+    <!-- Binance Hızlı İşlem (sadece Binance Spot cüzdanında gösterilir) -->
+    <div id="binanceTradePanel" style="display:none; padding-top:10px;">
+        <div style="display:flex; gap:8px; margin-bottom:10px;">
+            <div id="htMode_market" onclick="htSetMode('MARKET',this)" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:var(--gold); color:#000; font-weight:800; font-size:12px; cursor:pointer;">Market</div>
+            <div id="htMode_limit" onclick="htSetMode('LIMIT',this)" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:rgba(255,255,255,0.06); color:var(--text-sub); font-weight:700; font-size:12px; cursor:pointer;">Limit</div>
+        </div>
+        <div class="trade-input-group" style="margin-bottom:6px;">
+            <i class="fas fa-search input-icon"></i>
+            <input type="text" id="htSymbol" class="trade-input" style="text-transform:uppercase;" placeholder="Sembol (BTC, ETH...)" oninput="htOnSymbol(this.value)">
+            <span id="htPriceBadge" style="display:none; font-size:11px; font-weight:800; color:var(--gold); white-space:nowrap; padding-right:8px;"></span>
+        </div>
+        <div id="htLimitRow" style="display:none; margin-bottom:6px;">
+            <div class="trade-input-group">
+                <i class="fas fa-tag input-icon"></i>
+                <input type="number" id="htLimitPrice" class="trade-input" placeholder="Limit Fiyat (USDT)" oninput="htCalcTotal()">
+            </div>
+        </div>
+        <div class="trade-input-group" style="margin-bottom:6px;">
+            <i class="fas fa-layer-group input-icon"></i>
+            <input type="number" id="htQty" class="trade-input" placeholder="Miktar (adet)" oninput="htCalcTotal()">
+        </div>
+        <div style="display:flex; gap:6px; margin-bottom:8px;">
+            <div onclick="htSetPct(25)" style="flex:1; text-align:center; padding:5px; border-radius:8px; background:rgba(255,255,255,0.06); color:var(--text-sub); font-size:11px; font-weight:700; cursor:pointer;">%25</div>
+            <div onclick="htSetPct(50)" style="flex:1; text-align:center; padding:5px; border-radius:8px; background:rgba(255,255,255,0.06); color:var(--text-sub); font-size:11px; font-weight:700; cursor:pointer;">%50</div>
+            <div onclick="htSetPct(75)" style="flex:1; text-align:center; padding:5px; border-radius:8px; background:rgba(255,255,255,0.06); color:var(--text-sub); font-size:11px; font-weight:700; cursor:pointer;">%75</div>
+            <div onclick="htSetPct(100)" style="flex:1; text-align:center; padding:5px; border-radius:8px; background:rgba(255,255,255,0.06); color:var(--text-sub); font-size:11px; font-weight:700; cursor:pointer;">%100</div>
+        </div>
+        <div class="trade-summary-box" style="margin-bottom:10px;">
+            <span class="ts-label">TOPLAM</span>
+            <span class="ts-val" id="htTotal">≈ $0.00</span>
+        </div>
+        <div style="font-size:10px; color:var(--text-sub); margin-bottom:10px; text-align:center;" id="htBalInfo"></div>
+        <div style="display:flex; gap:8px;">
+            <button onclick="htExecute('BUY')" style="flex:1; padding:12px; border-radius:12px; background:linear-gradient(135deg,#22c55e,#16a34a); color:#fff; font-weight:800; font-size:13px; border:none; cursor:pointer;"><i class="fas fa-arrow-down"></i> AL</button>
+            <button onclick="htExecute('SELL')" style="flex:1; padding:12px; border-radius:12px; background:linear-gradient(135deg,#ef4444,#dc2626); color:#fff; font-weight:800; font-size:13px; border:none; cursor:pointer;"><i class="fas fa-arrow-up"></i> SAT</button>
+        </div>
+    </div>
+
 </div>
 
         </div>
@@ -19696,7 +19735,6 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
                     <!-- Alt Sekmeler: Bakiye / Al-Sat -->
                     <div class="bnc-sub-tabs">
                         <div class="bnc-sub-tab active" onclick="BinanceConnect.subTab('assets',this)"><i class="fas fa-coins"></i> Bakiye</div>
-                        <div class="bnc-sub-tab" onclick="BinanceConnect.subTab('trade',this)"><i class="fas fa-exchange-alt"></i> Al / Sat</div>
                         <div class="bnc-sub-tab" onclick="BinanceConnect.subTab('orders',this)"><i class="fas fa-list-alt"></i> Emirler</div>
                     </div>
 
@@ -19708,8 +19746,8 @@ if (typeof Membership !== 'undefined' && Membership.isPro()) {
                         </button>
                     </div>
 
-                    <!-- Sub Panel: Alım / Satım -->
-                    <div class="bnc-sub-panel" id="bncSubTrade">
+                    <!-- Sub Panel: Alım / Satım (Hızlı İşlem'e taşındı) -->
+                    <div class="bnc-sub-panel" id="bncSubTrade" style="display:none !important;">
                         <!-- Trade Modu: Market / Limit -->
                         <div class="bnc-trade-mode">
                             <div class="bnc-tmode active" onclick="BinanceConnect.setTradeMode('MARKET',this)">Market</div>
@@ -22700,6 +22738,33 @@ async function addToPortfolio(){
     
     if(!rawInput || !a || !b) { if(typeof showToast==='function') showToast('danger','Eksik Bilgi','Lütfen tüm alanları doldurun.'); return addNotification('danger', 'Hata', 'Eksik bilgi girdiniz.'); }
 
+    // ── BİNANCE ENTEGRASYONU: Aktif cüzdan Binance Spot ise gerçek alım emri gönder ──
+    try {
+        const db = JSON.parse(localStorage.getItem('tm_all_portfolios') || '{}');
+        const activeID = db.activeID || '';
+        if (activeID.startsWith('pf_bnc_') && typeof BinanceConnect !== 'undefined') {
+            const sym = rawInput.toUpperCase().includes('USDT') ? rawInput.toUpperCase() : rawInput.toUpperCase() + 'USDT';
+            const symInp = document.getElementById('bncTradeSymbol');
+            const qtyInp = document.getElementById('bncTradeQty');
+            if (symInp) symInp.value = sym;
+            if (qtyInp) qtyInp.value = a;
+            BinanceConnect.subTab('trade', document.querySelectorAll('.bnc-sub-tab')[1]);
+            BinanceConnect.onSymbolInput(sym);
+            BinanceConnect.calcTradeTotal();
+            var htSym = document.getElementById('htSymbol');
+            var htQ = document.getElementById('htQty');
+            if (htSym) htSym.value = sym;
+            if (htQ) htQ.value = a;
+            htOnSymbol(sym);
+            var tc = document.getElementById('tradeContent');
+            if (tc && tc.classList.contains('collapsed')) toggleTradeMenu();
+            var tradeCard = document.getElementById('tradeCard');
+            if (tradeCard) tradeCard.scrollIntoView({behavior:'smooth', block:'start'});
+            showToast('info', 'Binance Alım', sym + ' Hızlı İşlem\'e yüklendi. AL butonuna bas.');
+            return;
+        }
+    } catch(e) { console.warn('Binance buy check:', e); }
+
     // 2. Fiyatı ve DOĞRU SEMBOLÜ tekrar çek
     addNotification('info', 'İşleniyor', 'Varlık doğrulanıyor...');
     let checkRes = await getPrice(rawInput);
@@ -23339,7 +23404,54 @@ async function checkAllAlarms() {
     // toggleExitCurrency eski versiyon kaldırıldı
 
     
-    function openSell(i) { let as = JSON.parse(localStorage.getItem('myPF_final')) || []; let asset = as[i]; if(!asset) return; document.getElementById('sellIdx').value = i; document.getElementById('sellMaxAmt').innerText = asset.amt; document.getElementById('sellAmt').value = ""; exitCurrency = asset.origin; let btn = document.getElementById('sellCurrencyToggle'); if(exitCurrency === 'TRY') { btn.innerText = '₺'; btn.className = 'currency-toggle-btn active-try'; } else { btn.innerText = '$'; btn.className = 'currency-toggle-btn active-usd'; } let currentP = asset.curr || asset.buy; document.getElementById('sellPrice').value = currentP.toFixed(2); document.getElementById('sellSummaryBox').style.display = 'none'; document.getElementById('sellModal').style.display = 'flex'; calcSellPreview(); }
+    function openSell(i) {
+        let as = JSON.parse(localStorage.getItem('myPF_final')) || [];
+        let asset = as[i];
+        if(!asset) return;
+
+        // ── BİNANCE CÜZDANIYSA: Modal açma, direkt Hızlı İşlem'e yönlendir ──
+        try {
+            const db = JSON.parse(localStorage.getItem('tm_all_portfolios') || '{}');
+            const activeID = db.activeID || '';
+            if (activeID.startsWith('pf_bnc_') && typeof BinanceConnect !== 'undefined') {
+                const sym = (asset.name || '').replace('USDT','').replace('BUSD','') + 'USDT';
+                const amt = asset.amt;
+                var htSym = document.getElementById('htSymbol');
+                var htQ = document.getElementById('htQty');
+                if (htSym) htSym.value = sym;
+                if (htQ) htQ.value = amt;
+                _htCurrentPrice = asset.curr || asset.buy || 0;
+                htCalcTotal();
+                var tc = document.getElementById('tradeContent');
+                if (tc && tc.classList.contains('collapsed')) toggleTradeMenu();
+                var tradeCard = document.getElementById('tradeCard');
+                if (tradeCard) tradeCard.scrollIntoView({behavior:'smooth', block:'start'});
+                BinanceConnect.subTab('trade', document.querySelectorAll('.bnc-sub-tab')[1]);
+                var symInp = document.getElementById('bncTradeSymbol');
+                var qtyInp = document.getElementById('bncTradeQty');
+                if (symInp) symInp.value = sym;
+                if (qtyInp) qtyInp.value = amt;
+                BinanceConnect.onSymbolInput(sym);
+                BinanceConnect.calcTradeTotal();
+                showToast('info', 'Binance Satış', sym + ' Hızlı İşlem\'e yüklendi. SAT butonuna bas.');
+                return;
+            }
+        } catch(e) { console.warn('openSell Binance check:', e); }
+
+        // Normal portföy → sellModal aç
+        document.getElementById('sellIdx').value = i;
+        document.getElementById('sellMaxAmt').innerText = asset.amt;
+        document.getElementById('sellAmt').value = "";
+        exitCurrency = asset.origin;
+        let btn = document.getElementById('sellCurrencyToggle');
+        if(exitCurrency === 'TRY') { btn.innerText = '₺'; btn.className = 'currency-toggle-btn active-try'; }
+        else { btn.innerText = '$'; btn.className = 'currency-toggle-btn active-usd'; }
+        let currentP = asset.curr || asset.buy;
+        document.getElementById('sellPrice').value = currentP.toFixed(2);
+        document.getElementById('sellSummaryBox').style.display = 'none';
+        document.getElementById('sellModal').style.display = 'flex';
+        calcSellPreview();
+    }
     
     // setSellRatio eski versiyon kaldırıldı
 
@@ -23360,7 +23472,42 @@ function confirmSell() {
     let ast = as[i]; 
     
     if (!ast) return addNotification('danger', 'Hata', 'Varlık bulunamadı.');
-    if (amt > ast.amt) return addNotification('danger', 'Hata', 'Sahip olduğunuzdan fazlasını satamazsınız.'); 
+    if (amt > ast.amt) return addNotification('danger', 'Hata', 'Sahip olduğunuzdan fazlasını satamazsınız.');
+
+    // ── BİNANCE ENTEGRASYONU: Aktif cüzdan Binance Spot ise gerçek emir gönder ──
+    try {
+        const db = JSON.parse(localStorage.getItem('tm_all_portfolios') || '{}');
+        const activeID = db.activeID || '';
+        if (activeID.startsWith('pf_bnc_') && typeof BinanceConnect !== 'undefined') {
+            document.getElementById('sellModal').style.display = 'none';
+            // Sembolü al (TRUMPUSDT → TRUMP için)
+            const sym = (ast.name || '').replace('USDT','').replace('BUSD','') + 'USDT';
+            // Binance AL/SAT paneline yönlendir
+            BinanceConnect.subTab('trade', document.querySelectorAll('.bnc-sub-tab')[1]);
+            const symInp = document.getElementById('bncTradeSymbol');
+            const qtyInp = document.getElementById('bncTradeQty');
+            if (symInp) symInp.value = sym;
+            if (qtyInp) qtyInp.value = amt;
+            BinanceConnect.onSymbolInput(sym);
+            BinanceConnect.calcTradeTotal();
+            // Portföy panelini aç
+            if (typeof MultiPortfolio !== 'undefined') MultiPortfolio.open();
+            // Hızlı İşlem paneline sembol ve miktarı doldur
+            var htSym = document.getElementById('htSymbol');
+            var htQ = document.getElementById('htQty');
+            if (htSym) htSym.value = sym;
+            if (htQ) htQ.value = amt;
+            _htCurrentPrice = ast.curr || ast.buy || 0;
+            htCalcTotal();
+            // Hızlı İşlem'i aç ve scroll et
+            var tc = document.getElementById('tradeContent');
+            if (tc && tc.classList.contains('collapsed')) toggleTradeMenu();
+            var tradeCard = document.getElementById('tradeCard');
+            if (tradeCard) tradeCard.scrollIntoView({behavior:'smooth', block:'start'});
+            showToast('info', 'Binance Satış', sym + ' Hızlı İşlem\'e yüklendi. SAT butonuna bas.');
+            return;
+        }
+    } catch(e) { console.warn('Binance sell check:', e); } 
 
     // Satışın yapıldığı para birimi (USD mi TL mi?)
     let transactionCurrency = exitCurrency; 
@@ -25112,10 +25259,13 @@ function getAssetLogoHtml(symbol) {
         var cleanSym = s.replace('USDT','').replace('BUSD','').replace('FDUSD','').toLowerCase();
         var _wIcons = ['xrp','xlm','algo','hbar','dot','near','apt','sui','ton','inj','ldo','floki'];
         var _iBg = _wIcons.indexOf(cleanSym) >= 0 ? '#0f1829' : '#1a2035';
+        // Logo kaynakları: 1) CoinCap, 2) atomiclabs, 3) spothq, 4) lcw CDN
+        // CoinCap geniş token desteğine sahip, küçük tokenlar için fallback zinciri devreye girer
+        var imgStyle = 'width:40px;height:40px;border-radius:50%;object-fit:' + (_wIcons.indexOf(cleanSym)>=0?'contain':'cover') + ';display:block;' + (_wIcons.indexOf(cleanSym)>=0?'padding:4px;':'');
         return '<div class="asset-logo-wrap" style="background:transparent;border:none;width:43px;height:43px;margin-right:10px;display:flex;align-items:center;justify-content:center;overflow:visible;position:relative;filter:drop-shadow(0 5px 10px rgba(0,0,0,0.65)) drop-shadow(0 1px 3px rgba(0,0,0,0.4));">' +
                '<div style="width:43px;height:43px;border-radius:50%;overflow:hidden;background:' + _iBg + ';position:relative;display:flex;align-items:center;justify-content:center;">' +
                '<img src="https://assets.coincap.io/assets/icons/' + cleanSym + '@2x.png" ' +
-               'style="width:40px;height:40px;border-radius:50%;object-fit:' + (_wIcons.indexOf(cleanSym)>=0?'contain':'cover') + ';display:block;' + (_wIcons.indexOf(cleanSym)>=0?'padding:4px;':'') + '" ' +
+               'style="' + imgStyle + '" ' +
                'onerror="_iconErr1(this,\'' + cleanSym + '\')"></div>' +
                '<div style="position:absolute;top:2px;left:7px;width:52%;height:34%;background:linear-gradient(160deg,rgba(255,255,255,0.28) 0%,rgba(255,255,255,0.05) 55%,transparent 100%);border-radius:50%;transform:rotate(-15deg);pointer-events:none;z-index:5;"></div>' +
                '</div>';
@@ -32645,7 +32795,7 @@ const MultiPortfolio = {
             <div class="pf-wallet-card ${isActive?'active-wallet':''}" onclick="MultiPortfolio.switch('${key}')">
                 <div class="pf-wallet-glow" style="background:radial-gradient(circle,${p.color}22 0%,transparent 70%)"></div>
                 <div class="pf-wallet-top">
-                    <div class="pf-wallet-avatar" style="background:linear-gradient(135deg,${p.color}33,${p.color}11);border:1.5px solid ${p.color}44;">${p.emoji}</div>
+                    <div class="pf-wallet-avatar" style="background:linear-gradient(135deg,${p.color}33,${p.color}11);border:1.5px solid ${p.color}44;">${key.startsWith('pf_bnc_') ? '<img src=\'https://cryptologos.cc/logos/binance-coin-bnb-logo.png\' style=\'width:28px;height:28px;object-fit:contain;border-radius:50%;\' onerror=\'this.outerHTML=String.fromCharCode(8383)\'>' : p.emoji}</div>
                     <div class="pf-wallet-info">
                         <div class="pf-wallet-name">${p.name}${isActive?'<span class="pf-wallet-badge">AKTİF</span>':''}</div>
                         <div class="pf-wallet-meta">${hist.length} işlem geçmişi</div>
@@ -32795,6 +32945,11 @@ const MultiPortfolio = {
         this.updateHeader();
         if (typeof loadPF === 'function') loadPF(false);
         addNotification('success', tw.emoji + ' ' + tw.name, 'Cüzdan değiştirildi');
+        // Binance cüzdanına geçildi → otomatik senkron
+        if (targetID.startsWith('pf_bnc_') && typeof BinanceConnect !== 'undefined') {
+            const bncCfg = localStorage.getItem('tm_binance_config');
+            if (bncCfg) { setTimeout(() => { BinanceConnect.connect(); }, 600); }
+        }
     },
 
     delete: async function(targetID) {
@@ -32861,6 +33016,13 @@ const BinanceConnect = {
                 if (secEl && cfg.secretKey) secEl.value = cfg.secretKey;
                 this.setStatus('connected', 'Bağlı — ' + (cfg.lastSync || ''));
                 document.getElementById('bncDisconnectBtn').style.display = 'flex';
+                // Aktif cüzdan Binance ise otomatik yenile
+                try {
+                    const db = JSON.parse(localStorage.getItem('tm_all_portfolios') || '{}');
+                    if (db.activeID && db.activeID.startsWith('pf_bnc_') && cfg.apiKey && cfg.secretKey) {
+                        setTimeout(() => { BinanceConnect.connect(); }, 1000);
+                    }
+                } catch(e) {}
             } catch(e) {}
         }
         this.populateWalletSelect();
@@ -32919,7 +33081,7 @@ const BinanceConnect = {
     // ── CLOUDFLARE WORKER URL ────────────────────────────────────────────────
     // Deploy sonrası Worker URL'ini buraya yapıştır:
     // Örn: 'https://tradavia-binance.seninkullaniciadin.workers.dev'
-    _WORKER_URL: 'https://crimson-smoke-c84a.balken444.workers.dev',
+    _WORKER_URL: 'https://careful-sparrow-87.balken270-byte.deno.net',
 
     _apiBase: null,
     _apiBases: [
@@ -33169,6 +33331,13 @@ const BinanceConnect = {
                 else if (this._priceMap[sym + 'USDT']) { unitPrice = this._priceMap[sym + 'USDT']; usdValue = total * unitPrice; }
                 else if (this._priceMap[sym + 'BUSD']) { unitPrice = this._priceMap[sym + 'BUSD']; usdValue = total * unitPrice; }
                 else if (this._priceMap[sym + 'BTC'] && this._priceMap['BTCUSDT']) { unitPrice = this._priceMap[sym + 'BTC'] * this._priceMap['BTCUSDT']; usdValue = total * unitPrice; }
+                // 1M token desteği: 1MBABYDOGE → 1000000BABYDOGE
+                else if (sym.startsWith('1M') && this._priceMap['1000000' + sym.slice(2) + 'USDT']) {
+                    unitPrice = this._priceMap['1000000' + sym.slice(2) + 'USDT'] / 1000000;
+                    usdValue = total * unitPrice;
+                }
+                else if (sym.startsWith('1000') && this._priceMap[sym + 'USDT']) { unitPrice = this._priceMap[sym + 'USDT']; usdValue = total * unitPrice; }
+                console.log('[Binance] Varlik:', sym, 'total:', total, 'usdValue:', usdValue, 'priceKey denenecek:', sym+'USDT');
                 return { asset: sym, free: parseFloat(b.free), locked: parseFloat(b.locked), total, unitPrice, usdValue };
             }).sort((a, b) => b.usdValue - a.usdValue);
 
@@ -33176,16 +33345,66 @@ const BinanceConnect = {
             localStorage.setItem('tm_binance_config', JSON.stringify({ apiKey, secretKey, lastSync: syncTime, assetCount: this._fetchedAssets.length }));
             this._lastSync = syncTime;
             this.renderResult();
+
+            // ── OTOMATİK SENKRON: Aktif cüzdan Binance ise direkt güncelle ──
+            try {
+                const db = JSON.parse(localStorage.getItem('tm_all_portfolios') || '{}');
+                if (db.activeID && db.activeID.startsWith('pf_bnc_')) {
+                    const stables = ['USDT', 'BUSD', 'USDC', 'FDUSD', 'TUSD', 'DAI'];
+                    let cashToAdd = 0;
+                    const adds = [];
+                    this._fetchedAssets.forEach(a => {
+                        if (stables.includes(a.asset)) cashToAdd += a.usdValue;
+                        else if (a.total > 0) adds.push({
+                            name: a.asset + 'USDT', amt: a.total,
+                            buy: a.unitPrice || 0, curr: a.unitPrice || 0,
+                            origin: 'USD',
+                            image: 'https://assets.coincap.io/assets/icons/' + a.asset.toLowerCase() + '@2x.png',
+                            source: 'BINANCE', category: 'kripto'
+                        });
+                    });
+                    let pf = JSON.parse(localStorage.getItem('myPF_final')) || [];
+                    pf = pf.filter(p => p.source !== 'BINANCE');
+                    adds.forEach(na => {
+                        const ex = pf.find(p => p.name === na.name);
+                        if (ex) { ex.amt = na.amt; ex.buy = na.buy; ex.curr = na.curr; ex.source = 'BINANCE'; ex.category = 'kripto'; }
+                        else { pf.push(na); }
+                    });
+                    localStorage.setItem('myPF_final', JSON.stringify(pf));
+                    if (cashToAdd > 0) {
+                        let cashUSD = cashToAdd;
+                        if (typeof appSettings !== 'undefined' && appSettings.currency === 'TRY' && typeof usdTryRate !== 'undefined') cashUSD *= usdTryRate;
+                        localStorage.setItem('tm_cash_balance', String(cashUSD));
+                        if (typeof cashBalance !== 'undefined') cashBalance = cashUSD;
+                    }
+                    MultiPortfolio.syncCurrentToStorage();
+                    if (typeof loadPF === 'function') loadPF(true);
+                    MultiPortfolio.updateHeader();
+                    console.log('[Binance] Otomatik senkron: ' + adds.length + ' varlık güncellendi.');
+                }
+            } catch(syncErr) { console.warn('[Binance] Oto-senkron hatası:', syncErr); }
+
         } catch(err) {
             document.getElementById('bncLoading').style.display = 'none';
-            document.getElementById('bncFormSection').style.display = 'block';
-            this.setStatus('disconnected', 'Bağlantı Başarısız');
             var errMsg = err.message || 'Bilinmeyen hata';
             // Unexpected token hatası = HTML döndü = CORS/engel
             if (errMsg.includes('Unexpected token') || errMsg.includes('unexpected')) {
-                errMsg = 'Binance API\'ye erişilemiyor (Türkiye engeli). PC\'den Firebase çözümünü kullanın veya farklı bir VPN deneyin.';
+                errMsg = 'Binance API\'ye erişilemiyor (Türkiye engeli).';
             }
-            if (typeof showToast === 'function') showToast('danger', 'Binance Hatası', errMsg);
+            // Otomatik yeniden deneme (max 3 kez, 5 saniye aralıkla)
+            this._retryCount = (this._retryCount || 0) + 1;
+            if (this._retryCount <= 3) {
+                document.getElementById('bncFormSection').style.display = 'none';
+                document.getElementById('bncLoading').style.display = 'block';
+                document.getElementById('bncLoadingSub').textContent = this._retryCount + '. yeniden deneme (5sn)...';
+                this.setStatus('loading', 'Yeniden deneniyor ' + this._retryCount + '/3...');
+                setTimeout(() => { BinanceConnect.connect(); }, 5000);
+            } else {
+                this._retryCount = 0;
+                document.getElementById('bncFormSection').style.display = 'block';
+                this.setStatus('disconnected', 'Bağlantı Başarısız');
+                if (typeof showToast === 'function') showToast('danger', 'Binance Hatası', errMsg);
+            }
         }
     },
 
@@ -33385,7 +33604,7 @@ const BinanceConnect = {
                 existing.buy = (oldTotal + newTotal) / existing.amt;
                 existing.curr = price;
             } else {
-                pf.push({ name: pfSymbol, amt: qty, buy: price, curr: price, origin: 'USD', image: null, source: 'BINANCE', category: 'kripto' });
+                pf.push({ name: pfSymbol, amt: qty, buy: price, curr: price, origin: 'USD', image: 'https://assets.coincap.io/assets/icons/' + pfSymbol.replace('USDT','').toLowerCase() + '@2x.png', source: 'BINANCE', category: 'kripto' });
             }
             // USDT bakiyeden düş
             let cash = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
@@ -33536,7 +33755,7 @@ const BinanceConnect = {
         const adds = [];
         this._fetchedAssets.forEach(a => {
             if (stables.includes(a.asset)) cashToAdd += a.usdValue;
-            else if (a.usdValue > 0.01) adds.push({ name: a.asset + 'USDT', amt: a.total, buy: a.unitPrice, curr: a.unitPrice, origin: 'USD', image: null, source: 'BINANCE', category: 'kripto' });
+            else if (a.total > 0) adds.push({ name: a.asset + 'USDT', amt: a.total, buy: a.unitPrice || 0, curr: a.unitPrice || 0, origin: 'USD', image: 'https://assets.coincap.io/assets/icons/' + a.asset.toLowerCase() + '@2x.png', source: 'BINANCE', category: 'kripto' });
         });
 
         let pf = JSON.parse(localStorage.getItem('myPF_final')) || [];
@@ -33579,6 +33798,130 @@ const BinanceConnect = {
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() { BinanceConnect.init(); }, 500);
 });
+
+// ═══ BİNANCE HIZLI İŞLEM (Inline Trade Panel) ═══
+var _htMode = 'MARKET';
+var _htSymTimer = null;
+var _htCurrentPrice = 0;
+
+function htCheckWallet() {
+    try {
+        var db = JSON.parse(localStorage.getItem('tm_all_portfolios') || '{}');
+        return (db.activeID || '').startsWith('pf_bnc_');
+    } catch(e) { return false; }
+}
+
+function htTogglePanels() {
+    var isBnc = htCheckWallet();
+    var normal = document.getElementById('normalTradePanel');
+    var bnc = document.getElementById('binanceTradePanel');
+    if (!normal || !bnc) return;
+    normal.style.display = isBnc ? 'none' : 'block';
+    bnc.style.display = isBnc ? 'block' : 'none';
+}
+
+function htSetMode(mode, el) {
+    _htMode = mode;
+    document.getElementById('htMode_market').style.background = mode === 'MARKET' ? 'var(--gold)' : 'rgba(255,255,255,0.06)';
+    document.getElementById('htMode_market').style.color = mode === 'MARKET' ? '#000' : 'var(--text-sub)';
+    document.getElementById('htMode_limit').style.background = mode === 'LIMIT' ? 'var(--gold)' : 'rgba(255,255,255,0.06)';
+    document.getElementById('htMode_limit').style.color = mode === 'LIMIT' ? '#000' : 'var(--text-sub)';
+    document.getElementById('htLimitRow').style.display = mode === 'LIMIT' ? 'block' : 'none';
+    htCalcTotal();
+}
+
+function htOnSymbol(val) {
+    clearTimeout(_htSymTimer);
+    _htSymTimer = setTimeout(async function() {
+        var sym = val.toUpperCase().trim();
+        var badge = document.getElementById('htPriceBadge');
+        if (sym.length < 2) { badge.style.display = 'none'; return; }
+        var fullSym = sym.includes('USDT') ? sym : sym + 'USDT';
+        try {
+            var url = BinanceConnect._WORKER_URL + '/binance/api/v3/ticker/price?symbol=' + fullSym;
+            var res = await fetch(url);
+            if (res.ok) {
+                var d = await res.json();
+                _htCurrentPrice = parseFloat(d.price);
+                badge.textContent = '$' + _htCurrentPrice.toLocaleString('en-US', {maximumFractionDigits:6});
+                badge.style.display = 'inline';
+                if (_htMode === 'LIMIT') {
+                    document.getElementById('htLimitPrice').value = _htCurrentPrice;
+                }
+                htCalcTotal();
+                htUpdateBal(fullSym);
+            }
+        } catch(e) {}
+    }, 400);
+}
+
+function htUpdateBal(sym) {
+    var el = document.getElementById('htBalInfo');
+    if (!el || !BinanceConnect._fetchedAssets) return;
+    var usdt = BinanceConnect._fetchedAssets.find(function(a) { return a.asset === 'USDT'; });
+    var base = sym.replace('USDT','').replace('BUSD','');
+    var coin = BinanceConnect._fetchedAssets.find(function(a) { return a.asset === base; });
+    var usdtBal = usdt ? usdt.free : 0;
+    var coinBal = coin ? coin.free : 0;
+    el.innerHTML = '<span style="color:#34d399">AL: ' + usdtBal.toLocaleString('en-US',{maximumFractionDigits:2}) + ' USDT</span> &nbsp;|&nbsp; <span style="color:#f87171">SAT: ' + coinBal.toLocaleString('en-US',{maximumFractionDigits:6}) + ' ' + base + '</span>';
+}
+
+function htSetPct(pct) {
+    var sym = (document.getElementById('htSymbol').value || '').toUpperCase().trim();
+    var fullSym = sym.includes('USDT') ? sym : sym + 'USDT';
+    var usdt = BinanceConnect._fetchedAssets ? BinanceConnect._fetchedAssets.find(function(a){return a.asset==='USDT';}) : null;
+    if (usdt && _htCurrentPrice > 0) {
+        var qty = (usdt.free * (pct/100)) / _htCurrentPrice;
+        document.getElementById('htQty').value = qty.toFixed(6);
+        htCalcTotal();
+    }
+}
+
+function htCalcTotal() {
+    var qty = parseFloat(document.getElementById('htQty').value) || 0;
+    var price = _htMode === 'LIMIT' ? (parseFloat(document.getElementById('htLimitPrice').value) || _htCurrentPrice) : _htCurrentPrice;
+    var total = qty * price;
+    document.getElementById('htTotal').textContent = '≈ $' + total.toLocaleString('en-US',{maximumFractionDigits:4});
+}
+
+function htExecute(side) {
+    var symRaw = (document.getElementById('htSymbol').value || '').toUpperCase().trim();
+    var sym = symRaw.includes('USDT') ? symRaw : symRaw + 'USDT';
+    var qty = parseFloat(document.getElementById('htQty').value);
+    if (!sym || !qty || qty <= 0) { if(typeof showToast==='function') showToast('warning','Uyarı','Sembol ve miktar giriniz.'); return; }
+
+    // bncTradeSymbol ve bncTradeQty'yi set et (executeTrade bunları okuyor)
+    var symInp = document.getElementById('bncTradeSymbol');
+    var qtyInp = document.getElementById('bncTradeQty');
+    var priceInp = document.getElementById('bncTradePrice');
+    if (symInp) symInp.value = sym;
+    if (qtyInp) qtyInp.value = qty;
+
+    // Market/Limit modunu set et
+    if (_htMode === 'LIMIT') {
+        var lp = parseFloat(document.getElementById('htLimitPrice').value);
+        if (priceInp) priceInp.value = lp;
+        BinanceConnect.setTradeMode('LIMIT', null);
+    } else {
+        BinanceConnect.setTradeMode('MARKET', null);
+    }
+
+    BinanceConnect._priceMap[sym] = _htCurrentPrice;
+    BinanceConnect.executeTrade(side);
+}
+
+// Cüzdan değişimini dinle — panel otomatik geçsin
+(function() {
+    var _origSwitch = MultiPortfolio.switch ? MultiPortfolio.switch.bind(MultiPortfolio) : null;
+    if (_origSwitch) {
+        MultiPortfolio.switch = function(id) {
+            _origSwitch(id);
+            setTimeout(htTogglePanels, 100);
+        };
+    }
+    // İlk yüklemede de kontrol et
+    setTimeout(htTogglePanels, 800);
+})();
 
 // switchTab hook
 (function() {
