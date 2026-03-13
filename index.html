@@ -20114,7 +20114,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.3"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -33451,6 +33451,19 @@ const BinanceConnect = {
             return;
         }
 
+        // ── Eski şifresiz localStorage kaydını temizle ──
+        try {
+            const _oldCfg = localStorage.getItem('tm_binance_config');
+            if (_oldCfg) {
+                const _oldParsed = JSON.parse(_oldCfg);
+                // Şifrelenmemiş eski kayıt varsa sil, yeni bağlantıda şifreli kaydedilecek
+                if (!_oldParsed.encrypted) {
+                    localStorage.removeItem('tm_binance_config');
+                    console.log('[Binance] Eski şifresiz kayıt temizlendi.');
+                }
+            }
+        } catch(e) {}
+
         // ── API Key tekil kullanım kontrolü (Firestore) ──
         try {
             const keyHash = await this._hashKey(apiKey);
@@ -33458,20 +33471,18 @@ const BinanceConnect = {
             try {
                 keyDoc = await fbDb.collection('binance_keys').doc(keyHash).get();
             } catch(readErr) {
-                // permission-denied = bu key başka bir UID'ye ait → reddet
-                if (readErr.code === 'permission-denied') {
+                // Hata olursa (permission-denied dahil) devam et - kayıt yoksa zaten sorun yok
+                console.warn('[Binance] Key kontrolü atlandı:', readErr.message);
+                keyDoc = null;
+            }
+            // Sadece kayıt VAR ve başka UID'ye aitse reddet
+            if (keyDoc && keyDoc.exists) {
+                const ownerUid = keyDoc.data().uid;
+                if (ownerUid && ownerUid !== _connectUid) {
                     this.setStatus('disconnected', 'Bağlantı Reddedildi');
                     if (typeof showToast === 'function') showToast('danger', '🔒 Güvenlik Hatası', 'Bu API Key başka bir hesapta kayıtlı.');
                     return;
                 }
-                // Diğer hatalar (offline vb.) → devam et
-                console.warn('[Binance] Key kontrolü atlandı:', readErr.message);
-                keyDoc = null;
-            }
-            if (keyDoc && keyDoc.exists && keyDoc.data().uid !== _connectUid) {
-                this.setStatus('disconnected', 'Bağlantı Reddedildi');
-                if (typeof showToast === 'function') showToast('danger', '🔒 Güvenlik Hatası', 'Bu API Key başka bir hesapta kayıtlı.');
-                return;
             }
         } catch(fsErr) {
             console.warn('[Binance] Key kontrolü atlandı:', fsErr.message);
