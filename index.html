@@ -20114,7 +20114,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.6"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -21049,6 +21049,17 @@ function runPageSpecificLogic(pageId) {
 // burada tekrar tanımlamıyoruz. Sistem mevcut anahtarı kullanacak.
 
 /* --- 1. ANA YÖNETİCİ (MOD SİSTEMİYLE UYUMLU) --- */
+
+// ── Binance sembol görüntüleme yardımcısı ──
+function displayName(asset) {
+    if (!asset) return '';
+    var n = asset.name || asset.symbol || '';
+    if (asset.source === 'BINANCE' || asset.category === 'kripto') {
+        return n.replace('USDT','').replace('BUSD','').replace('FDUSD','').replace('.IS','');
+    }
+    return n.replace('.IS','');
+}
+
 async function getPrice(s, forceCategory = null) {
     s = s.toUpperCase().trim(); 
     if(!s) return { price: 0, origin: 'TRY', change: 0 };
@@ -21499,7 +21510,7 @@ function renderPortfolioHTML(as) {
         
         let logoHtml = "";
         if(a.image) {
-            let _fbSym = (a.name||'').replace('.IS','').toLowerCase();
+            let _fbSym = (a.name||'').replace('.IS','').replace('USDT','').replace('BUSD','').toLowerCase();
             let _wIconsPF2 = ['xrp','xlm','algo','hbar','dot','near','apt','sui','ton','inj','ldo','floki'];
             let _pfBg2 = _wIconsPF2.indexOf(_fbSym) >= 0 ? '#0f1829' : '#1a2035';
             let _pfIsWhite2 = _wIconsPF2.indexOf(_fbSym) >= 0;
@@ -21509,7 +21520,7 @@ function renderPortfolioHTML(as) {
                        '<div style="position:absolute;top:2px;left:6px;width:52%;height:34%;background:linear-gradient(160deg,rgba(255,255,255,0.28) 0%,rgba(255,255,255,0.05) 55%,transparent 100%);border-radius:50%;transform:rotate(-15deg);pointer-events:none;z-index:10;"></div>' +
                        '</div>';
         } else {
-            logoHtml = getAssetLogoHtml(a.name.replace('.IS',''));
+            logoHtml = a.image ? '<div class="asset-logo-wrap" style="background:#1a2035;border:none;overflow:hidden;width:43px;height:43px;border-radius:50%;"><img src="' + a.image + '" class="asset-logo-img" style="object-fit:cover;" onerror="_iconErr1(this,\''+displayName(a).toLowerCase()+'\')">' + '<div style="position:absolute;top:2px;left:6px;width:52%;height:34%;background:linear-gradient(160deg,rgba(255,255,255,0.28) 0%,transparent 100%);border-radius:50%;transform:rotate(-15deg);pointer-events:none;z-index:10;"></div></div>' : getAssetLogoHtml(a.name.replace('.IS',''));
         }
         
         let cardColorClass = 'asset-card';
@@ -21541,7 +21552,7 @@ function renderPortfolioHTML(as) {
             <div class="asset-left">
                 ${logoHtml}
                 <div>
-                    <span class="asset-name">${a.name.replace('.IS','')}${sourceBadge}</span>
+                    <span class="asset-name">${displayName(a)}${sourceBadge}</span>
                     <div class="asset-meta">${a.amt} Adet</div>
                 </div>
             </div>
@@ -22122,8 +22133,9 @@ function renderAnalyticsPage() {
         let currentP = a.curr || a.buy; 
         let rawPnL = (currentP - a.buy) * a.amt; 
         let pnlColor = rawPnL >= 0 ? '#4ade80' : '#f87171'; 
-        let sym = (a.name||'').replace('.IS','');
+        let sym = displayName(a);
         let logoHtml = typeof getAssetLogoHtml === 'function' ? getAssetLogoHtml(a.name) : '';
+        if (a.image) logoHtml = '<div class="asset-logo-wrap" style="background:#1a2035;border:none;overflow:hidden;width:36px;height:36px;border-radius:50%;"><img src="' + a.image + '" style="width:36px;height:36px;object-fit:cover;" onerror="_iconErr1(this,\'' + sym.toLowerCase() + '\')"></div>';
         logoHtml = logoHtml.replace(/width:\s*4[0-9]px/g,'width:36px').replace(/height:\s*4[0-9]px/g,'height:36px').replace(/margin-right:\s*\d+px/,'margin-right:0');
         topListHTML += `<div class="top-performer-row" style="width:100%;box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:12px 15px;border-radius:14px;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.05);margin-bottom:6px;">
             <div class="tp-icon" style="width:36px;height:36px;flex-shrink:0;">${logoHtml}</div>
@@ -23149,7 +23161,7 @@ function saveAlarmAtLevel(direction) {
         if (sub) { sub.textContent = '✓ Alarm Kuruldu!'; sub.style.opacity = '1'; }
     }
 
-    addNotification('success', '🔔 Alarm Kuruldu', asset.name + ' ' + label + ' alarmı aktif: $' + targetPrice.toFixed(4));
+    addNotification('success', '🔔 Alarm Kuruldu', displayName(asset) + ' ' + label + ' alarmı aktif: $' + targetPrice.toFixed(4));
     setTimeout(function() { closeModal('alarmModal'); }, 800);
 }
 
@@ -23593,7 +23605,7 @@ function confirmSell() {
     loadProfile(); 
 }
 
-    function openSimulator(idx) { currentSimAssetIndex = idx; let as = JSON.parse(localStorage.getItem('myPF_final')) || []; let asset = as[idx]; if(!asset) return; document.getElementById('simAssetTitle').innerText = `${asset.name} Simülatörü`; let currentPrice = asset.curr || asset.buy; document.getElementById('simTargetPrice').value = currentPrice.toFixed(2); document.getElementById('simAddPrice').value = currentPrice.toFixed(2); document.getElementById('simRealizePrice').value = currentPrice.toFixed(2); document.querySelectorAll('.sim-result-box').forEach(x => x.style.display = 'none'); document.getElementById('simPercent').value = ""; document.getElementById('simAddAmt').value = ""; document.getElementById('simSellAmt').value = ""; switchSimTab('scenario', document.querySelectorAll('.sim-tab')[0]); document.getElementById('simModal').style.display = 'flex'; }
+    function openSimulator(idx) { currentSimAssetIndex = idx; let as = JSON.parse(localStorage.getItem('myPF_final')) || []; let asset = as[idx]; if(!asset) return; document.getElementById('simAssetTitle').innerText = `${displayName(asset)} Simülatörü`; let currentPrice = asset.curr || asset.buy; document.getElementById('simTargetPrice').value = currentPrice.toFixed(2); document.getElementById('simAddPrice').value = currentPrice.toFixed(2); document.getElementById('simRealizePrice').value = currentPrice.toFixed(2); document.querySelectorAll('.sim-result-box').forEach(x => x.style.display = 'none'); document.getElementById('simPercent').value = ""; document.getElementById('simAddAmt').value = ""; document.getElementById('simSellAmt').value = ""; switchSimTab('scenario', document.querySelectorAll('.sim-tab')[0]); document.getElementById('simModal').style.display = 'flex'; }
     function switchSimTab(tabName, btn) { document.querySelectorAll('.sim-content-pane').forEach(p => p.classList.remove('active')); document.getElementById('sim-pane-' + tabName).classList.add('active'); document.querySelectorAll('.sim-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); }
     function fillSimSell(ratio) { let as = JSON.parse(localStorage.getItem('myPF_final')); let asset = as[currentSimAssetIndex]; if(asset) { document.getElementById('simSellAmt').value = Math.floor(asset.amt * ratio); } }
     // calcSimScenario eski versiyon kaldırıldı
@@ -24281,7 +24293,7 @@ function openAlarmModal(i) {
                         <i class="fas fa-brain"></i>
                     </div>
                 </div>
-                <div class="qam-live-chip">CANLI ANALİZ · ${asset.name} · 30G</div>
+                <div class="qam-live-chip">CANLI ANALİZ · ${displayName(asset)} · 30G</div>
             </div>
         </div>
 
@@ -24292,7 +24304,7 @@ function openAlarmModal(i) {
 
             <!-- Asset header -->
             <div class="qam-asset-row">
-                <div class="qam-asset-name">${asset.name}<br><span style="font-size:12px;color:#3d4a5c;font-weight:400;font-family:'Space Mono',monospace;letter-spacing:0.5px;">Alarm Kurulumu</span></div>
+                <div class="qam-asset-name">${displayName(asset)}<br><span style="font-size:12px;color:#3d4a5c;font-weight:400;font-family:'Space Mono',monospace;letter-spacing:0.5px;">Alarm Kurulumu</span></div>
                 <div class="qam-price-badge">\$${priceText}</div>
             </div>
 
@@ -24386,7 +24398,7 @@ function openAlarmModal(i) {
                 </div>
 
                 <p style="font-size:11px;color:#4a5a72;line-height:1.6;margin-bottom:12px;">
-                    Yapay zeka, <strong style="color:#8899b0;">${asset.name}</strong> fiyatının <strong style="color:#8899b0;">son 30 günün</strong> zirve ve dip noktalarına göre konumunu sürekli izler. Fırsat oluştuğunda otomatik bildirir.
+                    Yapay zeka, <strong style="color:#8899b0;">${displayName(asset)}</strong> fiyatının <strong style="color:#8899b0;">son 30 günün</strong> zirve ve dip noktalarına göre konumunu sürekli izler. Fırsat oluştuğunda otomatik bildirir.
                 </p>
 
                 <div style="font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1.5px;color:rgba(108,63,255,0.7);margin-bottom:8px;">ALARM SEÇ · TIKLAYARAK AKTİF ET</div>
@@ -25226,6 +25238,12 @@ function _tvNeonRingIcon(size) {
 
 // ─── GLOBAL YARDIMCI: img yüklenemeyince çağrılır ─────────────────────────────
 function _iconErr1(imgEl, cleanSym) {
+    // Fallback 2: vadimmalykhin/binance-icons (Binance'e özel, geniş kapsam)
+    imgEl.onerror = function() { _iconErr1b(imgEl, cleanSym); };
+    imgEl.src = 'https://cdn.jsdelivr.net/gh/vadimmalykhin/binance-icons/crypto/' + cleanSym + '.svg';
+}
+function _iconErr1b(imgEl, cleanSym) {
+    // Fallback 3: atomiclabs cryptocurrency-icons
     imgEl.onerror = function() { _iconErr2(imgEl, cleanSym); };
     imgEl.src = 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@master/128/color/' + cleanSym + '.png';
 }
@@ -32578,7 +32596,7 @@ function renderActiveAlarmsList() {
         }
 
         // ── Sembol baş harfi ────────────────────────────────────────────
-        let sym = (alarm.symbol || '?').replace('USDT','').replace('.IS','');
+        let sym = (alarm.symbol || '?').replace('USDT','').replace('BUSD','').replace('.IS','');
         let initials = sym.slice(0,2);
 
         const li = document.createElement('li');
@@ -33347,6 +33365,13 @@ const BinanceConnect = {
             this._lastSync = syncTime;
             this.renderResult();
 
+            // ── CoinGecko'dan logo çek (sync tamamlandıktan sonra) ──
+            // 1.5sn bekle: otomatik sync ve loadPF tamamlansın
+            setTimeout(() => { this._fetchCoinGeckoLogos(); }, 1500);
+
+            // ── Binance işlem geçmişini çek (arka planda) ──
+            setTimeout(() => { this._fetchTradeHistory(); }, 2000);
+
             // ── OTOMATİK SENKRON: Aktif cüzdan Binance ise direkt güncelle ──
             try {
                 const db = JSON.parse(localStorage.getItem('tm_all_portfolios') || '{}');
@@ -33360,15 +33385,28 @@ const BinanceConnect = {
                             name: a.asset + 'USDT', amt: a.total,
                             buy: a.unitPrice || 0, curr: a.unitPrice || 0,
                             origin: 'USD',
-                            image: 'https://assets.coincap.io/assets/icons/' + a.asset.toLowerCase() + '@2x.png',
+                            image: 'https://cdn.jsdelivr.net/gh/vadimmalykhin/binance-icons/crypto/' + a.asset.toLowerCase() + '.svg',
                             source: 'BINANCE', category: 'kripto'
                         });
                     });
                     let pf = JSON.parse(localStorage.getItem('myPF_final')) || [];
+                    // Mevcut BINANCE kayıtlarının image'larını sakla
+                    const savedImages = {};
+                    pf.filter(p => p.source === 'BINANCE').forEach(p => {
+                        const sym = (p.name||'').replace('USDT','').replace('BUSD','').toUpperCase();
+                        if (p.image && !p.image.includes('vadimmalykhin') && !p.image.includes('jsdelivr')) {
+                            savedImages[sym] = p.image; // CoinGecko logu var, koru
+                        } else if (p.image) {
+                            savedImages[sym] = p.image; // vadimmalykhin olsa da geçici olarak koru
+                        }
+                    });
                     pf = pf.filter(p => p.source !== 'BINANCE');
                     adds.forEach(na => {
+                        const sym = (na.name||'').replace('USDT','').replace('BUSD','').toUpperCase();
+                        // Kaydedilmiş logo varsa kullan, yoksa vadimmalykhin
+                        if (savedImages[sym]) na.image = savedImages[sym];
                         const ex = pf.find(p => p.name === na.name);
-                        if (ex) { ex.amt = na.amt; ex.buy = na.buy; ex.curr = na.curr; ex.source = 'BINANCE'; ex.category = 'kripto'; }
+                        if (ex) { ex.amt = na.amt; ex.buy = na.buy; ex.curr = na.curr; ex.source = 'BINANCE'; ex.category = 'kripto'; ex.image = na.image; }
                         else { pf.push(na); }
                     });
                     localStorage.setItem('myPF_final', JSON.stringify(pf));
@@ -33406,6 +33444,163 @@ const BinanceConnect = {
                 this.setStatus('disconnected', 'Bağlantı Başarısız');
                 if (typeof showToast === 'function') showToast('danger', 'Binance Hatası', errMsg);
             }
+        }
+    },
+
+    // ── CoinGecko'dan Binance varlıkları için logo çek ──
+    // ── Binance işlem geçmişini çek ve TradeVia formatına dönüştür ──
+    _fetchTradeHistory: async function() {
+        if (!this._fetchedAssets || !this._fetchedAssets.length) return;
+        const stables = ['USDT','BUSD','USDC','FDUSD','TUSD','DAI'];
+        const symbols = this._fetchedAssets
+            .filter(a => !stables.includes(a.asset) && a.total > 0)
+            .map(a => a.asset + 'USDT');
+        if (!symbols.length) return;
+
+        try {
+            let allTrades = [];
+            // Her sembol için işlem geçmişi çek (son 500)
+            for (const sym of symbols) {
+                try {
+                    const data = await this._apiRequest('GET', '/api/v3/myTrades', 'symbol=' + sym + '&limit=500');
+                    if (Array.isArray(data)) {
+                        data.forEach(t => {
+                            const base = sym.replace('USDT','').replace('BUSD','');
+                            const isBuy = t.isBuyer;
+                            const qty = parseFloat(t.qty);
+                            const price = parseFloat(t.price);
+                            const total = qty * price;
+                            const date = new Date(t.time).toLocaleDateString('tr-TR');
+                            allTrades.push({
+                                type: isBuy ? 'ALIM' : 'SATIŞ',
+                                symbol: base + 'USDT',
+                                name: base,
+                                amount: qty,
+                                price: price,
+                                total: total,
+                                currency: 'USD',
+                                origin: 'USD',
+                                date: date,
+                                timestamp: t.time,
+                                pnl: isBuy ? 0 : (price - (this._avgBuyPrice[base] || price)) * qty,
+                                source: 'BINANCE',
+                                tradeId: t.id
+                            });
+                        });
+                    }
+                } catch(e) { console.warn('[Binance] Trade history hatası:', sym, e.message); }
+            }
+
+            if (!allTrades.length) return;
+
+            // Zamana göre sırala
+            allTrades.sort((a, b) => b.timestamp - a.timestamp);
+
+            // Mevcut geçmişle birleştir (BINANCE kaynaklıları güncelle)
+            let existing = [];
+            try { existing = JSON.parse(localStorage.getItem('tm_full_trade_history') || '[]'); } catch(e) {}
+            existing = existing.filter(t => t.source !== 'BINANCE');
+            const merged = [...allTrades, ...existing];
+
+            localStorage.setItem('tm_full_trade_history', JSON.stringify(merged));
+
+            // MultiPortfolio'ya da kaydet
+            MultiPortfolio.syncCurrentToStorage();
+
+            if (typeof loadPF === 'function') loadPF(false);
+            console.log('[Binance] İşlem geçmişi: ' + allTrades.length + ' işlem yüklendi.');
+        } catch(e) {
+            console.warn('[Binance] İşlem geçmişi çekme hatası:', e.message);
+        }
+    },
+
+    _avgBuyPrice: {},
+
+    _fetchCoinGeckoLogos: async function() {
+        if (!this._fetchedAssets || !this._fetchedAssets.length) return;
+        const stables = ['USDT','BUSD','USDC','FDUSD','TUSD','DAI'];
+        const mySymbols = this._fetchedAssets
+            .filter(a => !stables.includes(a.asset) && a.total > 0)
+            .map(a => a.asset.toLowerCase());
+        if (!mySymbols.length) return;
+
+        try {
+            const cgKey = (typeof coingeckoApiKey !== 'undefined' && coingeckoApiKey) ? coingeckoApiKey : '';
+            const keyParam = cgKey ? '&x_cg_demo_api_key=' + cgKey : '';
+
+            // Adım 1: Sembol → CoinGecko ID eşleştirmesi için coins/list çek
+            // (cache varsa kullan, yoksa çek)
+            let coinsList = [];
+            const cacheKey = 'cg_coins_list_cache';
+            const cacheTs = localStorage.getItem(cacheKey + '_ts');
+            const cacheAge = cacheTs ? (Date.now() - parseInt(cacheTs)) : Infinity;
+            if (cacheAge < 86400000) { // 24 saat cache
+                try { coinsList = JSON.parse(localStorage.getItem(cacheKey) || '[]'); } catch(e) {}
+            }
+            if (!coinsList.length) {
+                const listRes = await fetch('https://api.coingecko.com/api/v3/coins/list' + (cgKey ? '?x_cg_demo_api_key=' + cgKey : ''));
+                if (!listRes.ok) return;
+                coinsList = await listRes.json();
+                try {
+                    localStorage.setItem(cacheKey, JSON.stringify(coinsList));
+                    localStorage.setItem(cacheKey + '_ts', String(Date.now()));
+                } catch(e) {}
+            }
+
+            // Adım 2: Sembolü → en iyi ID eşleştir (market cap öncelikli bilinen coinler)
+            const priorityIds = { 'btc':'bitcoin','eth':'ethereum','bnb':'binancecoin','sol':'solana',
+                'xrp':'ripple','ada':'cardano','doge':'dogecoin','shib':'shiba-inu','pepe':'pepe',
+                'trump':'official-trump','bonk':'bonk','floki':'floki','wif':'dogwifcoin',
+                'near':'near','avax':'avalanche-2','dot':'polkadot','link':'chainlink',
+                'uni':'uniswap','ltc':'litecoin','atom':'cosmos','xlm':'stellar',
+                'matic':'matic-network','inj':'injective-protocol','sui':'sui','apt':'aptos',
+                'op':'optimism','arb':'arbitrum','sei':'sei-network','tia':'celestia' };
+
+            const symToId = {};
+            mySymbols.forEach(sym => {
+                if (priorityIds[sym]) { symToId[sym] = priorityIds[sym]; return; }
+                // coins/list içinde bul - sembol eşleşmesinde ilk bulunanı al
+                const match = coinsList.find(c => c.symbol === sym);
+                if (match) symToId[sym] = match.id;
+            });
+
+            const ids = Object.values(symToId).join(',');
+            if (!ids) return;
+
+            // Adım 3: IDs ile markets'tan logo çek
+            const url = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=' + ids + '&per_page=250&page=1' + keyParam;
+            const res = await fetch(url);
+            if (!res.ok) return;
+            const coins = await res.json();
+
+            // ID → logo map
+            const idLogoMap = {};
+            coins.forEach(c => { if (c.id && c.image) idLogoMap[c.id] = c.image; });
+
+            // Sembol → logo map
+            const logoMap = {};
+            Object.entries(symToId).forEach(([sym, id]) => {
+                if (idLogoMap[id]) logoMap[sym.toUpperCase()] = idLogoMap[id];
+            });
+
+            // Portföydeki Binance varlıklarını güncelle
+            let pf = JSON.parse(localStorage.getItem('myPF_final')) || [];
+            let updated = false;
+            pf.forEach(p => {
+                if (p.source !== 'BINANCE') return;
+                const sym = (p.name || '').replace('USDT','').replace('BUSD','').replace('FDUSD','').toUpperCase();
+                if (logoMap[sym]) {
+                    p.image = logoMap[sym];
+                    updated = true;
+                }
+            });
+            if (updated) {
+                localStorage.setItem('myPF_final', JSON.stringify(pf));
+                if (typeof loadPF === 'function') loadPF(false);
+                console.log('[Binance] CoinGecko logo güncellendi:', Object.keys(logoMap).length + ' coin');
+            }
+        } catch(e) {
+            console.warn('[Binance] CoinGecko logo hatası:', e.message);
         }
     },
 
@@ -33605,7 +33800,7 @@ const BinanceConnect = {
                 existing.buy = (oldTotal + newTotal) / existing.amt;
                 existing.curr = price;
             } else {
-                pf.push({ name: pfSymbol, amt: qty, buy: price, curr: price, origin: 'USD', image: 'https://assets.coincap.io/assets/icons/' + pfSymbol.replace('USDT','').toLowerCase() + '@2x.png', source: 'BINANCE', category: 'kripto' });
+                pf.push({ name: pfSymbol, amt: qty, buy: price, curr: price, origin: 'USD', image: 'https://cdn.jsdelivr.net/gh/vadimmalykhin/binance-icons/crypto/' + pfSymbol.replace('USDT','').toLowerCase() + '.svg', source: 'BINANCE', category: 'kripto' });
             }
             // USDT bakiyeden düş
             let cash = parseFloat(localStorage.getItem('tm_cash_balance')) || 0;
@@ -33761,12 +33956,24 @@ const BinanceConnect = {
         const adds = [];
         this._fetchedAssets.forEach(a => {
             if (stables.includes(a.asset)) cashToAdd += a.usdValue;
-            else if (a.total > 0) adds.push({ name: a.asset + 'USDT', amt: a.total, buy: a.unitPrice || 0, curr: a.unitPrice || 0, origin: 'USD', image: 'https://assets.coincap.io/assets/icons/' + a.asset.toLowerCase() + '@2x.png', source: 'BINANCE', category: 'kripto' });
+            else if (a.total > 0) adds.push({ name: a.asset + 'USDT', amt: a.total, buy: a.unitPrice || 0, curr: a.unitPrice || 0, origin: 'USD', image: 'https://cdn.jsdelivr.net/gh/vadimmalykhin/binance-icons/crypto/' + a.asset.toLowerCase() + '.svg', source: 'BINANCE', category: 'kripto' });
         });
 
         let pf = JSON.parse(localStorage.getItem('myPF_final')) || [];
+        // Mevcut BINANCE logolarını koru
+        const savedImg = {};
+        pf.filter(p => p.source === 'BINANCE').forEach(p => {
+            const s = (p.name||'').replace('USDT','').replace('BUSD','').toUpperCase();
+            if (p.image) savedImg[s] = p.image;
+        });
         pf = pf.filter(p => p.source !== 'BINANCE');
-        adds.forEach(na => { const ex = pf.find(p => p.name === na.name); if (ex) { ex.amt = na.amt; ex.buy = na.buy; ex.curr = na.curr; ex.source = 'BINANCE'; ex.category = 'kripto'; } else { pf.push(na); } });
+        adds.forEach(na => {
+            const s = (na.name||'').replace('USDT','').replace('BUSD','').toUpperCase();
+            if (savedImg[s]) na.image = savedImg[s];
+            const ex = pf.find(p => p.name === na.name);
+            if (ex) { ex.amt = na.amt; ex.buy = na.buy; ex.curr = na.curr; ex.source = 'BINANCE'; ex.category = 'kripto'; ex.image = na.image; }
+            else { pf.push(na); }
+        });
         localStorage.setItem('myPF_final', JSON.stringify(pf));
 
         if (cashToAdd > 0) {
