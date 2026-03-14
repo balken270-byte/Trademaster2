@@ -20173,7 +20173,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.5"; 
+    const CURRENT_VERSION = "1.6"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -32780,6 +32780,17 @@ function renderActiveAlarmsList() {
 
                 var sym = (o.symbol || '?');
                 var initials = sym.slice(0,2);
+                // ── Varlık ikonu ──
+                var _oCleanSym = sym.replace('USDT','').replace('BUSD','').toLowerCase();
+                var _oWIcons = ['xrp','xlm','algo','hbar','dot','near','apt','sui','ton','inj','ldo','floki'];
+                var _oImgBg = _oWIcons.indexOf(_oCleanSym) >= 0 ? '#0f1829' : '#1a2035';
+                var _oImgSrc = 'https://assets.coincap.io/assets/icons/' + _oCleanSym + '@2x.png';
+                var _oIconColor = _exColor || '#C9A84C';
+                var _oIconHtml = '<div style="width:40px;height:40px;border-radius:50%;overflow:hidden;background:' + _oImgBg + ';flex-shrink:0;position:relative;border:1.5px solid rgba(' + (_exRgbStr||'201,168,76') + ',0.4);filter:drop-shadow(0 3px 8px rgba(0,0,0,0.5));">'
+                    + '<img src="' + _oImgSrc + '" style="width:40px;height:40px;border-radius:50%;object-fit:' + (_oWIcons.indexOf(_oCleanSym)>=0?'contain;padding:4px':'cover') + ';display:block;" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">'
+                    + '<div style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:' + _oIconColor + ';">' + initials + '</div>'
+                    + '<div style="position:absolute;top:1px;left:5px;width:52%;height:32%;background:linear-gradient(160deg,rgba(255,255,255,0.25) 0%,transparent 100%);border-radius:50%;transform:rotate(-15deg);pointer-events:none;"></div>'
+                    + '</div>';
                 var timeDiff = Date.now() - o.createdAt;
                 var hours = Math.floor(timeDiff / 3600000);
                 var timeStr = hours < 1 ? 'Az önce' : hours < 24 ? hours + ' saat önce' : Math.floor(hours/24) + ' gün önce';
@@ -32853,8 +32864,7 @@ function renderActiveAlarmsList() {
                         + _wmHtml
                         + '<div style="position:absolute;top:-20px;left:-20px;width:80px;height:80px;background:radial-gradient(circle,rgba('+_exRgbStr+',0.12),transparent 70%);pointer-events:none;"></div>'
                         + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">'
-                        + '<div style="flex-shrink:0;width:40px;height:40px;border-radius:14px;background:rgba('+_exRgbStr+',.08);border:1px solid rgba('+_exRgbStr+',.25);display:flex;align-items:center;justify-content:center;">'
-                        + '<div style="font-size:10px;font-weight:900;color:'+(_exColor||'#C9A84C')+';">' + initials + '</div></div>'
+                        + _oIconHtml
                         + '<div style="flex:1;min-width:0;">'
                         + '<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">'
                         + '<span style="font-size:15px;font-weight:800;color:#fff;">' + sym + '</span>'
@@ -32882,8 +32892,7 @@ function renderActiveAlarmsList() {
                     li.innerHTML = ''
                         + _wmHtml
                         + '<div style="display:flex;align-items:center;gap:10px;">'
-                        + '<div style="flex-shrink:0;width:40px;height:40px;border-radius:14px;background:' + color + '10;border:1px solid ' + color + '30;display:flex;align-items:center;justify-content:center;">'
-                        + '<div style="font-size:10px;font-weight:900;color:' + color + ';">' + initials + '</div></div>'
+                        + _oIconHtml
                         + '<div style="flex:1;min-width:0;">'
                         + '<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">'
                         + '<span style="font-size:15px;font-weight:800;color:#fff;">' + sym + '</span>'
@@ -32965,9 +32974,27 @@ function renderActiveAlarmsList() {
             cfg = { icon:'fa-bell', color:'#64748b', glow:'rgba(100,116,139,0.15)', bg:'rgba(100,116,139,0.07)', label:'Alarm', badge:'BEKLEMEDE', detail:'' };
         }
 
-        // ── Sembol baş harfi ────────────────────────────────────────────
+        // ── Sembol ikonu ────────────────────────────────────────────────
         let sym = (alarm.symbol || '?').replace('USDT','').replace('BUSD','').replace('.IS','');
         let initials = sym.slice(0,2);
+        // Portföyde bu sembol var mı? Varsa image'ını al
+        let _alarmAssetImg = null;
+        try {
+            let _pf = JSON.parse(localStorage.getItem('myPF_final') || '[]');
+            let _found = _pf.find(a => a.name && a.name.replace('USDT','').replace('BUSD','').toUpperCase() === sym.toUpperCase());
+            if (_found && _found.image) _alarmAssetImg = _found.image;
+        } catch(e) {}
+        // İkon HTML'i: varsa portföy resmi, yoksa coincap CDN, yoksa initials
+        const _alarmCleanSym = sym.toLowerCase();
+        const _alarmWIcons = ['xrp','xlm','algo','hbar','dot','near','apt','sui','ton','inj','ldo','floki'];
+        const _alarmBg = _alarmWIcons.indexOf(_alarmCleanSym) >= 0 ? '#0f1829' : '#1a2035';
+        const _alarmImgSrc = _alarmAssetImg || ('https://assets.coincap.io/assets/icons/' + _alarmCleanSym + '@2x.png');
+        const _alarmImgStyle = 'width:43px;height:43px;border-radius:50%;object-fit:' + (_alarmWIcons.indexOf(_alarmCleanSym)>=0?'contain;padding:4px;':'cover;') + 'display:block;';
+        const _alarmIconHtml = `<div style="width:43px;height:43px;border-radius:50%;overflow:hidden;background:${_alarmBg};flex-shrink:0;position:relative;filter:drop-shadow(0 3px 8px rgba(0,0,0,0.5));">
+            <img src="${_alarmImgSrc}" style="${_alarmImgStyle}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+            <div style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:${cfg.color};letter-spacing:-0.5px;background:${cfg.bg};">${initials}</div>
+            <div style="position:absolute;top:1px;left:6px;width:52%;height:32%;background:linear-gradient(160deg,rgba(255,255,255,0.25) 0%,transparent 100%);border-radius:50%;transform:rotate(-15deg);pointer-events:none;"></div>
+        </div>`;
 
         const li = document.createElement('li');
         li.style.cssText = `
@@ -32989,13 +33016,11 @@ function renderActiveAlarmsList() {
             <div style="position:absolute;top:-20px;left:-20px;width:80px;height:80px;background:radial-gradient(circle,${cfg.glow},transparent 70%);pointer-events:none;"></div>
 
             <!-- İkon kutusu -->
-            <div style="flex-shrink:0;width:43px;height:43px;border-radius:15px;
-                background:${cfg.bg};border:1px solid ${cfg.color}30;
-                display:flex;align-items:center;justify-content:center;position:relative;">
-                <div style="font-size:10px;font-weight:900;color:${cfg.color};letter-spacing:-0.5px;line-height:1;">${initials}</div>
-                <div style="position:absolute;bottom:-5px;right:-5px;width:18px;height:18px;border-radius:7px;
+            <div style="flex-shrink:0;position:relative;">
+                ${_alarmIconHtml}
+                <div style="position:absolute;bottom:-4px;right:-4px;width:18px;height:18px;border-radius:7px;
                     background:#0f1420;border:1.5px solid ${cfg.color}50;
-                    display:flex;align-items:center;justify-content:center;">
+                    display:flex;align-items:center;justify-content:center;z-index:10;">
                     <i class="fas ${cfg.icon}" style="font-size:8px;color:${cfg.color};"></i>
                 </div>
             </div>
@@ -33080,8 +33105,18 @@ async function _renderBinanceOpenOrders(list) {
                 + 'border-radius:18px;padding:12px 14px;'
                 + 'animation:alarmCardIn 0.35s cubic-bezier(0.34,1.3,0.64,1) ' + (idx*0.06) + 's both;';
 
+            var bncCleanSym = sym.toLowerCase();
+            var bncWIcons = ['xrp','xlm','algo','hbar','dot','near','apt','sui','ton','inj','ldo','floki'];
+            var bncImgBg = bncWIcons.indexOf(bncCleanSym) >= 0 ? '#0f1829' : '#1a2035';
+            var bncImgSrc = 'https://assets.coincap.io/assets/icons/' + bncCleanSym + '@2x.png';
+            var bncIconHtml = '<div style="width:40px;height:40px;border-radius:50%;overflow:hidden;background:' + bncImgBg + ';flex-shrink:0;position:relative;border:1.5px solid rgba(240,185,11,0.35);filter:drop-shadow(0 3px 8px rgba(0,0,0,0.5));">'
+                + '<img src="' + bncImgSrc + '" style="width:40px;height:40px;border-radius:50%;object-fit:' + (bncWIcons.indexOf(bncCleanSym)>=0?'contain;padding:4px':'cover') + ';display:block;" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">'
+                + '<div style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#F0B90B;">' + initials + '</div>'
+                + '<div style="position:absolute;top:1px;left:5px;width:52%;height:32%;background:linear-gradient(160deg,rgba(255,255,255,0.25) 0%,transparent 100%);border-radius:50%;transform:rotate(-15deg);pointer-events:none;"></div>'
+                + '</div>';
+
             li.innerHTML = '<div style="display:flex;align-items:center;gap:10px;">'
-                + '<div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,rgba(240,185,11,0.2),rgba(240,185,11,0.06));border:1px solid rgba(240,185,11,0.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#F0B90B;flex-shrink:0;">' + initials + '</div>'
+                + bncIconHtml
                 + '<div style="flex:1;min-width:0;">'
                     + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">'
                         + '<span style="font-size:14px;font-weight:800;color:#fff;">' + o.symbol + '</span>'
