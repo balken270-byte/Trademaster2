@@ -20164,7 +20164,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.6"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -33256,13 +33256,27 @@ const MultiPortfolio = {
                     <div style="position:absolute;right:-15px;bottom:-15px;opacity:0.08;width:110px;height:110px;">${_ex.getSvg(110, _exColor)}</div>
                     <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(${_exRgb},0.07) 0%,transparent 60%);border-radius:inherit;"></div>
                 </div>` : '';
-            const _avatarBg = _ex ? 'background:linear-gradient(135deg,' + _exColor + ',' + _exColor + 'cc)' : 'background:linear-gradient(135deg,'+p.color+'33,'+p.color+'11)';
-            const _avatarBorder = _ex ? 'border:1.5px solid rgba(' + _exRgb + ',0.7)' : 'border:1.5px solid '+p.color+'44';
-            const _avatarContent = _ex ? _ex.getSvg(44, 'white') : p.emoji;
+            // === ANA CÜZDAN özel ikon + arka plan ===
+            const isMain = (key === 'main');
+            const _mainRgb = '30,58,138';
+            const _mainSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="40" height="40" style="border-radius:10px;"><defs><linearGradient id="mBg" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#020617"/><stop offset="50%" stop-color="#0f172a"/><stop offset="100%" stop-color="#1e3a8a"/></linearGradient><linearGradient id="mCg" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#020617"/><stop offset="30%" stop-color="#0f172a"/><stop offset="70%" stop-color="#1e3a8a"/><stop offset="100%" stop-color="#2563eb"/></linearGradient><linearGradient id="mEg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#60a5fa" stop-opacity="0.9"/><stop offset="50%" stop-color="#3b82f6" stop-opacity="0.5"/><stop offset="100%" stop-color="#1d4ed8" stop-opacity="0.3"/></linearGradient><linearGradient id="mPg" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="35%" stop-color="#06b6d4"/><stop offset="65%" stop-color="#10b981"/><stop offset="100%" stop-color="#34d399"/></linearGradient><linearGradient id="mGg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fef3c7"/><stop offset="30%" stop-color="#fcd34d"/><stop offset="60%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#d97706"/></linearGradient><filter id="mGl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur in="SourceGraphic" stdDeviation="8" result="b1"/><feGaussianBlur in="SourceGraphic" stdDeviation="16" result="b2"/><feMerge><feMergeNode in="b2"/><feMergeNode in="b1"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="512" height="512" rx="108" fill="url(#mBg)"/><circle cx="256" cy="256" r="230" fill="none" stroke="url(#mEg)" stroke-width="1.5" opacity="0.3"/><g opacity="0.06" stroke="#3b82f6" stroke-width="1"><line x1="100" y1="256" x2="412" y2="256"/><line x1="256" y1="100" x2="256" y2="412"/><line x1="130" y1="130" x2="382" y2="382"/><line x1="382" y1="130" x2="130" y2="382"/></g><path d="M256 72 L400 156 L400 344 L256 428 L112 344 L112 156 Z" fill="#000" transform="translate(6,8)" opacity="0.4"/><path d="M256 72 L400 156 L400 344 L256 428 L112 344 L112 156 Z" fill="url(#mCg)"/><path d="M256 72 L400 156 L400 344 L256 428 L112 344 L112 156 Z" fill="none" stroke="url(#mEg)" stroke-width="3"/><path d="M112 156 L256 72 L400 156" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2.5" stroke-linecap="round"/><g filter="url(#mGl)"><path d="M155 340 L225 365 L305 295 L305 165 L385 95" stroke="url(#mPg)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g><circle cx="155" cy="340" r="8" fill="#3b82f6" opacity="0.9"/><circle cx="225" cy="365" r="8" fill="#06b6d4" opacity="0.9"/><circle cx="305" cy="295" r="8" fill="#10b981" opacity="0.9"/><circle cx="305" cy="165" r="8" fill="#10b981" opacity="0.9"/><circle cx="385" cy="95" r="22" fill="url(#mGg)"/><circle cx="385" cy="95" r="10" fill="#ffffff" opacity="0.95"/></svg>`;
+            const mainBgOverlay = isMain ? `
+                <div style="position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none;z-index:0;">
+                    <div style="position:absolute;right:-18px;bottom:-18px;opacity:0.07;width:110px;height:110px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="110" height="110"><defs><linearGradient id="ovBg" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#020617"/><stop offset="100%" stop-color="#1e3a8a"/></linearGradient><linearGradient id="ovPg" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#34d399"/></linearGradient></defs><rect width="512" height="512" rx="108" fill="url(#ovBg)"/><path d="M256 72 L400 156 L400 344 L256 428 L112 344 L112 156 Z" fill="#1e3a8a"/><path d="M256 72 L400 156 L400 344 L256 428 L112 344 L112 156 Z" fill="none" stroke="rgba(96,165,250,0.5)" stroke-width="3"/><path d="M155 340 L225 365 L305 295 L305 165 L385 95" stroke="url(#ovPg)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="385" cy="95" r="22" fill="#f59e0b"/><circle cx="385" cy="95" r="10" fill="#fff" opacity="0.95"/></svg></div>
+                    <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(30,58,138,0.12) 0%,transparent 60%);border-radius:inherit;"></div>
+                </div>` : '';
+            const _avatarBg = _ex ? 'background:linear-gradient(135deg,' + _exColor + ',' + _exColor + 'cc)' : isMain ? 'background:linear-gradient(135deg,#020617,#0f172a);padding:0;overflow:hidden;' : 'background:linear-gradient(135deg,'+p.color+'33,'+p.color+'11)';
+            const _avatarBorder = _ex ? 'border:1.5px solid rgba(' + _exRgb + ',0.7)' : isMain ? 'border:1.5px solid rgba(37,99,235,0.7)' : 'border:1.5px solid '+p.color+'44';
+            const _avatarContent = _ex ? _ex.getSvg(44, 'white') : isMain ? _mainSvg : p.emoji;
+            const _cardStyle = _ex && isActive ? 'background:linear-gradient(135deg,rgba('+_exRgb+',0.14),rgba('+_exRgb+',0.04));border-color:rgba('+_exRgb+',0.55);box-shadow:0 6px 28px rgba('+_exRgb+',0.25);'
+                : _ex ? 'border-color:rgba('+_exRgb+',0.3);'
+                : isMain && isActive ? 'background:linear-gradient(135deg,rgba('+_mainRgb+',0.18),rgba('+_mainRgb+',0.05));border-color:rgba(37,99,235,0.55);box-shadow:0 6px 28px rgba(30,58,138,0.35);'
+                : isMain ? 'border-color:rgba(37,99,235,0.3);'
+                : '';
             html += `
-            <div class="pf-wallet-card ${isActive?'active-wallet':''}" onclick="MultiPortfolio.switch('${key}')" style="${_ex && isActive ? 'background:linear-gradient(135deg,rgba('+_exRgb+',0.14),rgba('+_exRgb+',0.04));border-color:rgba('+_exRgb+',0.55);box-shadow:0 6px 28px rgba('+_exRgb+',0.25);' : _ex ? 'border-color:rgba('+_exRgb+',0.3);' : ''}position:relative;">
-                ${exBgOverlay}
-                <div class="pf-wallet-glow" style="background:radial-gradient(circle,${p.color}22 0%,transparent 70%)"></div>
+            <div class="pf-wallet-card ${isActive?'active-wallet':''}" onclick="MultiPortfolio.switch('${key}')" style="${_cardStyle}position:relative;">
+                ${isMain ? mainBgOverlay : exBgOverlay}
+                <div class="pf-wallet-glow" style="background:radial-gradient(circle,${isMain?'#2563eb':p.color}22 0%,transparent 70%)"></div>
                 <div class="pf-wallet-top" style="position:relative;z-index:1;">
                     <div class="pf-wallet-avatar" style="${_avatarBg};${_avatarBorder};">${_avatarContent}</div>
                     <div class="pf-wallet-info">
