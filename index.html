@@ -6162,7 +6162,7 @@ button, [onclick], [role="button"] {
 }
 .spm-badge-green { background:rgba(52,211,153,0.1);  color:#34d399; border:1px solid rgba(52,211,153,0.2); }
 .spm-badge-red   { background:rgba(248,113,113,0.1); color:#f87171; border:1px solid rgba(248,113,113,0.2); }
-.spm-bw-sym { font-size:24px; font-weight:900; color:#f8fafc; letter-spacing:-0.5px; margin-bottom:3px; }
+.spm-bw-sym { font-size:22px; font-weight:900; color:#f8fafc; letter-spacing:-0.5px; margin-bottom:3px; white-space:nowrap; overflow:hidden; max-width:100%; display:block; }
 .spm-bw-val { font-size:11px; font-weight:700; line-height:1.5; }
 .spm-section-label { display:flex; align-items:center; gap:8px; margin:8px 0 10px; }
 .spm-section-line  { flex:1; height:1px; background:linear-gradient(90deg,transparent,rgba(201,168,76,0.25),transparent); }
@@ -20173,7 +20173,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.6"; 
+    const CURRENT_VERSION = "1.9"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -22766,6 +22766,19 @@ window.renderStatModal = function() {
     if (wSym) wSym.textContent = worst ? worst.sym : '—';
     if (bVal) bVal.textContent = best  ? ('+' + sym + Math.round(best.pnl).toLocaleString()  + (best.pct  ? '\n%' + best.pct.toFixed(1)  : '')) : '—';
     if (wVal) wVal.textContent = worst ? (sym + Math.round(worst.pnl).toLocaleString() + (worst.pct ? '\n%' + worst.pct.toFixed(1) : '')) : '—';
+    // Dinamik font fit — metni container'a tam sığdır
+    requestAnimationFrame(function() {
+        [bSym, wSym].forEach(function(el) {
+            if (!el || !el.textContent || el.textContent === '—') return;
+            var maxW = el.parentElement ? el.parentElement.offsetWidth - 4 : 120;
+            var fs = 22;
+            el.style.fontSize = fs + 'px';
+            while (el.scrollWidth > maxW && fs > 9) {
+                fs -= 0.5;
+                el.style.fontSize = fs + 'px';
+            }
+        });
+    });
 
     /* 5. AYLIK P&L */
     var monthMap = {};
