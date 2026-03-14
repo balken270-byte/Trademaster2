@@ -20173,7 +20173,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.6"; 
+    const CURRENT_VERSION = "1.1"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -35270,6 +35270,32 @@ async function runDeepDiveAnalysis(mode) {
         var candles = result ? result.candles : null;
         var source  = result ? result.source  : 'yok';
 
+        // ── Chandelier için son 22 high'ı global cache'e kaydet ──
+        if (candles && candles.length > 0) {
+            if (!window._tvHighsCache) window._tvHighsCache = {};
+            var _rawHighs = candles.map(function(c){ return typeof c === 'object' ? (parseFloat(c.high)||0) : (parseFloat(c)||0); }).filter(function(v){ return v > 0; });
+            var _rawCloses = candles.map(function(c){ return typeof c === 'object' ? (parseFloat(c.close)||0) : (parseFloat(c)||0); }).filter(function(v){ return v > 0; });
+            var _rawLows = candles.map(function(c){ return typeof c === 'object' ? (parseFloat(c.low)||0) : (parseFloat(c)||0); }).filter(function(v){ return v > 0; });
+            // ATR hesabı (14 dönem)
+            var _cacheAtr = 0;
+            if (_rawHighs.length >= 14 && _rawLows.length >= 14 && _rawCloses.length >= 14) {
+                var _trArr = [];
+                for (var _ci = 1; _ci < Math.min(_rawCloses.length, 30); _ci++) {
+                    _trArr.push(Math.max(
+                        _rawHighs[_ci] - _rawLows[_ci],
+                        Math.abs(_rawHighs[_ci] - _rawCloses[_ci-1]),
+                        Math.abs(_rawLows[_ci]  - _rawCloses[_ci-1])
+                    ));
+                }
+                _cacheAtr = _trArr.slice(-14).reduce(function(a,b){return a+b;},0) / Math.min(_trArr.length, 14);
+            }
+            window._tvHighsCache[rawSym] = {
+                highs: _rawHighs.slice(-22),
+                atr:   _cacheAtr,
+                ts:    Date.now()
+            };
+        }
+
         if (candles && candles.length > 0) {
             var lastCandle = candles[candles.length - 1];
             var lastClose  = (typeof lastCandle === 'object' && lastCandle.close)
@@ -38604,7 +38630,7 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro, mo
 
         var activeOrderBtns = `
             <div style="margin:10px 12px 6px;" onclick="event.stopPropagation()">
-                <button id="${combinedOrderId}" onclick="TVOrderManager.placeCombinedOrder('${sym}',${stopLoss},${takeProfit},'${pSym}',${curN},${score},'${m.dataSource||''}');this.classList.add('order-active');"
+                <button id="${combinedOrderId}" onclick="(function(btn){var _hc=(window._tvHighsCache&&window._tvHighsCache['${sym}'])||{};TVOrderManager.placeCombinedOrder('${sym}',${stopLoss},${takeProfit},'${pSym}',${curN},${score},'${m.dataSource||''}',{adxVal:${parseFloat(m.adx||0)},adxTrend:'${m.adxTrend||''}',atrPct:${parseFloat(m.atrPct||0)},atrVal:_hc.atr||${curN>0&&parseFloat(m.atrPct||0)>0?(curN*parseFloat(m.atrPct)/100).toFixed(8):0},highsBuffer:_hc.highs||[]});btn.classList.add('order-active');})(this)"
                     style="width:100%;display:flex;align-items:center;gap:0;padding:0;border-radius:14px;border:1.5px solid rgba(201,168,76,.3);background:linear-gradient(135deg,rgba(239,68,68,.06) 0%,rgba(15,20,35,.95) 40%,rgba(15,20,35,.95) 60%,rgba(16,185,129,.06) 100%);cursor:pointer;transition:all .3s;position:relative;overflow:hidden;">
                     <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 6px;border-right:1px solid rgba(255,255,255,.06);">
                         <div style="font-size:7px;font-weight:800;color:#f87171;text-transform:uppercase;letter-spacing:.5px;">🛡 STOP LOSS</div>
@@ -38707,6 +38733,9 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro, mo
       <div class="rc6-metric"><div class="rc6-m-label">RSI</div><div class="rc6-m-val" style="color:${rsiC};">${rsi.toFixed(1)}</div><div class="rc6-m-sub" style="color:${rsiC};">${rsiL}</div></div>
       <div class="rc6-metric"><div class="rc6-m-label">Stop Loss</div><div class="rc6-m-val" style="color:#ef4444;">${pSym}${fp(stopLoss)}</div><div class="rc6-m-sub">-%${rrRisk.toFixed(1)}</div></div>
       <div class="rc6-metric"><div class="rc6-m-label">Hedef</div><div class="rc6-m-val" style="color:${animColor};">${pSym}${fp(takeProfit)}</div><div class="rc6-m-sub">+%${rrReward.toFixed(1)}</div></div>
+      <div class="rc6-metric"><div class="rc6-m-label">ADX Rejim</div><div class="rc6-m-val" style="color:${parseFloat(m.adx||0)<20?'#f59e0b':parseFloat(m.adx||0)>=35?'#10b981':'#94a3b8'};font-size:11px;">${parseFloat(m.adx||0)<20?'📊 Yatay':parseFloat(m.adx||0)>=35?'📈 Güçlü':'➡️ Nötr'}</div><div class="rc6-m-sub">ADX ${parseFloat(m.adx||0).toFixed(0)}</div></div>
+      <div class="rc6-metric"><div class="rc6-m-label">Trail Modu</div><div class="rc6-m-val" style="color:#C9A84C;font-size:10px;">${parseFloat(m.adx||0)<20?'⏸ Sabit':'⚡ Chandelier'}</div><div class="rc6-m-sub">${parseFloat(m.adx||0)<20?'Range':''+( score>=68?'3.5x':score>=47?'3.0x':'2.5x')+' ATR'}</div></div>
+      <div class="rc6-metric"><div class="rc6-m-label">Pozisyon Öner.</div><div class="rc6-m-val" style="color:#a78bfa;font-size:13px;">${(function(){var st=TVOrderManager.getAccuracyStats();var k=parseFloat(st.quarterKelly||0);return k>0?'%'+k.toFixed(1):'—';}())}</div><div class="rc6-m-sub">${(function(){var st=TVOrderManager.getAccuracyStats();var k=parseFloat(st.quarterKelly||0);return k>0?'¼ Kelly':'Veri yok';}())}</div></div>
     </div>
     <div class="rc6-rsi-row">
       <div class="rc6-rsi-header"><span class="rc6-rsi-title">RSI Seviyesi</span><span class="rc6-rsi-reading" style="color:${rsiC};">${rsi.toFixed(1)} — ${rsiL}</span></div>
@@ -39937,7 +39966,7 @@ var TVOrderManager = (function() {
     }
 
     // ── Birleşik Emir: Stop Loss + Take Profit tek tıkla ──────
-    async function placeCombinedOrder(symbol, stopPrice, tpPrice, priceSym, currentPrice, score, dataSource) {
+    async function placeCombinedOrder(symbol, stopPrice, tpPrice, priceSym, currentPrice, score, dataSource, extraMeta) {
         // ── $0 koruması: geçersiz fiyat gelirse currentPrice'dan hesapla ──
         if (!stopPrice || stopPrice <= 0) {
             stopPrice = currentPrice > 0 ? parseFloat((currentPrice * 0.92).toFixed(8)) : 0;
@@ -39954,6 +39983,18 @@ var TVOrderManager = (function() {
         // Her ikisini aynı anda yerleştir
         var slOrder = await placeOrder(symbol, 'STOP_LOSS', stopPrice, priceSym, currentPrice, score, dataSource);
         var tpOrder = await placeOrder(symbol, 'TAKE_PROFIT', tpPrice, priceSym, currentPrice, score, dataSource);
+
+        // ── extraMeta: Chandelier / ADX / ATR bilgilerini SL order'a yaz ──
+        if (slOrder && extraMeta) {
+            slOrder.adxAtEntry     = extraMeta.adxVal     || 0;
+            slOrder.adxTrendEntry  = extraMeta.adxTrend   || '';
+            slOrder.atrAtEntry     = extraMeta.atrVal     || 0;
+            slOrder.atrPctAtEntry  = extraMeta.atrPct     || 0;
+            slOrder.highsBuffer    = extraMeta.highsBuffer || [];
+            slOrder.chandelierMode = true;
+            _saveLocal();
+            _fbUpdateOrder(slOrder);
+        }
 
         // İkisini birbirine bağla (biri tetiklenince diğeri iptal olacak)
         if (slOrder && tpOrder) {
@@ -40187,18 +40228,17 @@ var TVOrderManager = (function() {
                 if (!order._lastAdaptCheck || (now - order._lastAdaptCheck) > 3600000) {
                     order._lastAdaptCheck = now;
                     var basePct = order.trailingPct || 0.20;
-                    if (currentPnlPct >= 100)     order.trailingPct = Math.min(basePct, 0.08);
+                    if      (currentPnlPct >= 100) order.trailingPct = Math.min(basePct, 0.08);
                     else if (currentPnlPct >= 50)  order.trailingPct = Math.min(basePct, 0.12);
                     else if (currentPnlPct >= 20)  order.trailingPct = Math.min(basePct, 0.15);
                 }
 
-                // ── Koruma 2: Ani Düşüş — %10+ düşüşte acil sıkılaştır ──
+                // ── Koruma 2: Ani Düşüş — tek kontrolde %10+ düşüş ──────
                 if (order._lastCheckPrice) {
                     var dropSince = ((order._lastCheckPrice - currentPrice) / order._lastCheckPrice) * 100;
                     if (dropSince >= 10) {
                         order.trailingPct = Math.min(order.trailingPct || 0.20, 0.05);
                         var emergStop = currentPrice * 0.95;
-                        // Floor: acil stop da ilk stopun altına inemez
                         var emergFloor = order.originalTarget || 0;
                         if (emergStop < emergFloor) emergStop = emergFloor;
                         if (emergStop > order.targetPrice) {
@@ -40215,7 +40255,83 @@ var TVOrderManager = (function() {
                 }
                 order._lastCheckPrice = currentPrice;
 
-                // ── Koruma 3: Bayat Emir — 7 gün güncellenmemişse kâr kilitle ──
+                // ── Koruma 3: Kademeli Düşüş Tespiti ────────────────────
+                // Son 3 kontrolde ardışık düşüş varsa trailing sıkılaştır
+                if (!order._priceHistory) order._priceHistory = [];
+                order._priceHistory.push(currentPrice);
+                if (order._priceHistory.length > 5) order._priceHistory.shift();
+
+                if (order._priceHistory.length >= 3) {
+                    var ph = order._priceHistory;
+                    var consecutiveDrops = 0;
+                    for (var pi = ph.length - 1; pi > 0; pi--) {
+                        if (ph[pi] < ph[pi-1]) consecutiveDrops++;
+                        else break;
+                    }
+                    if (consecutiveDrops >= 3) {
+                        var tightened = Math.max(0.03, (order.trailingPct || 0.20) * 0.7);
+                        if (tightened < order.trailingPct) {
+                            order.trailingPct = tightened;
+                            if (!order._gradualDropNotified) {
+                                order._gradualDropNotified = true;
+                                if (typeof addNotification === 'function') {
+                                    addNotification('warning', '📉 Kademeli Düşüş',
+                                        order.symbol + ' sürekli düşüyor. Trailing stop sıkılaştırıldı: %' +
+                                        (tightened * 100).toFixed(1));
+                                }
+                            }
+                        }
+                    } else {
+                        order._gradualDropNotified = false;
+                    }
+                }
+
+                // ── Koruma 4: Zirve'den Erozyon Koruması ────────────────
+                // highestPrice'dan %10+ düşüş olursa stop agresif sıkıştır
+                var peakP = order.highestPrice || entryP;
+                if (peakP > entryP) {
+                    var peakDropPct = ((peakP - currentPrice) / peakP) * 100;
+                    if (peakDropPct >= 10 && currentPnlPct > 5) {
+                        var erosionStop = currentPrice * 0.97;
+                        var erosionFloor = order.originalTarget || 0;
+                        if (erosionStop < erosionFloor) erosionStop = erosionFloor;
+                        if (erosionStop > order.targetPrice) {
+                            order.targetPrice = parseFloat(erosionStop.toFixed(6));
+                            order.trailingPct = Math.min(order.trailingPct || 0.20, 0.04);
+                            order.updatedAt = now;
+                            updated = true;
+                            if (!order._erosionNotified) {
+                                order._erosionNotified = true;
+                                if (typeof addNotification === 'function') {
+                                    addNotification('warning', '⚠️ Kâr Erozyon Koruması',
+                                        order.symbol + ' zirve ' + order.priceSym + peakP.toLocaleString(undefined,{maximumFractionDigits:4}) +
+                                        '\'den -%' + peakDropPct.toFixed(1) + ' düştü. Stop acil konuma taşındı: ' +
+                                        order.priceSym + order.targetPrice.toLocaleString(undefined,{maximumFractionDigits:4}));
+                                }
+                            }
+                        }
+                    } else if (peakDropPct < 5) {
+                        order._erosionNotified = false;
+                    }
+                }
+
+                // ── Koruma 5: Stop'a Yaklaşma Uyarısı ───────────────────
+                var distToStop = order.targetPrice > 0
+                    ? ((currentPrice - order.targetPrice) / currentPrice) * 100
+                    : 100;
+                if (distToStop > 0 && distToStop <= 5 && !order._stopProximityNotified) {
+                    order._stopProximityNotified = true;
+                    if (typeof addNotification === 'function') {
+                        addNotification('warning', '🔔 Stop Yaklaşıyor!',
+                            order.symbol + ' stop seviyesine %' + distToStop.toFixed(1) + ' kaldı. ' +
+                            'Stop: ' + order.priceSym + order.targetPrice.toLocaleString(undefined,{maximumFractionDigits:4}) +
+                            ' · Güncel: ' + order.priceSym + currentPrice.toLocaleString(undefined,{maximumFractionDigits:4}));
+                    }
+                } else if (distToStop > 8) {
+                    order._stopProximityNotified = false;
+                }
+
+                // ── Koruma 6: Bayat Emir — 7 gün güncellenmemişse kâr kilitle ──
                 if (lastUpdateAge > 168 && currentPnlPct > 5) {
                     var breakEven = entryP * 1.02;
                     if (breakEven > order.targetPrice) {
@@ -40232,16 +40348,44 @@ var TVOrderManager = (function() {
             }
 
             // ════════════════════════════════════════════════════════
-            //  TRAILING STOP LOSS
+            //  TRAILING STOP LOSS — Chandelier Exit + ADX Filtresi
             // ════════════════════════════════════════════════════════
             if (order.type === 'STOP_LOSS') {
 
-                if (currentPrice > (order.highestPrice || order.entryPrice)) {
-                    order.highestPrice = currentPrice;
-                    var trailPct = order.trailingPct || 0.20;
-                    var newStop = currentPrice * (1 - trailPct);
+                var adxNow = order.adxAtEntry || 25;
+                var isRangeMarket = adxNow < 20;
 
-                    // ── FLOOR KURALI: Stop asla ilk stopun altına düşemez ──
+                if (!isRangeMarket && currentPrice > (order.highestPrice || order.entryPrice)) {
+                    order.highestPrice = currentPrice;
+
+                    // Score-based Chandelier Multiplier
+                    var entryScore = order.score || 50;
+                    var chanMult   = entryScore >= 68 ? 3.5 : entryScore >= 47 ? 3.0 : 2.5;
+
+                    var newStop;
+                    var usesChandelier = false;
+
+                    if (order.chandelierMode && order.highsBuffer && order.highsBuffer.length > 0 && order.atrAtEntry > 0) {
+                        order.highsBuffer.push(currentPrice);
+                        if (order.highsBuffer.length > 22) order.highsBuffer.shift();
+                        var highestHighN = Math.max.apply(null, order.highsBuffer);
+
+                        if (currentPnlPct >= 100)     chanMult = Math.min(chanMult, 2.0);
+                        else if (currentPnlPct >= 50) chanMult = Math.min(chanMult, 2.5);
+                        else if (currentPnlPct >= 20) chanMult = Math.min(chanMult, 3.0);
+
+                        newStop = highestHighN - (order.atrAtEntry * chanMult);
+                        usesChandelier = true;
+                    } else {
+                        var trailPct = order.trailingPct || 0.20;
+                        newStop = currentPrice * (1 - trailPct);
+                    }
+
+                    // Orantısal minimum: ATR büyük olsa bile stop fiyatla orantılı taşır
+                    var proportionalMin = currentPrice * (1 - (order.trailingPct || 0.20));
+                    newStop = Math.max(newStop, proportionalMin);
+
+                    // Floor: stop asla ilk stopun altına düşemez
                     var floorStop = order.originalTarget || 0;
                     if (newStop < floorStop) newStop = floorStop;
 
@@ -40254,12 +40398,21 @@ var TVOrderManager = (function() {
                         var pctGain = ((currentPrice - order.entryPrice) / order.entryPrice * 100);
                         if (order.trailingUpdates === 1 || pctGain % 10 < 2) {
                             if (typeof addNotification === 'function') {
+                                var modeNote = usesChandelier
+                                    ? ' [Chandelier ' + chanMult.toFixed(1) + 'x ATR]'
+                                    : ' [trailing %' + ((order.trailingPct||0.20)*100).toFixed(0) + ']';
                                 addNotification('info', '📈 Trailing Stop Güncellendi',
                                     order.symbol + ' zirve: ' + order.priceSym + currentPrice.toLocaleString(undefined,{maximumFractionDigits:4}) +
                                     ' → Stop: ' + order.priceSym + order.targetPrice.toLocaleString(undefined,{maximumFractionDigits:4}) +
-                                    ' (trailing %' + ((order.trailingPct||0.20)*100).toFixed(0) + ')');
+                                    modeNote);
                             }
                         }
+                    }
+                } else if (isRangeMarket && order.chandelierMode && !order._rangeNotified) {
+                    order._rangeNotified = true;
+                    if (typeof addNotification === 'function') {
+                        addNotification('info', '⏸ Trailing Duraklatıldı',
+                            order.symbol + ' ADX ' + adxNow.toFixed(0) + ' — yatay piyasa, trailing stop sabit tutuluyor.');
                     }
                 }
 
@@ -40295,9 +40448,19 @@ var TVOrderManager = (function() {
                         updated = true;
                     }
 
-                    // Adaptif geri çekilme: kâr arttıkça sıkılaş
+                    // Adaptif geri çekilme: kâr + ATR bazlı
                     var tpPnl = ((order.highestPrice - entryP) / entryP) * 100;
-                    var dropPct = tpPnl >= 100 ? 0.03 : tpPnl >= 50 ? 0.04 : 0.05;
+                    var atrBasedDrop = order.atrPctAtEntry > 0
+                        ? Math.max(0.02, Math.min(0.06, parseFloat(order.atrPctAtEntry) / 100 * 0.5))
+                        : null;
+                    var dropPct;
+                    if (atrBasedDrop !== null) {
+                        if      (tpPnl >= 100) dropPct = Math.min(atrBasedDrop, 0.025);
+                        else if (tpPnl >= 50)  dropPct = Math.min(atrBasedDrop, 0.035);
+                        else                   dropPct = atrBasedDrop;
+                    } else {
+                        dropPct = tpPnl >= 100 ? 0.03 : tpPnl >= 50 ? 0.04 : 0.05;
+                    }
                     var tpTriggerLevel = order.highestPrice * (1 - dropPct);
 
                     if (currentPrice <= tpTriggerLevel) {
@@ -40744,14 +40907,31 @@ var TVOrderManager = (function() {
             var correct = acc.filter(function(a) { return a.outcome === 'CORRECT'; }).length;
             var wrong = acc.filter(function(a) { return a.outcome === 'WRONG'; }).length;
             var avgPnl = total > 0 ? acc.reduce(function(s,a){ return s + (a.pnlPct||0); }, 0) / total : 0;
+
+            // Quarter-Kelly pozisyon boyutu
+            var kellyPct = 0;
+            var triggered = acc.filter(function(a) { return a.outcome === 'TRIGGERED'; });
+            if (triggered.length >= 5) {
+                var wins   = triggered.filter(function(a) { return (a.pnlPct||0) > 0; });
+                var losses = triggered.filter(function(a) { return (a.pnlPct||0) <= 0; });
+                var W = wins.length / triggered.length;
+                var L = 1 - W;
+                var avgWin  = wins.length   > 0 ? wins.reduce(function(s,a){return s+(a.pnlPct||0);},0)   / wins.length   : 0;
+                var avgLoss = losses.length > 0 ? Math.abs(losses.reduce(function(s,a){return s+(a.pnlPct||0);},0) / losses.length) : 1;
+                var R = avgLoss > 0 ? avgWin / avgLoss : 1;
+                var kelly = R > 0 ? (W * R - L) / R : 0;
+                kellyPct = Math.max(0, Math.min(25, kelly * 25));
+            }
+
             return {
                 total: total,
                 correct: correct,
                 wrong: wrong,
                 accuracy: total > 0 ? Math.round(correct / total * 100) : 0,
-                avgPnl: avgPnl.toFixed(2)
+                avgPnl: avgPnl.toFixed(2),
+                quarterKelly: kellyPct.toFixed(1)
             };
-        } catch(e) { return { total:0, correct:0, wrong:0, accuracy:0, avgPnl:'0' }; }
+        } catch(e) { return { total:0, correct:0, wrong:0, accuracy:0, avgPnl:'0', quarterKelly:'0' }; }
     }
 
     // ── Firebase'den emirleri sync et ──
