@@ -20173,7 +20173,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.9"; 
+    const CURRENT_VERSION = "1.6"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -32872,6 +32872,77 @@ function renderActiveAlarmsList() {
                 }
 
                 if (isCombined) {
+                    // ── Trailing ilerleme barı (order'ın kaydedilmiş verisinden) ──
+                    // Bar mantığı:
+                    //   Sol uç  = slOrder.originalTarget (ilk stop, hiç değişmez)
+                    //   Sağ uç  = tpOrder.targetPrice    (hedef)
+                    //   Yeşil bölge = slOrder.targetPrice'ın originalTarget'tan ne kadar ilerlediği
+                    //   Zirve noktası = slOrder.highestPrice (trailing'in takip ettiği en yüksek)
+                    var _origSL   = slOrder.originalTarget || slOrder.targetPrice || 0;
+                    var _curSL    = slOrder.targetPrice || 0;
+                    var _peakP    = slOrder.highestPrice  || 0;
+                    var _tpP      = tpOrder.targetPrice   || 0;
+                    var _entryP   = o.entryPrice || 0;
+                    var _trailN   = slOrder.trailingUpdates || 0;
+                    var _trailPct = ((slOrder.trailingPct || 0) * 100).toFixed(0);
+
+                    // Barın tam aralığı: origSL → tpP
+                    var _range = (_tpP - _origSL);
+                    // SL'nin origSL'den tpP'ye doğru kat ettiği mesafe (%)
+                    var _slProgressPct = (_range > 0) ? Math.max(0, Math.min(98, (_curSL - _origSL) / _range * 100)) : 0;
+                    // Zirvenin konumu
+                    var _peakPct       = (_range > 0 && _peakP > 0) ? Math.max(0, Math.min(100, (_peakP - _origSL) / _range * 100)) : 0;
+                    // Giriş fiyatının konumu (referans nokta)
+                    var _entryPct      = (_range > 0 && _entryP > 0) ? Math.max(0, Math.min(100, (_entryP - _origSL) / _range * 100)) : 0;
+
+                    // PnL: stop ne kadar yukarı taşındı (kâr korunumu)
+                    var _savedPct = (_origSL > 0 && _curSL > _origSL)
+                        ? ((_curSL - _origSL) / _origSL * 100).toFixed(1)
+                        : null;
+
+                    // Bar rengi: ne kadar ilerledi?
+                    var _barFill = _slProgressPct >= 60 ? '#10b981'
+                                 : _slProgressPct >= 25 ? '#C9A84C'
+                                 : '#ef4444';
+
+                    var _progressBarHtml = (_origSL > 0 && _tpP > 0 && _tpP > _origSL)
+                        ? '<div style="margin-top:9px;">'
+                          // Başlık satırı
+                          + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">'
+                          + '<div style="display:flex;align-items:center;gap:4px;">'
+                          + '<span style="font-size:8px;font-weight:700;color:rgba(255,255,255,0.35);">📈 Trailing İlerlemesi</span>'
+                          + (_trailN > 0
+                            ? '<span style="font-size:8px;font-weight:800;color:#C9A84C;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);border-radius:4px;padding:0px 4px;">' + _trailN + 'x</span>'
+                            : '')
+                          + '</div>'
+                          + (_savedPct !== null
+                            ? '<span style="font-size:8px;font-weight:700;color:#10b981;">+%' + _savedPct + ' korundu</span>'
+                            : '<span style="font-size:8px;color:rgba(255,255,255,0.2);">Henüz hareket yok</span>')
+                          + '</div>'
+                          // Bar gövdesi
+                          + '<div style="position:relative;height:7px;border-radius:99px;background:rgba(255,255,255,0.06);">'
+                          // Doldurulmuş kısım (origSL → curSL)
+                          + '<div style="position:absolute;left:0;top:0;height:100%;border-radius:99px;width:' + _slProgressPct.toFixed(1) + '%;background:linear-gradient(90deg,rgba(239,68,68,0.5),' + _barFill + ');"></div>'
+                          // Zirve marker (highestPrice)
+                          + (_peakPct > 2
+                            ? '<div style="position:absolute;top:50%;transform:translateY(-50%);left:' + _peakPct.toFixed(1) + '%;width:2px;height:120%;border-radius:2px;background:rgba(251,191,36,0.6);"></div>'
+                            : '')
+                          // Giriş fiyatı marker
+                          + (_entryPct > 2 && _entryPct < 98
+                            ? '<div style="position:absolute;top:50%;transform:translateY(-50%);left:' + _entryPct.toFixed(1) + '%;width:2px;height:120%;border-radius:2px;background:rgba(255,255,255,0.25);"></div>'
+                            : '')
+                          // SL thumb (güncel stop seviyesi)
+                          + '<div style="position:absolute;top:50%;transform:translate(-50%,-50%);left:' + Math.max(4, _slProgressPct).toFixed(1) + '%;width:11px;height:11px;border-radius:50%;background:' + _barFill + ';border:2px solid #0b0f19;box-shadow:0 0 7px ' + _barFill + ';z-index:2;"></div>'
+                          + '</div>'
+                          // Alt etiket satırı
+                          + '<div style="display:flex;justify-content:space-between;margin-top:4px;">'
+                          + '<span style="font-size:7.5px;color:rgba(239,68,68,0.6);">Başlangıç SL</span>'
+                          + (_trailPct > 0 ? '<span style="font-size:7.5px;color:rgba(255,255,255,0.2);">Trail %' + _trailPct + '</span>' : '')
+                          + '<span style="font-size:7.5px;color:rgba(16,185,129,0.6);">Hedef</span>'
+                          + '</div>'
+                          + '</div>'
+                        : '';
+
                     // ── BİRLEŞİK KART: Stop Loss + Take Profit ──
                     li.innerHTML = ''
                         + _wmHtml
@@ -32893,6 +32964,7 @@ function renderActiveAlarmsList() {
                         + '<div style="flex:1;padding:7px 8px;border-radius:10px;background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.15);">'
                         + '<div style="font-size:8px;font-weight:700;color:#34d399;margin-bottom:2px;">🎯 HEDEF</div>'
                         + '<div style="font-size:13px;font-weight:900;color:#10b981;">' + (_fmtPrice(tpOrder.targetPrice, o.priceSym) || '<span style="color:rgba(100,200,150,0.5);font-size:10px;">Veri yok</span>') + '</div></div></div>'
+                        + _progressBarHtml
                         + highestNote;
                 } else {
                     // ── TEKLİ KART (paired değil) ──
@@ -37877,7 +37949,7 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro, mo
                     paragraphs.push('🌍 <strong>ABD Piyasa Bağlamı:</strong> Fed faiz kararları, CPI/PCE verileri ve sektörel haberler bu hissenin teknik tablosunu doğrudan etkiler. Kârlı pozisyon için önemli veri açıklamaları öncesi stop-loss güncellemek kritik.');
                 }
 
-                // ── BÖLÜM 11: ANALİZCİ NET GÖRÜŞÜ — sebep-sonuç zinciri ──
+                // ── BÖLÜM 11: BİRLEŞİK VERDİKT — tüm sinyaller + kâr durumu tek karar ──
                 var posSignals = 0, negSignals = 0;
                 if (score >= 60) posSignals += 2; else if (score >= 47) posSignals += 1; else if (score < 32) negSignals += 2; else negSignals += 1;
                 if (rsiNum > 70) negSignals++; else if (rsiNum > 55) posSignals++;
@@ -37891,79 +37963,117 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro, mo
                 if (m.williamsR !== undefined && m.williamsR > -20) negSignals++;
                 if (m.bbAboveUpper) negSignals++;
 
-                var verdictColor, verdictIcon, verdictBody;
-                if (posSignals >= negSignals + 2) {
+                // Piyasa durumunu belirle
+                var mktState = posSignals >= negSignals + 2 ? 'bull' : negSignals >= posSignals + 2 ? 'bear' : 'neutral';
+
+                // Kâr büyüklüğü sınıfı
+                var profitTier = profitPct >= 50 ? 'big' : profitPct >= 15 ? 'mid' : 'small';
+
+                // Hangi faktörler öne çıkıyor — en fazla 2 tane
+                var keyFactors = [];
+                if (score >= 60) keyFactors.push('skor ' + score + '/100 güçlü bölgede');
+                else if (score < 35) keyFactors.push('skor ' + score + '/100 zayıf bölgede');
+                if (sl.includes('GOLDEN_CROSS')) keyFactors.push('Golden Cross aktif');
+                if (wl.includes('DEATH_CROSS')) keyFactors.push('Death Cross uyarısı var');
+                if (m.cmfSignal === 'güçlü_dağıtım') keyFactors.push('CMF kurumsal çıkışa işaret ediyor');
+                if (m.cmfSignal === 'güçlü_birikim') keyFactors.push('CMF güçlü birikim gösteriyor');
+                if (m.adxTrend === 'güçlü_düşüş') keyFactors.push('ADX güçlü düşüş trendi');
+                if (m.adxTrend === 'güçlü_yükseliş') keyFactors.push('ADX güçlü yükseliş trendi');
+                if (rsiNum > 75) keyFactors.push('RSI ' + rsiVal + ' aşırı alım bölgesinde');
+                if (m.bbAboveUpper) keyFactors.push('fiyat Bollinger üst bandının üzerinde');
+                keyFactors = keyFactors.slice(0, 2);
+                var factorStr = keyFactors.length ? keyFactors.join(', ') + '. ' : '';
+
+                var verdictColor, verdictIcon, verdictTitle, verdictDesc, eduText;
+
+                if (mktState === 'bull' && profitTier === 'big') {
                     verdictColor = '#34d399'; verdictIcon = '🟢';
-                    var reason = 'Teknik tablo ağırlıklı olarak yukarı yönü destekliyor (' + posSignals + ' olumlu / ' + negSignals + ' olumsuz sinyal). ';
-                    reason += score >= 60 ? 'Skor ' + score + '/100 ile güçlü bölgede. ' : '';
-                    reason += sl.includes('GOLDEN_CROSS') ? 'Golden Cross trend desteği sağlıyor. ' : '';
-                    reason += m.adxTrend === 'güçlü_yükseliş' ? 'ADX güçlü trend onaylıyor. ' : '';
-                    reason += m.cmfSignal === 'güçlü_birikim' ? 'CMF kurumsal alım varlığını gösteriyor. ' : '';
-                    reason += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: Stop-loss\'u agresif yukarı taşı, trailing stop kur. Tümünü satma — trende güven ama koru.</em>';
-                    verdictBody = 'DEVAM ET (Trailing Stop ile)<br><span style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.7);">' + reason + '</span>';
-                } else if (negSignals >= posSignals + 2) {
-                    verdictColor = '#ef4444'; verdictIcon = '🔴';
-                    var reason = 'Teknik tablo ağırlıklı olarak aşağı baskıyı işaret ediyor (' + negSignals + ' olumsuz / ' + posSignals + ' olumlu sinyal). ';
-                    reason += wl.includes('DEATH_CROSS') ? 'Death Cross trend dönüşünü onaylıyor. ' : '';
-                    reason += m.adxTrend === 'güçlü_düşüş' ? 'ADX güçlü düşüş trendi gösteriyor. ' : '';
-                    reason += m.cmfSignal === 'güçlü_dağıtım' ? 'CMF kurumsal çıkışa işaret ediyor. ' : '';
-                    reason += rsiNum > 75 ? 'RSI ' + rsiVal + ' kritik aşırı alım bölgesinde. ' : '';
-                    reason += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: Pozisyonun en az %50\'sini realize et. Kalanı için stop-loss\'u sıkılaştır. Kâr beklerken eritmek en yaygın hatalardan biridir.</em>';
-                    verdictBody = 'KÂR REALIZE ET<br><span style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.7);">' + reason + '</span>';
-                } else {
+                    verdictTitle = 'DEVAM ET — KISMİ KİLİTLE';
+                    verdictDesc = 'Teknik tablo güçlü ve %' + profitStr + ' kâr ile zaten büyük bir kazanç var. ' + factorStr + 'Trend devam ediyor görünse de bu kadar kâr kağıt üzerinde kalabilir.';
+                    verdictDesc += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: %30-40\'ını realize et ve geri kalan için trailing stop kur. Hem kazancı korursun hem de trendin devamından pay alırsın.</em>';
+                    eduText = 'Yatırımcıların büyük çoğunluğu %' + profitStr + ' kâr gördüğünde iki hatadan birini yapar: ya hepsini satar ve trendin devamını kaçırır, ya da hiç satmaz ve kâr eriyi kadar bekler. '
+                        + 'Profesyonel yaklaşım ikisi de değil — kısmi realize + trailing stop ile hem kazancı kilitlersin hem de yukarı potansiyeli açık tutarsın. '
+                        + '<strong style="color:#a5b4fc;">Kural:</strong> Büyük kârda açgözlülük, küçük kârda sabırsızlık en yaygın iki yıkım sebebidir.';
+                } else if (mktState === 'bull' && profitTier === 'mid') {
+                    verdictColor = '#34d399'; verdictIcon = '🟢';
+                    verdictTitle = 'DEVAM ET — STOP\'U YUKARI TAŞI';
+                    verdictDesc = 'Teknik tablo yukarı yönü destekliyor (' + posSignals + ' olumlu / ' + negSignals + ' olumsuz) ve %' + profitStr + ' kâr var. ' + factorStr + 'Trende güven, ama korumayı ihmal etme.';
+                    verdictDesc += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: Stop-loss\'u alış maliyetinin üzerine taşı — böylece en kötü ihtimalle bile kârsız değil, sıfırda çıkarsın. Trailing stop kur.</em>';
+                    eduText = 'Şu an kârdayken stop-loss\'u maliyetin üzerine taşımak "kâr garantilemek" demektir. ' + factorStr
+                        + 'Trend tersine döndüğünde çoğu yatırımcı "biraz daha bekleyeyim" der ve kâr zarar olur. Stop koyduktan sonra piyasayı sürekli takip etmek zorunda kalmazsın — sistem senin için çalışır. '
+                        + '<strong style="color:#a5b4fc;">Kural:</strong> Kârdayken öncelik "daha çok kazanmak" değil, "kazandığını korumak"tır.';
+                } else if (mktState === 'bull' && profitTier === 'small') {
                     verdictColor = '#f59e0b'; verdictIcon = '🟡';
-                    var reason = 'Teknik tablo dengede (' + posSignals + ' olumlu / ' + negSignals + ' olumsuz sinyal). Net yön sinyali yok. ';
-                    reason += profitPct >= 30 ? 'Kâr %' + profitStr + ' ile tatmin edici — kısmi realize mantıklı. ' : 'Henüz küçük kâr — stop-loss maliyete yakın tut. ';
-                    reason += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: %25-30 kısmi realize yap, stop-loss\'u maliyetin üzerine taşı, kalanı trailing stop ile koru.</em>';
-                    verdictBody = 'KISMİ REALIZE + BEKLE<br><span style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.7);">' + reason + '</span>';
+                    verdictTitle = 'BEKLE — POZİSYONU KORU';
+                    verdictDesc = 'Teknik tablo olumlu (' + posSignals + ' olumlu / ' + negSignals + ' olumsuz) ancak kâr henüz küçük (%' + profitStr + '). ' + factorStr + 'Tablo işe yarıyor, sabırla beklemek mantıklı.';
+                    verdictDesc += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: Şimdi satma. Stop-loss\'u maliyet altına koy, trend devam ederse kâr büyüyecek. Acele etme.</em>';
+                    eduText = 'Tablo seni destekliyor ama kâr henüz küçük — şimdi satmak hem spread hem de vergi kaybı demek. '
+                        + 'Trend sinyalleri olumluyken erken çıkmak çoğu zaman pişmanlık yaratır. '
+                        + 'Stop-loss\'unu belirle ve piyasanın senin için çalışmasını izle. '
+                        + '<strong style="color:#a5b4fc;">Kural:</strong> İyi bir giriş yaptıysan, çıkışı aceleye getirme.';
+                } else if (mktState === 'bear' && profitTier === 'big') {
+                    verdictColor = '#ef4444'; verdictIcon = '🔴';
+                    verdictTitle = 'BÜYÜK ÇOĞUNLUĞU REALIZE ET';
+                    verdictDesc = 'Teknik tablo ciddi uyarılar veriyor (' + negSignals + ' olumsuz / ' + posSignals + ' olumlu) ama %' + profitStr + ' kâr hâlâ masada. ' + factorStr + 'Kâr beklerken eritmek, yatırımcıların en sık yaptığı hatadır.';
+                    verdictDesc += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: En az %60-70\'ini şimdi realize et. Kalanı için sıkı stop-loss koy. Kâr gerçekleşmeden yalnızca "kağıt kâr"dır.</em>';
+                    eduText = 'Tablo "çık" diyor, kâr "kal" diyor. Bu çatışmada tarihsel olarak tablo daha doğru çıkar. ' + factorStr
+                        + '%' + profitStr + ' kâr gerçek bir başarı — onu kilitlemek, daha fazlasını beklemekten çok daha değerlidir. '
+                        + 'Realize ettiğin kâr kaybolamaz; realize etmediğin kâr yarın sıfır olabilir. '
+                        + '<strong style="color:#a5b4fc;">Kural:</strong> Teknik tablo sat derken "belki döner" diye beklemek, strateji değil kumardır.';
+                } else if (mktState === 'bear' && profitTier === 'mid') {
+                    verdictColor = '#ef4444'; verdictIcon = '🔴';
+                    verdictTitle = 'KÂR REALIZE ET';
+                    verdictDesc = 'Teknik tablo aşağı baskıyı işaret ediyor (' + negSignals + ' olumsuz / ' + posSignals + ' olumlu) ve %' + profitStr + ' kâr hâlâ var. ' + factorStr;
+                    verdictDesc += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: Pozisyonun en az %50\'sini realize et, kalan için stop-loss\'u sıkılaştır.</em>';
+                    eduText = 'Tablo zayıflarken kâr beklemek riskli. ' + factorStr
+                        + '%' + profitStr + ' kâr küçük görünse de realize edilmeden kaybolabilir. '
+                        + 'Kısmi satış yaparak hem risksiz bölgeye geçersin hem de varlıkta kalmaya devam edersin. '
+                        + '<strong style="color:#a5b4fc;">Kural:</strong> Kâr, realize edildiğinde kârdır — öncesi sadece rakam.';
+                } else if (mktState === 'bear' && profitTier === 'small') {
+                    verdictColor = '#ef4444'; verdictIcon = '🔴';
+                    verdictTitle = 'KÂR REALIZE ET — TABLO ZAYIF';
+                    verdictDesc = 'Teknik tablo olumsuz (' + negSignals + ' olumsuz / ' + posSignals + ' olumlu) ve kâr henüz küçük (%' + profitStr + '). ' + factorStr + 'Küçük kârı kilitlemek, zarar riskinden çok daha iyidir.';
+                    verdictDesc += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: Tümünü veya büyük çoğunluğunu realize et. Tablo düzelirse yeniden girebilirsin — şimdi koru.</em>';
+                    eduText = 'Zayıf tabloda küçük kâr bekletmek çoğu zaman zarara dönüşür. '
+                        + 'Satıp çıkmak "pişmanlık" gibi hissettirse de tablo netleşmeden beklemek daha büyük pişmanlık yaratır. '
+                        + 'Nakit para bir fırsattır — daha iyi bir giriş noktası seni bekliyor olabilir. '
+                        + '<strong style="color:#a5b4fc;">Kural:</strong> Zayıf tabloda küçük kâr, büyük kayıptan her zaman iyidir.';
+                } else {
+                    // neutral market
+                    verdictColor = '#f59e0b'; verdictIcon = '🟡';
+                    if (profitPct >= 20) {
+                        verdictTitle = 'KISMİ REALIZE + İZLE';
+                        verdictDesc = 'Tablo dengede (' + posSignals + ' olumlu / ' + negSignals + ' olumsuz). %' + profitStr + ' kâr tatmin edici. ' + factorStr + 'Net yön sinyali yok — kısmi kilitlemek makul.';
+                        verdictDesc += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: %25-30 realize et, stop-loss\'u maliyetin üzerine taşı, kalanı trailing ile koru.</em>';
+                        eduText = 'Tablo ne güçlü "sat" ne de güçlü "bekle" diyor. Bu belirsizlikte %' + profitStr + ' kârın bir kısmını kilitlemek mantıklıdır. '
+                            + 'Kısmi realize hem riski azaltır hem de yükseliş devam ederse kazanç sağlar. '
+                            + '<strong style="color:#a5b4fc;">Kural:</strong> Belirsizlikte riski ikiye böl — yarısını koru, yarısını işlet.';
+                    } else {
+                        verdictTitle = 'BEKLE — NET SİNYAL YOK';
+                        verdictDesc = 'Tablo dengede (' + posSignals + ' olumlu / ' + negSignals + ' olumsuz) ve kâr henüz küçük (%' + profitStr + '). ' + factorStr + 'Acele karar vermek yerine tablonun netleşmesini bekle.';
+                        verdictDesc += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: Stop-loss\'u maliyet altına koy. Güçlü sinyal gelene kadar pozisyona dokunma.</em>';
+                        eduText = 'Ne güçlü alım ne güçlü satım sinyali var. Bu durumda en iyi hamle genellikle beklemektir. '
+                            + 'Stop-loss koyarak aşağı riski sınırla, yukarda da hazır ol. '
+                            + '<strong style="color:#a5b4fc;">Kural:</strong> Emin olmadığında küçük pozisyonla beklemek, büyük hamle yapmaktan daha akıllıcadır.';
+                    }
                 }
 
                 var rgbMap = {'#34d399':'16,185,129','#ef4444':'239,68,68','#f59e0b':'245,158,11'};
                 var rgbVal = rgbMap[verdictColor] || '16,185,129';
-                paragraphs.push('<div style="background:rgba(' + rgbVal + ',0.1);border:1px solid ' + verdictColor + '44;border-radius:12px;padding:12px 14px;margin-top:4px;">'
+
+                paragraphs.push(
+                    '<div style="background:rgba(' + rgbVal + ',0.08);border:1px solid ' + verdictColor + '33;border-radius:14px;overflow:hidden;margin-top:4px;">'
+                    + '<div style="padding:12px 14px 10px;border-bottom:1px solid rgba(255,255,255,0.06);">'
                     + '<div style="font-size:10px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:' + verdictColor + ';margin-bottom:6px;">' + verdictIcon + ' ANALİZCİ NET GÖRÜŞÜ</div>'
-                    + '<div style="font-size:12px;font-weight:700;color:' + verdictColor + ';">' + verdictBody + '</div>'
-                    + '</div>');
-
-                // ── EĞİTİCİ BİRLEŞTİRİCİ ÖZET ─────────────────────
-                var eduParagraph = '';
-                var fundNote = '';
-                if (m.fundamental && m.fundamental.data) {
-                    var ffd = m.fundamental.data;
-                    if (m.fundamental.type === 'US_STOCK') {
-                        fundNote = ffd.peRatio > 0 ? ' Şirketin P/E oranı ' + ffd.peRatio + ' — ' + (ffd.peRatio < 20 ? 'bu makul bir değerleme, temel analiz teknik tabloyu destekliyor.' : ffd.peRatio < 40 ? 'ortalama bir değerleme.' : 'yüksek değerleme, dikkatli ol.') : '';
-                        if (ffd.profitMargin) fundNote += ' Kâr marjı %' + ffd.profitMargin + (ffd.profitMargin > 15 ? ' — şirket sağlıklı para kazanıyor.' : ffd.profitMargin > 0 ? '.' : ' — şirket zarar ediyor, bu teknik yükselişin sürdürülebilirliğini sorgulatır.');
-                    } else {
-                        if (ffd.mcapRank) fundNote += ' Market cap sıralaması #' + ffd.mcapRank + (ffd.mcapRank <= 50 ? ' — büyük ve güvenilir bir proje.' : ffd.mcapRank <= 200 ? ' — orta büyüklükte.' : ' — küçük ve riskli.');
-                        if (ffd.commitCount4w > 0) fundNote += ' Son 4 haftada ' + ffd.commitCount4w + ' commit' + (ffd.commitCount4w >= 50 ? ' — geliştirici ekibi çok aktif, bu projenin arkasında gerçek iş var.' : ffd.commitCount4w >= 10 ? ' — makul düzeyde aktif.' : ' — geliştirme yavaş, dikkat.');
-                        if (ffd.supplyRatio && ffd.supplyRatio < 0.5) fundNote += ' Dolaşımdaki arz sadece %' + Math.round(ffd.supplyRatio*100) + ' — ileride token kilitleri açılınca satış baskısı oluşabilir.';
-                    }
-                }
-
-                if (profitPct >= 50) {
-                    eduParagraph = '<div style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:12px 14px;margin-top:6px;">'
-                        + '<div style="font-size:9px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:#818cf8;margin-bottom:6px;">💡 BİLMENİ İSTERİM</div>'
-                        + '<div style="font-size:11.5px;color:rgba(255,255,255,0.7);line-height:1.7;">%' + profitStr + ' kâr ciddi bir başarı. Ama piyasaların doğası gereği, kâr kağıt üzerinde kalabilir — realize etmediğin kâr gerçek değildir. '
-                        + 'Profesyonel yatırımcılar genellikle bu noktada pozisyonun %30-50\'sini realize eder ve kalanı trailing stop ile korur. Böylece hem kârdan pay alır hem de devam potansiyelini kaçırmaz.'
-                        + fundNote
-                        + ' <strong style="color:#a5b4fc;">Kural:</strong> Açgözlülük en çok kazanan pozisyonlarda zarara yol açar.</div></div>';
-                } else if (profitPct >= 10) {
-                    eduParagraph = '<div style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:12px 14px;margin-top:6px;">'
-                        + '<div style="font-size:9px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:#818cf8;margin-bottom:6px;">💡 BİLMENİ İSTERİM</div>'
-                        + '<div style="font-size:11.5px;color:rgba(255,255,255,0.7);line-height:1.7;">%' + profitStr + ' kâr iyi bir başlangıç. Bu noktada en önemli şey stop-loss\'u maliyetin üzerine taşımak — böylece en kötü ihtimalle bile kayıpsız çıkarsın. '
-                        + 'Trailing stop sistemi senin için bunu otomatik yapıyor, ama manuel olarak da kontrol etmen faydalı.'
-                        + fundNote
-                        + ' <strong style="color:#a5b4fc;">Kural:</strong> Kârdayken öncelik sermayeyi korumaktır, daha fazla kazanmak değil.</div></div>';
-                } else {
-                    eduParagraph = '<div style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:12px 14px;margin-top:6px;">'
-                        + '<div style="font-size:9px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:#818cf8;margin-bottom:6px;">💡 BİLMENİ İSTERİM</div>'
-                        + '<div style="font-size:11.5px;color:rgba(255,255,255,0.7);line-height:1.7;">Küçük bir kâr var ama teknik tablo zayıf. Bu durumda iki seçenek var: 1) Kârı realize edip sermayeyi koru, 2) Stop-loss\'u maliyetin hemen üstüne koy ve bekle. '
-                        + 'Hangisini seçersen seç, asla "biraz daha bekleyeyim belki döner" tuzağına düşme — bu düşünce çoğu yatırımcının kârını zarara çevirir.'
-                        + fundNote
-                        + ' <strong style="color:#a5b4fc;">Kural:</strong> Zayıf teknik tabloda küçük kâr, büyük kayıptan her zaman iyidir.</div></div>';
-                }
-                paragraphs.push(eduParagraph);
-
+                    + '<div style="font-size:13px;font-weight:800;color:' + verdictColor + ';margin-bottom:5px;">' + verdictTitle + '</div>'
+                    + '<div style="font-size:11.5px;font-weight:400;color:rgba(255,255,255,0.75);line-height:1.65;">' + verdictDesc + '</div>'
+                    + '</div>'
+                    + '<div style="padding:10px 14px 12px;background:rgba(99,102,241,0.05);">'
+                    + '<div style="font-size:9px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:#818cf8;margin-bottom:6px;">💡 BİLMENİ İSTERİM</div>'
+                    + '<div style="font-size:11.5px;color:rgba(255,255,255,0.7);line-height:1.7;">' + eduText + '</div>'
+                    + '</div>'
+                    + '</div>'
+                );                // ── EĞİTİCİ BİRLEŞTİRİCİ ÖZET ─────────────────────
                 var text = paragraphs.map(function(pg) {
                     return '<p style="margin:0 0 12px 0;">' + pg + '</p>';
                 }).join('');
@@ -38242,7 +38352,7 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro, mo
                 paragraphs.push('🔑 <strong>Ne yapmalısın?</strong> Sinyaller güçlü — ama "güçlü sinyal = kesin kâr" değildir. Önerilen alım planını takip et, stop-loss seviyesini kartın alt bölümündeki değere koy. Risk/ödül oranı uygunsa pozisyon aç; sürpriz kötü haber veya genel piyasa sarsıntısı her zaman olasılık dahilinde.');
             }
 
-            // ── BÖLÜM 12: ANALİZCİ NET GÖRÜŞÜ — zarardaki varlık için sebep-sonuç ──
+            // ── BÖLÜM 12: BİRLEŞİK VERDİKT (ZARAR MODU) ──
             var lPosSignals = 0, lNegSignals = 0;
             if (score >= 60) lPosSignals += 2; else if (score >= 47) lPosSignals += 1; else if (score < 32) lNegSignals += 2; else lNegSignals += 1;
             if (rsiNum < 30) lPosSignals += 2; else if (rsiNum < 40) lPosSignals++;
@@ -38257,81 +38367,93 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro, mo
             if (daysVal > 90) lNegSignals++;
             if (dropVal && parseFloat(dropVal) > 50) lNegSignals++;
 
-            var lVerdictColor, lVerdictIcon, lVerdictBody;
-            if (lPosSignals >= lNegSignals + 2) {
+            var lMktState = lPosSignals >= lNegSignals + 2 ? 'bull' : lNegSignals >= lPosSignals + 2 ? 'bear' : 'neutral';
+
+            // Kayıp büyüklüğü sınıfı
+            var dropNum = dropVal ? parseFloat(dropVal) : 0;
+            var lossTier = dropNum >= 50 ? 'deep' : dropNum >= 20 ? 'mid' : 'small';
+
+            // Öne çıkan faktörler
+            var lKeyFactors = [];
+            if (score >= 60) lKeyFactors.push('skor ' + score + '/100 güçlü');
+            else if (score < 35) lKeyFactors.push('skor ' + score + '/100 zayıf');
+            if (sl.includes('GOLDEN_CROSS')) lKeyFactors.push('Golden Cross dönüş sinyali veriyor');
+            if (wl.includes('DEATH_CROSS')) lKeyFactors.push('Death Cross aktif — trend hâlâ aşağı');
+            if (m.cmfSignal === 'güçlü_birikim') lKeyFactors.push('CMF kurumsal alım girişi gösteriyor');
+            if (m.cmfSignal === 'güçlü_dağıtım') lKeyFactors.push('CMF satış baskısı devam ediyor');
+            if (rsiNum < 32) lKeyFactors.push('RSI ' + rsiVal + ' aşırı satım — dip yakın olabilir');
+            if (daysVal > 90) lKeyFactors.push(daysVal + ' gündür maliyet altında');
+            if (dropNum > 50) lKeyFactors.push('%' + dropVal + ' değer kaybı — derin kayıp');
+            lKeyFactors = lKeyFactors.slice(0, 2);
+            var lFactorStr = lKeyFactors.length ? lKeyFactors.join(', ') + '. ' : '';
+
+            var lVerdictColor, lVerdictIcon, lVerdictTitle, lVerdictDesc, lEduText;
+
+            if (lMktState === 'bull' && lossTier !== 'deep') {
                 lVerdictColor = '#34d399'; lVerdictIcon = '🟢';
-                var lReason = 'Zarardaki varlık olmasına rağmen teknik tablo güçlü geri dönüş sinyali veriyor (' + lPosSignals + ' olumlu / ' + lNegSignals + ' olumsuz sinyal). ';
-                lReason += score >= 60 ? 'Skor ' + score + '/100 ile güçlü bölgede. ' : '';
-                lReason += sl.includes('GOLDEN_CROSS') ? 'Golden Cross trend dönüşünü onaylıyor. ' : '';
-                lReason += rsiNum < 35 ? 'RSI ' + rsiVal + ' aşırı satım bölgesinde — dip yakın olabilir. ' : '';
-                lReason += m.cmfSignal === 'güçlü_birikim' ? 'CMF kurumsal alım girişine işaret ediyor. ' : '';
-                lReason += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: Önerilen bütçeyi kademeli uygula (3 parçaya böl). Stop-loss belirle ve disiplinli kal.</em>';
-                lVerdictBody = 'GÜÇLÜ GERİ DÖNÜŞ FIRSATI<br><span style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.7);">' + lReason + '</span>';
-            } else if (lNegSignals >= lPosSignals + 2) {
-                lVerdictColor = '#ef4444'; lVerdictIcon = '🔴';
-                var lReason = 'Teknik tablo ağırlıklı olarak düşüş yönünü destekliyor (' + lNegSignals + ' olumsuz / ' + lPosSignals + ' olumlu sinyal). ';
-                lReason += wl.includes('DEATH_CROSS') ? 'Death Cross düşüş trendini onaylıyor. ' : '';
-                lReason += m.adxTrend === 'güçlü_düşüş' ? 'ADX güçlü düşüş momentumu gösteriyor. ' : '';
-                lReason += daysVal > 90 ? daysVal + ' gündür maliyet altında — kronik kayıp. ' : '';
-                lReason += dropVal && parseFloat(dropVal) > 50 ? '%' + dropVal + ' değer kaybı — kurtarma matematiksel olarak zorlu. ' : '';
-                lReason += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: Yeni alım yapma. Mevcut pozisyon için stop-loss belirle. Piyasanın net dönüş sinyali vermesini bekle.</em>';
-                lVerdictBody = 'BEKLE — YENİ PARA KOYMA<br><span style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.7);">' + lReason + '</span>';
-            } else {
+                lVerdictTitle = 'GÜÇLÜ GERİ DÖNÜŞ FIRSATI';
+                lVerdictDesc = 'Zararda olmasına rağmen teknik tablo güçlü geri dönüş sinyali veriyor (' + lPosSignals + ' olumlu / ' + lNegSignals + ' olumsuz). ' + lFactorStr;
+                lVerdictDesc += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: Bütçeyi 3\'e böl — kademeli alım yap. İlk alım şimdi, diğerleri -%5 ve -%10\'da. Stop-loss\'u belirle ve disiplinli kal.</em>';
+                lEduText = 'Tablonun dönüş sinyali vermesi önemli, ama tek seferde tüm bütçeyi koymak risklidir. '
+                    + 'Kademeli alım hem ortalama maliyeti düşürür hem de ani düşüş riskine karşı koruma sağlar. '
+                    + lFactorStr
+                    + 'Stop-loss koymadan pozisyon açmak, emniyet kemeri takmadan araba kullanmak gibidir. '
+                    + '<strong style="color:#a5b4fc;">Kural:</strong> Dönüş fırsatlarında kademeli gir — tek hamlede tümünü alma.';
+            } else if (lMktState === 'bull' && lossTier === 'deep') {
                 lVerdictColor = '#f59e0b'; lVerdictIcon = '🟡';
-                var lReason = 'Teknik tablo dengede (' + lPosSignals + ' olumlu / ' + lNegSignals + ' olumsuz sinyal). Net bir alım veya kaçış sinyali yok. ';
-                lReason += score >= 40 ? 'Skor ' + score + '/100 — potansiyel var ama onay bekleniyor. ' : '';
-                lReason += dropVal ? '%' + dropVal + ' değer kaybıyla mevcut risk seviyesi orta. ' : '';
-                lReason += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: Çok küçük test alımı yapılabilir (önerilen bütçenin en fazla %30\'u). Tablonun netleşmesini bekle.</em>';
-                lVerdictBody = 'DİKKATLİ İZLE — KÜÇÜK TEST<br><span style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.7);">' + lReason + '</span>';
+                lVerdictTitle = 'DİKKATLİ YAKLAŞ — DERİN KAYIP';
+                lVerdictDesc = 'Tablo geri dönüş sinyali veriyor (' + lPosSignals + ' olumlu) ama %' + dropVal + ' kayıp ile ortalama düşürmek matematiksel olarak zordur. ' + lFactorStr;
+                lVerdictDesc += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: Çok küçük test alımı yap (bütçenin en fazla %20\'si). Trendin doğrulandığını gördükten sonra büyüt.</em>';
+                lEduText = '%' + dropVal + ' kayıptan kurtulmak için %' + Math.round(dropNum / (1 - dropNum/100)).toFixed(0) + ' yükseliş gerekiyor. '
+                    + 'Bu matematiksel gerçeği göz önünde bulundurarak küçük adımlarla yaklaş. '
+                    + 'Tablo olumlu görünse de derin kayıptan çıkış uzun zaman alabilir. '
+                    + '<strong style="color:#a5b4fc;">Kural:</strong> Derin kayıpta "ortalama düşüreyim" düşüncesi çoğu zaman kaybı büyütür — küçük test al, onayla, sonra artır.';
+            } else if (lMktState === 'bear') {
+                lVerdictColor = '#ef4444'; lVerdictIcon = '🔴';
+                lVerdictTitle = 'BEKLE — YENİ PARA KOYMA';
+                lVerdictDesc = 'Teknik tablo düşüş yönünü destekliyor (' + lNegSignals + ' olumsuz / ' + lPosSignals + ' olumlu). ' + lFactorStr + 'Zarardaki varlığa zayıf tabloda para eklemek riski katlar.';
+                lVerdictDesc += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: Yeni alım yapma. Mevcut pozisyon için stop-loss belirle. Tablonun net dönüş sinyali vermesini bekle.</em>';
+                lEduText = 'Zarardayken "biraz daha düştü, alsam mı?" düşüncesi çok cazip gelir — ama tablo olumsuzken bu düşünce çoğu zaman kaybı derinleştirir. '
+                    + lFactorStr
+                    + 'En iyi strateji: stop-loss ile mevcut kaybı sınırla ve tablo netleşene kadar bekle. Fırsatlar her zaman gelir. '
+                    + '<strong style="color:#a5b4fc;">Kural:</strong> Düşen bıçağı tutmaya çalışma — önce yere düşsün, teknik dönüş onayı gelsin, sonra al.';
+            } else {
+                // neutral
+                lVerdictColor = '#f59e0b'; lVerdictIcon = '🟡';
+                if (score >= 45 && lossTier === 'small') {
+                    lVerdictTitle = 'DİKKATLİ İZLE — KÜÇÜK TEST';
+                    lVerdictDesc = 'Tablo dengede (' + lPosSignals + ' olumlu / ' + lNegSignals + ' olumsuz) ve kayıp henüz sınırlı. ' + lFactorStr + 'Küçük test alımı yapılabilir ama tablonun netleşmesini beklemek daha güvenli.';
+                    lVerdictDesc += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: Bütçenin en fazla %25\'i ile test al. Güçlü sinyal gelirse büyüt, gelmezse bekle.</em>';
+                    lEduText = 'Tablo karışık — ne güçlü alım ne güçlü çıkış sinyali var. Bu belirsizlikte büyük hamle yapmak gereksiz risk demektir. '
+                        + 'Küçük test pozisyonu hem piyasada kalmanı sağlar hem de büyük kayıp riskini sınırlar. '
+                        + '<strong style="color:#a5b4fc;">Kural:</strong> Emin olmadığın pozisyonda küçük gir, tablo net konuşunca büyüt.';
+                } else {
+                    lVerdictTitle = 'BEKLE — NETLEŞME İSTE';
+                    lVerdictDesc = 'Tablo dengede (' + lPosSignals + ' olumlu / ' + lNegSignals + ' olumsuz). ' + lFactorStr + 'Net yön sinyali olmadan yeni para koymak gereksiz risk.';
+                    lVerdictDesc += '<br><em style="color:rgba(255,255,255,0.6);">Aksiyon: Mevcut pozisyonda stop-loss koy, yeni alım yapma. Bir hafta daha izle.</em>';
+                    lEduText = 'Belirsizlikte en iyi hamle genellikle hiçbir şey yapmamaktır. '
+                        + 'Stop-loss koyarak aşağı riski sınırla, tablonun sana net bir sinyal vermesini bekle. '
+                        + 'Nakit tutmak da bir pozisyondur — fırsat geldiğinde hazır olmak için. '
+                        + '<strong style="color:#a5b4fc;">Kural:</strong> Belirsizlikte sabır, aceleyle yapılan hamlelerden her zaman daha karlıdır.';
+                }
             }
 
             var lRgbMap = {'#34d399':'16,185,129','#ef4444':'239,68,68','#f59e0b':'245,158,11'};
             var lRgbVal = lRgbMap[lVerdictColor] || '245,158,11';
-            paragraphs.push('<div style="background:rgba(' + lRgbVal + ',0.1);border:1px solid ' + lVerdictColor + '44;border-radius:12px;padding:12px 14px;margin-top:4px;">'
+
+            paragraphs.push(
+                '<div style="background:rgba(' + lRgbVal + ',0.08);border:1px solid ' + lVerdictColor + '33;border-radius:14px;overflow:hidden;margin-top:4px;">'
+                + '<div style="padding:12px 14px 10px;border-bottom:1px solid rgba(255,255,255,0.06);">'
                 + '<div style="font-size:10px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:' + lVerdictColor + ';margin-bottom:6px;">' + lVerdictIcon + ' ANALİZCİ NET GÖRÜŞÜ</div>'
-                + '<div style="font-size:12px;font-weight:700;color:' + lVerdictColor + ';">' + lVerdictBody + '</div>'
-                + '</div>');
-
-            // ── EĞİTİCİ BİRLEŞTİRİCİ ÖZET (ZARAR MODU) ────────────
-            var lEduNote = '';
-            var lFundNote = '';
-            if (m.fundamental && m.fundamental.data) {
-                var lfd = m.fundamental.data;
-                if (m.fundamental.type === 'US_STOCK') {
-                    if (lfd.profitMargin < 0) lFundNote += ' Şirket zarar ediyor (kâr marjı %' + lfd.profitMargin + ') — teknik toparlanma olsa bile temeller zayıf.';
-                    else if (lfd.profitMargin > 15) lFundNote += ' Şirketin kâr marjı %' + lfd.profitMargin + ' — sağlam bir iş modeli var, bu düşüş kalıcı olmayabilir.';
-                    if (lfd.revenueGrowth < -10) lFundNote += ' Gelir %' + lfd.revenueGrowth + ' düştü — bu sadece fiyat değil, iş dünyasında da sorun var demektir.';
-                } else {
-                    if (lfd.commitCount4w === 0) lFundNote += ' GitHub\'da 0 commit — geliştirici ekibi aktif değil, proje terk edilmiş olabilir.';
-                    else if (lfd.commitCount4w >= 50) lFundNote += ' Son 4 haftada ' + lfd.commitCount4w + ' commit — geliştirme aktif, proje canlı.';
-                    if (lfd.sentiment && lfd.sentiment < 35) lFundNote += ' Topluluk duyarlılığı %' + Math.round(lfd.sentiment) + ' — yatırımcılar kaçıyor.';
-                }
-            }
-
-            if (score >= 60) {
-                lEduNote = '<div style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:12px 14px;margin-top:6px;">'
-                    + '<div style="font-size:9px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:#818cf8;margin-bottom:6px;">💡 BİLMENİ İSTERİM</div>'
-                    + '<div style="font-size:11.5px;color:rgba(255,255,255,0.7);line-height:1.7;">Skor ' + score + '/100 güçlü bir toparlanma sinyali veriyor. Ama unutma: zarardaki bir varlığa ek para koymak psikolojik olarak en zor karardır. '
-                    + 'Bu yüzden "tamamını bir anda al" yerine kademeli alım yap — önerilen bütçeyi 3 parçaya böl. Eğer ilk alımdan sonra fiyat düşmeye devam ederse, ikinci ve üçüncü kademeler maliyetini daha da düşürür.'
-                    + lFundNote
-                    + ' <strong style="color:#a5b4fc;">Kural:</strong> Ortalama düşürmek ancak teknik tablo destekliyorsa işe yarar — körü körüne ekleme yapma.</div></div>';
-            } else if (score >= 40) {
-                lEduNote = '<div style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:12px 14px;margin-top:6px;">'
-                    + '<div style="font-size:9px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:#818cf8;margin-bottom:6px;">💡 BİLMENİ İSTERİM</div>'
-                    + '<div style="font-size:11.5px;color:rgba(255,255,255,0.7);line-height:1.7;">Tablo karışık — ne güçlü bir alım sinyali var ne de net bir çıkış noktası. Bu durumda en iyi strateji sabırdır. '
-                    + 'Küçük bir test alımı yapıp trendi takip etmek mantıklı olabilir, ama asıl büyük hamleyi tablonun netleşmesine bırak.'
-                    + lFundNote
-                    + ' <strong style="color:#a5b4fc;">Kural:</strong> Emin olmadığın pozisyonda en iyi hamle genellikle hiçbir şey yapmamaktır.</div></div>';
-            } else {
-                lEduNote = '<div style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:12px 14px;margin-top:6px;">'
-                    + '<div style="font-size:9px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:#818cf8;margin-bottom:6px;">💡 BİLMENİ İSTERİM</div>'
-                    + '<div style="font-size:11.5px;color:rgba(255,255,255,0.7);line-height:1.7;">Teknik tablo zayıf ve düşüş baskısı güçlü. Bu noktada yeni para koymak, batan gemiye su atmak gibidir. '
-                    + 'En yaygın hata "bu kadar düştü daha ne kadar düşecek" düşüncesidir — piyasa her zaman daha fazla düşebilir. '
-                    + 'Eğer bu varlığa hâlâ inanıyorsan, fiyatın dip yapıp teknik göstergelerin dönüş sinyali vermesini bekle. Acele etme.'
-                    + lFundNote
-                    + ' <strong style="color:#a5b4fc;">Kural:</strong> Düşen bıçağı tutmaya çalışma — önce yere düşsün, sonra al.</div></div>';
-            }
-            paragraphs.push(lEduNote);
+                + '<div style="font-size:13px;font-weight:800;color:' + lVerdictColor + ';margin-bottom:5px;">' + lVerdictTitle + '</div>'
+                + '<div style="font-size:11.5px;font-weight:400;color:rgba(255,255,255,0.75);line-height:1.65;">' + lVerdictDesc + '</div>'
+                + '</div>'
+                + '<div style="padding:10px 14px 12px;background:rgba(99,102,241,0.05);">'
+                + '<div style="font-size:9px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:#818cf8;margin-bottom:6px;">💡 BİLMENİ İSTERİM</div>'
+                + '<div style="font-size:11.5px;color:rgba(255,255,255,0.7);line-height:1.7;">' + lEduText + '</div>'
+                + '</div>'
+                + '</div>'
+            );
 
             var text = paragraphs.map(function(pg) {
                 return '<p style="margin:0 0 12px 0;">' + pg + '</p>';
