@@ -20173,7 +20173,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.0"; 
+    const CURRENT_VERSION = "1.6"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -32872,41 +32872,72 @@ function renderActiveAlarmsList() {
                 }
 
                 if (isCombined) {
-                    // ── Trailing ilerleme barı ──────────────────────────
-                    var _origSL  = slOrder.originalTarget || slOrder.targetPrice || 0;
-                    var _curSL   = slOrder.targetPrice || 0;
-                    var _peakP   = slOrder.highestPrice  || 0;
-                    var _tpP2    = tpOrder.targetPrice   || 0;
-                    var _entryP2 = o.entryPrice || 0;
-                    var _trailN  = slOrder.trailingUpdates || 0;
-                    var _trailPct2 = ((slOrder.trailingPct || 0) * 100).toFixed(0);
-                    var _range2  = (_tpP2 - _origSL);
-                    var _slProgressPct = (_range2 > 0) ? Math.max(0, Math.min(98, (_curSL - _origSL) / _range2 * 100)) : 0;
-                    var _peakPct2  = (_range2 > 0 && _peakP > 0) ? Math.max(0, Math.min(100, (_peakP - _origSL) / _range2 * 100)) : 0;
-                    var _entryPct2 = (_range2 > 0 && _entryP2 > 0) ? Math.max(0, Math.min(100, (_entryP2 - _origSL) / _range2 * 100)) : 0;
-                    var _savedPct2 = (_origSL > 0 && _curSL > _origSL) ? ((_curSL - _origSL) / _origSL * 100).toFixed(1) : null;
-                    var _barFill2  = _slProgressPct >= 60 ? '#10b981' : _slProgressPct >= 25 ? '#C9A84C' : '#ef4444';
+                    // ── Trailing ilerleme barı (order'ın kaydedilmiş verisinden) ──
+                    // Bar mantığı:
+                    //   Sol uç  = slOrder.originalTarget (ilk stop, hiç değişmez)
+                    //   Sağ uç  = tpOrder.targetPrice    (hedef)
+                    //   Yeşil bölge = slOrder.targetPrice'ın originalTarget'tan ne kadar ilerlediği
+                    //   Zirve noktası = slOrder.highestPrice (trailing'in takip ettiği en yüksek)
+                    var _origSL   = slOrder.originalTarget || slOrder.targetPrice || 0;
+                    var _curSL    = slOrder.targetPrice || 0;
+                    var _peakP    = slOrder.highestPrice  || 0;
+                    var _tpP      = tpOrder.targetPrice   || 0;
+                    var _entryP   = o.entryPrice || 0;
+                    var _trailN   = slOrder.trailingUpdates || 0;
+                    var _trailPct = ((slOrder.trailingPct || 0) * 100).toFixed(0);
 
-                    var _progressBarHtml = (_origSL > 0 && _tpP2 > 0 && _tpP2 > _origSL)
+                    // Barın tam aralığı: origSL → tpP
+                    var _range = (_tpP - _origSL);
+                    // SL'nin origSL'den tpP'ye doğru kat ettiği mesafe (%)
+                    var _slProgressPct = (_range > 0) ? Math.max(0, Math.min(98, (_curSL - _origSL) / _range * 100)) : 0;
+                    // Zirvenin konumu
+                    var _peakPct       = (_range > 0 && _peakP > 0) ? Math.max(0, Math.min(100, (_peakP - _origSL) / _range * 100)) : 0;
+                    // Giriş fiyatının konumu (referans nokta)
+                    var _entryPct      = (_range > 0 && _entryP > 0) ? Math.max(0, Math.min(100, (_entryP - _origSL) / _range * 100)) : 0;
+
+                    // PnL: stop ne kadar yukarı taşındı (kâr korunumu)
+                    var _savedPct = (_origSL > 0 && _curSL > _origSL)
+                        ? ((_curSL - _origSL) / _origSL * 100).toFixed(1)
+                        : null;
+
+                    // Bar rengi: ne kadar ilerledi?
+                    var _barFill = _slProgressPct >= 60 ? '#10b981'
+                                 : _slProgressPct >= 25 ? '#C9A84C'
+                                 : '#ef4444';
+
+                    var _progressBarHtml = (_origSL > 0 && _tpP > 0 && _tpP > _origSL)
                         ? '<div style="margin-top:9px;">'
+                          // Başlık satırı
                           + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">'
                           + '<div style="display:flex;align-items:center;gap:4px;">'
                           + '<span style="font-size:8px;font-weight:700;color:rgba(255,255,255,0.35);">📈 Trailing İlerlemesi</span>'
-                          + (_trailN > 0 ? '<span style="font-size:8px;font-weight:800;color:#C9A84C;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);border-radius:4px;padding:0 4px;">' + _trailN + 'x</span>' : '')
+                          + (_trailN > 0
+                            ? '<span style="font-size:8px;font-weight:800;color:#C9A84C;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);border-radius:4px;padding:0px 4px;">' + _trailN + 'x</span>'
+                            : '')
                           + '</div>'
-                          + (_savedPct2 !== null
-                              ? '<span style="font-size:8px;font-weight:700;color:#10b981;">+%' + _savedPct2 + ' korundu</span>'
-                              : '<span style="font-size:8px;color:rgba(255,255,255,0.2);">Henüz hareket yok</span>')
+                          + (_savedPct !== null
+                            ? '<span style="font-size:8px;font-weight:700;color:#10b981;">+%' + _savedPct + ' korundu</span>'
+                            : '<span style="font-size:8px;color:rgba(255,255,255,0.2);">Henüz hareket yok</span>')
                           + '</div>'
+                          // Bar gövdesi
                           + '<div style="position:relative;height:7px;border-radius:99px;background:rgba(255,255,255,0.06);">'
-                          + '<div style="position:absolute;left:0;top:0;height:100%;border-radius:99px;width:' + _slProgressPct.toFixed(1) + '%;background:linear-gradient(90deg,rgba(239,68,68,0.5),' + _barFill2 + ');"></div>'
-                          + (_peakPct2 > 2 ? '<div style="position:absolute;top:50%;transform:translateY(-50%);left:' + _peakPct2.toFixed(1) + '%;width:2px;height:120%;border-radius:2px;background:rgba(251,191,36,0.6);"></div>' : '')
-                          + (_entryPct2 > 2 && _entryPct2 < 98 ? '<div style="position:absolute;top:50%;transform:translateY(-50%);left:' + _entryPct2.toFixed(1) + '%;width:2px;height:120%;border-radius:2px;background:rgba(255,255,255,0.25);"></div>' : '')
-                          + '<div style="position:absolute;top:50%;transform:translate(-50%,-50%);left:' + Math.max(4, _slProgressPct).toFixed(1) + '%;width:11px;height:11px;border-radius:50%;background:' + _barFill2 + ';border:2px solid #0b0f19;box-shadow:0 0 7px ' + _barFill2 + ';z-index:2;"></div>'
+                          // Doldurulmuş kısım (origSL → curSL)
+                          + '<div style="position:absolute;left:0;top:0;height:100%;border-radius:99px;width:' + _slProgressPct.toFixed(1) + '%;background:linear-gradient(90deg,rgba(239,68,68,0.5),' + _barFill + ');"></div>'
+                          // Zirve marker (highestPrice)
+                          + (_peakPct > 2
+                            ? '<div style="position:absolute;top:50%;transform:translateY(-50%);left:' + _peakPct.toFixed(1) + '%;width:2px;height:120%;border-radius:2px;background:rgba(251,191,36,0.6);"></div>'
+                            : '')
+                          // Giriş fiyatı marker
+                          + (_entryPct > 2 && _entryPct < 98
+                            ? '<div style="position:absolute;top:50%;transform:translateY(-50%);left:' + _entryPct.toFixed(1) + '%;width:2px;height:120%;border-radius:2px;background:rgba(255,255,255,0.25);"></div>'
+                            : '')
+                          // SL thumb (güncel stop seviyesi)
+                          + '<div style="position:absolute;top:50%;transform:translate(-50%,-50%);left:' + Math.max(4, _slProgressPct).toFixed(1) + '%;width:11px;height:11px;border-radius:50%;background:' + _barFill + ';border:2px solid #0b0f19;box-shadow:0 0 7px ' + _barFill + ';z-index:2;"></div>'
                           + '</div>'
+                          // Alt etiket satırı
                           + '<div style="display:flex;justify-content:space-between;margin-top:4px;">'
                           + '<span style="font-size:7.5px;color:rgba(239,68,68,0.6);">Başlangıç SL</span>'
-                          + (_trailPct2 > 0 ? '<span style="font-size:7.5px;color:rgba(255,255,255,0.2);">Trail %' + _trailPct2 + '</span>' : '')
+                          + (_trailPct > 0 ? '<span style="font-size:7.5px;color:rgba(255,255,255,0.2);">Trail %' + _trailPct + '</span>' : '')
                           + '<span style="font-size:7.5px;color:rgba(16,185,129,0.6);">Hedef</span>'
                           + '</div>'
                           + '</div>'
@@ -36262,16 +36293,6 @@ function calculateTechnicalMetrics(candles, cost, currentPrice, dataSource) {
         var bullDiv  = rsiBullDiv(closes);
         var obv      = obvTrendCalc(closes, volumes);
 
-        // ── Chandelier için son 22 high'ı global cache'e kaydet ──
-        // Buton onclick template literal içinde olduğu için diziyi doğrudan
-        // geçemiyoruz. Symbol bazlı global cache kullanıyoruz.
-        if (!window._tvHighsCache) window._tvHighsCache = {};
-        window._tvHighsCache[sym || ''] = {
-            highs: highs.slice(-22),
-            atr:   atr,
-            ts:    Date.now()
-        };
-
         // ── Williams %R (14 dönem) ───────────────────────────────
         // -100..0 arası: -80 altı oversold, -20 üstü overbought
         var williamsR = (function() {
@@ -38583,7 +38604,7 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro, mo
 
         var activeOrderBtns = `
             <div style="margin:10px 12px 6px;" onclick="event.stopPropagation()">
-                <button id="${combinedOrderId}" onclick="(function(btn){var _hc=(window._tvHighsCache&&window._tvHighsCache['${sym}'])||{};TVOrderManager.placeCombinedOrder('${sym}',${stopLoss},${takeProfit},'${pSym}',${curN},${score},'${m.dataSource||''}',{adxVal:${parseFloat(m.adx||0)},adxTrend:'${m.adxTrend||''}',atrPct:${parseFloat(m.atrPct||0)},atrVal:_hc.atr||${curN>0&&parseFloat(m.atrPct||0)>0?(curN*parseFloat(m.atrPct)/100).toFixed(8):0},highsBuffer:_hc.highs||[]});btn.classList.add('order-active');})(this)"
+                <button id="${combinedOrderId}" onclick="TVOrderManager.placeCombinedOrder('${sym}',${stopLoss},${takeProfit},'${pSym}',${curN},${score},'${m.dataSource||''}');this.classList.add('order-active');"
                     style="width:100%;display:flex;align-items:center;gap:0;padding:0;border-radius:14px;border:1.5px solid rgba(201,168,76,.3);background:linear-gradient(135deg,rgba(239,68,68,.06) 0%,rgba(15,20,35,.95) 40%,rgba(15,20,35,.95) 60%,rgba(16,185,129,.06) 100%);cursor:pointer;transition:all .3s;position:relative;overflow:hidden;">
                     <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 6px;border-right:1px solid rgba(255,255,255,.06);">
                         <div style="font-size:7px;font-weight:800;color:#f87171;text-transform:uppercase;letter-spacing:.5px;">🛡 STOP LOSS</div>
@@ -38686,9 +38707,6 @@ function finishAiAnalysis(plan, originalCash, errorMsg, traderProfile, macro, mo
       <div class="rc6-metric"><div class="rc6-m-label">RSI</div><div class="rc6-m-val" style="color:${rsiC};">${rsi.toFixed(1)}</div><div class="rc6-m-sub" style="color:${rsiC};">${rsiL}</div></div>
       <div class="rc6-metric"><div class="rc6-m-label">Stop Loss</div><div class="rc6-m-val" style="color:#ef4444;">${pSym}${fp(stopLoss)}</div><div class="rc6-m-sub">-%${rrRisk.toFixed(1)}</div></div>
       <div class="rc6-metric"><div class="rc6-m-label">Hedef</div><div class="rc6-m-val" style="color:${animColor};">${pSym}${fp(takeProfit)}</div><div class="rc6-m-sub">+%${rrReward.toFixed(1)}</div></div>
-      <div class="rc6-metric"><div class="rc6-m-label">ADX Rejim</div><div class="rc6-m-val" style="color:${parseFloat(m.adx||0)<20?'#f59e0b':parseFloat(m.adx||0)>=35?'#10b981':'#94a3b8'};font-size:11px;">${parseFloat(m.adx||0)<20?'📊 Yatay':parseFloat(m.adx||0)>=35?'📈 Güçlü':'➡️ Nötr'}</div><div class="rc6-m-sub">ADX ${parseFloat(m.adx||0).toFixed(0)}</div></div>
-      <div class="rc6-metric"><div class="rc6-m-label">Trail Modu</div><div class="rc6-m-val" style="color:#C9A84C;font-size:10px;">${parseFloat(m.adx||0)<20?'⏸ Sabit':'⚡ Chandelier'}</div><div class="rc6-m-sub">${parseFloat(m.adx||0)<20?'Range':''+( score>=68?'3.5x':score>=47?'3.0x':'2.5x')+' ATR'}</div></div>
-      <div class="rc6-metric"><div class="rc6-m-label">Pozisyon Öner.</div><div class="rc6-m-val" style="color:#a78bfa;font-size:13px;">${(function(){var st=TVOrderManager.getAccuracyStats();var k=parseFloat(st.quarterKelly||0);return k>0?'%'+k.toFixed(1):'—';}())}</div><div class="rc6-m-sub">${(function(){var st=TVOrderManager.getAccuracyStats();var k=parseFloat(st.quarterKelly||0);return k>0?'¼ Kelly':'Veri yok';}())}</div></div>
     </div>
     <div class="rc6-rsi-row">
       <div class="rc6-rsi-header"><span class="rc6-rsi-title">RSI Seviyesi</span><span class="rc6-rsi-reading" style="color:${rsiC};">${rsi.toFixed(1)} — ${rsiL}</span></div>
@@ -39919,7 +39937,7 @@ var TVOrderManager = (function() {
     }
 
     // ── Birleşik Emir: Stop Loss + Take Profit tek tıkla ──────
-    async function placeCombinedOrder(symbol, stopPrice, tpPrice, priceSym, currentPrice, score, dataSource, extraMeta) {
+    async function placeCombinedOrder(symbol, stopPrice, tpPrice, priceSym, currentPrice, score, dataSource) {
         // ── $0 koruması: geçersiz fiyat gelirse currentPrice'dan hesapla ──
         if (!stopPrice || stopPrice <= 0) {
             stopPrice = currentPrice > 0 ? parseFloat((currentPrice * 0.92).toFixed(8)) : 0;
@@ -39936,22 +39954,6 @@ var TVOrderManager = (function() {
         // Her ikisini aynı anda yerleştir
         var slOrder = await placeOrder(symbol, 'STOP_LOSS', stopPrice, priceSym, currentPrice, score, dataSource);
         var tpOrder = await placeOrder(symbol, 'TAKE_PROFIT', tpPrice, priceSym, currentPrice, score, dataSource);
-
-        // ── extraMeta: Chandelier / ADX / ATR bilgilerini SL order'a yaz ──
-        if (slOrder && extraMeta) {
-            // ADX: range market tespiti için
-            slOrder.adxAtEntry     = extraMeta.adxVal     || 0;
-            slOrder.adxTrendEntry  = extraMeta.adxTrend   || '';
-            // ATR: Chandelier Exit hesabı için
-            slOrder.atrAtEntry     = extraMeta.atrVal     || 0;     // ham ATR (fiyat cinsinden)
-            slOrder.atrPctAtEntry  = extraMeta.atrPct     || 0;     // ATR yüzdesi
-            // Son 22 mumun high'ları: Chandelier için highestHighOfLastN
-            slOrder.highsBuffer    = extraMeta.highsBuffer || [];   // max 22 eleman
-            // Chandelier multiplier skora göre belirlenecek (checkOrders'da)
-            slOrder.chandelierMode = true;
-            _saveLocal();
-            _fbUpdateOrder(slOrder);
-        }
 
         // İkisini birbirine bağla (biri tetiklenince diğeri iptal olacak)
         if (slOrder && tpOrder) {
@@ -40185,17 +40187,18 @@ var TVOrderManager = (function() {
                 if (!order._lastAdaptCheck || (now - order._lastAdaptCheck) > 3600000) {
                     order._lastAdaptCheck = now;
                     var basePct = order.trailingPct || 0.20;
-                    if      (currentPnlPct >= 100) order.trailingPct = Math.min(basePct, 0.08);
+                    if (currentPnlPct >= 100)     order.trailingPct = Math.min(basePct, 0.08);
                     else if (currentPnlPct >= 50)  order.trailingPct = Math.min(basePct, 0.12);
                     else if (currentPnlPct >= 20)  order.trailingPct = Math.min(basePct, 0.15);
                 }
 
-                // ── Koruma 2: Ani Düşüş — tek kontrolde %10+ düşüş ──────
+                // ── Koruma 2: Ani Düşüş — %10+ düşüşte acil sıkılaştır ──
                 if (order._lastCheckPrice) {
                     var dropSince = ((order._lastCheckPrice - currentPrice) / order._lastCheckPrice) * 100;
                     if (dropSince >= 10) {
                         order.trailingPct = Math.min(order.trailingPct || 0.20, 0.05);
                         var emergStop = currentPrice * 0.95;
+                        // Floor: acil stop da ilk stopun altına inemez
                         var emergFloor = order.originalTarget || 0;
                         if (emergStop < emergFloor) emergStop = emergFloor;
                         if (emergStop > order.targetPrice) {
@@ -40210,93 +40213,9 @@ var TVOrderManager = (function() {
                         }
                     }
                 }
-
-                // ── Koruma 3: Kademeli Düşüş Tespiti ────────────────────
-                // Ani değil ama sürekli düşüş: son 3 kontrolde hep düştüyse
-                // trailingPct'yi sıkılaştır, stop yaklaşsın.
-                if (!order._priceHistory) order._priceHistory = [];
-                order._priceHistory.push(currentPrice);
-                if (order._priceHistory.length > 5) order._priceHistory.shift(); // son 5 tut
-
-                if (order._priceHistory.length >= 3) {
-                    var ph = order._priceHistory;
-                    var consecutiveDrops = 0;
-                    for (var pi = ph.length - 1; pi > 0; pi--) {
-                        if (ph[pi] < ph[pi-1]) consecutiveDrops++;
-                        else break;
-                    }
-                    // 3+ ardışık düşüş → trailing sıkılaştır
-                    if (consecutiveDrops >= 3) {
-                        var tightened = Math.max(0.03, (order.trailingPct || 0.20) * 0.7);
-                        if (tightened < order.trailingPct) {
-                            order.trailingPct = tightened;
-                            if (!order._gradualDropNotified) {
-                                order._gradualDropNotified = true;
-                                if (typeof addNotification === 'function') {
-                                    addNotification('warning', '📉 Kademeli Düşüş',
-                                        order.symbol + ' sürekli düşüyor. Trailing stop sıkılaştırıldı: %' +
-                                        (tightened * 100).toFixed(1));
-                                }
-                            }
-                        }
-                    } else {
-                        // Düşüş bitti, bildirim sıfırla
-                        order._gradualDropNotified = false;
-                    }
-                }
                 order._lastCheckPrice = currentPrice;
 
-                // ── Koruma 4: Zirve'den Erozyon Koruması ────────────────
-                // highestPrice'dan %15+ düşüş olursa trailing agresif daral.
-                // Bu Chandelier'in yakalayamadığı büyük kâr erozyonunu önler.
-                var peakP = order.highestPrice || entryP;
-                if (peakP > entryP) {
-                    var peakDropPct = ((peakP - currentPrice) / peakP) * 100;
-                    if (peakDropPct >= 10 && currentPnlPct > 5) {
-                        // Zirve'den %20 düştü, hâlâ kârdayız — stop'u agresif sıkıştır
-                        var erosionStop = currentPrice * 0.97; // %3 altına çek
-                        var erosionFloor = order.originalTarget || 0;
-                        if (erosionStop < erosionFloor) erosionStop = erosionFloor;
-                        if (erosionStop > order.targetPrice) {
-                            order.targetPrice = parseFloat(erosionStop.toFixed(6));
-                            order.trailingPct = Math.min(order.trailingPct || 0.20, 0.04);
-                            order.updatedAt = now;
-                            updated = true;
-                            if (!order._erosionNotified) {
-                                order._erosionNotified = true;
-                                if (typeof addNotification === 'function') {
-                                    addNotification('warning', '⚠️ Kâr Erozyon Koruması',
-                                        order.symbol + ' zirve ' + order.priceSym + peakP.toLocaleString(undefined,{maximumFractionDigits:4}) +
-                                        '\'den -%' + peakDropPct.toFixed(1) + ' düştü. Stop acil konuma taşındı: ' +
-                                        order.priceSym + order.targetPrice.toLocaleString(undefined,{maximumFractionDigits:4}));
-                                }
-                            }
-                        }
-                    } else if (peakDropPct < 5) {
-                        // Toparlandı, sıfırla
-                        order._erosionNotified = false;
-                    }
-                }
-
-                // ── Koruma 5: Stop'a Yaklaşma Uyarısı ───────────────────
-                // Fiyat stop seviyesine %5'ten az kaldıysa kullanıcıyı uyar.
-                var distToStop = order.targetPrice > 0
-                    ? ((currentPrice - order.targetPrice) / currentPrice) * 100
-                    : 100;
-                if (distToStop > 0 && distToStop <= 5 && !order._stopProximityNotified) {
-                    order._stopProximityNotified = true;
-                    if (typeof addNotification === 'function') {
-                        addNotification('warning', '🔔 Stop Yaklaşıyor!',
-                            order.symbol + ' stop seviyesine %' + distToStop.toFixed(1) + ' kaldı. ' +
-                            'Stop: ' + order.priceSym + order.targetPrice.toLocaleString(undefined,{maximumFractionDigits:4}) +
-                            ' · Güncel: ' + order.priceSym + currentPrice.toLocaleString(undefined,{maximumFractionDigits:4}));
-                    }
-                } else if (distToStop > 8) {
-                    // Uzaklaştı, sıfırla — bir sonraki yaklaşmada tekrar uyar
-                    order._stopProximityNotified = false;
-                }
-
-                // ── Koruma 6: Bayat Emir — 7 gün güncellenmemişse kâr kilitle ──
+                // ── Koruma 3: Bayat Emir — 7 gün güncellenmemişse kâr kilitle ──
                 if (lastUpdateAge > 168 && currentPnlPct > 5) {
                     var breakEven = entryP * 1.02;
                     if (breakEven > order.targetPrice) {
@@ -40313,62 +40232,14 @@ var TVOrderManager = (function() {
             }
 
             // ════════════════════════════════════════════════════════
-            //  TRAILING STOP LOSS — Chandelier Exit + ADX Filtresi
+            //  TRAILING STOP LOSS
             // ════════════════════════════════════════════════════════
             if (order.type === 'STOP_LOSS') {
 
-                // ── ADX Filtresi: Range market'te trailing durdur ──────
-                // ADX < 20 → yatay piyasa → trailing noise yapar, stop sabit kal
-                var adxNow = order.adxAtEntry || 25; // bilinmiyorsa trend var say
-                var isRangeMarket = adxNow < 20;
-
-                if (!isRangeMarket && currentPrice > (order.highestPrice || order.entryPrice)) {
+                if (currentPrice > (order.highestPrice || order.entryPrice)) {
                     order.highestPrice = currentPrice;
-
-                    // ── Score-based Chandelier Multiplier ────────────────
-                    // Skor yüksekse: daha geniş stop → trende uzun kal
-                    // Skor düşükse:  daha dar stop  → erken çık
-                    var entryScore  = order.score || 50;
-                    var chanMult    = entryScore >= 68 ? 3.5
-                                    : entryScore >= 47 ? 3.0
-                                    : 2.5;
-
-                    var newStop;
-
-                    // ── Chandelier Exit: highestHighOfLastN - N×ATR ──────
-                    // highsBuffer varsa (son 22 high): Chandelier standart yöntemi
-                    // Yoksa: basit % trailing (mevcut davranış korunur)
-                    var usesChandelier = false;
-                    if (order.chandelierMode && order.highsBuffer && order.highsBuffer.length > 0 && order.atrAtEntry > 0) {
-                        // highsBuffer'ı yeni high ile güncelle (en fazla 22 eleman)
-                        order.highsBuffer.push(currentPrice);
-                        if (order.highsBuffer.length > 22) order.highsBuffer.shift();
-                        var highestHighN = Math.max.apply(null, order.highsBuffer);
-
-                        // Kâr arttıkça multiplier daral (kâr kilidi uyumlu)
-                        if (currentPnlPct >= 100)     chanMult = Math.min(chanMult, 2.0);
-                        else if (currentPnlPct >= 50) chanMult = Math.min(chanMult, 2.5);
-                        else if (currentPnlPct >= 20) chanMult = Math.min(chanMult, 3.0);
-
-                        newStop = highestHighN - (order.atrAtEntry * chanMult);
-                        usesChandelier = true;
-                    } else {
-                        // Fallback: % trailing (mevcut davranış)
-                        var trailPct = order.trailingPct || 0.20;
-                        newStop = currentPrice * (1 - trailPct);
-                    }
-
-                    // ── Orantısal Minimum Stop ────────────────────────────
-                    // Sorun: ATR çok büyükse Chandelier floor'da takılı kalır,
-                    //        fiyat %50 artsa bile stop $0.90'da bekler.
-                    // Çözüm: Stop her zaman güncel fiyatın trailingPct kadar
-                    //        altında olmalı — Chandelier bunu karşılamıyorsa
-                    //        orantısal değeri kullan.
-                    // Örnek: entry=1.00, original=0.90 → trailingPct=%10
-                    //        Fiyat 1.50 → proportionalMin = 1.50×0.90 = 1.35
-                    //        Chandelier 0.70 diyorsa → 1.35 kullanılır
-                    var proportionalMin = currentPrice * (1 - (order.trailingPct || 0.20));
-                    newStop = Math.max(newStop, proportionalMin);
+                    var trailPct = order.trailingPct || 0.20;
+                    var newStop = currentPrice * (1 - trailPct);
 
                     // ── FLOOR KURALI: Stop asla ilk stopun altına düşemez ──
                     var floorStop = order.originalTarget || 0;
@@ -40383,22 +40254,12 @@ var TVOrderManager = (function() {
                         var pctGain = ((currentPrice - order.entryPrice) / order.entryPrice * 100);
                         if (order.trailingUpdates === 1 || pctGain % 10 < 2) {
                             if (typeof addNotification === 'function') {
-                                var modeNote = usesChandelier
-                                    ? ' [Chandelier ' + chanMult.toFixed(1) + 'x ATR]'
-                                    : ' [trailing %' + ((order.trailingPct||0.20)*100).toFixed(0) + ']';
                                 addNotification('info', '📈 Trailing Stop Güncellendi',
                                     order.symbol + ' zirve: ' + order.priceSym + currentPrice.toLocaleString(undefined,{maximumFractionDigits:4}) +
                                     ' → Stop: ' + order.priceSym + order.targetPrice.toLocaleString(undefined,{maximumFractionDigits:4}) +
-                                    modeNote);
+                                    ' (trailing %' + ((order.trailingPct||0.20)*100).toFixed(0) + ')');
                             }
                         }
-                    }
-                } else if (isRangeMarket && order.chandelierMode && !order._rangeNotified) {
-                    // Range market bildirimini sadece bir kez göster
-                    order._rangeNotified = true;
-                    if (typeof addNotification === 'function') {
-                        addNotification('info', '⏸ Trailing Duraklatıldı',
-                            order.symbol + ' ADX ' + adxNow.toFixed(0) + ' — yatay piyasa, trailing stop sabit tutuluyor.');
                     }
                 }
 
@@ -40434,23 +40295,9 @@ var TVOrderManager = (function() {
                         updated = true;
                     }
 
-                    // ── Adaptif geri çekilme: kâr + ATR bazlı ───────────
-                    // Eski: sabit %3-5
-                    // Yeni: kâr büyüdükçe VE volatilite arttıkça sıkılaş
+                    // Adaptif geri çekilme: kâr arttıkça sıkılaş
                     var tpPnl = ((order.highestPrice - entryP) / entryP) * 100;
-                    var atrBasedDrop = order.atrPctAtEntry > 0
-                        ? Math.max(0.02, Math.min(0.06, parseFloat(order.atrPctAtEntry) / 100 * 0.5))
-                        : null; // ATR yoksa null → kâr bazlı kullan
-                    var dropPct;
-                    if (atrBasedDrop !== null) {
-                        // ATR var: volatiliteye göre ayarla, kâr arttıkça daha da sıkılaştır
-                        if      (tpPnl >= 100) dropPct = Math.min(atrBasedDrop, 0.025);
-                        else if (tpPnl >= 50)  dropPct = Math.min(atrBasedDrop, 0.035);
-                        else                   dropPct = atrBasedDrop;
-                    } else {
-                        // ATR yok: eski kâr bazlı mantık
-                        dropPct = tpPnl >= 100 ? 0.03 : tpPnl >= 50 ? 0.04 : 0.05;
-                    }
+                    var dropPct = tpPnl >= 100 ? 0.03 : tpPnl >= 50 ? 0.04 : 0.05;
                     var tpTriggerLevel = order.highestPrice * (1 - dropPct);
 
                     if (currentPrice <= tpTriggerLevel) {
@@ -40897,34 +40744,14 @@ var TVOrderManager = (function() {
             var correct = acc.filter(function(a) { return a.outcome === 'CORRECT'; }).length;
             var wrong = acc.filter(function(a) { return a.outcome === 'WRONG'; }).length;
             var avgPnl = total > 0 ? acc.reduce(function(s,a){ return s + (a.pnlPct||0); }, 0) / total : 0;
-
-            // ── Quarter-Kelly Pozisyon Boyutu ──────────────────────────
-            // Formül: Kelly% = (W×R - L) / R  → QuarterKelly = Kelly × 0.25
-            // W = kazanma oranı, L = kaybetme oranı, R = ortalama kazanç/kayıp oranı
-            // Kripto için Quarter Kelly (tam Kelly aşırı agresif)
-            var kellyPct = 0;
-            var triggered = acc.filter(function(a) { return a.outcome === 'TRIGGERED'; });
-            if (triggered.length >= 5) {
-                var wins  = triggered.filter(function(a) { return (a.pnlPct||0) > 0; });
-                var losses = triggered.filter(function(a) { return (a.pnlPct||0) <= 0; });
-                var W = wins.length / triggered.length;
-                var L = 1 - W;
-                var avgWin  = wins.length  > 0 ? wins.reduce(function(s,a){return s+(a.pnlPct||0);},0)  / wins.length  : 0;
-                var avgLoss = losses.length > 0 ? Math.abs(losses.reduce(function(s,a){return s+(a.pnlPct||0);},0) / losses.length) : 1;
-                var R = avgLoss > 0 ? avgWin / avgLoss : 1;
-                var kelly = R > 0 ? (W * R - L) / R : 0;
-                kellyPct = Math.max(0, Math.min(25, kelly * 25)); // Quarter-Kelly, maks %25
-            }
-
             return {
                 total: total,
                 correct: correct,
                 wrong: wrong,
                 accuracy: total > 0 ? Math.round(correct / total * 100) : 0,
-                avgPnl: avgPnl.toFixed(2),
-                quarterKelly: kellyPct.toFixed(1)   // önerilen portföy yüzdesi
+                avgPnl: avgPnl.toFixed(2)
             };
-        } catch(e) { return { total:0, correct:0, wrong:0, accuracy:0, avgPnl:'0', quarterKelly:'0' }; }
+        } catch(e) { return { total:0, correct:0, wrong:0, accuracy:0, avgPnl:'0' }; }
     }
 
     // ── Firebase'den emirleri sync et ──
