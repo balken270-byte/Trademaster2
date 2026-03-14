@@ -6907,6 +6907,12 @@ document.addEventListener('DOMContentLoaded', function() {
             border: 1px solid rgba(255, 215, 0, 0.3) !important;
         }
         .btn-gold:active { background: rgba(255, 215, 0, 0.2) !important; }
+        .btn-gold.wallet-main-active {
+            background: rgba(30, 58, 138, 0.22) !important;
+            color: #93c5fd !important;
+            border: 1px solid rgba(37, 99, 235, 0.55) !important;
+            box-shadow: 0 0 18px rgba(37,99,235,0.2) !important;
+        }
 
         /* İstatistik butonu — Nakit/Temettü ile aynı renk */
         .btn-stat-shortcut {
@@ -6946,8 +6952,11 @@ document.addEventListener('DOMContentLoaded', function() {
         </button>
 
         <button class="hero-btn action-btn btn-gold" onclick="openPortfolioModal()" id="heroWalletBtn" style="position:relative;overflow:hidden;">
-            <span id="heroWalletBncBg" style="display:none;position:absolute;inset:0;opacity:0.15;pointer-events:none;display:flex;align-items:center;justify-content:center;">
-                <svg viewBox="0 0 126.61 126.61" width="38" height="38" xmlns="http://www.w3.org/2000/svg"><g fill="#F0B90B"><path d="M38.73 53.2L63.3 28.63l24.59 24.59 14.3-14.3L63.3 0 24.43 38.9z"/><path d="M0 63.31l14.3-14.3 14.3 14.3-14.3 14.29z"/><path d="M38.73 73.41L63.3 97.98l24.59-24.57 14.3 14.28-38.89 38.92-38.87-38.9z"/><path d="M98.01 63.31l14.3-14.3 14.3 14.3-14.3 14.29z"/><path d="M77.83 63.3L63.3 48.78 52.59 59.49l-1.27 1.27-2.62 2.54 14.6 14.6 14.53-14.6z"/></g></svg>
+            <span id="heroWalletBncBg" style="display:none;position:absolute;inset:0;opacity:0.18;pointer-events:none;align-items:center;justify-content:center;">
+                <svg viewBox="0 0 126.61 126.61" width="62" height="62" xmlns="http://www.w3.org/2000/svg"><g fill="#F0B90B"><path d="M38.73 53.2L63.3 28.63l24.59 24.59 14.3-14.3L63.3 0 24.43 38.9z"/><path d="M0 63.31l14.3-14.3 14.3 14.3-14.3 14.29z"/><path d="M38.73 73.41L63.3 97.98l24.59-24.57 14.3 14.28-38.89 38.92-38.87-38.9z"/><path d="M98.01 63.31l14.3-14.3 14.3 14.3-14.3 14.29z"/><path d="M77.83 63.3L63.3 48.78 52.59 59.49l-1.27 1.27-2.62 2.54 14.6 14.6 14.53-14.6z"/></g></svg>
+            </span>
+            <span id="heroWalletMainBg" style="display:none;position:absolute;inset:-6px;opacity:0.28;pointer-events:none;align-items:center;justify-content:center;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="88" height="88"><defs><linearGradient id="hPg" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#60a5fa"/><stop offset="100%" stop-color="#34d399"/></linearGradient></defs><path d="M256 72 L400 156 L400 344 L256 428 L112 344 L112 156 Z" fill="#1e3a8a" opacity="0.6"/><path d="M256 72 L400 156 L400 344 L256 428 L112 344 L112 156 Z" fill="none" stroke="rgba(96,165,250,0.8)" stroke-width="3"/><path d="M155 340 L225 365 L305 295 L305 165 L385 95" stroke="url(#hPg)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="385" cy="95" r="20" fill="#f59e0b"/><circle cx="385" cy="95" r="9" fill="#fff" opacity="0.95"/></svg>
             </span>
             <span id="heroWalletIcon"><i class="fas fa-exchange-alt"></i></span>
             <span id="heroWalletLabel">Cüzdan</span>
@@ -20164,7 +20173,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.0"; 
+    const CURRENT_VERSION = "1.5"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -21640,8 +21649,10 @@ function renderPortfolioHTML(as) {
             }
         }
 
-        let cls = a.pnl >= 0 ? 'pnl-up' : 'pnl-down'; 
-        let priceUnit = a.origin === 'USD' ? `<b id="live_price_${a.originalIndex}">$${a.rp.toFixed(2)}</b>` : `<b id="live_price_${a.originalIndex}">₺${a.rp.toFixed(2)}</b>`; 
+        let cls = a.pnl >= 0 ? 'pnl-up' : 'pnl-down';
+        const _fmtP = (v) => { if(!v||v<=0) return '—'; let av=Math.abs(v); return av<0.0001?v.toFixed(8):av<0.01?v.toFixed(6):av<1?v.toFixed(4):av<10?v.toFixed(3):av<1000?v.toFixed(2):v.toLocaleString('tr-TR',{maximumFractionDigits:2}); };
+        const _fmtV = (v) => { if(v===0||Object.is(v,-0)) return '0'; let av=Math.abs(v); return av<0.01?v.toFixed(4):av<1?v.toFixed(2):av<10?v.toFixed(1):v.toFixed(0); };
+        let priceUnit = a.origin === 'USD' ? `<b id="live_price_${a.originalIndex}">$${_fmtP(a.rp)}</b>` : `<b id="live_price_${a.originalIndex}">₺${_fmtP(a.rp)}</b>`; 
         
         let logoHtml = "";
         if(a.image) {
@@ -21692,17 +21703,17 @@ function renderPortfolioHTML(as) {
                 </div>
             </div>
             <div style="display:flex; align-items:center; gap:10px;">
-                <div class="asset-pnl ${cls}" id="live_pnl_badge_${a.originalIndex}">${percentBadge}${sym}<span id="live_pnl_val_${a.originalIndex}">${a.pnl.toFixed(0)}</span></div>
+                <div class="asset-pnl ${cls}" id="live_pnl_badge_${a.originalIndex}">${percentBadge}${sym}<span id="live_pnl_val_${a.originalIndex}">${(()=>{let v=a.pnl;if(v===0||Object.is(v,-0))return'0';let av=Math.abs(v);if(av<0.01)return v.toFixed(4);if(av<1)return v.toFixed(2);if(av<10)return v.toFixed(1);return v.toFixed(0);})()} </span></div>
                 <i id="asset-chevron-${a.originalIndex}" class="fas fa-chevron-down rotate-icon" style="font-size:12px; color:var(--text-sub);"></i>
             </div>
         </div>
         <div id="asset-content-${a.originalIndex}" class="collapsible-content collapsed">
             <div class="asset-body-content">
                 <div class="asset-details-grid">
-                    <div class="detail-item"><span class="detail-label">Ortalama</span><span class="detail-val">${a.buy.toFixed(2)} ${a.origin==='USD'?'$':'₺'}</span></div>
+                    <div class="detail-item"><span class="detail-label">Ortalama</span><span class="detail-val">${_fmtP(a.buy)} ${a.origin==='USD'?'$':'₺'}</span></div>
                     <div class="detail-item" style="text-align:right;"><span class="detail-label">Güncel</span><span class="detail-val accent">${priceUnit}</span></div>
-                    <div class="detail-item"><span class="detail-label">Maliyet</span><span class="detail-val">${sym}${a.dCost.toFixed(0)}</span></div>
-                    <div class="detail-item" style="text-align:right;"><span class="detail-label">Toplam Değer</span><span class="detail-val" id="live_total_val_${a.originalIndex}">${sym}${a.dVal.toFixed(0)}</span></div>
+                    <div class="detail-item"><span class="detail-label">Maliyet</span><span class="detail-val">${sym}${_fmtV(a.dCost)}</span></div>
+                    <div class="detail-item" style="text-align:right;"><span class="detail-label">Toplam Değer</span><span class="detail-val" id="live_total_val_${a.originalIndex}">${sym}${_fmtV(a.dVal)}</span></div>
                 </div>
                 ${a.note ? `<div class="asset-note"><i class="fas fa-sticky-note"></i> ${a.note}</div>` : ''}
                 
@@ -21742,10 +21753,10 @@ if (_renderKey === _prevKey && _prevSort === currentSortMode && l.children.lengt
         let priceEl = document.getElementById('live_price_' + a.originalIndex);
         let totalEl = document.getElementById('live_total_val_' + a.originalIndex);
         let badgeEl = document.getElementById('live_pnl_badge_' + a.originalIndex);
-        if (pnlEl) pnlEl.textContent = a.pnl.toFixed(0);
+        if (pnlEl) { let v=a.pnl; let av=Math.abs(v); pnlEl.textContent = (v===0||Object.is(v,-0))?'0':av<0.01?v.toFixed(4):av<1?v.toFixed(2):av<10?v.toFixed(1):v.toFixed(0); }
         if (pctEl) pctEl.textContent = '(%' + a.pnlPercent.toFixed(1) + ')';
-        if (priceEl) priceEl.textContent = (a.origin === 'USD' ? '$' : '₺') + a.rp.toFixed(2);
-        if (totalEl) totalEl.textContent = symFast + a.dVal.toFixed(0);
+        if (priceEl) { let av=Math.abs(a.rp); let fp=av<=0?'—':av<0.0001?a.rp.toFixed(8):av<0.01?a.rp.toFixed(6):av<1?a.rp.toFixed(4):av<10?a.rp.toFixed(3):a.rp.toFixed(2); priceEl.textContent = (a.origin === 'USD' ? '$' : '₺') + fp; }
+        if (totalEl) { let v=a.dVal; let av=Math.abs(v); totalEl.textContent = symFast + ((v===0||Object.is(v,-0))?'0':av<0.01?v.toFixed(4):av<1?v.toFixed(2):av<10?v.toFixed(1):v.toFixed(0)); }
         if (badgeEl) { badgeEl.className = 'asset-pnl ' + (a.pnl >= 0 ? 'pnl-up' : 'pnl-down'); }
     });
 } else {
@@ -21783,20 +21794,30 @@ checkAllAlarms();
         _privIDs.forEach(function(id){ var el=document.getElementById(id); if(el){ el.classList.toggle("privacy-blur", isPrivacyMode); } });
         document.querySelectorAll(".asset-pnl").forEach(function(el){ el.classList.toggle("privacy-blur", isPrivacyMode); });
 
-        // Cüzdan butonu — Binance aktifse logo göster
+        // Cüzdan butonu — Binance aktifse Binance logosu, Ana Cüzdan aktifse TV ikonu göster
         try {
             var _db = JSON.parse(localStorage.getItem('tm_all_portfolios') || '{}');
-            var _isBnc = (_db.activeID || '').startsWith('pf_bnc_');
+            var _activeId = _db.activeID || 'main';
+            var _isBnc = _activeId.startsWith('pf_bnc_');
+            var _isMain = (_activeId === 'main');
             var _wBtn = document.getElementById('heroWalletBtn');
             var _wBg = document.getElementById('heroWalletBncBg');
+            var _wMainBg = document.getElementById('heroWalletMainBg');
             var _wLabel = document.getElementById('heroWalletLabel');
-            if (_wBtn && _wBg) {
-                _wBg.style.display = _isBnc ? 'flex' : 'none';
-                if (_wLabel) _wLabel.textContent = _isBnc ? 'Binance' : 'Cüzdan';
+            if (_wBtn) {
+                if (_wBg) _wBg.style.display = _isBnc ? 'flex' : 'none';
+                if (_wMainBg) _wMainBg.style.display = _isMain ? 'flex' : 'none';
+                if (_wLabel) _wLabel.textContent = _isBnc ? 'Binance' : _isMain ? 'Ana Cüzdan' : 'Cüzdan';
                 if (_isBnc) {
+                    _wBtn.classList.remove('wallet-main-active');
                     _wBtn.style.borderColor = 'rgba(240,185,11,0.5)';
                     _wBtn.style.background = 'rgba(240,185,11,0.12)';
+                } else if (_isMain) {
+                    _wBtn.classList.add('wallet-main-active');
+                    _wBtn.style.borderColor = '';
+                    _wBtn.style.background = '';
                 } else {
+                    _wBtn.classList.remove('wallet-main-active');
                     _wBtn.style.borderColor = '';
                     _wBtn.style.background = '';
                 }
