@@ -20173,7 +20173,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.1"; 
+    const CURRENT_VERSION = "1.5"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -39929,6 +39929,12 @@ var TVOrderManager = (function() {
         });
         if (existingIdx !== -1) {
             var oldOrder = _orders[existingIdx];
+            // ── FLOOR KORUMASI: İlk stop asla kaybolmaz ──
+            // Yeni emir verilince originalTarget eski emrin en düşük
+            // originalTarget'ından küçük olamaz (floor kuralı korunur)
+            if (type === 'STOP_LOSS' && oldOrder.originalTarget > 0) {
+                order.originalTarget = Math.min(order.originalTarget, oldOrder.originalTarget);
+            }
             oldOrder.status = 'UPDATED';
             oldOrder.updatedAt = ts;
             // Firebase'de eski emri güncelle
@@ -40819,7 +40825,9 @@ var TVOrderManager = (function() {
                 if (order.symbol === sym && order.status === 'PENDING') {
                     var oldTarget = order.targetPrice;
                     if (order.type === 'STOP_LOSS') {
-                        order.targetPrice = newSL;
+                        // ── FLOOR KURALI: Stop asla originalTarget'ın altına inemez ──
+                        var floor = order.originalTarget || 0;
+                        order.targetPrice = floor > 0 ? Math.max(newSL, floor) : newSL;
                     } else if (order.type === 'TAKE_PROFIT') {
                         order.targetPrice = newTP;
                     }
