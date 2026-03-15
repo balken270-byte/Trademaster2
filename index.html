@@ -20173,7 +20173,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.5"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -34575,7 +34575,8 @@ const BinanceConnect = {
         this._tradeMode = mode;
         document.querySelectorAll('.bnc-tmode').forEach(t => t.classList.remove('active'));
         if (el) el.classList.add('active');
-        document.getElementById('bncLimitPriceRow').style.display = mode === 'LIMIT' ? 'block' : 'none';
+        var lpRow = document.getElementById('bncLimitPriceRow');
+        if (lpRow) lpRow.style.display = mode === 'LIMIT' ? 'block' : 'none';
     },
 
     // ── SYMBOL INPUT ──
@@ -34653,10 +34654,13 @@ const BinanceConnect = {
     executeTradeWithParams: async function(side, sym, qty, price) {
         sym = (sym || '').toUpperCase().trim();
         qty = (qty || '').trim();
+        console.log('[HızlıİşlemDebug]', side, sym, qty, price, 'mode:', this._tradeMode);
         if (!sym || !qty || parseFloat(qty) <= 0) {
             if (typeof showToast === 'function') showToast('warning', 'Uyarı', 'Sembol ve miktar gereklidir.');
             return;
         }
+        // Virgülü noktaya çevir
+        if (price) price = String(price).replace(',', '.');
         if (this._tradeMode === 'LIMIT' && (!price || parseFloat(price) <= 0)) {
             if (typeof showToast === 'function') showToast('warning', 'Uyarı', 'Limit fiyatı girin.');
             return;
@@ -35162,7 +35166,9 @@ function htExecute(side) {
 
     var limitPrice = '';
     if (_htMode === 'LIMIT') {
-        limitPrice = parseFloat(document.getElementById('htLimitPrice').value) || 0;
+        // Virgülü noktaya çevir (Türkçe klavye uyumluluğu)
+        var rawLP = (document.getElementById('htLimitPrice').value || '').replace(',', '.');
+        limitPrice = parseFloat(rawLP) || 0;
         if (!limitPrice || limitPrice <= 0) {
             if(typeof showToast==='function') showToast('warning','Uyarı','Limit fiyatı giriniz.');
             return;
