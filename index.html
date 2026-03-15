@@ -20173,7 +20173,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.5"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -23735,16 +23735,20 @@ function confirmSell() {
                     });
                     var orderData = await orderRes.json();
                     if (orderRes.ok && orderData.orderId) {
-                        showToast('success', '✅ Binance Satış', sym + ' ' + quantity + ' adet market emri verildi. #' + orderData.orderId);
-                        // Portföyü güncelle
-                        setTimeout(function(){ BinanceConnect.connect(); }, 2000);
+                        var successMsg = sym + ' ' + quantity + ' adet satıldı. #' + orderData.orderId;
+                        showToast('success', '✅ Binance Satış', successMsg);
+                        if (typeof addNotification === 'function') addNotification('success', '🟡 Binance Satış', successMsg);
+                        setTimeout(function(){ if(typeof BinanceConnect.renderOpenOrders==='function') BinanceConnect.renderOpenOrders(); }, 1000);
+                        setTimeout(function(){ BinanceConnect.connect(); }, 5000);
                     } else {
                         var errMsg = orderData.msg || orderData.message || JSON.stringify(orderData);
                         showToast('danger', '❌ Binance Hata', sym + ': ' + errMsg);
+                        if (typeof addNotification === 'function') addNotification('danger', '❌ Binance Hata', sym + ': ' + errMsg);
                         console.error('[Binance Satış Hatası]', orderData);
                     }
                 } catch(orderErr) {
                     showToast('danger', '❌ Bağlantı Hatası', orderErr.message || 'Bilinmeyen hata');
+                    if (typeof addNotification === 'function') addNotification('danger', '❌ Bağlantı Hatası', orderErr.message || 'Bilinmeyen hata');
                     console.error('[Binance Satış]', orderErr);
                 }
             })();
@@ -25078,6 +25082,7 @@ function addNotification(type, title, msg) {
     if(title.includes('Alarm') || title.includes('HEDEF') || title.includes('DİKKAT')) category = 'price';
     else if(title.includes('Haber')) category = 'news';
     else if(title.includes('Yanıt') || title.includes('Beğeni') || title.includes('Bildirim') || title.includes('💬') || title.includes('❤️')) category = 'social';
+    else if(title.includes('Binance') || title.includes('🟡')) category = 'trade';
     
     // Sosyal bildirimler her zaman geçsin (kategori filtresi yok)
     if(category !== 'social' && typeof notifySettings !== 'undefined' && !notifySettings[category]) return;
@@ -25181,6 +25186,15 @@ try {
             if (n.type === 'success') { iconCls = 'fa-check-circle';       color = '#10b981'; bg = 'rgba(16,185,129,0.08)';  glow = 'rgba(16,185,129,0.18)'; }
             if (n.type === 'danger')  { iconCls = 'fa-exclamation-circle'; color = '#ef4444'; bg = 'rgba(239,68,68,0.08)';   glow = 'rgba(239,68,68,0.18)';  }
             if (n.type === 'warn')    { iconCls = 'fa-bell';               color = '#f59e0b'; bg = 'rgba(245,158,11,0.08)';  glow = 'rgba(245,158,11,0.18)'; }
+
+            // Binance işlemi mi?
+            var isBinanceNotif = n.title && (n.title.includes('Binance') || n.title.includes('🟡'));
+            if (isBinanceNotif) {
+                iconCls = 'fa-exchange-alt';
+                color   = '#F0B90B';
+                bg      = 'rgba(240,185,11,0.10)';
+                glow    = 'rgba(240,185,11,0.18)';
+            }
 
             var isCommNotif = n.notifType === 'comm_reply' || n.notifType === 'reply';
             var onclickAttr = '';
@@ -33845,7 +33859,7 @@ const BinanceConnect = {
     // ── CLOUDFLARE WORKER URL ────────────────────────────────────────────────
     // Deploy sonrası Worker URL'ini buraya yapıştır:
     // Örn: 'https://tradavia-binance.seninkullaniciadin.workers.dev'
-    _WORKER_URL: 'https://small-lynx-34.balken270-byte.deno.net',
+    _WORKER_URL: 'https://careful-sparrow-87.balken270-byte.deno.net',
 
     _apiBase: null,
     _apiBases: [
@@ -34485,6 +34499,71 @@ const BinanceConnect = {
                 </div>
             </div>`;
         }).join('');
+
+        // ── Açık Emirler Bölümü ──
+        let ordersSection = document.getElementById('bncOpenOrdersSection');
+        if (!ordersSection) {
+            ordersSection = document.createElement('div');
+            ordersSection.id = 'bncOpenOrdersSection';
+            ordersSection.style.cssText = 'margin-top:10px;';
+            document.getElementById('bncAssetList').parentNode.insertBefore(
+                ordersSection,
+                document.getElementById('bncAssetList').nextSibling
+            );
+        }
+        ordersSection.innerHTML = '<div style="font-size:10px;font-weight:800;color:#F0B90B;text-transform:uppercase;letter-spacing:.8px;padding:8px 4px 6px;display:flex;align-items:center;justify-content:space-between;">'
+            + '<span><svg width="11" height="11" viewBox="0 0 32 32" fill="none"><path d="M12.116 13.884L16 10l3.886 3.886 2.263-2.263L16 5.474l-6.149 6.147 2.265 2.263zM5.474 16l2.263-2.263 2.263 2.263-2.263 2.263L5.474 16zm6.642 2.116L16 22l3.886-3.886 2.264 2.262L16 26.526l-6.149-6.147-.002-.002 2.267-2.261zm10.147-2.116 2.263-2.263 2.263 2.263-2.263 2.263-2.263-2.263zm-3.857-.002-2.406-2.408-.002.002-.002-.002L14 15.588l-.001.002-.001-.002-2.406 2.408L16 22.412l4.406-4.414z" fill="#F0B90B"/></svg> Açık Emirler</span>'
+            + '<span id="bncOrdersRefreshBtn" onclick="BinanceConnect.renderOpenOrders()" style="cursor:pointer;font-size:9px;color:#64748b;padding:2px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);">↻ Yenile</span>'
+            + '</div>'
+            + '<div id="bncOrdersList" class="bnc-order-list" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;">'
+            + '<div style="text-align:center;padding:14px;color:#334155;font-size:11px;"><i class="fas fa-spinner fa-spin" style="color:#F0B90B;margin-right:6px;"></i>Emirler yükleniyor...</div>'
+            + '</div>';
+
+        // Emirleri async yükle
+        this.renderOpenOrders();
+    },
+
+    // ── Açık emirleri çek ve render et ──
+    renderOpenOrders: async function() {
+        const el = document.getElementById('bncOrdersList');
+        if (!el) return;
+        el.innerHTML = '<div style="text-align:center;padding:14px;color:#334155;font-size:11px;"><i class="fas fa-spinner fa-spin" style="color:#F0B90B;margin-right:6px;"></i>Yükleniyor...</div>';
+        try {
+            const orders = await this._apiRequest('GET', '/api/v3/openOrders', '');
+            if (!orders || orders.length === 0) {
+                el.innerHTML = '<div style="text-align:center;padding:18px;color:#334155;font-size:11px;"><i class="fas fa-check-circle" style="color:#10b981;margin-right:6px;"></i>Açık emir yok</div>';
+                return;
+            }
+            el.innerHTML = orders.map(function(o) {
+                const isBuy = o.side === 'BUY';
+                const sym = (o.symbol || '').replace('USDT','').replace('BUSD','');
+                const date = new Date(o.time).toLocaleString('tr-TR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+                const typeLabel = o.type === 'LIMIT' ? 'LİMİT' : o.type === 'STOP_LOSS_LIMIT' ? 'STOP' : o.type;
+                const filled = parseFloat(o.executedQty) || 0;
+                const total = parseFloat(o.origQty) || 0;
+                const pct = total > 0 ? Math.round((filled/total)*100) : 0;
+                return '<div class="bnc-order-row" style="background:linear-gradient(135deg,rgba(240,185,11,0.04),rgba(255,255,255,0.02));border:1px solid rgba(240,185,11,0.15);border-left:3px solid '+(isBuy?'#10b981':'#ef4444')+';border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:8px;">'
+                    + '<div style="flex:1;min-width:0;">'
+                        + '<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;">'
+                            + '<span style="font-size:13px;font-weight:800;color:#fff;">'+o.symbol+'</span>'
+                            + '<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:5px;background:'+(isBuy?'rgba(16,185,129,0.15)':'rgba(239,68,68,0.15)')+';color:'+(isBuy?'#10b981':'#ef4444')+';border:1px solid '+(isBuy?'rgba(16,185,129,0.3)':'rgba(239,68,68,0.3)')+';">'+(isBuy?'AL':'SAT')+'</span>'
+                            + '<span style="font-size:9px;color:#F0B90B;padding:1px 5px;border-radius:5px;background:rgba(240,185,11,0.08);border:1px solid rgba(240,185,11,0.15);">'+typeLabel+'</span>'
+                        + '</div>'
+                        + '<div style="font-size:10px;color:#64748b;">'
+                            + 'Miktar: <b style="color:#e2e8f0;">'+parseFloat(o.origQty).toLocaleString('en-US',{maximumFractionDigits:6})+'</b>'
+                            + (parseFloat(o.price||0) > 0 ? ' @ <b style="color:#F0B90B;">$'+parseFloat(o.price).toLocaleString('en-US',{maximumFractionDigits:6})+'</b>' : ' <span style="color:#64748b;">(Market)</span>')
+                            + ' · '+date
+                        + '</div>'
+                        + (pct > 0 ? '<div style="margin-top:4px;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;"><div style="height:100%;width:'+pct+'%;background:'+(isBuy?'#10b981':'#ef4444')+';border-radius:2px;transition:width .3s;"></div></div>' : '')
+                    + '</div>'
+                    + '<button onclick="BinanceConnect.cancelOrder(\''+o.symbol+'\','+o.orderId+');this.closest(\'.bnc-order-row\').style.opacity=\'0.3\';" '
+                        + 'style="width:30px;height:30px;border-radius:9px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.07);color:#f87171;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;" '
+                        + 'title="İptal et"><i class="fas fa-times" style="font-size:11px;"></i></button>'
+                + '</div>';
+            }).join('');
+        } catch(err) {
+            el.innerHTML = '<div style="text-align:center;padding:14px;color:#ef4444;font-size:10px;"><i class="fas fa-exclamation-triangle" style="margin-right:5px;"></i>Emirler yüklenemedi</div>';
+        }
     },
 
     // Bakiye listesinden tıklayınca trade paneline geç
@@ -34633,10 +34712,11 @@ const BinanceConnect = {
                     this._syncTradeToPortfolio(side, sym, parseFloat(qty), fillPrice);
 
                     // Bakiyeleri yenile
-                    setTimeout(() => { this.connect(); }, 1500);
+                    setTimeout(() => { this.connect(); }, 5000);
 
                 } catch(err) {
                     if (typeof showToast === 'function') showToast('danger', 'İşlem Hatası', err.message);
+                    if (typeof addNotification === 'function') addNotification('danger', '❌ Binance Hata', err.message || 'İşlem başarısız');
                 }
             }
         });
