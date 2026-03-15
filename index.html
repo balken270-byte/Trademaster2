@@ -20185,7 +20185,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.4"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -21779,7 +21779,14 @@ if (_renderKey === _prevKey && _prevSort === currentSortMode && l.children.lengt
         let badgeEl = document.getElementById('live_pnl_badge_' + a.originalIndex);
         if (pnlEl) { let v=a.pnl; let av=Math.abs(v); pnlEl.textContent = (v===0||Object.is(v,-0))?'0':av<0.01?v.toFixed(4):av<1?v.toFixed(2):av<10?v.toFixed(1):v.toFixed(0); }
         if (pctEl) pctEl.textContent = '(%' + a.pnlPercent.toFixed(1) + ')';
-        if (priceEl) { let av=Math.abs(a.rp); let fp=av<=0?'—':av<0.0001?a.rp.toFixed(8):av<0.01?a.rp.toFixed(6):av<1?a.rp.toFixed(4):av<10?a.rp.toFixed(3):a.rp.toFixed(2); priceEl.textContent = (a.origin === 'USD' ? '$' : '₺') + fp; }
+        if (priceEl) {
+            let rpDisp = a.rp;
+            let rpSym = a.origin === 'USD' ? '$' : '₺';
+            if (uCurrFast === 'TRY' && a.origin === 'USD') { rpDisp = a.rp * usdTryRate; rpSym = '₺'; }
+            else if (uCurrFast === 'USD' && a.origin === 'TRY') { rpDisp = a.rp / usdTryRate; rpSym = '$'; }
+            let av=Math.abs(rpDisp); let fp=av<=0?'—':av<0.0001?rpDisp.toFixed(8):av<0.01?rpDisp.toFixed(6):av<1?rpDisp.toFixed(4):av<10?rpDisp.toFixed(3):av<1000?rpDisp.toFixed(2):rpDisp.toLocaleString('tr-TR',{maximumFractionDigits:2});
+            priceEl.textContent = rpSym + fp;
+        }
         if (totalEl) { let v=a.dVal; let av=Math.abs(v); totalEl.textContent = symFast + ((v===0||Object.is(v,-0))?'0':av<0.01?v.toFixed(4):av<1?v.toFixed(2):av<10?v.toFixed(1):v.toFixed(0)); }
         if (badgeEl) { badgeEl.className = 'asset-pnl ' + (a.pnl >= 0 ? 'pnl-up' : 'pnl-down'); }
     });
@@ -25579,7 +25586,34 @@ function getAssetLogoHtml(symbol) {
     function savePolyKey(val){ polyApiKey=val.trim(); localStorage.setItem('tm_poly_key',polyApiKey); if(polyApiKey==="") checkPolyInit(); else testPolygonConnection(); }
     async function testPolygonConnection() { if(!polyApiKey) return; const ind=document.getElementById('polyIndicator'); const txt=document.getElementById('polyStatusText'); txt.innerText="BAĞLANILIYOR..."; try{ const response=await fetch(`https://api.polygon.io/v2/aggs/ticker/AAPL/prevClose?adjusted=true&apiKey=${polyApiKey}`); if(!response.ok) throw new Error(response.status); const data=await response.json(); if(data.status==="OK" || data.resultsCount>=0){ ind.className='poly-status-dot active'; txt.innerText="AKTİF"; txt.style.color="var(--success)"; } } catch(e){ ind.className='poly-status-dot error'; txt.innerText="HATA"; txt.style.color="var(--danger)"; } }
     async function getHistoricalChange(s){ let fm=null; let su=s.toUpperCase(); if(su.includes('.IS')) fm='BORSA'; else if(['BTC','ETH','SOL','XRP','DOGE','SHIB','AVAX','ADA','BNB','MATIC','DOT','LINK','ATOM','ARB','PEPE','RENDER'].some(c=>su.includes(c))) fm='CRYPTO'; let data=await getPrice(s,fm); let ch=data.change||0; return { ...data, daily: ch, monthly: ch*4.2, yearly: ch*12 }; }
-    async function fetchUsdRate(){ try{ let res=await tryBinance('USDTTRY'); if(res) usdTryRate=res.price; else usdTryRate=36.5; } catch{ usdTryRate=36.5; } }
+    async function fetchUsdRate(){
+        try {
+            // Direkt Binance ticker ile USDTTRY çek
+            const res = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=USDTTRY');
+            if (res.ok) {
+                const d = await res.json();
+                const rate = parseFloat(d.price);
+                if (rate > 10) { // Makul bir kur değeri mi kontrol et
+                    usdTryRate = rate;
+                    console.log('[Kur] USDTTRY güncellendi:', usdTryRate);
+                    if (typeof loadPF === 'function') loadPF(true); // Kur değişti → fiyatları ve değerleri yeniden hesapla
+                    return;
+                }
+            }
+        } catch(e) { console.warn('[Kur] Binance kur hatası:', e.message); }
+        // Fallback: ikinci kaynak dene
+        try {
+            const res2 = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=USDTTRY');
+            if (res2.ok) { const d2 = await res2.json(); if (parseFloat(d2.price) > 10) { usdTryRate = parseFloat(d2.price); return; } }
+        } catch(e) {}
+        console.warn('[Kur] Kur çekilemedi, mevcut değer korunuyor:', usdTryRate);
+    }
+    // Her 5 dakikada bir otomatik kur güncelle + tüm fiyatları yenile
+    setInterval(async function() {
+        await fetchUsdRate();
+        if (typeof refreshPrices === 'function') refreshPrices();
+        else if (typeof loadPF === 'function') loadPF(false);
+    }, 5 * 60 * 1000);
     
     function switchSettingsTab(tab, btn){ document.querySelectorAll('.settings-content').forEach(c => c.classList.remove('active')); document.getElementById('set-' + tab).classList.add('active'); document.querySelectorAll('.s-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); }
     function delAsset(i){ tvConfirm('Varlık Sil','Bu varlık portföyden kaldırılsın mı?').then(function(ok){ if(!ok) return; let as = JSON.parse(localStorage.getItem('myPF_final')); as.splice(i,1); localStorage.setItem('myPF_final', JSON.stringify(as)); loadPF(); addNotification('warn', 'Varlık Silindi', 'Portföyden bir varlık kaldırıldı.'); }); }
@@ -25590,7 +25624,20 @@ function getAssetLogoHtml(symbol) {
         if(icon) icon.className = isPrivacyMode ? "fas fa-eye-slash" : "fas fa-eye";
         loadPF();
     }
-    function changeBaseCurrency(v){ let oldCurr = appSettings.currency; appSettings.currency = v; if(v !== oldCurr) { if(v === 'USD') cashBalance = cashBalance / usdTryRate; else cashBalance = cashBalance * usdTryRate; localStorage.setItem('tm_cash_balance', cashBalance); } localStorage.setItem('tm_settings',JSON.stringify(appSettings)); loadPF(true); renderHistory(); }
+    async function changeBaseCurrency(v) {
+        let oldCurr = appSettings.currency;
+        appSettings.currency = v;
+        if (v !== oldCurr) {
+            if (v === 'USD') cashBalance = cashBalance / usdTryRate;
+            else cashBalance = cashBalance * usdTryRate;
+            localStorage.setItem('tm_cash_balance', cashBalance);
+        }
+        localStorage.setItem('tm_settings', JSON.stringify(appSettings));
+        // Kuru önce güncelle, sonra portföyü yenile
+        await fetchUsdRate();
+        loadPF(true);
+        renderHistory();
+    }
     let wlDebounce; function debouncedWlPreview(val) { clearTimeout(wlDebounce); if(val.length < 2) return; const infoDiv = document.getElementById('wlLiveInfo'); infoDiv.innerText = "Aranıyor..."; wlDebounce = setTimeout(async () => { let res = await getPrice(val); if(res.price > 0) infoDiv.innerHTML = `<span style="color:var(--success)">${val.toUpperCase()}: ${res.price.toFixed(2)}</span>`; else infoDiv.innerText = "Bulunamadı"; }, 600); }
     async function addToWatchlist(){ let s = document.getElementById('wlInput').value.trim().toUpperCase(); if(!s) return; let w = JSON.parse(localStorage.getItem('tm_watchlist')) || []; if(w.includes(s)) { return addNotification('warn', 'Zaten Ekli', 'Bu sembol izleme listesinde var.'); } w.push(s); localStorage.setItem('tm_watchlist', JSON.stringify(w)); document.getElementById('wlInput').value = ""; updateWatchlist(); addNotification('success', 'Eklendi', `${s} izlemeye alındı.`); }
     function removeFromWatchlist(s){ let w = JSON.parse(localStorage.getItem('tm_watchlist')) || []; w = w.filter(i => i !== s); localStorage.setItem('tm_watchlist', JSON.stringify(w)); updateWatchlist(); }
