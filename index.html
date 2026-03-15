@@ -20173,7 +20173,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.5"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -23725,7 +23725,7 @@ function confirmSell() {
                     }
                     var ts = Date.now();
                     var params = 'symbol=' + sym + '&side=SELL&type=MARKET&quantity=' + quantity + '&timestamp=' + ts;
-                    var sig = await BinanceConnect._hmac(params, keys.secretKey);
+                    var sig = await BinanceConnect._sign(keys.secretKey, params);
                     params += '&signature=' + sig;
                     var orderUrl = BinanceConnect._WORKER_URL + '/binance/api/v3/order';
                     var orderRes = await fetch(orderUrl, {
