@@ -20185,7 +20185,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -21673,7 +21673,10 @@ function renderPortfolioHTML(as) {
         let cls = a.pnl >= 0 ? 'pnl-up' : 'pnl-down';
         const _fmtP = (v) => { if(!v||v<=0) return '—'; let av=Math.abs(v); return av<0.0001?v.toFixed(8):av<0.01?v.toFixed(6):av<1?v.toFixed(4):av<10?v.toFixed(3):av<1000?v.toFixed(2):v.toLocaleString('tr-TR',{maximumFractionDigits:2}); };
         const _fmtV = (v) => { if(v===0||Object.is(v,-0)) return '0'; let av=Math.abs(v); return av<0.01?v.toFixed(4):av<1?v.toFixed(2):av<10?v.toFixed(1):v.toFixed(0); };
-        let priceUnit = a.origin === 'USD' ? `<b id="live_price_${a.originalIndex}">$${_fmtP(a.rp)}</b>` : `<b id="live_price_${a.originalIndex}">₺${_fmtP(a.rp)}</b>`; 
+        let _rpDisplay = a.rp; let _rpSym = a.origin === 'USD' ? '$' : '₺';
+        if(uCurr === 'TRY' && a.origin === 'USD') { _rpDisplay = a.rp * usdTryRate; _rpSym = '₺'; }
+        else if(uCurr === 'USD' && a.origin === 'TRY') { _rpDisplay = a.rp / usdTryRate; _rpSym = '$'; }
+        let priceUnit = `<b id="live_price_${a.originalIndex}">${_rpSym}${_fmtP(_rpDisplay)}</b>`; 
         
         let logoHtml = "";
         if(a.image) {
@@ -21731,7 +21734,7 @@ function renderPortfolioHTML(as) {
         <div id="asset-content-${a.originalIndex}" class="collapsible-content collapsed">
             <div class="asset-body-content">
                 <div class="asset-details-grid">
-                    <div class="detail-item"><span class="detail-label">Ortalama</span><span class="detail-val">${_fmtP(a.buy)} ${a.origin==='USD'?'$':'₺'}</span></div>
+                    <div class="detail-item"><span class="detail-label">Ortalama</span><span class="detail-val">${(()=>{ let buyDisplay = a.buy; let buySymbol = a.origin==='USD'?'$':'₺'; if(uCurr==='TRY' && a.origin==='USD'){ buyDisplay = a.buy * usdTryRate; buySymbol = '₺'; } else if(uCurr==='USD' && a.origin==='TRY'){ buyDisplay = a.buy / usdTryRate; buySymbol = '$'; } return _fmtP(buyDisplay) + ' ' + buySymbol; })()}</span></div>
                     <div class="detail-item" style="text-align:right;"><span class="detail-label">Güncel</span><span class="detail-val accent">${priceUnit}</span></div>
                     <div class="detail-item"><span class="detail-label">Maliyet</span><span class="detail-val">${sym}${_fmtV(a.dCost)}</span></div>
                     <div class="detail-item" style="text-align:right;"><span class="detail-label">Toplam Değer</span><span class="detail-val" id="live_total_val_${a.originalIndex}">${sym}${_fmtV(a.dVal)}</span></div>
@@ -21825,7 +21828,7 @@ checkAllAlarms();
             var _wBg = document.getElementById('heroWalletBncBg');
             var _wMainBg = document.getElementById('heroWalletMainBg');
             var _wLabel = document.getElementById('heroWalletLabel');
-            // Binance cüzdanında Temettü butonu engelle (toast göster)
+            // Binance cüzdanında Temettü ve Nakit butonlarını engelle (toast göster)
             var _divBtn = document.querySelector('.hero-btn[onclick*="addDividend"]');
             if (_divBtn) {
                 _divBtn.style.display = '';
@@ -21834,6 +21837,14 @@ checkAllAlarms();
                 _divBtn.onclick = _isBnc
                     ? function(e) { e.stopPropagation(); if(typeof showToast==="function") showToast("warn","Binance Cüzdanı","Binance cüzdanında manuel işlem yapılamaz."); }
                     : function() { addDividend(); };
+            }
+            var _cashBtn = document.querySelector('.hero-btn[onclick*="openCashModal"]');
+            if (_cashBtn) {
+                _cashBtn.style.opacity = _isBnc ? '0.4' : '';
+                _cashBtn.style.cursor = _isBnc ? 'not-allowed' : '';
+                _cashBtn.onclick = _isBnc
+                    ? function(e) { e.stopPropagation(); if(typeof showToast==="function") showToast("warn","Binance Cüzdanı","Binance cüzdanında manuel işlem yapılamaz."); }
+                    : function() { openCashModal(); };
             }
             if (_wBtn) {
                 if (_wBg) _wBg.style.display = _isBnc ? 'flex' : 'none';
@@ -34530,7 +34541,7 @@ const BinanceConnect = {
             // Her sembol için işlem geçmişi çek (son 500)
             for (const sym of symbols) {
                 try {
-                    const data = await this._apiRequest('GET', '/api/v3/myTrades', 'symbol=' + sym + '&limit=500');
+                    const data = await this._apiRequest('GET', '/api/v3/myTrades', 'symbol=' + sym + '&limit=1000');
                     if (Array.isArray(data)) {
                         // Önce zamana göre sırala (eski → yeni)
                         data.sort((a, b) => a.time - b.time);
