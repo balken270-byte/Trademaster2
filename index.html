@@ -20185,7 +20185,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.9"; 
+    const CURRENT_VERSION = "1.0"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -31485,23 +31485,36 @@ async function calcPsychoAnalysis() {
             // A) Açık pozisyonlar (eldeki varlıklar) — alım tarihinden bugüne
             let openAssets = JSON.parse(localStorage.getItem('myPF_final') || '[]');
             openAssets.forEach(asset => {
-                // Bu varlığın en eski ALIM tarihini bul
-                let assetBuys = buys.filter(b => b.sym === asset.name).sort((a, b) => convertDate(a.date) - convertDate(b.date));
+                let assetName = (asset.name || '').toUpperCase();
+                // sym formatlarını normalize et: BTCUSDT → BTC, BTC → BTC
+                let cleanName = assetName.replace('USDT','').replace('BUSD','').replace('USDC','');
+                // Alım geçmişinde eşleşen kaydı bul (farklı format denemesi)
+                let assetBuys = buys.filter(b => {
+                    let bs = (b.sym || '').toUpperCase().replace('USDT','').replace('BUSD','').replace('USDC','');
+                    return bs === cleanName || (b.sym||'').toUpperCase() === assetName;
+                }).sort((a, b) => convertDate(a.date) - convertDate(b.date));
+
+                let diffDays = 0;
+                let buyDateStr = null;
                 if (assetBuys.length > 0) {
                     let firstBuyDate = convertDate(assetBuys[0].date);
                     if (firstBuyDate) {
-                        let diffTime = Math.abs(today - firstBuyDate);
-                        let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                        if (diffDays >= 0 && diffDays < 10000) {
-                            holdTotalDays += diffDays;
-                            holdCount++;
-                            if (!window.psychoHoldings[asset.name]) window.psychoHoldings[asset.name] = [];
-                            window.psychoHoldings[asset.name].push({
-                                days: diffDays, buyDate: assetBuys[0].date, sellDate: null,
-                                pnl: 0, curr: asset.origin || 'TRY', isOpen: true
-                            });
-                        }
+                        diffDays = Math.max(0, Math.ceil(Math.abs(today - firstBuyDate) / (1000 * 60 * 60 * 24)));
+                        buyDateStr = assetBuys[0].date;
                     }
+                }
+                // Alım kaydı olmasa bile varlığı göster (0 gün)
+                holdTotalDays += diffDays;
+                holdCount++;
+                let key = cleanName || assetName;
+                if (!window.psychoHoldings[key]) window.psychoHoldings[key] = [];
+                // Zaten bu varlık açık olarak eklenmemişse ekle
+                if (!window.psychoHoldings[key].some(r => r.isOpen)) {
+                    window.psychoHoldings[key].push({
+                        days: diffDays, buyDate: buyDateStr, sellDate: null,
+                        pnl: 0, curr: asset.origin || 'TRY', isOpen: true,
+                        currPrice: asset.curr || 0, buyPrice: asset.buy || 0
+                    });
                 }
             });
 
@@ -31509,17 +31522,26 @@ async function calcPsychoAnalysis() {
             let safeSales = [...sales].reverse();
             for (let s of safeSales) {
                 // Aynı sembolün TÜM alımlarını bul (sadece ilkini değil)
-                let relatedBuys = buys.filter(b => b.sym === s.sym);
+                let sSym = (s.sym || '').toUpperCase();
+                let sClean = sSym.replace('USDT','').replace('BUSD','').replace('USDC','');
+                let relatedBuys = buys.filter(b => {
+                    let bs = (b.sym||'').toUpperCase().replace('USDT','').replace('BUSD','').replace('USDC','');
+                    return bs === sClean || (b.sym||'').toUpperCase() === sSym;
+                });
+                let holdKey = sClean || sSym;
                 if (relatedBuys.length === 0) {
                     // Alım kaydı yoksa bile satışı göster (0 gün olarak)
-                    if (!window.psychoHoldings[s.sym]) window.psychoHoldings[s.sym] = [];
-                    let isPanic = parseFloat(s.pnl || 0) < 0;
-                    window.psychoHoldings[s.sym].push({
-                        days: 0, buyDate: s.date, sellDate: s.date,
-                        pnl: parseFloat(s.pnl || 0), curr: s.curr || 'TRY',
-                        isOpen: false, isPanic: isPanic, isFomo: false
-                    });
-                    holdCount++;
+                    if (!window.psychoHoldings[holdKey]) window.psychoHoldings[holdKey] = [];
+                    // Zaten açık pozisyon olarak eklenmişse satış kaydı ekleme (duplicate)
+                    if (!window.psychoHoldings[holdKey].some(r => r.isOpen)) {
+                        let isPanic = parseFloat(s.pnl || 0) < 0;
+                        window.psychoHoldings[holdKey].push({
+                            days: 0, buyDate: s.date, sellDate: s.date,
+                            pnl: parseFloat(s.pnl || 0), curr: s.curr || 'TRY',
+                            isOpen: false, isPanic: isPanic, isFomo: false
+                        });
+                        holdCount++;
+                    }
                     continue;
                 }
                 // Satış tarihinden önceki en yakın alımı bul
@@ -31540,11 +31562,11 @@ async function calcPsychoAnalysis() {
                             let isPanic = parseFloat(s.pnl || 0) < 0;
                             // FOMO kontrolü: bu satıştan sonra aynı varlığı daha pahalı aldı mı?
                             let isFomo = false;
-                            let reBuy = buys.find(b => b.sym === s.sym && convertDate(b.date) > convertDate(s.date));
+                            let reBuy = relatedBuys.find(b => convertDate(b.date) > convertDate(s.date));
                             if (reBuy && parseFloat(reBuy.price) > parseFloat(s.price) * 1.10) isFomo = true;
 
-                            if(!window.psychoHoldings[s.sym]) window.psychoHoldings[s.sym] = [];
-                            window.psychoHoldings[s.sym].push({
+                            if(!window.psychoHoldings[holdKey]) window.psychoHoldings[holdKey] = [];
+                            window.psychoHoldings[holdKey].push({
                                 days: diffDays, buyDate: relatedBuy.date, sellDate: s.date,
                                 pnl: parseFloat(s.pnl || 0), curr: s.curr || 'TRY',
                                 isOpen: false, isPanic: isPanic, isFomo: isFomo
@@ -31564,69 +31586,80 @@ async function calcPsychoAnalysis() {
                 let hasPanic = recs.some(r => r.isPanic);
                 let hasFomo = recs.some(r => r.isFomo);
                 let totalPnl = recs.filter(r => !r.isOpen).reduce((a, b) => a + (b.pnl || 0), 0);
-                return { sym, avg: Math.round(avg), count: recs.length, hasOpen, hasPanic, hasFomo, totalPnl };
-            }).sort((a, b) => {
-                // Önce elinde olanlar, sonra ortalama güne göre
-                if (a.hasOpen && !b.hasOpen) return -1;
-                if (!a.hasOpen && b.hasOpen) return 1;
-                return b.avg - a.avg;
+                let openDays = recs.filter(r => r.isOpen).length > 0 ? recs.filter(r=>r.isOpen)[0].days : 0;
+                return { sym, avg: Math.round(avg), count: recs.length, hasOpen, hasPanic, hasFomo, totalPnl, openDays };
             });
 
-            if(sortedAssets.length > 0) {
-                // Özet satırı
-                let openAssetCount = sortedAssets.filter(a => a.hasOpen).length;
-                let soldAssetCount = sortedAssets.filter(a => !a.hasOpen).length;
-                let mixedAssetCount = sortedAssets.filter(a => a.hasOpen && a.count > 1).length;
+            // İki ayrı grup: ELİNDE (güne göre desc) + SATILDI (güne göre desc)
+            let openList   = sortedAssets.filter(a =>  a.hasOpen).sort((a,b) => b.openDays - a.openDays);
+            let soldList   = sortedAssets.filter(a => !a.hasOpen).sort((a,b) => b.avg - a.avg);
+            let allSorted  = [...openList, ...soldList];
 
-                holdListHTML = `<div style="margin-top:10px; border-top:1px solid rgba(255,255,255,0.08); padding-top:10px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                        <div style="font-size:9px; color:var(--text-sub);">DETAY İÇİN VARLIĞA TIKLA 👇</div>
-                        <div style="display:flex;gap:4px;">
-                            <span style="font-size:8px;background:rgba(52,211,153,0.12);color:#34d399;padding:1px 5px;border-radius:3px;">${openAssetCount} ELİNDE</span>
-                            <span style="font-size:8px;background:rgba(100,116,139,0.12);color:#94a3b8;padding:1px 5px;border-radius:3px;">${soldAssetCount} SATILDI</span>
-                        </div>
+            let openAssetCount = openList.length;
+            let soldAssetCount = soldList.length;
+
+            function _renderRow(item, index, group) {
+                let badgeColor = item.avg > 30 ? '#10b981' : (item.avg > 7 ? '#3b82f6' : '#f59e0b');
+                let rowBg      = item.hasOpen ? 'rgba(52,211,153,0.05)' : 'rgba(255,255,255,0.02)';
+                let leftBorder = item.hasOpen ? '2px solid #34d399' : '2px solid rgba(255,255,255,0.08)';
+                let symLabel   = item.sym; // already cleaned
+
+                let statusTag = item.hasOpen
+                    ? '<span style="font-size:7px;font-weight:700;background:rgba(52,211,153,0.15);color:#34d399;padding:1px 5px;border-radius:3px;">ELİNDE</span>'
+                    : '<span style="font-size:7px;font-weight:700;background:rgba(100,116,139,0.12);color:#94a3b8;padding:1px 5px;border-radius:3px;">SATILDI</span>';
+                let panicTag = item.hasPanic
+                    ? '<span style="font-size:7px;font-weight:700;background:rgba(239,68,68,0.15);color:#ef4444;padding:1px 5px;border-radius:3px;">PANİK</span>' : '';
+                let fomoTag  = item.hasFomo
+                    ? '<span style="font-size:7px;font-weight:700;background:rgba(245,158,11,0.15);color:#f59e0b;padding:1px 5px;border-radius:3px;">FOMO</span>'  : '';
+
+                let pnlHtml = '';
+                if (!item.hasOpen) {
+                    let pnlColor = item.totalPnl >= 0 ? '#10b981' : '#ef4444';
+                    let pnlSign  = item.totalPnl >= 0 ? '+' : '';
+                    pnlHtml = `<span style="font-size:9px;color:${pnlColor};font-weight:700;min-width:28px;text-align:right;">${pnlSign}${Math.round(item.totalPnl)}</span>`;
+                }
+
+                let daysLabel = item.hasOpen ? item.openDays : item.avg;
+
+                return `<div onclick="openHoldDetail('${item.sym}')" style="display:flex;align-items:center;padding:9px 10px;margin-bottom:4px;background:${rowBg};border-radius:10px;border-left:${leftBorder};cursor:pointer;gap:6px;">
+                    <span style="color:#475569;font-size:9px;font-weight:700;min-width:20px;">#${index+1}</span>
+                    <span style="color:#f1f5f9;font-size:13px;font-weight:800;min-width:54px;">${symLabel}</span>
+                    <div style="display:flex;gap:3px;align-items:center;flex:1;flex-wrap:wrap;">
+                        ${statusTag}${panicTag}${fomoTag}
                     </div>
-                    <div style="max-height:320px;overflow-y:auto;padding-right:2px;">`;
+                    <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
+                        ${pnlHtml}
+                        <span style="color:#475569;font-size:9px;">${item.count}İ</span>
+                        <span style="background:${badgeColor}22;color:${badgeColor};padding:3px 8px;border-radius:6px;font-weight:800;font-size:10px;">${daysLabel}G</span>
+                    </div>
+                </div>`;
+            }
 
-                sortedAssets.forEach((item, index) => {
-                    let badgeColor = item.avg > 30 ? '#10b981' : (item.avg > 7 ? '#3b82f6' : '#f59e0b');
-                    let rowBg = item.hasOpen
-                        ? 'rgba(52,211,153,0.04)'
-                        : 'rgba(255,255,255,0.02)';
-                    let leftBorder = item.hasOpen ? '2px solid rgba(52,211,153,0.3)' : '2px solid rgba(255,255,255,0.06)';
-
-                    // Etiketler
-                    let tags = '';
-                    if (item.hasOpen) tags += '<span style="font-size:7px;background:rgba(52,211,153,0.15);color:#34d399;padding:1px 4px;border-radius:3px;margin-left:3px;">ELİNDE</span>';
-                    else tags += '<span style="font-size:7px;background:rgba(100,116,139,0.12);color:#94a3b8;padding:1px 4px;border-radius:3px;margin-left:3px;">SATILDI</span>';
-                    if (item.hasPanic) tags += '<span style="font-size:7px;background:rgba(239,68,68,0.15);color:#ef4444;padding:1px 4px;border-radius:3px;margin-left:3px;">PANİK</span>';
-                    if (item.hasFomo) tags += '<span style="font-size:7px;background:rgba(245,158,11,0.15);color:#f59e0b;padding:1px 4px;border-radius:3px;margin-left:3px;">FOMO</span>';
-
-                    // PnL göster (sadece satılanlar için)
-                    let pnlHtml = '';
-                    if (!item.hasOpen && item.totalPnl !== 0) {
-                        let pnlColor = item.totalPnl >= 0 ? '#10b981' : '#ef4444';
-                        let pnlSign = item.totalPnl >= 0 ? '+' : '';
-                        pnlHtml = `<span style="font-size:8px;color:${pnlColor};font-weight:700;">${pnlSign}${item.totalPnl.toFixed(0)}</span>`;
-                    }
-
-                    holdListHTML += `
-                    <div onclick="openHoldDetail('${item.sym}')" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;font-size:11px;background:${rowBg};padding:8px 10px;border-radius:8px;cursor:pointer;border-left:${leftBorder};transition:0.2s;">
-                        <div style="display:flex;gap:6px;align-items:center;flex:1;min-width:0;">
-                            <span style="color:#64748b;font-weight:700;font-size:10px;min-width:22px;">#${index+1}</span>
-                            <span style="color:white;font-weight:700;font-size:12px;">${item.sym.replace('USDT','').replace('BUSD','')}</span>
-                            ${tags}
-                        </div>
-                        <div style="display:flex;gap:5px;align-items:center;flex-shrink:0;">
-                            ${pnlHtml}
-                            <span style="color:#64748b;font-size:9px;">(${item.count} İşlem)</span>
-                            <span style="background:${badgeColor}20;color:${badgeColor};padding:2px 7px;border-radius:4px;font-weight:700;font-size:10px;">Ort. ${item.avg}G</span>
+            if(allSorted.length > 0) {
+                holdListHTML = `<div style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <span style="font-size:9px;color:#475569;font-weight:700;letter-spacing:.5px;">DETAY İÇİN VARLIĞA TIKLA 👇</span>
+                        <div style="display:flex;gap:4px;">
+                            <span style="font-size:8px;font-weight:700;background:rgba(52,211,153,0.12);color:#34d399;padding:2px 7px;border-radius:4px;">${openAssetCount} ELİNDE</span>
+                            <span style="font-size:8px;font-weight:700;background:rgba(100,116,139,0.10);color:#94a3b8;padding:2px 7px;border-radius:4px;">${soldAssetCount} SATILDI</span>
                         </div>
                     </div>`;
-                });
-                holdListHTML += `</div></div>`;
+
+                // ELİNDE grubu
+                if (openList.length > 0) {
+                    holdListHTML += `<div style="font-size:8px;font-weight:800;color:#34d399;letter-spacing:.8px;margin-bottom:5px;margin-top:4px;">● ELİNDEKİLER (${openList.length})</div>`;
+                    openList.forEach((item, i) => { holdListHTML += _renderRow(item, i+1, 'open'); });
+                }
+
+                // SATILDI grubu
+                if (soldList.length > 0) {
+                    holdListHTML += `<div style="font-size:8px;font-weight:800;color:#94a3b8;letter-spacing:.8px;margin-bottom:5px;margin-top:10px;">● SATILANLAR (${soldList.length})</div>`;
+                    soldList.forEach((item, i) => { holdListHTML += _renderRow(item, i+1, 'sold'); });
+                }
+
+                holdListHTML += `</div>`;
             } else {
-                holdListHTML = `<div style="text-align:center; color:#64748b; font-size:10px; margin-top:10px;">Veri yok.</div>`;
+                holdListHTML = `<div style="text-align:center;color:#64748b;font-size:10px;margin-top:10px;">Veri yok.</div>`;
             }
 
             // Açık ve kapanmış istatistik
