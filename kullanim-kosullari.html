@@ -1,42 +1,637 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kullanım Koşulları & Yasal Uyarı - TradeVia</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <style>
-        body { background-color: #0b0f19; color: #cbd5e1; font-family: 'Inter', sans-serif; margin: 0; padding: 20px; line-height: 1.6; }
-        .container { max-width: 800px; margin: 0 auto; background: #151b2b; padding: 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); }
-        h1 { color: white; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; margin-bottom: 30px; }
-        h2 { color: #f59e0b; font-size: 18px; margin-top: 30px; }
-        p { font-size: 14px; margin-bottom: 15px; text-align: justify; }
-        .btn-back { display: inline-block; text-decoration: none; color: white; background: rgba(255,255,255,0.05); padding: 10px 20px; border-radius: 8px; margin-bottom: 20px; font-weight: 600; font-size: 12px; transition: 0.2s; }
-        .btn-back:hover { background: #3b82f6; }
-        .warning-box { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-size: 13px; font-weight: 600; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terms of Service — TradeVia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root {
+  --bg:       #05090f;
+  --bg2:      #080d17;
+  --surface:  #0c1220;
+  --border:   rgba(255,255,255,0.05);
+  --border2:  rgba(255,255,255,0.09);
+  --gold:     #C9A84C;
+  --gold-lt:  #f0c85a;
+  --blue:     #3b82f6;
+  --blue-lt:  #60a5fa;
+  --red:      #ef4444;
+  --red-lt:   #fca5a5;
+  --t0: #f1f5f9;
+  --t1: #cbd5e1;
+  --t2: #64748b;
+  --t3: #334155;
+  --fw: 'Syne', sans-serif;
+  --fb: 'Instrument Sans', sans-serif;
+  --sidebar-w: 260px;
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  font-family: var(--fb);
+  background: var(--bg);
+  color: var(--t2);
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background:
+    radial-gradient(ellipse 800px 600px at 0% 0%, rgba(8,25,80,0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 600px 400px at 100% 100%, rgba(4,50,35,0.12) 0%, transparent 55%);
+  pointer-events:none; z-index:0;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  position: sticky; top:0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px;
+  height: 56px;
+  background: rgba(5,9,15,0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.tb-brand {
+  font-family: var(--fw);
+  font-size: 17px; font-weight: 800;
+  color: var(--t0); text-decoration: none; letter-spacing: -.2px;
+}
+.tb-brand em { font-style:normal; color: var(--gold); }
+.tb-back {
+  display:inline-flex; align-items:center; gap:7px;
+  font-size: 12px; font-weight: 500; color: var(--t3);
+  text-decoration: none; letter-spacing: .5px;
+  transition: color .15s;
+}
+.tb-back:hover { color: var(--t1); }
+.tb-meta {
+  font-size: 11px; color: var(--t3); letter-spacing: .5px;
+  display: flex; gap: 20px; align-items: center;
+}
+.tb-meta span { display:flex; align-items:center; gap:5px; }
+
+/* ── BODY LAYOUT: SIDEBAR + CONTENT ── */
+.layout {
+  position: relative; z-index:1;
+  display: flex;
+  min-height: calc(100vh - 56px);
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+  padding: 36px 0 40px;
+  border-right: 1px solid var(--border);
+  scrollbar-width: none;
+}
+.sidebar::-webkit-scrollbar { display:none; }
+
+.sb-label {
+  font-family: var(--fw);
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: var(--t3); padding: 0 24px;
+  margin-bottom: 10px;
+}
+
+.sb-item {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 9px 24px;
+  text-decoration: none;
+  color: var(--t3);
+  font-size: 12.5px;
+  border-left: 2px solid transparent;
+  transition: all .15s;
+  line-height: 1.4;
+}
+.sb-item:hover { color: var(--t1); background: rgba(255,255,255,0.025); }
+.sb-item.active { color: var(--gold); border-left-color: var(--gold); background: rgba(201,168,76,0.04); }
+.sb-num {
+  font-family: var(--fw); font-size: 9px; font-weight: 700;
+  color: var(--t3); letter-spacing: 1px; min-width: 16px;
+}
+.sb-item.active .sb-num { color: var(--gold-lt); }
+
+.sb-divider { height:1px; background: var(--border); margin: 16px 24px; }
+
+/* ── MAIN CONTENT ── */
+.content {
+  flex: 1;
+  min-width: 0;
+  padding: 56px 64px 100px 64px;
+  max-width: 720px;
+}
+
+/* ── HERO ── */
+.hero {
+  margin-bottom: 64px;
+  padding-bottom: 48px;
+  border-bottom: 1px solid var(--border);
+}
+.hero-eyebrow {
+  font-family: var(--fw);
+  font-size: 9.5px; font-weight: 700;
+  letter-spacing: 4px; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 18px;
+  display: flex; align-items: center; gap: 10px;
+}
+.hero-eyebrow::before {
+  content:''; width:20px; height:1px; background:var(--gold); opacity:.4;
+}
+.hero-h1 {
+  font-family: var(--fw);
+  font-size: clamp(32px, 5vw, 48px);
+  font-weight: 800; color: var(--t0);
+  line-height: 1.05; letter-spacing: -1.5px;
+  margin-bottom: 22px;
+}
+.hero-h1 span {
+  display: block;
+  background: linear-gradient(110deg, var(--gold-lt) 0%, var(--gold) 55%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-lead {
+  font-size: 15px; color: var(--t2);
+  max-width: 520px; line-height: 1.75;
+  margin-bottom: 28px;
+}
+.hero-pills { display:flex; flex-wrap:wrap; gap:8px; }
+.pill {
+  font-size: 11px; font-weight: 500; color: var(--t3);
+  border: 1px solid var(--border);
+  padding: 5px 12px; border-radius: 20px;
+  letter-spacing: .3px;
+}
+
+/* ── ALERT ── */
+.alert {
+  margin-bottom: 56px;
+  padding: 18px 22px;
+  border: 1px solid rgba(239,68,68,0.2);
+  border-left: 3px solid var(--red);
+  border-radius: 12px;
+  background: rgba(239,68,68,0.04);
+}
+.alert-title {
+  font-family: var(--fw);
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--red-lt); margin-bottom: 6px;
+}
+.alert p {
+  font-size: 13px; color: rgba(252,165,165,0.6);
+  line-height: 1.7; margin:0;
+}
+
+/* ── SECTIONS ── */
+.sec {
+  margin-bottom: 60px;
+  scroll-margin-top: 24px;
+}
+.sec-hd {
+  display: flex; align-items: baseline; gap: 14px;
+  margin-bottom: 20px;
+}
+.sec-n {
+  font-family: var(--fw);
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 2px; color: var(--t3);
+}
+.sec-title {
+  font-family: var(--fw);
+  font-size: 17px; font-weight: 700;
+  color: var(--t0); letter-spacing: -.3px;
+  line-height: 1.3;
+}
+.sec-caption {
+  font-size: 11px; color: var(--t3);
+  letter-spacing: .5px; margin-top: 3px;
+  font-style: italic;
+}
+
+.sec-body p {
+  font-size: 14px; color: var(--t2);
+  margin-bottom: 14px; line-height: 1.85;
+}
+.sec-body p:last-child { margin-bottom: 0; }
+.sec-body p strong { color: var(--t1); font-weight: 600; }
+.sec-body a { color: var(--blue-lt); text-decoration: none; }
+.sec-body a:hover { text-decoration: underline; }
+
+/* liste — hiç blok yok, düz satır arası */
+.sec-body ul {
+  list-style: none;
+  margin: 14px 0;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.sec-body ul li {
+  font-size: 14px; color: var(--t2);
+  line-height: 1.75;
+  padding-left: 16px;
+  position: relative;
+}
+.sec-body ul li::before {
+  content: '—';
+  position: absolute; left:0;
+  color: var(--t3); font-size: 12px;
+  line-height: 1.75;
+}
+
+/* inline uyarı — sadece sol bant, bloksuz */
+.inline-warn {
+  font-size: 13.5px; color: var(--t2);
+  padding-left: 14px;
+  border-left: 2px solid var(--gold);
+  margin: 16px 0;
+  line-height: 1.75;
+}
+.inline-warn strong { color: var(--t0); }
+
+.inline-danger {
+  font-size: 13.5px; color: var(--t2);
+  padding-left: 14px;
+  border-left: 2px solid var(--red);
+  margin: 16px 0;
+  line-height: 1.75;
+}
+.inline-danger strong { color: var(--red-lt); }
+
+/* veri sağlayıcılar — inline liste, bloksuz */
+
+
+/* legal table — minimal */
+.ltable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  margin: 16px 0;
+}
+.ltable thead th {
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--t3);
+  border-bottom: 1px solid var(--border);
+}
+.ltable tbody td {
+  padding: 11px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.025);
+  color: var(--t2); vertical-align: top;
+  line-height: 1.6;
+}
+.ltable tbody tr:last-child td { border-bottom: none; }
+.ltable td:first-child { color: var(--t1); font-weight: 500; font-family: var(--fw); font-size: 12px; white-space:nowrap; }
+
+/* ── SECTION DIVIDER ── */
+.sec-sep { height:1px; background:var(--border); margin: 0 0 60px; }
+
+/* ── FOOTER ── */
+.content-footer {
+  padding-top: 40px;
+  border-top: 1px solid var(--border);
+  display: flex; flex-wrap:wrap;
+  align-items:center; justify-content:space-between;
+  gap: 16px;
+}
+.cf-brand { font-family:var(--fw); font-size:17px; font-weight:800; color:var(--t0); }
+.cf-brand em { font-style:normal; color:var(--gold); }
+.cf-meta { font-size:12px; color:var(--t3); text-align:right; line-height:1.8; }
+.cf-meta a { color:var(--blue-lt); text-decoration:none; }
+
+/* ── SCROLLSPY ── */
+@keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+.hero { animation: fadeIn .5s ease-out both; }
+.alert { animation: fadeIn .5s ease-out .1s both; }
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px) {
+  .sidebar { display:none; }
+  .content { padding: 36px 28px 80px; max-width: 100%; }
+  .topbar { padding: 0 20px; }
+  .tb-meta { display:none; }
+}
+@media(max-width:560px) {
+  .content { padding: 28px 16px 80px; }
+  .hero-h1 { letter-spacing: -.8px; }
+}
+</style>
 </head>
 <body>
-    <div class="container">
-        <a href="index.html" class="btn-back">← Ana Sayfaya Dön</a>
-        
-        <h1>Kullanım Koşulları ve Yasal Uyarı</h1>
 
-        <div class="warning-box">
-            ⚠️ ÖNEMLİ: Bu uygulama bir yatırım danışmanlığı hizmeti değildir.
-        </div>
+<!-- TOP BAR -->
+<div class="topbar">
+  <a href="index.html" class="tb-brand">TRADE<em>VIA</em></a>
+  <div class="tb-meta">
+    <span>Mart 2025</span>
+    <span>·</span>
+    <span>v 2.1</span>
+    <span>·</span>
+    <span>Global</span>
+  </div>
+  <a href="index.html" class="tb-back"><i class="fas fa-arrow-left"></i> Uygulamaya Dön</a>
+</div>
 
-        <h2>1. Hizmetin Niteliği</h2>
-        <p>TradeVia, kullanıcıların finansal varlıklarını manuel olarak takip etmelerini, simülasyon yapmalarını ve halka açık piyasa verilerini izlemelerini sağlayan bir yazılım aracıdır. Uygulama üzerinden gerçek para ile alım-satım, transfer veya bankacılık işlemi yapılamaz.</p>
+<!-- LAYOUT -->
+<div class="layout">
 
-        <h2>2. Yatırım Tavsiyesi Değildir (Disclaimer)</h2>
-        <p>Burada yer alan yatırım bilgi, yorum ve tavsiyeleri yatırım danışmanlığı kapsamında değildir. Yatırım danışmanlığı hizmeti; aracı kurumlar, portföy yönetim şirketleri, mevduat kabul etmeyen bankalar ile müşteri arasında imzalanacak yatırım danışmanlığı sözleşmesi çerçevesinde sunulmaktadır. Burada yer alan yorum ve tavsiyeler, yorum ve tavsiyede bulunanların kişisel görüşlerine dayanmaktadır.</p>
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sb-label">İçindekiler</div>
+    <a href="#s1"  class="sb-item active"><span class="sb-num">01</span> Kapsam ve Kabul</a>
+    <a href="#s2"  class="sb-item"><span class="sb-num">02</span> Yatırım Tavsiyesi Reddi</a>
+    <a href="#s3"  class="sb-item"><span class="sb-num">03</span> Veri Kaynakları</a>
+    <a href="#s4"  class="sb-item"><span class="sb-num">04</span> Borsa API Entegrasyonu</a>
+    <a href="#s5"  class="sb-item"><span class="sb-num">05</span> Sorumluluk Sınırlaması</a>
+    <a href="#s6"  class="sb-item"><span class="sb-num">06</span> Kullanıcı Yükümlülükleri</a>
+    <a href="#s7"  class="sb-item"><span class="sb-num">07</span> Gizlilik ve Veri</a>
+    <a href="#s8"  class="sb-item"><span class="sb-num">08</span> Fikri Mülkiyet</a>
+    <a href="#s9"  class="sb-item"><span class="sb-num">09</span> Risk Açıklamaları</a>
+    <a href="#s10" class="sb-item"><span class="sb-num">10</span> Uygulanacak Hukuk</a>
+    <a href="#s11" class="sb-item"><span class="sb-num">11</span> Değişiklik ve Fesih</a>
+    <a href="#s12" class="sb-item"><span class="sb-num">12</span> İletişim</a>
+    <div class="sb-divider"></div>
+    <a href="gizlilik.html" class="sb-item"><span class="sb-num">↗</span> Gizlilik Politikası</a>
+  </nav>
 
-        <h2>3. Veri Doğruluğu ve Gecikme</h2>
-        <p>Uygulamada sunulan Borsa, Kripto Para, Altın ve Döviz verileri üçüncü taraf sağlayıcılardan (CoinGecko, Yahoo Finance vb.) temin edilmektedir. Bu verilerin doğruluğu, kesinliği ve güncelliği garanti edilmemektedir. Veriler piyasa koşullarına göre 15 dakika veya daha fazla gecikmeli olabilir. TradeVia, veri hatalarından kaynaklanabilecek kayıplardan sorumlu tutulamaz.</p>
+  <!-- CONTENT -->
+  <main class="content">
 
-        <h2>4. Sorumluluk Reddi</h2>
-        <p>Kullanıcı, TradeVia uygulamasını kullanarak, finansal kararlarının sorumluluğunun tamamen kendisine ait olduğunu kabul eder. Uygulama geliştiricileri, bu uygulamanın kullanımından doğabilecek doğrudan veya dolaylı zararlardan sorumlu değildir.</p>
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-eyebrow">Yasal Belgeler</div>
+      <h1 class="hero-h1">
+        Terms of Service
+        <span>&amp; Legal Disclaimer</span>
+      </h1>
+      <p class="hero-lead">Bu belge, TradeVia uygulamasına erişim ve kullanım koşullarını düzenler. Uygulamayı kullanmaya devam etmekle aşağıdaki tüm koşulları bütünüyle, kayıtsız şartsız kabul etmiş sayılırsınız.</p>
+      <div class="hero-pills">
+        <span class="pill">Mart 2025</span>
+        <span class="pill">Global Geçerlilik</span>
+        <span class="pill">v 2.1</span>
+        <span class="pill">Bağlayıcı Sözleşme</span>
+      </div>
     </div>
+
+    <!-- ALERT -->
+    <div class="alert">
+      <div class="alert-title">Not an Investment Platform — Yatırım Platformu Değildir</div>
+      <p>TradeVia hiçbir ülkede lisanslı bir yatırım kuruluşu, aracı kurum, portföy yönetim şirketi veya finans danışmanı değildir. Uygulamayı kullanmak, bu gerçeği kabul etmek anlamına gelir.</p>
+    </div>
+
+    <!-- §1 -->
+    <div class="sec" id="s1">
+      <div class="sec-hd">
+        <span class="sec-n">§ 01</span>
+        <div>
+          <div class="sec-title">Kapsam ve Kabul</div>
+          <div class="sec-caption">Binding Agreement</div>
+        </div>
+      </div>
+      <div class="sec-body">
+        <p>TradeVia; portföy takibi, piyasa verisi görselleştirme, teknik analiz araçları ve bağlantılı borsa entegrasyonu sunan bir kişisel finans yönetim uygulamasıdır. Uygulamayı indirmek, hesap oluşturmak veya herhangi bir özelliğini kullanmak bu koşulların tamamını kabul etmek anlamına gelir. Koşulları kabul etmiyorsanız uygulamayı derhal kullanmayı bırakınız ve hesabınızı kapatınız.</p>
+        <p>Bu belge tüm platform versiyonları için geçerlidir: mobil uygulama, web uygulaması ve bu kanallar üzerinden sunulan tüm özellikler. TradeVia hiçbir ülkede menkul kıymet aracı kurumu, kripto varlık hizmet sağlayıcısı, portföy yönetim şirketi veya bankacılık kurumu değildir. Kullanıcı hesaplarında fon tutulmaz; ödeme ya da transfer işlemi gerçekleştirilmez.</p>
+      </div>
+    </div>
+    <div class="sec-sep"></div>
+
+    <!-- §2 -->
+    <div class="sec" id="s2">
+      <div class="sec-hd">
+        <span class="sec-n">§ 02</span>
+        <div>
+          <div class="sec-title">Yatırım Tavsiyesi Reddi</div>
+          <div class="sec-caption">No Financial Advice — Global Disclaimer</div>
+        </div>
+      </div>
+      <div class="sec-body">
+        <p>TradeVia platformunda yer alan tüm içerikler — analizler, göstergeler, skorlar, yapay zeka yorumları ve haberler — yalnızca bilgilendirme amacıyla sunulmaktadır. Hiçbiri finansal tavsiye, yatırım önerisi, vergi rehberliği veya hukuki görüş niteliği taşımaz; taşıdığı iddia edilemez.</p>
+        <div class="inline-danger"><strong>Kesin Kural:</strong> Kullanıcılar yatırım kararı vermeden önce yetkili ve lisanslı bir finansal danışmana başvurmak zorundadır. TradeVia bu profesyonellerin yerini tutmaz, tutamaz ve tuttuğu iddia edilemez.</div>
+        <p>Uygulama içindeki hiçbir skor, sinyal veya analiz çıktısı; herhangi bir finansal araç için alım, satım ya da elde tutma tavsiyesi olarak yorumlanamaz. Bu yorumları yapan kullanıcı, bu koşulların ihlalinden doğan tüm hukuki ve mali sorumluluğu tek başına üstlenir.</p>
+      </div>
+    </div>
+    <div class="sec-sep"></div>
+
+    <!-- §3 -->
+    <div class="sec" id="s3">
+      <div class="sec-hd">
+        <span class="sec-n">§ 03</span>
+        <div>
+          <div class="sec-title">Veri Kaynakları ve Atıflar</div>
+          <div class="sec-caption">Third-Party Data Providers</div>
+        </div>
+      </div>
+      <div class="sec-body">
+        <p>TradeVia piyasa verilerini bağımsız üçüncü taraf sağlayıcılardan temin eder. Bu sağlayıcılar kendi kullanım koşullarına ve lisans anlaşmalarına tabidir; TradeVia bunların yerine geçemez.</p>
+        <p>Uygulama şu veri sağlayıcıları kullanır: <strong>Binance</strong> (kripto fiyat ve portföy entegrasyonu), <strong>CoinGecko</strong> (geniş kripto yelpazesi için piyasa verisi; <em>Powered by CoinGecko API</em>), <strong>Polygon.io</strong> (hisse senedi, ETF ve endeks verileri; belirli planlarda gecikmeli sunulabilir), <strong>Google Cloud</strong> (kimlik doğrulama ve veri senkronizasyonu). Bu sağlayıcılar kendi kullanım koşullarına tabidir; TradeVia bunların yerine geçemez.</p>
+        <div class="inline-warn">Üçüncü taraf veri sağlayıcılar verinin doğruluğu veya sürekliliği konusunda garanti vermemektedir. Kritik finansal kararlar için resmi borsa ve regülatör kaynaklarını esas alınız. TradeVia bu kaynaklardan gelen eksik ya da hatalı veriden sorumlu tutulamaz.</div>
+      </div>
+    </div>
+    <div class="sec-sep"></div>
+
+    <!-- §4 -->
+    <div class="sec" id="s4">
+      <div class="sec-hd">
+        <span class="sec-n">§ 04</span>
+        <div>
+          <div class="sec-title">Borsa API Entegrasyonu</div>
+          <div class="sec-caption">Exchange Connectivity — User Responsibility</div>
+        </div>
+      </div>
+      <div class="sec-body">
+        <p>Kullanıcılar kendi borsa hesaplarını API anahtarı aracılığıyla isteğe bağlı olarak bağlayabilir. API anahtarları yalnızca kullanıcının cihazında saklanır; üçüncü taraf sunuculara iletilmez. Bağlantı aracılığıyla gerçekleştirilen tüm işlemler ilgili borsanın koşullarına ve ücretlendirme politikasına tabidir.</p>
+        <div class="inline-danger"><strong>Güvenlik Zorunluluğu:</strong> API anahtarınıza asla para çekme (withdrawal) izni tanımlamayınız. Bu kural ihlal edildiğinde doğabilecek her türlü mali zarar kullanıcıya aittir; TradeVia herhangi bir sorumluluk kabul etmez.</div>
+        <p>TradeVia borsa API'sinde meydana gelen kesintiler, oran sınırlamaları veya güvenlik ihlallerinden kaynaklanan zararlardan sorumlu değildir. Kullanıcı, API anahtarını üçüncü şahıslarla paylaşmamakla yükümlüdür; paylaşılması durumunda doğacak tüm sorumluluk kullanıcıya aittir.</p>
+      </div>
+    </div>
+    <div class="sec-sep"></div>
+
+    <!-- §5 -->
+    <div class="sec" id="s5">
+      <div class="sec-hd">
+        <span class="sec-n">§ 05</span>
+        <div>
+          <div class="sec-title">Sorumluluk Sınırlaması</div>
+          <div class="sec-caption">Limitation of Liability — "As Is" Service</div>
+        </div>
+      </div>
+      <div class="sec-body">
+        <p>TradeVia hizmetleri "olduğu gibi" (as-is) ve "mevcut şekliyle" (as-available) sunulmaktadır. TradeVia ve geliştiricileri; uygulama içeriğine dayalı yatırım kararlarından kaynaklanan zararlardan, hatalı veya gecikmeli piyasa verisinden doğan kayıplardan, API entegrasyonu sırasında gerçekleşen yetkisiz işlemlerden, teknik arıza veya hizmet kesintilerinden, üçüncü taraf bağlantılar nedeniyle oluşan kayıplardan ve mücbir sebep hallerinden sorumlu tutulamaz.</p>
+        <p>Herhangi bir koşulda TradeVia'nın toplam sorumluluğu, kullanıcının son oniki ay içinde ödediği abonelik ücretini aşmayacaktır. Bu sınırlamanın ötesine geçen hiçbir talep kabul edilmeyecektir.</p>
+      </div>
+    </div>
+    <div class="sec-sep"></div>
+
+    <!-- §6 -->
+    <div class="sec" id="s6">
+      <div class="sec-hd">
+        <span class="sec-n">§ 06</span>
+        <div>
+          <div class="sec-title">Kullanıcı Yükümlülükleri</div>
+          <div class="sec-caption">Acceptable Use Policy</div>
+        </div>
+      </div>
+      <div class="sec-body">
+        <p>Uygulamayı kullanarak aşağıdaki yükümlülükleri kayıtsız şartsız kabul edersiniz:</p>
+        <ul>
+          <li>Uygulamayı yalnızca kişisel amaçlarla kullanmak; başkalarının hesaplarına yetkisiz erişim girişiminde bulunmamak.</li>
+          <li>Tersine mühendislik, kaynak kodu çıkarma, kopyalama veya türev ürün oluşturma girişiminde bulunmamak.</li>
+          <li>Sisteme bot, scraper veya otomatik yük oluşturacak araçlar göndermemek.</li>
+          <li>Yanıltıcı, sahte veya hatalı kimlik bilgisi sağlamamak; başka kullanıcıları herhangi bir şekilde dolandırmamak.</li>
+          <li>Uygulamayı yasa dışı piyasa manipülasyonu, kara para aklama veya terörün finansmanı amacıyla kullanmamak.</li>
+          <li>Geçerli tüm yerel, ulusal ve uluslararası yasalara, özellikle sermaye piyasası ve kripto varlık mevzuatına uymak.</li>
+        </ul>
+        <div class="inline-danger">Bu kuralların herhangi birinin ihlali, TradeVia'nın önceden bildirimde bulunmaksızın hesabı kalıcı olarak kapatma ve ilgili yasal mercilere bildirimde bulunma hakkını doğurur.</div>
+      </div>
+    </div>
+    <div class="sec-sep"></div>
+
+    <!-- §7 -->
+    <div class="sec" id="s7">
+      <div class="sec-hd">
+        <span class="sec-n">§ 07</span>
+        <div>
+          <div class="sec-title">Gizlilik ve Kişisel Veriler</div>
+          <div class="sec-caption">Privacy — Data Protection</div>
+        </div>
+      </div>
+      <div class="sec-body">
+        <p>TradeVia kullanıcı gizliliğini temel bir ilke olarak benimser. Portföy verileri öncelikle kullanıcının kendi cihazında yerel olarak saklanır. Bulut senkronizasyonu isteğe bağlıdır ve yalnızca kullanıcının açık onayıyla etkinleştirilir. Kullanıcı verileri üçüncü taraflara satılmaz, kiralanmaz veya reklam amacıyla paylaşılmaz. Uzaktan depolanan veriler endüstri standardı şifreleme yöntemleriyle korunur.</p>
+        <p>Kullanıcı, kendi verisine erişme, düzeltme ve kalıcı olarak silme hakkına her zaman sahiptir. Kapsamlı bilgi için <a href="gizlilik.html">Gizlilik Politikası</a>'nı inceleyiniz.</p>
+      </div>
+    </div>
+    <div class="sec-sep"></div>
+
+    <!-- §8 -->
+    <div class="sec" id="s8">
+      <div class="sec-hd">
+        <span class="sec-n">§ 08</span>
+        <div>
+          <div class="sec-title">Fikri Mülkiyet Hakları</div>
+          <div class="sec-caption">Intellectual Property — All Rights Reserved</div>
+        </div>
+      </div>
+      <div class="sec-body">
+        <p>TradeVia markası, logosu, uygulama tasarımı, kaynak kodu, algoritmalar ve özgün içeriğin tümü fikri ve sınai mülkiyet hukuku kapsamında korunmaktadır. Kullanıcıya yalnızca kişisel, devredilemez ve kısıtlı bir kullanım lisansı verilmektedir. Uygulamanın herhangi bir bölümünü kopyalamak, değiştirmek, dağıtmak, ters mühendisliğe tabi tutmak veya ticari amaçla kullanmak kesinlikle yasaktır ve hukuki sonuçlar doğurur. Özgün algoritmalar ve analiz motorları ticari sır niteliği taşır.</p>
+      </div>
+    </div>
+    <div class="sec-sep"></div>
+
+    <!-- §9 -->
+    <div class="sec" id="s9">
+      <div class="sec-hd">
+        <span class="sec-n">§ 09</span>
+        <div>
+          <div class="sec-title">Risk Açıklamaları</div>
+          <div class="sec-caption">Risk Disclosure — Capital Markets &amp; Digital Assets</div>
+        </div>
+      </div>
+      <div class="sec-body">
+        <div class="inline-danger"><strong>Dijital Varlık Riski:</strong> Kripto para birimleri son derece yüksek fiyat oynaklığına sahiptir; kısa sürede değerlerinin tamamını yitirebilirler. Herhangi bir kamu otoritesi tarafından desteklenmezler ve mevduat güvencesine tabi değildirler. Regülatör kararları, teknik açıklar veya piyasa manipülasyonu değeri sıfıra indirebilir.</div>
+        <div class="inline-warn"><strong>Sermaye Piyasası Riski:</strong> Hisse senetleri ve diğer menkul kıymetlere yapılan yatırımlar anapara kaybı riski içerir. Kaldıraçlı ürünler başlangıç teminatının çok ötesinde kayıplara neden olabilir. Uluslararası piyasalarda kur riski, siyasi risk ve likidite riski her zaman mevcuttur.</div>
+        <p>Yatırım kararı vermeden önce kendi risk toleransınızı, yatırım ufkunuzu ve mali durumunuzu dikkate alınız. TradeVia bu değerlendirmeyi yapmanıza yardımcı bir araç olarak kullanılabilir; ancak bu değerlendirmenin yerini tutamaz.</p>
+      </div>
+    </div>
+    <div class="sec-sep"></div>
+
+    <!-- §10 -->
+    <div class="sec" id="s10">
+      <div class="sec-hd">
+        <span class="sec-n">§ 10</span>
+        <div>
+          <div class="sec-title">Uygulanacak Hukuk</div>
+          <div class="sec-caption">Governing Law — Jurisdiction</div>
+        </div>
+      </div>
+      <div class="sec-body">
+        <p>Bu koşullar genel hukuk ilkeleri çerçevesinde yorumlanır. Kullanıcının bulunduğu ülkenin emredici hukuk kuralları saklıdır.</p>
+        <table class="ltable">
+          <thead><tr><th>Kategori</th><th>Kapsam</th></tr></thead>
+          <tbody>
+            <tr><td>Sermaye Piyasası</td><td>Yatırım hizmetleri tanımı kapsamı dışında kalma</td></tr>
+            <tr><td>Dijital Varlık Regülasyonu</td><td>Lisans gerektiren kripto varlık hizmetlerinin sunulmaması</td></tr>
+            <tr><td>Veri Koruma (GDPR ve eşdeğerleri)</td><td>Kişisel verilerin işlenmesi, depolanması ve kullanıcı hakları</td></tr>
+            <tr><td>AML / KYC Çerçevesi</td><td>Kara para aklamayla mücadele kapsamında yasadışı faaliyetlere kesin yasak</td></tr>
+            <tr><td>Uluslararası Yaptırımlar</td><td>Yaptırım listesindeki kişi ve ülkelere hizmet sunulmaması</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="sec-sep"></div>
+
+    <!-- §11 -->
+    <div class="sec" id="s11">
+      <div class="sec-hd">
+        <span class="sec-n">§ 11</span>
+        <div>
+          <div class="sec-title">Değişiklik ve Fesih</div>
+          <div class="sec-caption">Amendments — Termination</div>
+        </div>
+      </div>
+      <div class="sec-body">
+        <p>TradeVia bu koşulları herhangi bir zamanda ve önceden bildirimde bulunmaksızın güncelleme hakkını saklı tutar. Değişiklikler uygulama içi bildirim ile duyurulabilir; ancak bu bir zorunluluk değildir. Değişiklikten sonra uygulamayı kullanmaya devam etmek güncellenmiş koşulların kabul edildiği anlamına gelir.</p>
+        <p>TradeVia, bu koşulları ihlal eden, şüpheli faaliyet gösteren veya platforma zarar veren kullanıcı hesaplarını tek taraflı olarak ve tazminatsız biçimde kapatma hakkına sahiptir. Kullanıcı da istediği zaman hesabını silebilir; veriler ilgili gizlilik politikasına göre işleme alınır.</p>
+      </div>
+    </div>
+    <div class="sec-sep"></div>
+
+    <!-- §12 -->
+    <div class="sec" id="s12">
+      <div class="sec-hd">
+        <span class="sec-n">§ 12</span>
+        <div>
+          <div class="sec-title">İletişim</div>
+          <div class="sec-caption">Contact — Support</div>
+        </div>
+      </div>
+      <div class="sec-body">
+        <p>Bu koşullara ilişkin soru ve başvurularınızı <a href="mailto:iletisim@tradevia.app">iletisim@tradevia.app</a> adresine iletebilirsiniz. Yanıt süresi 3–5 iş günüdür.</p>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="content-footer">
+      <div>
+        <div class="cf-brand">TRADE<em>VIA</em></div>
+        <div style="font-size:11.5px;color:var(--t3);margin-top:3px;">Advanced Financial Terminal</div>
+      </div>
+      <div class="cf-meta">
+        <div>© 2025 TradeVia · Tüm hakları saklıdır</div>
+        <div><a href="gizlilik.html">Gizlilik Politikası</a> · <a href="index.html">Ana Sayfa</a></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// Scrollspy
+const items = document.querySelectorAll('.sb-item[href^="#"]');
+const secs  = document.querySelectorAll('.sec[id]');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      items.forEach(i => i.classList.remove('active'));
+      const a = document.querySelector('.sb-item[href="#' + e.target.id + '"]');
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+secs.forEach(s => obs.observe(s));
+</script>
+
 </body>
 </html>
