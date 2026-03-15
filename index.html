@@ -20185,7 +20185,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.2"; 
+    const CURRENT_VERSION = "1.3"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -21734,7 +21734,14 @@ function renderPortfolioHTML(as) {
         <div id="asset-content-${a.originalIndex}" class="collapsible-content collapsed">
             <div class="asset-body-content">
                 <div class="asset-details-grid">
-                    <div class="detail-item"><span class="detail-label">Ortalama</span><span class="detail-val">${(()=>{ let buyDisplay = a.buy; let buySymbol = a.origin==='USD'?'$':'₺'; if(uCurr==='TRY' && a.origin==='USD'){ buyDisplay = a.buy * usdTryRate; buySymbol = '₺'; } else if(uCurr==='USD' && a.origin==='TRY'){ buyDisplay = a.buy / usdTryRate; buySymbol = '$'; } return _fmtP(buyDisplay) + ' ' + buySymbol; })()}</span></div>
+                    <div class="detail-item"><span class="detail-label">Ortalama</span><span class="detail-val">${(()=>{
+                        let buyDisplay = a.buy;
+                        let isUsdAsset = (a.origin === 'USD' || a.origin === 'USDT' || a.source === 'BINANCE' || a.category === 'kripto');
+                        let buySymbol = isUsdAsset ? '$' : '₺';
+                        if (uCurr === 'TRY' && isUsdAsset) { buyDisplay = a.buy * usdTryRate; buySymbol = '₺'; }
+                        else if (uCurr === 'USD' && !isUsdAsset) { buyDisplay = a.buy / usdTryRate; buySymbol = '$'; }
+                        return _fmtP(buyDisplay) + ' ' + buySymbol;
+                    })()}</span></div>
                     <div class="detail-item" style="text-align:right;"><span class="detail-label">Güncel</span><span class="detail-val accent">${priceUnit}</span></div>
                     <div class="detail-item"><span class="detail-label">Maliyet</span><span class="detail-val">${sym}${_fmtV(a.dCost)}</span></div>
                     <div class="detail-item" style="text-align:right;"><span class="detail-label">Toplam Değer</span><span class="detail-val" id="live_total_val_${a.originalIndex}">${sym}${_fmtV(a.dVal)}</span></div>
@@ -25387,12 +25394,31 @@ try {
         document.documentElement.style.backgroundColor = themeBg[t] || '#0b0f19';
     }
     function changeTheme(val){ appSettings.theme = val; localStorage.setItem('tm_settings', JSON.stringify(appSettings)); applyTheme(val); }
-    function changeLanguage(val){ 
-        appSettings.lang = val; 
-        localStorage.setItem('tm_settings', JSON.stringify(appSettings)); 
-        applyLang(); 
-        // LangSystem ile canlı çeviri — sayfa yenilenmez
-        if (typeof LangSystem !== 'undefined') { LangSystem.set(val); }
+    async function changeLanguage(val){ 
+        appSettings.lang = val;
+        // Dil config'e göre para birimini otomatik ayarla
+        if (typeof LANG_CONFIG !== 'undefined' && LANG_CONFIG[val]) {
+            const newCurrency = LANG_CONFIG[val].currency;
+            if (newCurrency && newCurrency !== appSettings.currency) {
+                // Para birimi değişiyor — kasa bakiyesini dönüştür
+                if (newCurrency === 'USD') cashBalance = cashBalance / usdTryRate;
+                else cashBalance = cashBalance * usdTryRate;
+                localStorage.setItem('tm_cash_balance', cashBalance);
+                appSettings.currency = newCurrency;
+                // Para birimi seçicisini güncelle
+                var currSel = document.getElementById('currSelect');
+                if (currSel) { currSel.value = newCurrency; }
+                var currLabels = {TRY:'TRY (₺)', USD:'USD ($)'};
+                var clEl = document.getElementById('currSelectLabel');
+                if (clEl) clEl.textContent = currLabels[newCurrency] || 'TRY (₺)';
+            }
+        }
+        localStorage.setItem('tm_settings', JSON.stringify(appSettings));
+        applyLang();
+        // Kuru güncelle, sonra portföyü yenile
+        await fetchUsdRate();
+        if (typeof loadPF === 'function') loadPF(true);
+        if (typeof renderHistory === 'function') renderHistory();
     }
     function applyLang(){ const t = trans[appSettings.lang]; document.querySelectorAll('[data-lang]').forEach(e => { const key = e.getAttribute('data-lang'); if(t[key]) e.innerText = t[key]; }); }
     function setEntryCurrency(curr) { entryCurrency = curr; let btn = document.getElementById('currencyToggle'); if(btn) { if(curr === 'TRY') { btn.innerText = '₺'; btn.className = 'currency-toggle-btn active-try'; } else { btn.innerText = '$'; btn.className = 'currency-toggle-btn active-usd'; } } calcDca(); calcLiveTotal(); }
