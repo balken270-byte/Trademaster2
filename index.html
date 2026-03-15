@@ -20185,7 +20185,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.0"; 
+    const CURRENT_VERSION = "1.2"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -21825,6 +21825,16 @@ checkAllAlarms();
             var _wBg = document.getElementById('heroWalletBncBg');
             var _wMainBg = document.getElementById('heroWalletMainBg');
             var _wLabel = document.getElementById('heroWalletLabel');
+            // Binance cüzdanında Temettü butonu engelle (toast göster)
+            var _divBtn = document.querySelector('.hero-btn[onclick*="addDividend"]');
+            if (_divBtn) {
+                _divBtn.style.display = '';
+                _divBtn.style.opacity = _isBnc ? '0.4' : '';
+                _divBtn.style.cursor = _isBnc ? 'not-allowed' : '';
+                _divBtn.onclick = _isBnc
+                    ? function(e) { e.stopPropagation(); if(typeof showToast==="function") showToast("warn","Binance Cüzdanı","Binance cüzdanında manuel işlem yapılamaz."); }
+                    : function() { addDividend(); };
+            }
             if (_wBtn) {
                 if (_wBg) _wBg.style.display = _isBnc ? 'flex' : 'none';
                 if (_wMainBg) _wMainBg.style.display = _isMain ? 'flex' : 'none';
@@ -34402,11 +34412,24 @@ const BinanceConnect = {
                 const db = JSON.parse(localStorage.getItem('tm_all_portfolios') || '{}');
                 if (db.activeID && db.activeID.startsWith('pf_bnc_')) {
                     const stables = ['USDT', 'BUSD', 'USDC', 'FDUSD', 'TUSD', 'DAI'];
+                    const visibleStables = ['USDT', 'BUSD', 'USDC']; // Bunlar cüzdanda görünür
                     let cashToAdd = 0;
                     const adds = [];
                     this._fetchedAssets.forEach(a => {
-                        if (stables.includes(a.asset)) cashToAdd += a.usdValue;
-                        else if (a.total > 0) adds.push({
+                        if (stables.includes(a.asset)) {
+                            cashToAdd += a.usdValue;
+                            // USDT/BUSD/USDC gibi önemli stable'ları portföyde de göster
+                            if (visibleStables.includes(a.asset) && a.total > 0) {
+                                adds.push({
+                                    name: a.asset,
+                                    amt: a.total,
+                                    buy: 1, curr: 1, // Stable coin her zaman $1
+                                    origin: 'USD',
+                                    image: 'https://cdn.jsdelivr.net/gh/vadimmalykhin/binance-icons/crypto/' + a.asset.toLowerCase() + '.svg',
+                                    source: 'BINANCE', category: 'kripto'
+                                });
+                            }
+                        } else if (a.total > 0) adds.push({
                             name: a.asset + 'USDT', amt: a.total,
                             buy: a.unitPrice || 0, curr: a.unitPrice || 0,
                             origin: 'USD',
@@ -34438,7 +34461,8 @@ const BinanceConnect = {
                             ex.source = 'BINANCE';
                             ex.category = 'kripto';
                             ex.image = na.image;
-                            // buy: sadece 0 veya yoksa yaz (ilk kez ekleniyor)
+                            // buy: trade history yoksa ve hala 0/boşsa unitPrice ile doldur
+                            // (trade history 2sn sonra gelip üzerine doğru ortalamayı yazacak)
                             if (!ex.buy || ex.buy === 0) ex.buy = na.buy;
                         }
                         else {
@@ -34526,9 +34550,17 @@ const BinanceConnect = {
                                 costMap[base].totalCost += total;
                             } else {
                                 // Satışta orantılı maliyet düş
-                                const ratio = Math.min(qty / (costMap[base].totalQty || qty), 1);
-                                costMap[base].totalCost -= costMap[base].totalCost * ratio;
-                                costMap[base].totalQty = Math.max(0, costMap[base].totalQty - qty);
+                                const newQty = Math.max(0, costMap[base].totalQty - qty);
+                                if (newQty < 0.000001) {
+                                    // Tüm varlık satıldı → tamamen sıfırla
+                                    // Sonraki alım temiz $0 maliyetle başlar
+                                    costMap[base].totalQty = 0;
+                                    costMap[base].totalCost = 0;
+                                } else {
+                                    const ratio = Math.min(qty / (costMap[base].totalQty || qty), 1);
+                                    costMap[base].totalCost -= costMap[base].totalCost * ratio;
+                                    costMap[base].totalQty = newQty;
+                                }
                             }
 
                             const avgCost = costMap[base].totalQty > 0
@@ -34560,15 +34592,21 @@ const BinanceConnect = {
                 } catch(e) { console.warn('[Binance] Trade history hatası:', sym, e.message); }
             }
 
-            // _avgBuyPrice hesaplandı → portföydeki buy fiyatlarını güncelle
+            // _avgBuyPrice hesaplandı → portföydeki buy fiyatlarını HER ZAMAN güncelle
+            // (Gerçek ağırlıklı ortalama maliyet her açılışta doğru hesaplanır)
             let pfNow = JSON.parse(localStorage.getItem('myPF_final') || '[]');
             let pfChanged = false;
             pfNow.forEach(p => {
                 if (p.source !== 'BINANCE') return;
                 const base = (p.name||'').replace('USDT','').replace('BUSD','').toUpperCase();
-                if (this._avgBuyPrice[base] && (!p.buy || p.buy === 0 || p.buy === p.curr)) {
-                    p.buy = this._avgBuyPrice[base];
-                    pfChanged = true;
+                if (this._avgBuyPrice[base]) {
+                    // Manuel girilmiş ve trade history'den farklıysa trade history'yi kullan
+                    // (Kullanıcının gerçek ortalama maliyetini her zaman doğru göster)
+                    const newAvg = this._avgBuyPrice[base];
+                    if (Math.abs((p.buy || 0) - newAvg) > 0.0001) { // Anlamlı fark varsa güncelle
+                        p.buy = newAvg;
+                        pfChanged = true;
+                    }
                 }
             });
             if (pfChanged) {
