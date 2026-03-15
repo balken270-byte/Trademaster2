@@ -20173,7 +20173,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.0"; 
+    const CURRENT_VERSION = "1.3"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -40839,13 +40839,19 @@ var TVOrderManager = (function() {
             var sig = await crypto.subtle.sign('HMAC', cryptoKey, msgData);
             var signature = Array.from(new Uint8Array(sig)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
 
-            var url = (typeof BinanceConnect !== 'undefined' && BinanceConnect._apiBase) 
-                ? BinanceConnect._apiBase + '/api/v3/order?' + params + '&signature=' + signature
-                : 'https://api1.binance.com/api/v3/order?' + params + '&signature=' + signature;
+            // Her zaman Deno proxy üzerinden gönder (IP kısıtlaması + CORS için)
+            var workerUrl = (typeof BinanceConnect !== 'undefined' && BinanceConnect._WORKER_URL)
+                ? BinanceConnect._WORKER_URL
+                : 'https://small-lynx-34.balken270-byte.deno.net';
+            var url = workerUrl + '/binance/api/v3/order';
 
             var response = await fetch(url, {
                 method: 'POST',
-                headers: { 'X-MBX-APIKEY': cfg.apiKey }
+                headers: { 
+                    'X-MBX-APIKEY': cfg.apiKey,
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: params + '&signature=' + signature
             });
 
             var result = await response.json();
