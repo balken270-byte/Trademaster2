@@ -20185,7 +20185,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.0"; 
+    const CURRENT_VERSION = "1.4"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -33816,11 +33816,26 @@ const MultiPortfolio = {
         this.updateHeader();
         if (typeof loadPF === 'function') loadPF(false);
         addNotification('success', tw.emoji + ' ' + tw.name, 'Cüzdan değiştirildi');
-        // Binance cüzdanına geçildi → otomatik senkron
+        // Binance cüzdanına geçildi → otomatik senkron + para birimi USD yap
         if (targetID.startsWith('pf_bnc_') && typeof BinanceConnect !== 'undefined') {
             const bncCfg = localStorage.getItem('tm_binance_config');
             if (bncCfg) { setTimeout(() => { BinanceConnect.connect(); }, 600); }
             else { stopBinanceStream(); }
+            setTimeout(function() {
+                if (typeof setEntryCurrency === 'function') setEntryCurrency('USD');
+                if (typeof htTogglePanels === 'function') htTogglePanels();
+                var sellBtn = document.getElementById('sellCurrencyToggle');
+                if (sellBtn && sellBtn.classList.contains('active-try') && typeof toggleExitCurrency === 'function') toggleExitCurrency();
+            }, 400);
+        }
+        // Binance dışı cüzdana geçildi → TRY'ye döndür
+        if (!targetID.startsWith('pf_bnc_')) {
+            setTimeout(function() {
+                if (typeof setEntryCurrency === 'function') setEntryCurrency('TRY');
+                if (typeof htTogglePanels === 'function') htTogglePanels();
+                var sellBtn = document.getElementById('sellCurrencyToggle');
+                if (sellBtn && sellBtn.classList.contains('active-usd') && typeof toggleExitCurrency === 'function') toggleExitCurrency();
+            }, 400);
         }
     },
 
@@ -34523,129 +34538,94 @@ const BinanceConnect = {
         }
     },
 
-    // ── CoinGecko'dan Binance varlıkları için logo çek ──
-    // ── Binance işlem geçmişini çek ve TradeVia formatına dönüştür ──
+    // ── Binance'den anlık avgBuyPrice çek (güncel pozisyon maliyeti) ──
+    // ── Geçmiş işlemler hesaba katılmaz; sadece mevcut pozisyonun ortalama alış fiyatı kullanılır ──
     _fetchTradeHistory: async function() {
         if (!this._fetchedAssets || !this._fetchedAssets.length) return;
         const stables = ['USDT','BUSD','USDC','FDUSD','TUSD','DAI'];
-        const symbols = this._fetchedAssets
-            .filter(a => !stables.includes(a.asset) && a.total > 0)
-            .map(a => a.asset + 'USDT');
-        if (!symbols.length) return;
+        const nonStables = this._fetchedAssets.filter(a => !stables.includes(a.asset) && a.total > 0);
+        if (!nonStables.length) return;
 
         try {
-            let allTrades = [];
-            // Sembol başına FIFO ortalama maliyet hesabı için
-            const costMap = {}; // { SYM: { totalQty, totalCost } }
-
-            // Her sembol için işlem geçmişi çek (son 500)
-            for (const sym of symbols) {
-                try {
-                    const data = await this._apiRequest('GET', '/api/v3/myTrades', 'symbol=' + sym + '&limit=1000');
-                    if (Array.isArray(data)) {
-                        // Önce zamana göre sırala (eski → yeni)
-                        data.sort((a, b) => a.time - b.time);
-                        const base = sym.replace('USDT','').replace('BUSD','');
-                        if (!costMap[base]) costMap[base] = { totalQty: 0, totalCost: 0 };
-
-                        data.forEach(t => {
-                            const isBuy = t.isBuyer;
-                            const qty = parseFloat(t.qty);
-                            const price = parseFloat(t.price);
-                            const total = qty * price;
-                            const date = new Date(t.time).toLocaleDateString('tr-TR');
-
-                            // Ortalama maliyet hesapla (weighted average)
-                            if (isBuy) {
-                                costMap[base].totalQty += qty;
-                                costMap[base].totalCost += total;
-                            } else {
-                                // Satışta orantılı maliyet düş
-                                const newQty = Math.max(0, costMap[base].totalQty - qty);
-                                if (newQty < 0.000001) {
-                                    // Tüm varlık satıldı → tamamen sıfırla
-                                    // Sonraki alım temiz $0 maliyetle başlar
-                                    costMap[base].totalQty = 0;
-                                    costMap[base].totalCost = 0;
-                                } else {
-                                    const ratio = Math.min(qty / (costMap[base].totalQty || qty), 1);
-                                    costMap[base].totalCost -= costMap[base].totalCost * ratio;
-                                    costMap[base].totalQty = newQty;
-                                }
-                            }
-
-                            const avgCost = costMap[base].totalQty > 0
-                                ? costMap[base].totalCost / costMap[base].totalQty
-                                : price;
-
-                            allTrades.push({
-                                type: isBuy ? 'ALIM' : 'SATIŞ',
-                                symbol: base + 'USDT',
-                                name: base,
-                                amount: qty,
-                                price: price,
-                                total: total,
-                                currency: 'USD',
-                                origin: 'USD',
-                                date: date,
-                                timestamp: t.time,
-                                pnl: isBuy ? 0 : (price - avgCost) * qty,
-                                source: 'BINANCE',
-                                tradeId: t.id
-                            });
-                        });
-
-                        // Güncel ortalama maliyet kaydet
-                        if (costMap[base].totalQty > 0) {
-                            this._avgBuyPrice[base] = costMap[base].totalCost / costMap[base].totalQty;
-                        }
-                    }
-                } catch(e) { console.warn('[Binance] Trade history hatası:', sym, e.message); }
+            // ── 1. Binance /sapi/v1/asset/getUserAsset → avgBuyPrice içerir ──
+            let userAssets = [];
+            try {
+                const data = await this._apiRequest('POST', '/sapi/v1/asset/getUserAsset', '');
+                if (Array.isArray(data)) userAssets = data;
+            } catch(e) {
+                console.warn('[Binance] getUserAsset hatası (fallback yok):', e.message);
             }
 
-            // _avgBuyPrice hesaplandı → portföydeki buy fiyatlarını HER ZAMAN güncelle
-            // (Gerçek ağırlıklı ortalama maliyet her açılışta doğru hesaplanır)
+            // avgBuyPrice map oluştur: { 'MOVR': 1.311, ... }
+            userAssets.forEach(a => {
+                const avg = parseFloat(a.avgBuyPrice);
+                if (a.asset && avg > 0) {
+                    this._avgBuyPrice[a.asset] = avg; // USD cinsinden
+                }
+            });
+
+            // ── 2. Portföydeki Binance varlıklarının buy fiyatını güncelle ──
             let pfNow = JSON.parse(localStorage.getItem('myPF_final') || '[]');
             let pfChanged = false;
             pfNow.forEach(p => {
                 if (p.source !== 'BINANCE') return;
-                const base = (p.name||'').replace('USDT','').replace('BUSD','').toUpperCase();
-                if (this._avgBuyPrice[base]) {
-                    // Manuel girilmiş ve trade history'den farklıysa trade history'yi kullan
-                    // (Kullanıcının gerçek ortalama maliyetini her zaman doğru göster)
-                    const newAvg = this._avgBuyPrice[base];
-                    if (Math.abs((p.buy || 0) - newAvg) > 0.0001) { // Anlamlı fark varsa güncelle
-                        p.buy = newAvg;
-                        pfChanged = true;
-                    }
+                const base = (p.name || '').replace('USDT','').replace('BUSD','').toUpperCase().trim();
+                const newAvg = this._avgBuyPrice[base];
+                if (newAvg && newAvg > 0 && Math.abs((p.buy || 0) - newAvg) > 0.000001) {
+                    p.buy = newAvg;   // Her zaman USD — görüntüleme kur dönüşümü yapar
+                    pfChanged = true;
                 }
             });
             if (pfChanged) {
                 localStorage.setItem('myPF_final', JSON.stringify(pfNow));
                 if (typeof loadPF === 'function') loadPF(false);
-                console.log('[Binance] Ortalama maliyetler güncellendi:', Object.keys(this._avgBuyPrice));
+                console.log('[Binance] Anlık ortalama maliyetler güncellendi:', Object.keys(this._avgBuyPrice));
             }
 
-            if (!allTrades.length) return;
+            // ── 3. İşlem geçmişini sadece gösterim için çek (ortalamayı ETKİLEMEZ) ──
+            const symbols = nonStables.map(a => a.asset + 'USDT');
+            let allTrades = [];
+            for (const sym of symbols) {
+                try {
+                    const data = await this._apiRequest('GET', '/api/v3/myTrades', 'symbol=' + sym + '&limit=100');
+                    if (Array.isArray(data)) {
+                        const base = sym.replace('USDT','');
+                        // avgBuyPrice zaten yukarıdan geldi — burada sadece geçmişi logla
+                        const avgCost = this._avgBuyPrice[base] || 0;
+                        data.sort((a, b) => b.time - a.time); // yeniden eskiye
+                        data.forEach(t => {
+                            allTrades.push({
+                                type: t.isBuyer ? 'ALIM' : 'SATIŞ',
+                                symbol: base + 'USDT',
+                                name: base,
+                                amount: parseFloat(t.qty),
+                                price: parseFloat(t.price),
+                                total: parseFloat(t.qty) * parseFloat(t.price),
+                                currency: 'USD',
+                                origin: 'USD',
+                                date: new Date(t.time).toLocaleDateString('tr-TR'),
+                                timestamp: t.time,
+                                pnl: t.isBuyer ? 0 : (parseFloat(t.price) - avgCost) * parseFloat(t.qty),
+                                source: 'BINANCE',
+                                tradeId: t.id
+                            });
+                        });
+                    }
+                } catch(e) { console.warn('[Binance] Trade log hatası:', sym, e.message); }
+            }
 
-            // Zamana göre sırala
-            allTrades.sort((a, b) => b.timestamp - a.timestamp);
-
-            // Mevcut geçmişle birleştir (BINANCE kaynaklıları güncelle)
-            let existing = [];
-            try { existing = JSON.parse(localStorage.getItem('tm_full_trade_history') || '[]'); } catch(e) {}
-            existing = existing.filter(t => t.source !== 'BINANCE');
-            const merged = [...allTrades, ...existing];
-
-            localStorage.setItem('tm_full_trade_history', JSON.stringify(merged));
-
-            // MultiPortfolio'ya da kaydet
-            MultiPortfolio.syncCurrentToStorage();
-
-            if (typeof loadPF === 'function') loadPF(false);
-            console.log('[Binance] İşlem geçmişi: ' + allTrades.length + ' işlem yüklendi.');
+            if (allTrades.length) {
+                allTrades.sort((a, b) => b.timestamp - a.timestamp);
+                let existing = [];
+                try { existing = JSON.parse(localStorage.getItem('tm_full_trade_history') || '[]'); } catch(e) {}
+                existing = existing.filter(t => t.source !== 'BINANCE');
+                localStorage.setItem('tm_full_trade_history', JSON.stringify([...allTrades, ...existing]));
+                MultiPortfolio.syncCurrentToStorage();
+                if (typeof loadPF === 'function') loadPF(false);
+                console.log('[Binance] İşlem geçmişi loglandı:', allTrades.length + ' işlem');
+            }
         } catch(e) {
-            console.warn('[Binance] İşlem geçmişi çekme hatası:', e.message);
+            console.warn('[Binance] _fetchTradeHistory hatası:', e.message);
         }
     },
 
