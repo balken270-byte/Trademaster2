@@ -1,46 +1,333 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gizlilik Politikası - TradeVia</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <style>
-        body { background-color: #0b0f19; color: #cbd5e1; font-family: 'Inter', sans-serif; margin: 0; padding: 20px; line-height: 1.6; }
-        .container { max-width: 800px; margin: 0 auto; background: #151b2b; padding: 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); }
-        h1 { color: white; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; margin-bottom: 30px; }
-        h2 { color: #3b82f6; font-size: 18px; margin-top: 30px; }
-        p { font-size: 14px; margin-bottom: 15px; text-align: justify; }
-        .btn-back { display: inline-block; text-decoration: none; color: white; background: rgba(255,255,255,0.05); padding: 10px 20px; border-radius: 8px; margin-bottom: 20px; font-weight: 600; font-size: 12px; transition: 0.2s; }
-        .btn-back:hover { background: #3b82f6; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gizlilik Politikası — TradeVia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root {
+  --bg:#05090f;--bg2:#080d17;--surface:#0c1220;--border:rgba(255,255,255,0.05);
+  --border2:rgba(255,255,255,0.09);--gold:#C9A84C;--gold-lt:#f0c85a;
+  --blue:#3b82f6;--blue-lt:#60a5fa;--green:#10b981;--green-lt:#34d399;
+  --red:#ef4444;--red-lt:#fca5a5;--t0:#f1f5f9;--t1:#cbd5e1;--t2:#64748b;--t3:#334155;
+  --fw:'Syne',sans-serif;--fb:'Instrument Sans',sans-serif;--sidebar-w:260px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;font-size:16px;}
+body{font-family:var(--fb);background:var(--bg);color:var(--t2);line-height:1.75;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 800px 600px at 0% 0%,rgba(8,25,80,0.35) 0%,transparent 60%),radial-gradient(ellipse 600px 400px at 100% 100%,rgba(4,60,35,0.12) 0%,transparent 55%);pointer-events:none;z-index:0;}
+.topbar{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:56px;background:rgba(5,9,15,0.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
+.tb-brand{font-family:var(--fw);font-size:17px;font-weight:800;color:var(--t0);text-decoration:none;letter-spacing:-.2px;}
+.tb-brand em{font-style:normal;color:var(--gold);}
+.tb-back{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:500;color:var(--t3);text-decoration:none;letter-spacing:.5px;transition:color .15s;}
+.tb-back:hover{color:var(--t1);}
+.tb-meta{font-size:11px;color:var(--t3);letter-spacing:.5px;display:flex;gap:20px;align-items:center;}
+.layout{position:relative;z-index:1;display:flex;min-height:calc(100vh - 56px);}
+.sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:36px 0 40px;border-right:1px solid var(--border);scrollbar-width:none;}
+.sidebar::-webkit-scrollbar{display:none;}
+.sb-label{font-family:var(--fw);font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--t3);padding:0 24px;margin-bottom:10px;}
+.sb-item{display:flex;align-items:baseline;gap:10px;padding:9px 24px;text-decoration:none;color:var(--t3);font-size:12.5px;border-left:2px solid transparent;transition:all .15s;line-height:1.4;}
+.sb-item:hover{color:var(--t1);background:rgba(255,255,255,0.025);}
+.sb-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(201,168,76,0.04);}
+.sb-num{font-family:var(--fw);font-size:9px;font-weight:700;color:var(--t3);letter-spacing:1px;min-width:16px;}
+.sb-item.active .sb-num{color:var(--gold-lt);}
+.sb-divider{height:1px;background:var(--border);margin:16px 24px;}
+.content{flex:1;min-width:0;padding:56px 64px 100px 64px;max-width:720px;}
+.hero{margin-bottom:64px;padding-bottom:48px;border-bottom:1px solid var(--border);}
+.hero-eyebrow{font-family:var(--fw);font-size:9.5px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::before{content:'';width:20px;height:1px;background:var(--gold);opacity:.4;}
+.hero-h1{font-family:var(--fw);font-size:clamp(32px,5vw,48px);font-weight:800;color:var(--t0);line-height:1.05;letter-spacing:-1.5px;margin-bottom:22px;}
+.hero-h1 span{display:block;background:linear-gradient(110deg,var(--green-lt) 0%,var(--green) 55%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-lead{font-size:15px;color:var(--t2);max-width:520px;line-height:1.75;margin-bottom:28px;}
+.hero-pills{display:flex;flex-wrap:wrap;gap:8px;}
+.pill{font-size:11px;font-weight:500;color:var(--t3);border:1px solid var(--border);padding:5px 12px;border-radius:20px;letter-spacing:.3px;}
+.alert{margin-bottom:56px;padding:18px 22px;border:1px solid rgba(16,185,129,0.2);border-left:3px solid var(--green);border-radius:12px;background:rgba(16,185,129,0.04);}
+.alert-title{font-family:var(--fw);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--green-lt);margin-bottom:6px;}
+.alert p{font-size:13px;color:rgba(52,211,153,0.6);line-height:1.7;margin:0;}
+.sec{margin-bottom:60px;scroll-margin-top:24px;}
+.sec-hd{display:flex;align-items:baseline;gap:14px;margin-bottom:20px;}
+.sec-n{font-family:var(--fw);font-size:10px;font-weight:700;letter-spacing:2px;color:var(--t3);}
+.sec-title{font-family:var(--fw);font-size:17px;font-weight:700;color:var(--t0);letter-spacing:-.3px;line-height:1.3;}
+.sec-caption{font-size:11px;color:var(--t3);letter-spacing:.5px;margin-top:3px;font-style:italic;}
+.sec-body p{font-size:14px;color:var(--t2);margin-bottom:14px;line-height:1.85;}
+.sec-body p:last-child{margin-bottom:0;}
+.sec-body p strong{color:var(--t1);font-weight:600;}
+.sec-body a{color:var(--blue-lt);text-decoration:none;}
+.sec-body a:hover{text-decoration:underline;}
+.sec-body ul{list-style:none;margin:14px 0;display:flex;flex-direction:column;gap:6px;}
+.sec-body ul li{font-size:14px;color:var(--t2);line-height:1.75;padding-left:16px;position:relative;}
+.sec-body ul li::before{content:'—';position:absolute;left:0;color:var(--t3);font-size:12px;line-height:1.75;}
+.inline-warn{font-size:13.5px;color:var(--t2);padding-left:14px;border-left:2px solid var(--gold);margin:16px 0;line-height:1.75;}
+.inline-warn strong{color:var(--t0);}
+.inline-info{font-size:13.5px;color:var(--t2);padding-left:14px;border-left:2px solid var(--green);margin:16px 0;line-height:1.75;}
+.inline-info strong{color:var(--green-lt);}
+.inline-danger{font-size:13.5px;color:var(--t2);padding-left:14px;border-left:2px solid var(--red);margin:16px 0;line-height:1.75;}
+.inline-danger strong{color:var(--red-lt);}
+.ltable{width:100%;border-collapse:collapse;font-size:13.5px;margin:16px 0;}
+.ltable thead th{text-align:left;padding:8px 12px;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);border-bottom:1px solid var(--border);}
+.ltable tbody td{padding:11px 12px;border-bottom:1px solid rgba(255,255,255,0.025);color:var(--t2);vertical-align:top;line-height:1.6;}
+.ltable tbody tr:last-child td{border-bottom:none;}
+.ltable td:first-child{color:var(--t1);font-weight:500;font-family:var(--fw);font-size:12px;white-space:nowrap;}
+.sec-sep{height:1px;background:var(--border);margin:0 0 60px;}
+.content-footer{padding-top:40px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;}
+.cf-brand{font-family:var(--fw);font-size:17px;font-weight:800;color:var(--t0);}
+.cf-brand em{font-style:normal;color:var(--gold);}
+.cf-meta{font-size:12px;color:var(--t3);text-align:right;line-height:1.8;}
+.cf-meta a{color:var(--blue-lt);text-decoration:none;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.hero{animation:fadeIn .5s ease-out both;}
+.alert{animation:fadeIn .5s ease-out .1s both;}
+@media(max-width:900px){.sidebar{display:none;}.content{padding:36px 28px 80px;max-width:100%;}.topbar{padding:0 20px;}.tb-meta{display:none;}}
+@media(max-width:560px){.content{padding:28px 16px 80px;}.hero-h1{letter-spacing:-.8px;}}
+</style>
 </head>
 <body>
-    <div class="container">
-        <a href="index.html" class="btn-back">← Ana Sayfaya Dön</a>
-        
-        <h1>Gizlilik Politikası</h1>
-        
-        <p>Son Güncelleme: 10 Ocak 2026</p>
 
-        <p>TradeVia ("biz", "bize" veya "bizim"), kullanıcılarının gizliliğine büyük önem vermektedir. Bu Gizlilik Politikası, web uygulamamızı kullandığınızda bilgilerinizin nasıl toplandığını, kullanıldığını ve korunduğunu açıklar.</p>
+<div class="topbar">
+  <a href="index.html" class="tb-brand">TRADE<em>VIA</em></a>
+  <div class="tb-meta"><span>Mart 2026</span><span>·</span><span>v 3.0</span><span>·</span><span>GDPR Uyumlu</span></div>
+  <a href="index.html" class="tb-back"><i class="fas fa-arrow-left"></i> Uygulamaya Dön</a>
+</div>
 
-        <h2>1. Toplanan Bilgiler ve Veri Saklama</h2>
-        <p>TradeVia, "Serverless" (Sunucusuz) ve "Client-Side" (İstemci Taraflı) bir mimariye sahiptir. Bu, finansal verilerinizin, portföy bilgilerinizin ve işlem geçmişinizin bizim sunucularımızda <strong>saklanmadığı</strong> anlamına gelir.</p>
-        <p>Tüm kişisel verileriniz (Cüzdan bakiyesi, eklenen varlıklar vb.) tarayıcınızın <strong>LocalStorage</strong> (Yerel Depolama) alanında, sadece sizin cihazınızda saklanır. Tarayıcı önbelleğinizi temizlediğinizde bu veriler silinebilir.</p>
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sb-label">İçindekiler</div>
+    <a href="#s1"  class="sb-item active"><span class="sb-num">01</span> Genel Bakış</a>
+    <a href="#s2"  class="sb-item"><span class="sb-num">02</span> Toplanan Veriler</a>
+    <a href="#s3"  class="sb-item"><span class="sb-num">03</span> Verilerin Kullanımı</a>
+    <a href="#s4"  class="sb-item"><span class="sb-num">04</span> Veri Güvenliği</a>
+    <a href="#s5"  class="sb-item"><span class="sb-num">05</span> Borsa Entegrasyonu</a>
+    <a href="#s6"  class="sb-item"><span class="sb-num">06</span> Üçüncü Taraflar</a>
+    <a href="#s7"  class="sb-item"><span class="sb-num">07</span> Çerezler</a>
+    <a href="#s8"  class="sb-item"><span class="sb-num">08</span> Kullanıcı Hakları</a>
+    <a href="#s9"  class="sb-item"><span class="sb-num">09</span> Veri Saklama</a>
+    <a href="#s10" class="sb-item"><span class="sb-num">10</span> Çocukların Gizliliği</a>
+    <a href="#s11" class="sb-item"><span class="sb-num">11</span> Yasal Dayanak</a>
+    <a href="#s12" class="sb-item"><span class="sb-num">12</span> Değişiklikler</a>
+    <a href="#s13" class="sb-item"><span class="sb-num">13</span> İletişim</a>
+    <div class="sb-divider"></div>
+    <a href="kullanim-kosullari.html" class="sb-item"><span class="sb-num">↗</span> Kullanım Koşulları</a>
+  </nav>
 
-        <h2>2. Çerezler (Cookies) ve Google AdSense</h2>
-        <p>Web sitemiz, kullanıcı deneyimini geliştirmek ve reklam hizmetleri sunmak için çerezleri kullanır. Hizmetlerimizi finanse etmek için Google AdSense reklam ağını kullanmaktayız.</p>
-        <ul>
-            <li>Google dahil üçüncü taraf tedarikçiler, web sitemize veya diğer web sitelerine yaptığınız önceki ziyaretlere dayalı olarak reklam yayınlamak için çerezleri kullanır.</li>
-            <li>Google'ın reklam çerezlerini kullanması, kendisinin ve iş ortaklarının, sitemize ve/veya internetteki diğer sitelere yaptığınız ziyaretlere dayalı olarak size uygun reklamlar sunmasına olanak tanır.</li>
-        </ul>
+  <main class="content">
 
-        <h2>3. Üçüncü Taraf Bağlantılar ve API'ler</h2>
-        <p>Uygulamamız, piyasa verilerini sağlamak için CoinGecko, Yahoo Finance ve Binance gibi üçüncü taraf API servislerini kullanır. Bu servislerin kendi gizlilik politikaları geçerlidir ve TradeVia bu servislerin veri işleme süreçlerinden sorumlu değildir.</p>
-
-        <h2>4. İletişim</h2>
-        <p>Gizlilik politikamızla ilgili sorularınız için bizimle iletişime geçebilirsiniz.</p>
+    <div class="hero">
+      <div class="hero-eyebrow">Yasal Belgeler</div>
+      <h1 class="hero-h1">Gizlilik Politikası<span>Privacy Policy</span></h1>
+      <p class="hero-lead">Bu belge, TradeVia'nın kişisel verilerinizi nasıl topladığını, işlediğini ve koruduğunu açıklar. Uygulamayı kullanmaya devam etmekle bu politikayı okuduğunuzu ve kabul ettiğinizi beyan etmiş sayılırsınız.</p>
+      <div class="hero-pills">
+        <span class="pill">Mart 2026</span>
+        <span class="pill">GDPR Uyumlu</span>
+        <span class="pill">KVKK Uyumlu</span>
+        <span class="pill">v 3.0</span>
+      </div>
     </div>
+
+    <div class="alert">
+      <div class="alert-title">Verileriniz Satılmaz — Your Data Is Not For Sale</div>
+      <p>TradeVia, kullanıcı verilerini hiçbir koşulda üçüncü taraflara satmaz, kiralamaz veya reklam amacıyla kullanmaz.</p>
+    </div>
+
+    <div class="sec" id="s1">
+      <div class="sec-hd"><span class="sec-n">§ 01</span><div><div class="sec-title">Genel Bakış ve Kapsam</div><div class="sec-caption">Overview — Scope &amp; Identity</div></div></div>
+      <div class="sec-body">
+        <p>TradeVia; portföy takibi, piyasa verisi görselleştirme ve analiz araçları sunan bir kişisel finans yönetim uygulamasıdır. Bu Gizlilik Politikası, TradeVia'nın tüm platform ve kanalları için geçerlidir.</p>
+        <p>Bu politika, Avrupa Birliği Genel Veri Koruma Tüzüğü (<strong>GDPR — Regulation (EU) 2016/679</strong>) ve Türkiye Kişisel Verilerin Korunması Kanunu (<strong>KVKK — 6698 sayılı Kanun</strong>) ile diğer ilgili veri koruma mevzuatı çerçevesinde hazırlanmıştır. TradeVia bu belgede <strong>"Veri Sorumlusu"</strong> sıfatıyla hareket etmektedir.</p>
+      </div>
+    </div>
+    <div class="sec-sep"></div>
+
+    <div class="sec" id="s2">
+      <div class="sec-hd"><span class="sec-n">§ 02</span><div><div class="sec-title">Toplanan Veriler</div><div class="sec-caption">Data We Collect — Categories</div></div></div>
+      <div class="sec-body">
+        <p>TradeVia yalnızca hizmetin sunulması için zorunlu olan verileri toplar. Toplanan veriler üç kategoriye ayrılır:</p>
+        <p><strong>Kimlik ve Hesap Verileri</strong></p>
+        <p>Kimlik doğrulama amacıyla ad-soyad ve e-posta adresi işlenir. Bu veriler yalnızca hesap yönetimi için kullanılır; pazarlama veya profil oluşturma amacıyla kullanılmaz.</p>
+        <p><strong>Finansal ve Portföy Verileri</strong></p>
+        <p>Kullanıcı tarafından manuel olarak girilen varlık, işlem ve portföy bilgileri; isteğe bağlı olarak bağlanan borsa hesaplarından çekilen pozisyon verileri ile kullanıcı tanımlı alarm ve bildirim tercihleri bu kapsamdadır. Bu veriler öncelikli olarak kullanıcının kendi cihazında saklanır.</p>
+        <p><strong>Teknik Veriler</strong></p>
+        <p>Hizmetin kesintisiz ve güvenli çalışmasını sağlamak amacıyla sınırlı teknik veriler işlenebilir. Bu veriler yalnızca hizmet kalitesinin korunması amacıyla kullanılır; bireysel kullanıcı profili oluşturmak için kullanılmaz.</p>
+        <p>TradeVia şunları <strong>asla toplamaz:</strong> banka hesap numaraları, ödeme kartı bilgileri, kimlik belgesi bilgileri veya biyometrik veriler.</p>
+      </div>
+    </div>
+    <div class="sec-sep"></div>
+
+    <div class="sec" id="s3">
+      <div class="sec-hd"><span class="sec-n">§ 03</span><div><div class="sec-title">Verilerin Kullanım Amaçları</div><div class="sec-caption">Purpose of Processing</div></div></div>
+      <div class="sec-body">
+        <p>Toplanan veriler yalnızca aşağıdaki amaçlarla işlenir:</p>
+        <ul>
+          <li>Hizmetin sunulması ve kullanıcı hesabının yönetilmesi</li>
+          <li>Portföy takibi ve finansal analiz özelliklerinin çalıştırılması</li>
+          <li>Kullanıcı tercihlerinin ve ayarlarının hatırlanması</li>
+          <li>Güvenlik tehditlerinin tespiti ve önlenmesi</li>
+          <li>Yasal yükümlülüklerin yerine getirilmesi</li>
+        </ul>
+        <div class="inline-info"><strong>Kesin Kural:</strong> Verileriniz hiçbir koşulda reklam hedefleme, profil satışı veya üçüncü taraf pazarlaması amacıyla kullanılmaz.</div>
+      </div>
+    </div>
+    <div class="sec-sep"></div>
+
+    <div class="sec" id="s4">
+      <div class="sec-hd"><span class="sec-n">§ 04</span><div><div class="sec-title">Veri Güvenliği</div><div class="sec-caption">Security — Industry Standard Protection</div></div></div>
+      <div class="sec-body">
+        <p>TradeVia, kişisel verilerinizi yetkisiz erişime, ifşaya ve değiştirmeye karşı korumak için sektör standardı teknik ve organizasyonel güvenlik önlemleri uygulamaktadır. Tüm veri iletişimleri şifreleme protokolleriyle güvence altına alınmaktadır. Depolanan veriler endüstri standardı yöntemlerle korunur.</p>
+        <p>Kullanıcı verilerine erişim, hizmetin sunulması için zorunlu olan personelle kısıtlıdır. Kişisel veri ihlali tespit edilmesi durumunda GDPR'ın öngördüğü yasal bildirim yükümlülükleri yerine getirilir.</p>
+        <div class="inline-warn"><strong>Kullanıcı Sorumluluğu:</strong> Hesap güvenliğiniz kısmen kimlik doğrulama için kullandığınız harici servislerin güvenliğine bağlıdır. Güçlü parola ve iki faktörlü doğrulama kullanmanızı tavsiye ederiz.</div>
+      </div>
+    </div>
+    <div class="sec-sep"></div>
+
+    <div class="sec" id="s5">
+      <div class="sec-hd"><span class="sec-n">§ 05</span><div><div class="sec-title">Borsa Entegrasyonu</div><div class="sec-caption">Exchange Integration — User Responsibility</div></div></div>
+      <div class="sec-body">
+        <p>Kullanıcılar, desteklenen borsalardaki hesaplarını isteğe bağlı olarak uygulamaya bağlayabilir. Bu entegrasyon yalnızca portföy görüntüleme ve takip işlevleri için kullanılır. TradeVia hiçbir koşulda kullanıcı adına işlem gerçekleştirmez.</p>
+        <div class="inline-danger"><strong>Güvenlik Zorunluluğu:</strong> Borsa entegrasyonu için oluşturulan erişim izinleri yalnızca okuma yetkisiyle kısıtlanmalıdır. Para çekme veya transfer yetkisi kesinlikle tanımlanmamalıdır. Bu kurala uyulmamasından doğacak mali kayıplardan TradeVia sorumlu tutulamaz.</div>
+        <p>Entegrasyon kapsamında sağlanan erişim bilgileri güvenli biçimde saklanır ve üçüncü taraflara iletilmez. Entegrasyonu dilediğiniz zaman uygulama ayarlarından iptal edebilirsiniz.</p>
+      </div>
+    </div>
+    <div class="sec-sep"></div>
+
+    <div class="sec" id="s6">
+      <div class="sec-hd"><span class="sec-n">§ 06</span><div><div class="sec-title">Üçüncü Taraf Hizmetler</div><div class="sec-caption">Third-Party Services — Data Processors</div></div></div>
+      <div class="sec-body">
+        <p>TradeVia, hizmetin sunulması için sınırlı sayıda güvenilir üçüncü taraf hizmet sağlayıcısından yararlanmaktadır. Bu sağlayıcılar yalnızca TradeVia adına ve belirlenmiş amaçlar doğrultusunda veri işler; kendi bağımsız amaçları için kullanamaz ve GDPR uyumlu veri işleme sözleşmeleri kapsamında çalışmaktadır.</p>
+        <p>Kullanılan üçüncü taraf kategorileri: kimlik doğrulama altyapısı, isteğe bağlı bulut depolama ve senkronizasyon, piyasa veri sağlayıcıları ve içerik dağıtım ağları.</p>
+        <div class="inline-warn"><strong>Piyasa Verileri:</strong> Uygulama içindeki fiyat ve piyasa verileri bağımsız üçüncü taraf kaynaklardan alınmaktadır. Bu kaynaklara yapılan sorgular anonimdir ve kullanıcıyı tanımlayan bilgi içermez.</div>
+        <p>Verileriniz hiçbir koşulda reklam ağlarına, veri aracılarına veya pazarlama şirketlerine aktarılmaz. Yasal zorunluluk veya açık onayınız olmaksızın kişisel veriler üçüncü taraflarla paylaşılmaz.</p>
+      </div>
+    </div>
+    <div class="sec-sep"></div>
+
+    <div class="sec" id="s7">
+      <div class="sec-hd"><span class="sec-n">§ 07</span><div><div class="sec-title">Çerezler</div><div class="sec-caption">Cookies &amp; Tracking Technologies</div></div></div>
+      <div class="sec-body">
+        <p>TradeVia çerezleri yalnızca hizmetin işlevselliğini sağlamak ve kullanıcı tercihlerini hatırlamak amacıyla kullanır.</p>
+        <ul>
+          <li><strong>Zorunlu çerezler:</strong> Oturum yönetimi ve güvenlik doğrulaması için kullanılır. Devre dışı bırakılamaz.</li>
+          <li><strong>Tercih çerezleri:</strong> Dil, tema ve görüntüleme ayarlarınızı saklar.</li>
+          <li><strong>Analitik veriler:</strong> Yalnızca anonim ve toplu kullanım istatistikleri; bireysel kullanıcı takibi yapılmaz.</li>
+        </ul>
+        <p>TradeVia reklam çerezleri kullanmaz ve reklam ağlarıyla çerez verisi paylaşmaz. Çerezleri tarayıcı ayarlarınızdan yönetebilirsiniz.</p>
+      </div>
+    </div>
+    <div class="sec-sep"></div>
+
+    <div class="sec" id="s8">
+      <div class="sec-hd"><span class="sec-n">§ 08</span><div><div class="sec-title">Kullanıcı Hakları</div><div class="sec-caption">Your Rights — GDPR &amp; KVKK</div></div></div>
+      <div class="sec-body">
+        <p>GDPR ve KVKK kapsamında kişisel verileriniz üzerinde aşağıdaki haklara sahipsiniz:</p>
+        <table class="ltable">
+          <thead><tr><th>Hak</th><th>Açıklama</th></tr></thead>
+          <tbody>
+            <tr><td>Erişim</td><td>Hakkınızda işlenen verilerin neler olduğunu öğrenme hakkı.</td></tr>
+            <tr><td>Düzeltme</td><td>Hatalı veya eksik verilerin güncellenmesini talep etme hakkı.</td></tr>
+            <tr><td>Silme</td><td>Kişisel verilerinizin kalıcı olarak silinmesini talep etme hakkı.</td></tr>
+            <tr><td>Kısıtlama</td><td>Belirli koşullarda veri işlemenin durdurulmasını talep etme hakkı.</td></tr>
+            <tr><td>Taşınabilirlik</td><td>Verilerinizi yapılandırılmış ve okunabilir formatta alma hakkı.</td></tr>
+            <tr><td>İtiraz</td><td>Meşru menfaat gerekçesiyle yürütülen işlemlere itiraz etme hakkı.</td></tr>
+            <tr><td>Şikayet</td><td>KVKK veya ilgili AB denetim makamına başvurma hakkı.</td></tr>
+          </tbody>
+        </table>
+        <p>Haklarınızı kullanmak için <strong>privacy@tradevia.app</strong> adresine yazabilirsiniz. Tüm başvurular en geç 30 takvim günü içinde yanıtlanır.</p>
+      </div>
+    </div>
+    <div class="sec-sep"></div>
+
+    <div class="sec" id="s9">
+      <div class="sec-hd"><span class="sec-n">§ 09</span><div><div class="sec-title">Veri Saklama Süresi</div><div class="sec-caption">Retention Policy — Data Minimization</div></div></div>
+      <div class="sec-body">
+        <p>TradeVia, kişisel verileri yalnızca işlenme amacının gerektirdiği süre boyunca saklar. Hesabınızı sildiğinizde kişisel verileriniz sistemlerimizden kalıcı olarak kaldırılır.</p>
+        <p>Yasal yükümlülükler gereği belirli kayıtların daha uzun süre saklanması gerekebilir. Bu durumda yalnızca ilgili yasal zorunluluk kapsamındaki minimum veri tutulur.</p>
+        <div class="inline-info"><strong>Veri Minimizasyonu:</strong> TradeVia, hizmetin işlevselliği için zorunlu olmayan verileri toplamaz ve saklamaz.</div>
+      </div>
+    </div>
+    <div class="sec-sep"></div>
+
+    <div class="sec" id="s10">
+      <div class="sec-hd"><span class="sec-n">§ 10</span><div><div class="sec-title">Çocukların Gizliliği</div><div class="sec-caption">Children's Privacy — Under 18</div></div></div>
+      <div class="sec-body">
+        <p>TradeVia yalnızca <strong>18 yaş ve üzeri</strong> kullanıcılara yönelik tasarlanmıştır. Reşit olmayan bireylerden bilerek kişisel veri toplanmaz. 18 yaşın altındaki bir kullanıcının kayıt olduğu tespit edilirse ilgili hesap ve veriler derhal silinir.</p>
+        <p>Bir reşit olmayan kişinin verilerinin işlendiğinden şüpheleniyorsanız <strong>privacy@tradevia.app</strong> adresinden bize ulaşınız.</p>
+      </div>
+    </div>
+    <div class="sec-sep"></div>
+
+    <div class="sec" id="s11">
+      <div class="sec-hd"><span class="sec-n">§ 11</span><div><div class="sec-title">Yasal Dayanak</div><div class="sec-caption">Legal Basis — GDPR Article 6</div></div></div>
+      <div class="sec-body">
+        <p>Kişisel verileriniz GDPR Madde 6 kapsamında aşağıdaki hukuki gerekçelere dayanılarak işlenmektedir:</p>
+        <table class="ltable">
+          <thead><tr><th>İşleme Faaliyeti</th><th>Hukuki Dayanak</th></tr></thead>
+          <tbody>
+            <tr><td>Hesap oluşturma ve kimlik doğrulama</td><td>Sözleşmenin ifası (GDPR Md. 6/1-b)</td></tr>
+            <tr><td>Hizmetin sunulması ve sürdürülmesi</td><td>Sözleşmenin ifası (GDPR Md. 6/1-b)</td></tr>
+            <tr><td>İsteğe bağlı senkronizasyon özellikleri</td><td>Açık rıza (GDPR Md. 6/1-a)</td></tr>
+            <tr><td>Güvenlik ve hizmet bütünlüğü</td><td>Meşru menfaat (GDPR Md. 6/1-f)</td></tr>
+            <tr><td>Bildirimler ve opsiyonel özellikler</td><td>Açık rıza (GDPR Md. 6/1-a)</td></tr>
+            <tr><td>Yasal yükümlülüklerin yerine getirilmesi</td><td>Yasal zorunluluk (GDPR Md. 6/1-c)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="sec-sep"></div>
+
+    <div class="sec" id="s12">
+      <div class="sec-hd"><span class="sec-n">§ 12</span><div><div class="sec-title">Politika Değişiklikleri</div><div class="sec-caption">Policy Updates — Version Control</div></div></div>
+      <div class="sec-body">
+        <p>Bu politika zaman zaman güncellenebilir. Kullanıcı haklarını etkileyen önemli değişiklikler yürürlüğe girmeden önce duyurulur. Değişikliklerin ardından uygulamayı kullanmaya devam etmek, güncellenmiş politikanın kabul edildiği anlamına gelir.</p>
+        <p>Politikayı kabul etmiyorsanız hesabınızı dilediğiniz zaman silebilirsiniz. Güncel versiyon: <strong>v 3.0 — Mart 2026</strong></p>
+      </div>
+    </div>
+    <div class="sec-sep"></div>
+
+    <div class="sec" id="s13">
+      <div class="sec-hd"><span class="sec-n">§ 13</span><div><div class="sec-title">İletişim</div><div class="sec-caption">Contact — Data Protection</div></div></div>
+      <div class="sec-body">
+        <p>Gizlilik politikamıza ilişkin soru, talep veya şikayetleriniz için:</p>
+        <table class="ltable">
+          <thead><tr><th>Konu</th><th>İletişim</th></tr></thead>
+          <tbody>
+            <tr><td>Genel Sorular</td><td>support@tradevia.app</td></tr>
+            <tr><td>Veri Hakları Talepleri</td><td>privacy@tradevia.app</td></tr>
+            <tr><td>Güvenlik Bildirimleri</td><td>security@tradevia.app</td></tr>
+            <tr><td>Yanıt Süresi</td><td>En fazla 30 takvim günü</td></tr>
+          </tbody>
+        </table>
+        <p>Türkiye'deki kullanıcılar KVKK kapsamındaki başvurularını <a href="https://www.kvkk.gov.tr" target="_blank" rel="noopener">Kişisel Verileri Koruma Kurumu</a>'na iletebilir. AB/AEA kullanıcıları bulundukları ülkenin yetkili veri koruma otoritesine başvurma hakkına sahiptir.</p>
+      </div>
+    </div>
+
+    <div class="content-footer">
+      <div>
+        <div class="cf-brand">TRADE<em>VIA</em></div>
+        <div style="font-size:11.5px;color:var(--t3);margin-top:3px;">Advanced Financial Terminal</div>
+      </div>
+      <div class="cf-meta">
+        <div>© 2026 TradeVia · Tüm hakları saklıdır</div>
+        <div><a href="kullanim-kosullari.html">Kullanım Koşulları</a> · <a href="index.html">Ana Sayfa</a></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const items = document.querySelectorAll('.sb-item[href^="#"]');
+const secs  = document.querySelectorAll('.sec[id]');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      items.forEach(i => i.classList.remove('active'));
+      const a = document.querySelector('.sb-item[href="#' + e.target.id + '"]');
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+secs.forEach(s => obs.observe(s));
+</script>
 </body>
 </html>
