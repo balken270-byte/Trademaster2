@@ -645,13 +645,23 @@ if (document.readyState === 'loading') {
     LangSystem.init();
 }
 
-async function changeLanguage(val) {
-    LangSystem.set(val);
-    if (typeof fetchUsdRate === 'function') await fetchUsdRate();
-    if (typeof loadPF === 'function') loadPF(true);
-    if (typeof renderHistory === 'function') renderHistory();
-}
 window.LangSystem = LangSystem;
+
+// changeLanguage: index.html'de zaten tanımlı ve para birimi + loadPF mantığını içeriyor.
+// lang.js sadece LangSystem.set() çağrısını ekler, geri kalanını index.html halleder.
+// Eğer index.html'deki _tvChangeLanguage varsa onu kullan, yoksa buradaki fallback çalışır.
+async function changeLanguage(val) {
+    if (typeof window._tvChangeLanguage === 'function') {
+        // index.html'deki tam versiyon — para birimi + kur + loadPF hepsi orada
+        await window._tvChangeLanguage(val);
+    } else {
+        // Fallback: sadece LangSystem
+        LangSystem.set(val);
+        if (typeof fetchUsdRate === 'function') await fetchUsdRate();
+        if (typeof loadPF === 'function') loadPF(true);
+        if (typeof renderHistory === 'function') renderHistory();
+    }
+}
 window.changeLanguage = changeLanguage;
 
 /* index.html'den çağrılır — mesaj DOM'a eklenince hemen çevir */

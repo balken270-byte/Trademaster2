@@ -20185,7 +20185,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.0"; 
+    const CURRENT_VERSION = "1.4"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -21734,7 +21734,7 @@ function renderPortfolioHTML(as) {
         <div id="asset-content-${a.originalIndex}" class="collapsible-content collapsed">
             <div class="asset-body-content">
                 <div class="asset-details-grid">
-                    <div class="detail-item"><span class="detail-label">Ortalama</span><span class="detail-val">${(()=>{
+                    <div class="detail-item"><span class="detail-label">Ortalama</span><span class="detail-val" id="live_avg_${a.originalIndex}">${(()=>{
                         let buyDisplay = a.buy;
                         let isUsdAsset = (a.origin === 'USD' || a.origin === 'USDT' || a.source === 'BINANCE' || a.category === 'kripto');
                         let buySymbol = isUsdAsset ? '$' : '₺';
@@ -21743,7 +21743,7 @@ function renderPortfolioHTML(as) {
                         return _fmtP(buyDisplay) + ' ' + buySymbol;
                     })()}</span></div>
                     <div class="detail-item" style="text-align:right;"><span class="detail-label">Güncel</span><span class="detail-val accent">${priceUnit}</span></div>
-                    <div class="detail-item"><span class="detail-label">Maliyet</span><span class="detail-val">${sym}${_fmtV(a.dCost)}</span></div>
+                    <div class="detail-item"><span class="detail-label">Maliyet</span><span class="detail-val" id="live_cost_${a.originalIndex}">${sym}${_fmtV(a.dCost)}</span></div>
                     <div class="detail-item" style="text-align:right;"><span class="detail-label">Toplam Değer</span><span class="detail-val" id="live_total_val_${a.originalIndex}">${sym}${_fmtV(a.dVal)}</span></div>
                 </div>
                 ${a.note ? `<div class="asset-note"><i class="fas fa-sticky-note"></i> ${a.note}</div>` : ''}
@@ -21778,12 +21778,18 @@ if (_renderKey === _prevKey && _prevSort === currentSortMode && l.children.lengt
     // Sadece değerleri güncelle (DOM yeniden yazılmaz)
     let uCurrFast = appSettings.currency;
     let symFast = uCurrFast === 'TRY' ? '₺' : '$';
+    const _fmtFast = (v) => { if(v===0||Object.is(v,-0)) return '0'; let av=Math.abs(v); return av<0.01?v.toFixed(4):av<1?v.toFixed(2):av<10?v.toFixed(1):v.toFixed(0); };
+    const _fmtPFast = (v) => { if(!v||v<=0) return '—'; let av=Math.abs(v); return av<0.0001?v.toFixed(8):av<0.01?v.toFixed(6):av<1?v.toFixed(4):av<10?v.toFixed(3):av<1000?v.toFixed(2):v.toLocaleString('tr-TR',{maximumFractionDigits:2}); };
     displayAssets.forEach((a) => {
         let pnlEl = document.getElementById('live_pnl_val_' + a.originalIndex);
         let pctEl = document.getElementById('live_pct_' + a.originalIndex);
         let priceEl = document.getElementById('live_price_' + a.originalIndex);
         let totalEl = document.getElementById('live_total_val_' + a.originalIndex);
         let badgeEl = document.getElementById('live_pnl_badge_' + a.originalIndex);
+        // AVERAGE ve COST elementleri
+        let avgEl = document.getElementById('live_avg_' + a.originalIndex);
+        let costEl = document.getElementById('live_cost_' + a.originalIndex);
+
         if (pnlEl) { let v=a.pnl; let av=Math.abs(v); pnlEl.textContent = (v===0||Object.is(v,-0))?'0':av<0.01?v.toFixed(4):av<1?v.toFixed(2):av<10?v.toFixed(1):v.toFixed(0); }
         if (pctEl) pctEl.textContent = '(%' + a.pnlPercent.toFixed(1) + ')';
         if (priceEl) {
@@ -21794,8 +21800,18 @@ if (_renderKey === _prevKey && _prevSort === currentSortMode && l.children.lengt
             let av=Math.abs(rpDisp); let fp=av<=0?'—':av<0.0001?rpDisp.toFixed(8):av<0.01?rpDisp.toFixed(6):av<1?rpDisp.toFixed(4):av<10?rpDisp.toFixed(3):av<1000?rpDisp.toFixed(2):rpDisp.toLocaleString('tr-TR',{maximumFractionDigits:2});
             priceEl.textContent = rpSym + fp;
         }
-        if (totalEl) { let v=a.dVal; let av=Math.abs(v); totalEl.textContent = symFast + ((v===0||Object.is(v,-0))?'0':av<0.01?v.toFixed(4):av<1?v.toFixed(2):av<10?v.toFixed(1):v.toFixed(0)); }
+        if (totalEl) { totalEl.textContent = symFast + _fmtFast(a.dVal); }
         if (badgeEl) { badgeEl.className = 'asset-pnl ' + (a.pnl >= 0 ? 'pnl-up' : 'pnl-down'); }
+        // AVERAGE güncelle
+        if (avgEl) {
+            let isUsdAsset = (a.origin === 'USD' || a.origin === 'USDT' || a.source === 'BINANCE' || a.category === 'kripto');
+            let buyDisplay = a.buy; let buySymbol = isUsdAsset ? '$' : '₺';
+            if (uCurrFast === 'TRY' && isUsdAsset) { buyDisplay = a.buy * usdTryRate; buySymbol = '₺'; }
+            else if (uCurrFast === 'USD' && !isUsdAsset) { buyDisplay = a.buy / usdTryRate; buySymbol = '$'; }
+            avgEl.textContent = _fmtPFast(buyDisplay) + ' ' + buySymbol;
+        }
+        // COST güncelle
+        if (costEl) { costEl.textContent = symFast + _fmtFast(a.dCost); }
     });
 } else {
     // Yapı değişti: tam render
@@ -25400,12 +25416,10 @@ try {
         if (typeof LANG_CONFIG !== 'undefined' && LANG_CONFIG[val]) {
             const newCurrency = LANG_CONFIG[val].currency;
             if (newCurrency && newCurrency !== appSettings.currency) {
-                // Para birimi değişiyor — kasa bakiyesini dönüştür
                 if (newCurrency === 'USD') cashBalance = cashBalance / usdTryRate;
                 else cashBalance = cashBalance * usdTryRate;
                 localStorage.setItem('tm_cash_balance', cashBalance);
                 appSettings.currency = newCurrency;
-                // Para birimi seçicisini güncelle
                 var currSel = document.getElementById('currSelect');
                 if (currSel) { currSel.value = newCurrency; }
                 var currLabels = {TRY:'TRY (₺)', USD:'USD ($)'};
@@ -25414,12 +25428,27 @@ try {
             }
         }
         localStorage.setItem('tm_settings', JSON.stringify(appSettings));
+        // LangSystem canlı çeviri / geri al
+        if (typeof LangSystem !== 'undefined') {
+            LangSystem.currentLang = val;
+            if (val === 'en') {
+                LangSystem.startTranslation();
+            } else {
+                LangSystem._restoreOriginal();
+                if (LangSystem.observer) { LangSystem.observer.disconnect(); LangSystem.observer = null; }
+            }
+        }
         applyLang();
+        // Para birimi değişince fast-path'i bypass et — tam render zorunlu
+        var pfList = document.getElementById('pfList');
+        if (pfList) pfList.setAttribute('data-render-key', '');
         // Kuru güncelle, sonra portföyü yenile
         await fetchUsdRate();
-        if (typeof loadPF === 'function') loadPF(true);
+        loadPF(true);
         if (typeof renderHistory === 'function') renderHistory();
     }
+    // lang.js'nin override etmemesi için window'a da kaydet
+    window._tvChangeLanguage = changeLanguage;
     function applyLang(){ const t = trans[appSettings.lang]; document.querySelectorAll('[data-lang]').forEach(e => { const key = e.getAttribute('data-lang'); if(t[key]) e.innerText = t[key]; }); }
     function setEntryCurrency(curr) { entryCurrency = curr; let btn = document.getElementById('currencyToggle'); if(btn) { if(curr === 'TRY') { btn.innerText = '₺'; btn.className = 'currency-toggle-btn active-try'; } else { btn.innerText = '$'; btn.className = 'currency-toggle-btn active-usd'; } } calcDca(); calcLiveTotal(); }
     function toggleEntryCurrency() { entryCurrency === 'TRY' ? setEntryCurrency('USD') : setEntryCurrency('TRY'); }
