@@ -149,6 +149,29 @@ var LangSystem = {
         this.currentLang = lang;
         var settings = JSON.parse(localStorage.getItem('tm_settings') || '{}');
         settings.lang = lang;
+
+        // ── Para birimi otomatik değişimi ──
+        var LANG_CURRENCY = { 'tr': 'TRY', 'en': 'USD' };
+        var newCurrency = LANG_CURRENCY[lang] || 'TRY';
+        var oldCurrency = settings.currency || 'TRY';
+        if (newCurrency !== oldCurrency) {
+            settings.currency = newCurrency;
+            // Kasa bakiyesini dönüştür
+            var usdRate = (typeof usdTryRate !== 'undefined' && usdTryRate > 10) ? usdTryRate : 44.2;
+            var cash = parseFloat(localStorage.getItem('tm_cash_balance') || '0');
+            if (newCurrency === 'USD') cash = cash / usdRate;
+            else cash = cash * usdRate;
+            localStorage.setItem('tm_cash_balance', cash);
+            // Para birimi seçiciyi güncelle
+            var currSel = document.getElementById('currSelect');
+            if (currSel) currSel.value = newCurrency;
+            var currLabels = { TRY: 'TRY (₺)', USD: 'USD ($)' };
+            var clEl = document.getElementById('currSelectLabel');
+            if (clEl) clEl.textContent = currLabels[newCurrency] || 'TRY (₺)';
+            // appSettings global varsa güncelle
+            if (typeof appSettings !== 'undefined') appSettings.currency = newCurrency;
+        }
+
         localStorage.setItem('tm_settings', JSON.stringify(settings));
         if (prevLang === lang) return;
 
@@ -558,7 +581,13 @@ if (document.readyState === 'loading') {
     LangSystem.init();
 }
 
-function changeLanguage(val) { LangSystem.set(val); }
+async function changeLanguage(val) {
+    LangSystem.set(val);
+    // Kuru güncelle, sonra portföyü yenile
+    if (typeof fetchUsdRate === 'function') await fetchUsdRate();
+    if (typeof loadPF === 'function') loadPF(true);
+    if (typeof renderHistory === 'function') renderHistory();
+}
 window.LangSystem = LangSystem;
 
 /* index.html'den çağrılır — mesaj DOM'a eklenince hemen çevir */
