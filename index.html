@@ -20185,7 +20185,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.6"; 
+    const CURRENT_VERSION = "1.7"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -33731,9 +33731,19 @@ const MultiPortfolio = {
         const defs = [['💼','#6366f1'],['📈','#3b82f6'],['🏦','#10b981'],['🚀','#f59e0b']];
         let idx = 0;
         Object.keys(db.list).forEach(k => {
-            if (!db.list[k].emoji)   { db.list[k].emoji   = defs[idx % defs.length][0]; changed = true; }
-            if (!db.list[k].color)   { db.list[k].color   = defs[idx % defs.length][1]; changed = true; }
-            if (!db.list[k].history) { db.list[k].history = []; changed = true; }
+            if (!db.list[k].emoji)        { db.list[k].emoji        = defs[idx % defs.length][0]; changed = true; }
+            if (!db.list[k].color)        { db.list[k].color        = defs[idx % defs.length][1]; changed = true; }
+            if (!db.list[k].history)      { db.list[k].history      = []; changed = true; }
+            // BUG FIX: data/cash/tradeHistory alanları tanımsızsa güvenli varsayılan ata
+            if (db.list[k].data === undefined || db.list[k].data === null || db.list[k].data === 'undefined') {
+                db.list[k].data = (k === db.activeID) ? (localStorage.getItem('myPF_final') || '[]') : '[]';
+                changed = true;
+            }
+            if (db.list[k].cash === undefined || db.list[k].cash === null || db.list[k].cash === 'undefined') {
+                db.list[k].cash = (k === db.activeID) ? (localStorage.getItem('tm_cash_balance') || '0') : '0';
+                changed = true;
+            }
+            if (!db.list[k].tradeHistory) { db.list[k].tradeHistory = '[]'; changed = true; }
             idx++;
         });
         if (changed) localStorage.setItem('tm_all_portfolios', JSON.stringify(db));
@@ -33958,25 +33968,28 @@ const MultiPortfolio = {
         let db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
         if (targetID === db.activeID) { this.close(); return; }
         const prevID = db.activeID;
-        let currentPF   = localStorage.getItem('myPF_final') || '[]';
-        let currentCash = localStorage.getItem('tm_cash_balance') || '0';
-        let currentHist = localStorage.getItem('tm_full_trade_history') || '[]';
-        // Binance cüzdanından çıkıyorsak ana verileri üzerine yazma —
-        // sadece Binance olmayan cüzdanlarda mevcut state'i kaydet
-        if (!prevID.startsWith('pf_bnc_')) {
-            db.list[prevID].data = currentPF;
-            db.list[prevID].cash = currentCash;
-            db.list[prevID].tradeHistory = currentHist;
-        }
+
+        // BUG FIX 1: Geçmeden önce mevcut cüzdan verisini kaydet (syncCurrentToStorage ile)
+        this.syncCurrentToStorage();
+        // Kayıt sonrası db'yi tekrar oku (syncCurrentToStorage güncellemiş olabilir)
+        db = JSON.parse(localStorage.getItem('tm_all_portfolios'));
+
         db.activeID = targetID;
         localStorage.setItem('tm_all_portfolios', JSON.stringify(db));
+
         let tw = db.list[targetID];
-        localStorage.setItem('myPF_final', tw.data);
-        localStorage.setItem('tm_cash_balance', tw.cash);
-        localStorage.setItem('tm_full_trade_history', tw.tradeHistory || '[]');
-        cashBalance = parseFloat(tw.cash) || 0;
+
+        // BUG FIX 2: tw.data undefined/null olabilir — güvenli fallback kullan
+        var twData  = (tw.data  && tw.data  !== 'undefined') ? tw.data  : '[]';
+        var twCash  = (tw.cash  && tw.cash  !== 'undefined') ? tw.cash  : '0';
+        var twHist  = (tw.tradeHistory && tw.tradeHistory !== 'undefined') ? tw.tradeHistory : '[]';
+
+        localStorage.setItem('myPF_final', twData);
+        localStorage.setItem('tm_cash_balance', twCash);
+        localStorage.setItem('tm_full_trade_history', twHist);
+        cashBalance = parseFloat(twCash) || 0;
         if (typeof tradeHistory !== 'undefined') {
-            try { tradeHistory = JSON.parse(tw.tradeHistory || '[]'); } catch(e) { tradeHistory = []; }
+            try { tradeHistory = JSON.parse(twHist); } catch(e) { tradeHistory = []; }
         }
         // Önceki cüzdan Binance'ti, yenisi değil → stream'i durdur
         if (prevID.startsWith('pf_bnc_') && !targetID.startsWith('pf_bnc_')) {
@@ -33984,7 +33997,8 @@ const MultiPortfolio = {
         }
         this.close();
         this.updateHeader();
-        if (typeof loadPF === 'function') loadPF(false);
+        // BUG FIX 3: loadPF(true) ile fiyatları da yenile — (false) eski/boş data gösterebilir
+        if (typeof loadPF === 'function') loadPF(true);
         addNotification('success', tw.emoji + ' ' + tw.name, 'Cüzdan değiştirildi');
         // Binance cüzdanına geçildi → otomatik senkron + para birimi USD yap
         if (targetID.startsWith('pf_bnc_') && typeof BinanceConnect !== 'undefined') {
