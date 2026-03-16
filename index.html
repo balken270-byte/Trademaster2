@@ -20185,7 +20185,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* --- GÜVENLİ VERSİYON KONTROL SİSTEMİ (VERİ SİLMEZ) --- */
 (function() {
     // BURAYI HER GÜNCELLEMEDE 1 ARTTIR (Örn: "2.5", "2.6"...)
-    const CURRENT_VERSION = "1.7"; 
+    const CURRENT_VERSION = "1.6"; 
 
     const savedVersion = localStorage.getItem('TradeVia_Version');
 
@@ -21771,7 +21771,7 @@ function renderPortfolioHTML(as) {
             <div class="asset-left">
                 ${logoHtml}
                 <div>
-                    <span class="asset-name">${displayName(a)}${sourceBadge}</span>
+                    <span class="asset-name notranslate">${displayName(a)}${sourceBadge}</span>
                     <div class="asset-meta">${a.amt} Adet</div>
                 </div>
             </div>
@@ -45850,6 +45850,16 @@ var LangSystem = {
             el.setAttribute('placeholder', el.getAttribute('data-original-placeholder'));
             el.removeAttribute('data-original-placeholder');
         });
+        // Türkçeye dönünce varlık listesini yeniden render et
+        // (çeviri sistemi bazı varlık sembollerini/adlarını değiştirmiş olabilir)
+        setTimeout(function() {
+            try {
+                var as = JSON.parse(localStorage.getItem('myPF_final') || '[]');
+                if (as.length > 0 && typeof renderPortfolioHTML === 'function') {
+                    renderPortfolioHTML(as);
+                }
+            } catch(e) {}
+        }, 80);
     },
 
     startTranslation: function() {
@@ -45921,6 +45931,28 @@ var LangSystem = {
             this.ignoredTags.indexOf(node.parentNode.tagName.toUpperCase()) > -1) return true;
         if (node.classList && (node.classList.contains('goog-te-menu-value') ||
             node.id === 'google_translate_element')) return true;
+        // Varlık sembolü ve adı içeren elementleri çevirmeden koru
+        var SYMBOL_CLASSES = [
+            'asset-name', 'm-row-sym', 'bnc-asset-name', 'rc6-sym-text',
+            'qam-asset-name', 'social-asset-name', 'notranslate', 'no-translate'
+        ];
+        if (node.classList) {
+            for (var i = 0; i < SYMBOL_CLASSES.length; i++) {
+                if (node.classList.contains(SYMBOL_CLASSES[i])) return true;
+            }
+        }
+        // Üst elementlerde de kontrol et (parent zinciri)
+        var ancestor = node.parentNode;
+        var depth = 0;
+        while (ancestor && depth < 4) {
+            if (ancestor.classList) {
+                for (var j = 0; j < SYMBOL_CLASSES.length; j++) {
+                    if (ancestor.classList.contains(SYMBOL_CLASSES[j])) return true;
+                }
+            }
+            ancestor = ancestor.parentNode;
+            depth++;
+        }
         // Chat alanını koru — kendi sistemimiz hallediyor
         if (node.id === 'commChatMessages') return true;
         if (node.id && node.id.startsWith('msg-')) return true;
@@ -45959,7 +45991,13 @@ var LangSystem = {
     processTextNode: function(node) {
         var text = node.nodeValue.trim();
         if (!text || text.length < 2 || !/[a-zA-ZğüşıöçĞÜŞİÖÇ]/.test(text)) return;
+        // Kısa büyük harf metinleri koru (<=5 karakter)
         if (text.length <= 5 && text === text.toUpperCase()) return;
+        // Varlık sembolü gibi görünen uzun büyük harf metinleri koru
+        // (rakam ile başlayan veya sadece büyük harf+rakamdan oluşan: HMSTR, BONK, TRUMP, 1MBABYDOGE vb.)
+        if (/^[A-Z0-9]+$/.test(text)) return;
+        // USDT, BUSD, BTC vb. ile biten sembolleri koru
+        if (/^[A-Z0-9]+(USDT|BUSD|USDC|BTC|ETH|BNB|TRY)$/.test(text)) return;
         this.getTranslation(text, 'tr', 'en', function(translatedText) {
             if (translatedText && translatedText !== text && node.parentNode) {
                 if (!node.parentNode.hasAttribute('data-original-text')) {
